@@ -35,6 +35,10 @@ class PlayerList extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(member.id == myId ? '${member.name} (du)' : member.name),
+                if (member.host) ...[
+                  const SizedBox(width: 6),
+                  const Icon(Icons.star, size: 13, color: BwColors.amber),
+                ],
                 if (member.team > 0) ...[
                   const SizedBox(width: 8),
                   Text(
