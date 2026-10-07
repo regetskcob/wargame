@@ -1,6 +1,6 @@
 import 'components/tank_painter.dart';
 
-/// What sets the four vehicles apart on the field. The factors scale the
+/// What sets the vehicles apart on the field. The factors scale the
 /// shared base values in `GameConfig`, damage and fire rate are absolute.
 class TankStats {
   const TankStats({
@@ -83,6 +83,18 @@ class TankStats {
       barrels: 1,
       sound: 'autocannon',
       blurb: 'Schnell und wendig, aber kaum gepanzert',
+    ),
+    TankType.wiesel: TankStats(
+      maxHp: 60,
+      speed: 1.5,
+      acceleration: 1.5,
+      turnRate: 1.35,
+      fireCooldown: 1.2,
+      damage: 38,
+      bulletSpeed: 640,
+      barrels: 1,
+      sound: 'cannon',
+      blurb: 'Winzig und flink, die Panzerabwehrrakete trifft hart',
     ),
   };
 

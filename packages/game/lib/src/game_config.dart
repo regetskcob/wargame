@@ -77,9 +77,9 @@ class GameConfig {
     'NATO-GRAU',
   ];
 
-  /// A player's look travels as one number, the paint scheme in the low two
-  /// bits and the vehicle above it, so the wire format stays a single int.
-  static const styleCount = 16;
+  /// A player's look travels as one number, the vehicle times the number of
+  /// paint schemes plus the scheme, so the wire format stays a single int.
+  static final styleCount = TankType.values.length * shipColors.length;
 
   /// Team 0 plays alone, 1 is red, 2 is blue.
   static const teamColors = [
@@ -89,7 +89,8 @@ class GameConfig {
   ];
   static const teamNames = ['', 'ROT', 'BLAU'];
 
-  static int styleOf(int tankType, int color) => tankType * 4 + color;
+  static int styleOf(int tankType, int color) =>
+      tankType * shipColors.length + color;
 
   static Color colorOf(int style) => shipColors[style % shipColors.length];
 

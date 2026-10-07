@@ -1,11 +1,12 @@
 import 'dart:ui';
 
-/// The four vehicles a player can pick, all drawn in code from above.
+/// The vehicles a player can pick, all drawn in code from above.
 enum TankType {
   leopard('LEOPARD 2', 'Kampfpanzer'),
   puma('PUMA', 'Schützenpanzer'),
   gepard('GEPARD', 'Flugabwehr'),
-  boxer('BOXER', 'Radpanzer');
+  boxer('BOXER', 'Radpanzer'),
+  wiesel('WIESEL', 'Waffenträger');
 
   const TankType(this.label, this.role);
 
@@ -24,6 +25,7 @@ const _muzzles = {
   TankType.puma: [Offset(24, -9)],
   TankType.gepard: [Offset(18.5, -11), Offset(29.6, -11)],
   TankType.boxer: [Offset(24, -5)],
+  TankType.wiesel: [Offset(27.5, 0)],
 };
 
 /// Where the turret ring sits on the hull.
@@ -32,6 +34,7 @@ const _pivots = {
   TankType.puma: Offset(24, 23),
   TankType.gepard: Offset(24, 24),
   TankType.boxer: Offset(24, 24),
+  TankType.wiesel: Offset(24, 27),
 };
 
 typedef _TurretPass = void Function(void Function() draw);
@@ -80,6 +83,8 @@ void paintTank(
       _gepard(canvas, hull, dark, light, turret);
     case TankType.boxer:
       _boxer(canvas, hull, dark, light, turret);
+    case TankType.wiesel:
+      _wiesel(canvas, hull, dark, light, turret);
   }
   canvas.restore();
 }
@@ -369,5 +374,48 @@ void _boxer(
     canvas.drawCircle(const Offset(24, 24), 6.6, _fill(light));
     canvas.drawRect(const Rect.fromLTWH(28.5, 20, 3.4, 7), _fill(dark));
     canvas.drawCircle(const Offset(20.5, 26), 2, _fill(dark));
+  });
+}
+
+void _wiesel(
+  Canvas canvas,
+  Color hull,
+  Color dark,
+  Color light,
+  _TurretPass turret,
+) {
+  // Small and low: short tracks close to a narrow hull
+  _tracks(canvas, 12, 44, 12.5);
+
+  final body = Path()
+    ..moveTo(18.5, 43)
+    ..lineTo(18.5, 19)
+    ..lineTo(21, 12)
+    ..lineTo(27, 12)
+    ..lineTo(29.5, 19)
+    ..lineTo(29.5, 43)
+    ..close();
+  canvas.drawPath(body, _fill(hull));
+  canvas.drawPath(body, _line(dark));
+  // Driver hatch up front, engine grille at the back
+  canvas.drawRect(const Rect.fromLTWH(19.8, 15.5, 4, 3.5), _fill(dark));
+  canvas.drawRect(const Rect.fromLTWH(20, 37, 8, 5), _fill(dark));
+  for (var y = 38.0; y < 42; y += 1.6) {
+    canvas.drawLine(Offset(20.5, y), Offset(27.5, y), _line(light, 0.5));
+  }
+  _balkenkreuz(canvas, 24, 33, 4);
+
+  turret(() {
+    // TOW launch tube on a pedestal, set off to the right
+    canvas.drawRect(const Rect.fromLTWH(25.8, 0.5, 3.4, 27), _fill(_steel));
+    canvas.drawRect(
+      const Rect.fromLTWH(25.4, 0, 4.2, 1.8),
+      _fill(_barrelTip),
+    );
+    canvas.drawRect(const Rect.fromLTWH(26.3, 4, 2.4, 0.8), _fill(dark));
+    canvas.drawCircle(const Offset(24, 27), 4.6, _fill(dark));
+    canvas.drawCircle(const Offset(24, 27), 3.4, _fill(light));
+    // Sight box next to the tube
+    canvas.drawRect(const Rect.fromLTWH(21, 22, 3.6, 4.4), _fill(dark));
   });
 }
