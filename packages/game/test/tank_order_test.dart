@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game/src/game_config.dart';
 import 'package:game/src/game/components/tank_painter.dart';
@@ -52,5 +53,32 @@ void main() {
         lessThan(GameConfig.freeColors),
       );
     }
+  });
+
+  testWidgets('every vehicle card has the same size', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Wrap(
+            children: [
+              for (final type in TankType.values)
+                TankChoice(
+                  type: type,
+                  color: const Color(0xFFC9B27C),
+                  selected: type == TankType.panther,
+                  locked: type.level > 1,
+                  width: 100,
+                  onTap: () {},
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    final sizes = {
+      for (final type in TankType.values)
+        tester.getSize(find.byType(TankChoice).at(type.index)),
+    };
+    expect(sizes, hasLength(1));
   });
 }
