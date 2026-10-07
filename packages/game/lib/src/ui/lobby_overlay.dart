@@ -201,66 +201,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ],
             ),
           ),
-          ValueListenableBuilder<bool>(
-            valueListenable: game.multiplayer,
-            builder: (context, multi, _) => multi
-                ? const SizedBox()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'CPU-GEGNER',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.botCount,
-                        builder: (context, count, _) => Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton.outlined(
-                              tooltip: 'Weniger',
-                              onPressed: count > 0
-                                  ? () => game.botCount.value = count - 1
-                                  : null,
-                              icon: const Icon(Icons.remove),
-                            ),
-                            SizedBox(
-                              width: 56,
-                              child: Text(
-                                '$count',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium,
-                              ),
-                            ),
-                            IconButton.outlined(
-                              tooltip: 'Mehr',
-                              onPressed: count < 6
-                                  ? () => game.botCount.value = count + 1
-                                  : null,
-                              icon: const Icon(Icons.add),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                count == 0
-                                    ? 'Nur echte Spieler.'
-                                    : 'Läuft auf deinem Gerät.',
-                                style: const TextStyle(
-                                  color: BwColors.textDim,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
           const SizedBox(height: 16),
           Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 8),
@@ -284,9 +224,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         ] else ...[
           const SizedBox(height: 16),
           const Text(
-            'Modus und Gelände legt der Gastgeber fest. Du suchst dir hier '
-            'nur Namen und Fahrzeug aus. Nach jeder Übung ist der Nächste '
-            'Gastgeber.',
+            'Modus und Gelände legt der Gastgeber fest. '
+            'Du suchst dir hier nur Namen und Fahrzeug aus.',
             style: TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ],
@@ -383,7 +322,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 multi
                     ? 'Spiele mit anderen: Schick den Link weiter. '
                           'Es gibt keine CPU-Gegner.'
-                    : 'Du spielst allein gegen CPU-Panzer.',
+                    : 'Du spielst allein gegen ${GameConfig.minBots} bis '
+                          '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
+                          'ausgewürfelt.',
                 style: const TextStyle(color: BwColors.textDim, fontSize: 12),
               ),
             ],
