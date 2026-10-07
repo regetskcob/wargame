@@ -62,6 +62,24 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                 shadows: [Shadow(blurRadius: 24, color: Colors.amber)],
               ),
             ),
+            ValueListenableBuilder<bool>(
+              valueListenable: widget.game.touchMode,
+              builder: (context, touch, _) => touch
+                  ? const Padding(
+                      padding: EdgeInsets.only(top: 12),
+                      child: Text(
+                        'LINKS FAHREN  ·  RECHTS DEN TURM ZIELEN',
+                        style: TextStyle(
+                          fontSize: 14,
+                          letterSpacing: 2,
+                          fontWeight: FontWeight.w800,
+                          color: Color(0xFFE6E2D3),
+                          shadows: [Shadow(blurRadius: 8, color: Colors.black)],
+                        ),
+                      ),
+                    )
+                  : const SizedBox(),
+            ),
           ],
         ),
       ),

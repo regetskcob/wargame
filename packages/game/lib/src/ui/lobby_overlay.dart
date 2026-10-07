@@ -267,11 +267,20 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           },
         ),
         const SizedBox(height: 12),
-        const Text(
-          'Fahren mit WASD oder Pfeiltasten, Turm zielt auf die Maus (oder Q und E), '
-          'Feuer mit Leertaste oder Linksklick. Auf Touchgeräten steuerst du '
-          'über die Tasten und den Zielstick am Bildschirm.',
-          style: TextStyle(color: BwColors.textDim, fontSize: 12),
+        ValueListenableBuilder<bool>(
+          valueListenable: game.touchMode,
+          builder: (context, touch, _) => Text(
+            touch
+                ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
+                      'Rechter Stick richtet den Turm aus, unabhängig von der '
+                      'Wanne, und feuert ganz am Rand. FEUER schießt in '
+                      'Zielrichtung.'
+                : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
+                      'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
+                      'Auf Touchgeräten steuerst du mit zwei Sticks am '
+                      'Bildschirm.',
+            style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+          ),
         ),
       ],
     );
