@@ -1403,6 +1403,36 @@ class SpaceGame extends FlameGame
     );
   }
 
+  /// Host of a defense round: the base sends [count] squads on foot up the
+  /// road against wave [wave], a few seconds apart. They hold a line and
+  /// fight what comes.
+  void spawnBaseSquads(int wave, int count) {
+    final map = defenseMap;
+    if (map == null) {
+      return;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (var i = 0; i < count; i++) {
+      final id = 'ally-q$wave-$i';
+      _addSquad(
+        SquadPayload(
+          id: myId,
+          owner: id,
+          squad: id,
+          x: map.base.x,
+          y: map.base.y,
+          at: now + i * 4000,
+          rifles: GameConfig.squadRifles,
+          rockets: count >= 3 ? 2 : 1,
+          road: true,
+          back: true,
+        ),
+        send: true,
+      );
+    }
+    showNotice('EIGENE INFANTERIE RÜCKT AUS');
+  }
+
   /// Host of a defense round: a helicopter or a jet comes in over the edge
   /// of the field. A jet heads for the base or for one of the defenders.
   void spawnAircraft(String id, AirKind kind) {
@@ -1821,8 +1851,12 @@ class SpaceGame extends FlameGame
         payload.count > GameConfig.squadRifles + GameConfig.paraDropRockets) {
       return;
     }
-    final enemy = activeRound.defense && activeRound.isEnemy(payload.owner);
-    if (!enemy &&
+    // Squads of the waves and of the base come from the host.
+    final wave =
+        activeRound.defense &&
+        (activeRound.isEnemy(payload.owner) ||
+            activeRound.isAlly(payload.owner));
+    if (!wave &&
         (!activeRound.alive.contains(payload.owner) ||
             !guard.allowSpecial(payload.owner, consume: true))) {
       return;

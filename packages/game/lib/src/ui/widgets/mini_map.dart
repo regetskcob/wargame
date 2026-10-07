@@ -258,6 +258,15 @@ class _MiniMapPainter extends CustomPainter {
       max(3.0, DefenseMap.baseRadius * scale),
       Paint()..color = GameConfig.teamColors[1],
     );
+    // The enemy's outpost at the start of the road.
+    canvas.drawRect(
+      Rect.fromCenter(
+        center: toMap(map.outpost.x, map.outpost.y),
+        width: 6,
+        height: 6,
+      ),
+      Paint()..color = GameConfig.teamColors[2],
+    );
     for (final bridge in map.bridges) {
       canvas.drawCircle(
         toMap(bridge.centre.x, bridge.centre.y),

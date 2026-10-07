@@ -8,6 +8,7 @@ import 'package:game/src/net/payloads/defense_payload.dart';
 import 'package:game/src/net/payloads/lobby_presence.dart';
 import 'package:game/src/net/payloads/round_start_payload.dart';
 import 'package:game/src/net/payloads/shoot_payload.dart';
+import 'package:game/src/net/payloads/soldier_payload.dart';
 
 void main() {
   test('players defend together, every enemy is on the other side', () {
@@ -244,6 +245,47 @@ void main() {
       ).hp,
       isNull,
     );
+  });
+
+  test('both sides send troops on foot', () {
+    final round = RoundState(
+      seed: 1,
+      startedAt: 2,
+      participants: const ['a'],
+      botHost: 'a',
+      defense: true,
+    );
+    expect(round.isAlly('ally-q3-0'), isTrue);
+    expect(round.teamOf('ally-q3-0'), round.teamOf('a'));
+    expect(round.botName('ally-q3-0'), 'EIGENE INFANTERIE');
+    expect(
+      DefenseMap.planFor(GameConfig.defenseWaves).squads,
+      greaterThan(DefenseMap.planFor(1).squads),
+    );
+    final squad = SquadPayload.fromJson(
+      const SquadPayload(
+        id: 'a',
+        owner: 'ally-q3-0',
+        squad: 'ally-q3-0',
+        x: 0,
+        y: 0,
+        at: 1,
+        rifles: 4,
+        rockets: 1,
+        road: true,
+        back: true,
+      ).toJson(),
+    );
+    expect((squad.road, squad.back), (true, true));
+  });
+
+  test('the enemy outpost stands beside the start of the road', () {
+    for (var seed = 0; seed < 16; seed += 4) {
+      final map = DefenseMap.forSeed(seed);
+      expect(DefenseMap.bounds.contains(map.outpost.toOffset()), isTrue);
+      expect(map.distanceToRoad(map.outpost), greaterThan(80));
+      expect(map.outpost.distanceTo(map.entry), lessThan(250));
+    }
   });
 
   test('later waves are bigger', () {

@@ -138,6 +138,8 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
       _spawned = 0;
       _spawnTimer = 0;
       _sendSupport(next.wave);
+      // The base sends troops on foot against every wave, more as it grows.
+      gameRef.spawnBaseSquads(next.wave, next.hq);
     }
     final jetIn = _jetIn;
     if (jetIn != null) {

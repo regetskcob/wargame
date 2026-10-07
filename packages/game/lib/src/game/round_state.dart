@@ -61,6 +61,9 @@ class RoundState {
     if (isFriendlyAir(id)) {
       return parts[1] == 'j' ? 'EIGENER JET' : 'EIGENER HUBSCHRAUBER';
     }
+    if (isAlly(id) && parts[1].startsWith('q')) {
+      return 'EIGENE INFANTERIE';
+    }
     if (isAlly(id)) {
       return 'KAMERAD ${(int.tryParse(parts[1]) ?? 0) + 1}';
     }

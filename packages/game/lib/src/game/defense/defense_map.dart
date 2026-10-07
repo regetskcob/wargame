@@ -368,6 +368,22 @@ class DefenseMap {
     ];
   }
 
+  /// The enemy's outpost: beside the start of the road, where the waves
+  /// roll out from. Only scenery, it cannot be attacked.
+  late final Vector2 outpost = () {
+    final along = (road[1] - road[0]).normalized();
+    final side = Vector2(-along.y, along.x);
+    final ahead = road[0] + along * 110;
+    for (final sign in const [1.0, -1.0]) {
+      final at = ahead + side * (sign * (roadHalfWidth + 62));
+      if (bounds.deflate(50).contains(at.toOffset()) &&
+          !inWater(at, margin: 50)) {
+        return at;
+      }
+    }
+    return ahead + side * (roadHalfWidth + 62);
+  }();
+
   /// The vehicle of the comrade in [slot].
   static TankType allyType(int slot) => const [
     TankType.leopard,
@@ -404,7 +420,7 @@ class DefenseMap {
   /// flak and the Gepard earn their keep.
   static WavePlan planFor(int wave) => WavePlan(
     tanks: waveSize(wave),
-    squads: wave >= 4 ? 2 : 1,
+    squads: 1 + wave ~/ 3,
     helicopters: wave >= 2 ? 1 + (wave - 2) ~/ 3 : 0,
     jets: wave >= 3 ? 1 + (wave - 3) ~/ 3 : 0,
     drones: wave >= 4 ? (wave - 2) ~/ 2 : 0,
