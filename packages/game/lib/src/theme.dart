@@ -11,7 +11,7 @@ class BwColors {
   static const amber = Color(0xFFFFB300);
   static const danger = Color(0xFFD1492E);
   static const text = Color(0xFFE6E2D3);
-  static const textDim = Color(0xFF9DA58A);
+  static const textDim = Color(0xFFBFC6AA);
 }
 
 const _stencil = TextStyle(

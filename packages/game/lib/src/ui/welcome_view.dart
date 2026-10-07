@@ -33,7 +33,7 @@ class WelcomeView extends StatelessWidget {
             'Sofort los, ohne E-Mail. Dein Fortschritt hängt an diesem '
             'Browser. Im Warteraum kannst du dein Gastkonto jederzeit '
             'sichern.',
-            style: TextStyle(color: BwColors.textDim, fontSize: 12),
+            style: TextStyle(color: BwColors.text, fontSize: 14, height: 1.35),
           ),
           const SizedBox(height: 14),
           FilledButton.icon(
@@ -121,7 +121,7 @@ class _Notice extends StatelessWidget {
           children: [
             const Icon(Icons.info_outline, color: BwColors.amber),
             const SizedBox(width: 10),
-            Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+            Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
           ],
         ),
       ),
@@ -172,7 +172,7 @@ class _Box extends StatelessWidget {
               kicker,
               style: const TextStyle(
                 color: BwColors.amber,
-                fontSize: 11,
+                fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.5,
               ),

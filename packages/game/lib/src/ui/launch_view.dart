@@ -48,20 +48,36 @@ class LaunchView extends StatelessWidget {
         LayoutBuilder(
           builder: (context, box) {
             // Three cards side by side when there is room, else one per row.
-            final columns = box.maxWidth >= 640 ? 3 : 1;
-            final width = (box.maxWidth - 12 * (columns - 1)) / columns;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            // All three equally tall, so the row reads calmly.
+            if (box.maxWidth >= 640) {
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, option) in _options.indexed) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      Expanded(
+                        child: _ModeCard(
+                          option: option,
+                          stretched: true,
+                          onTap: () => game.chooseMode(option.mode),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final option in _options)
-                  SizedBox(
-                    width: width.floorToDouble(),
-                    child: _ModeCard(
-                      option: option,
-                      onTap: () => game.chooseMode(option.mode),
-                    ),
+                for (final (i, option) in _options.indexed) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  _ModeCard(
+                    option: option,
+                    onTap: () => game.chooseMode(option.mode),
                   ),
+                ],
               ],
             );
           },
@@ -114,10 +130,18 @@ const List<_Option> _options = [
 ];
 
 class _ModeCard extends StatelessWidget {
-  const _ModeCard({required this.option, required this.onTap});
+  const _ModeCard({
+    required this.option,
+    required this.onTap,
+    this.stretched = false,
+  });
 
   final _Option option;
   final VoidCallback onTap;
+
+  /// Side by side the card is as tall as its neighbours, and WEITER sits at
+  /// the bottom.
+  final bool stretched;
 
   @override
   Widget build(BuildContext context) {
@@ -158,7 +182,7 @@ class _ModeCard extends StatelessWidget {
                 option.kicker,
                 style: const TextStyle(
                   color: BwColors.amber,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.5,
                 ),
@@ -166,8 +190,13 @@ class _ModeCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 option.text,
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(
+                  color: BwColors.text,
+                  fontSize: 14,
+                  height: 1.35,
+                ),
               ),
+              if (stretched) const Spacer(),
               const SizedBox(height: 14),
               const Row(
                 mainAxisAlignment: MainAxisAlignment.end,
