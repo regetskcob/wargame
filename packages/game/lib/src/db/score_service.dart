@@ -11,11 +11,14 @@ class ScoreService {
 
   final SupabaseClient _client;
 
-  Stream<List<ScoresRow>> topScores({int limit = 10}) {
+  /// Id of the signed in player, to find their own row in the leaderboard.
+  String? get myId => _client.auth.currentUser?.id;
+
+  Stream<List<ScoresRow>> topScores({int limit = 20}) {
     return _client
         .table(Scores.table)
         .stream(primaryKey: [Scores.id])
-        .order(Scores.wins)
+        .order(Scores.wins, ascending: false)
         .limit(limit);
   }
 

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../db/supabase_schema.g.dart';
 import '../game_config.dart';
 import '../game/map_theme.dart';
 import '../game/space_game.dart';
@@ -8,6 +7,7 @@ import '../net/payloads/lobby_presence.dart';
 import '../game/components/tank_painter.dart';
 import '../theme.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/leaderboard.dart';
 import 'widgets/panel.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
@@ -297,8 +297,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           builder: (context, roster, _) =>
               PlayerList(members: roster, myId: game.myId),
         ),
-        const SizedBox(height: 24),
-        Leaderboard(game: game),
       ],
     );
   }
@@ -317,16 +315,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 constraints: const BoxConstraints(maxWidth: 860),
                 child: Panel(
                   padding: const EdgeInsets.all(24),
-                  child: narrow
-                      ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _pilotColumn(context),
-                            const SizedBox(height: 24),
-                            _rosterColumn(),
-                          ],
-                        )
-                      : Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (narrow) ...[
+                        _pilotColumn(context),
+                        const SizedBox(height: 24),
+                        _rosterColumn(),
+                      ] else
+                        Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(child: _pilotColumn(context)),
@@ -334,6 +331,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                             _rosterColumn(),
                           ],
                         ),
+                      const SizedBox(height: 28),
+                      Leaderboard(game: widget.game),
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -374,80 +375,6 @@ class ColorSwatchButton extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class Leaderboard extends StatefulWidget {
-  const Leaderboard({required this.game, super.key});
-
-  final SpaceGame game;
-
-  @override
-  State<Leaderboard> createState() => _LeaderboardState();
-}
-
-class _LeaderboardState extends State<Leaderboard> {
-  late final Stream<List<ScoresRow>> _scores;
-
-  @override
-  void initState() {
-    super.initState();
-    _scores = widget.game.scoreService.topScores();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<List<ScoresRow>>(
-      stream: _scores,
-      builder: (context, snapshot) {
-        final scores = snapshot.data ?? const [];
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('BESTENLISTE', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (scores.isEmpty)
-              const Text(
-                'Noch keine Siege eingetragen.',
-                style: TextStyle(color: BwColors.textDim),
-              ),
-            for (final row in scores)
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 2),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(
-                      Icons.emoji_events,
-                      size: 16,
-                      color: BwColors.amber,
-                    ),
-                    const SizedBox(width: 8),
-                    Text(row.name),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${row.wins}',
-                      style: const TextStyle(color: BwColors.textDim),
-                    ),
-                    if (row.rounds > 0) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '${row.kills} Abschüsse'
-                        '${row.shots > 0 ? ' · ${(row.hits * 100 / row.shots).round()} % Treffer' : ''}',
-                        style: const TextStyle(
-                          color: BwColors.textDim,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-          ],
-        );
-      },
     );
   }
 }
