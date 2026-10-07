@@ -10,6 +10,7 @@ import '../../game_config.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
+import '../defense/defense_map.dart';
 import '../game_phase.dart';
 import '../touch_input.dart';
 import '../space_game.dart';
@@ -43,6 +44,12 @@ class PlayerShip extends ShipBase
 
   final velocity = Vector2.zero();
   double _speed = 0;
+
+  /// Enemies of a defense round drive slower, shoot less often and report
+  /// their state less often than a player's tank.
+  double speedFactor = 1;
+  double fireFactor = 1;
+  double syncInterval = GameConfig.stateSyncInterval;
   double rapidFireLeft = 0;
 
   /// Forward speed as a share of this tank's top speed, below 0 in reverse.
@@ -91,6 +98,9 @@ class PlayerShip extends ShipBase
     _fire = keysPressed.contains(LogicalKeyboardKey.space);
     _turretLeft = keysPressed.contains(LogicalKeyboardKey.keyQ);
     _turretRight = keysPressed.contains(LogicalKeyboardKey.keyE);
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyB) {
+      gameRef.buildTower();
+    }
     return true;
   }
 
@@ -120,6 +130,7 @@ class PlayerShip extends ShipBase
     final maxSpeed =
         GameConfig.shipMaxSpeed *
         stats.speed *
+        speedFactor *
         min(_treeContacts > 0 ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration = GameConfig.shipAcceleration * stats.acceleration;
     // Tracks turn slower at full speed, and almost on the spot when standing.
@@ -145,7 +156,15 @@ class PlayerShip extends ShipBase
       ..setFrom(direction)
       ..scale(_speed);
     position.add(velocity * dt);
-    if (position.length > GameConfig.worldRadius) {
+    if (gameRef.defenseMap != null) {
+      final bounds = DefenseMap.bounds;
+      final x = position.x.clamp(bounds.left, bounds.right);
+      final y = position.y.clamp(bounds.top, bounds.bottom);
+      if (x != position.x || y != position.y) {
+        position.setValues(x, y);
+        _speed *= 0.4;
+      }
+    } else if (position.length > GameConfig.worldRadius) {
       position.scaleTo(GameConfig.worldRadius);
       _speed *= 0.4;
     }
@@ -183,7 +202,7 @@ class PlayerShip extends ShipBase
 
   void _applyZoneDamage(double dt) {
     final round = gameRef.round;
-    if (round == null) {
+    if (round == null || round.defense) {
       return;
     }
     final radius = StormZone.radiusAt(
@@ -204,6 +223,7 @@ class PlayerShip extends ShipBase
     if ((_fire || input.fire || input.aimFire) && _fireCooldown <= 0) {
       _fireCooldown =
           stats.fireCooldown *
+          fireFactor *
           (rapidFireLeft > 0 ? GameConfig.rapidFireFactor : 1);
       gameRef.fireFrom(this);
     }
@@ -212,7 +232,7 @@ class PlayerShip extends ShipBase
   void _broadcastState(double dt) {
     _sinceSync += dt;
     _sinceSend += dt;
-    if (_sinceSync < GameConfig.stateSyncInterval) {
+    if (_sinceSync < syncInterval) {
       return;
     }
     _sinceSync = 0;

@@ -164,8 +164,8 @@ flutter build web --base-href /your-repo/ \
 ## How the netcode works
 
 - One Realtime channel per room carries the broadcast events `state`,
-  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`, and
-  `soldier`.
+  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
+  `soldier`, `defense`, and `tower`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.
@@ -176,5 +176,10 @@ flutter build web --base-href /your-repo/ \
   over the gaps with dead reckoning.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate.
+- In the defense mode the players hold a base together on a fixed map without
+  the closing zone. The host runs the enemy waves like CPU tanks and is the
+  authority over the base: it broadcasts the base's hit points, the wave and
+  the result as `defense`. Guns go up with `tower`, and only their builder
+  aims and fires them, so their shots travel as ordinary `shoot` events.
 - The winner records the round through the typed `scores` table, and the lobby
   leaderboard is a typed Postgres Changes stream.

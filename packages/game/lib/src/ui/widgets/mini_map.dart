@@ -6,6 +6,7 @@ import 'package:flutter/scheduler.dart';
 import '../../game/components/asteroid.dart';
 import '../../game/components/obstacle.dart';
 import '../../game/components/storm_zone.dart';
+import '../../game/defense/defense_map.dart';
 import '../../game/space_game.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
@@ -47,6 +48,11 @@ class _MiniMapPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    final map = game.defenseMap;
+    if (map != null) {
+      _paintDefense(canvas, size, map);
+      return;
+    }
     final round = game.round;
     final center = size.center(Offset.zero);
     final scale = size.width / 2 / GameConfig.worldRadius;
@@ -175,6 +181,72 @@ class _MiniMapPainter extends CustomPainter {
     canvas.drawCircle(
       center,
       size.width / 2 - 1,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..color = BwColors.oliveLight,
+    );
+  }
+
+  /// The rectangle of a defense round with its road, the base and the guns.
+  void _paintDefense(Canvas canvas, Size size, DefenseMap map) {
+    final scale = size.width / (2 * DefenseMap.halfWidth);
+    final height = 2 * DefenseMap.halfHeight * scale;
+    final frame = Rect.fromCenter(
+      center: size.center(Offset.zero),
+      width: size.width,
+      height: height,
+    );
+    Offset toMap(double x, double y) => frame.center + Offset(x, y) * scale;
+
+    canvas.drawRect(frame, Paint()..color = BwColors.panel);
+    final road = Path()
+      ..moveTo(
+        toMap(map.road.first.x, map.road.first.y).dx,
+        toMap(map.road.first.x, map.road.first.y).dy,
+      );
+    for (final point in map.road.skip(1)) {
+      final p = toMap(point.x, point.y);
+      road.lineTo(p.dx, p.dy);
+    }
+    canvas.drawPath(
+      road,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = max(2.0, DefenseMap.roadHalfWidth * 2 * scale)
+        ..color = BwColors.sand.withValues(alpha: 0.5),
+    );
+    canvas.drawCircle(
+      toMap(map.base.x, map.base.y),
+      max(3.0, DefenseMap.baseRadius * scale),
+      Paint()..color = GameConfig.teamColors[1],
+    );
+    final towerPaint = Paint()..color = Colors.white70;
+    for (final tower in game.towers.values) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: toMap(tower.position.x, tower.position.y),
+          width: 4,
+          height: 4,
+        ),
+        towerPaint,
+      );
+    }
+    for (final ship in [...game.remoteShips.values, ...game.botShips.values]) {
+      canvas.drawCircle(
+        toMap(ship.position.x, ship.position.y),
+        2.5,
+        Paint()..color = GameConfig.teamColors[ship.team],
+      );
+    }
+    final me = game.myShip;
+    if (me != null && me.isMounted) {
+      final p = toMap(me.position.x, me.position.y);
+      canvas.drawCircle(p, 4.5, Paint()..color = Colors.white);
+      canvas.drawCircle(p, 2.8, Paint()..color = me.shipColor);
+    }
+    canvas.drawRect(
+      frame,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2

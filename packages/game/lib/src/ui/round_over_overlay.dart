@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../game/round_stats.dart';
+import '../game_config.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
@@ -95,7 +96,11 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                           ValueListenableBuilder<String?>(
                             valueListenable: game.winnerName,
                             builder: (context, winner, _) => Text(
-                              winner == null
+                              game.round?.defense ?? false
+                                  ? won
+                                        ? 'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!'
+                                        : 'Der Stützpunkt ist in Welle ${game.defense.value?.wave ?? 0} gefallen.'
+                                  : winner == null
                                   ? 'Unentschieden. Das Sperrgebiet gewinnt.'
                                   : won
                                   ? (game.round?.teamMode ?? false

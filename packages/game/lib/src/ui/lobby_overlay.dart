@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../game_config.dart';
+import '../game/game_mode.dart';
 import '../game/map_theme.dart';
 import '../game/space_game.dart';
 import '../net/payloads/lobby_presence.dart';
@@ -78,9 +79,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
-          style: TextStyle(color: BwColors.textDim),
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => Text(
+            mode == GameMode.defense
+                ? 'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.'
+                : 'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
+            style: const TextStyle(color: BwColors.textDim),
+          ),
         ),
         const SizedBox(height: 24),
         TextField(
@@ -134,49 +140,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ),
         if (game.net.isHost) ...[
-          const SizedBox(height: 16),
-          Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          ValueListenableBuilder<bool>(
-            valueListenable: game.teamMode,
-            builder: (context, teams, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ChoiceRow<bool>(
-                  options: const [
-                    (false, 'ALLE GEGEN ALLE', null),
-                    (true, 'TEAMS', null),
-                  ],
-                  selected: teams,
-                  onSelected: (v) => game.teamMode.value = v ?? false,
-                ),
-                if (teams) ...[
-                  const SizedBox(height: 10),
-                  ChoiceRow<int>(
-                    options: [
-                      (0, 'AUTO', null),
-                      (1, 'ROT', GameConfig.teamColors[1]),
-                      (2, 'BLAU', GameConfig.teamColors[2]),
-                    ],
-                    selected: _teamPick,
-                    onSelected: (v) {
-                      setState(() => _teamPick = v ?? 0);
-                      game.setTeamPick(_teamPick);
-                    },
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'AUTO füllt das kleinere Team. Eigene Teammitglieder '
-                    'triffst du nicht.',
-                    style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                  ),
-                ],
-              ],
-            ),
+          ValueListenableBuilder<GameMode>(
+            valueListenable: game.mode,
+            builder: (context, mode, _) => mode == GameMode.defense
+                ? const SizedBox()
+                : _teamChoice(context),
           ),
-          ValueListenableBuilder<bool>(
-            valueListenable: game.multiplayer,
-            builder: (context, multi, _) => multi
+          ValueListenableBuilder<GameMode>(
+            valueListenable: game.mode,
+            builder: (context, mode, _) => mode != GameMode.solo
                 ? const SizedBox()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,6 +285,56 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// Free for all or red against blue, for the host.
+  Widget _teamChoice(BuildContext context) {
+    final game = widget.game;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        ValueListenableBuilder<bool>(
+          valueListenable: game.teamMode,
+          builder: (context, teams, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChoiceRow<bool>(
+                options: const [
+                  (false, 'ALLE GEGEN ALLE', null),
+                  (true, 'TEAMS', null),
+                ],
+                selected: teams,
+                onSelected: (v) => game.teamMode.value = v ?? false,
+              ),
+              if (teams) ...[
+                const SizedBox(height: 10),
+                ChoiceRow<int>(
+                  options: [
+                    (0, 'AUTO', null),
+                    (1, 'ROT', GameConfig.teamColors[1]),
+                    (2, 'BLAU', GameConfig.teamColors[2]),
+                  ],
+                  selected: _teamPick,
+                  onSelected: (v) {
+                    setState(() => _teamPick = v ?? 0);
+                    game.setTeamPick(_teamPick);
+                  },
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'AUTO füllt das kleinere Team. Eigene Teammitglieder '
+                  'triffst du nicht.',
+                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   /// First step for the host: alone against CPU tanks or with other people.
   Widget _modeChoice(BuildContext context) {
     final game = widget.game;
@@ -321,27 +343,33 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         Text('SPIELART', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.multiplayer,
-          builder: (context, multi, _) => Column(
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChoiceRow<bool>(
+              ChoiceRow<GameMode>(
                 options: const [
-                  (false, 'EINZELSPIELER', null),
-                  (true, 'MEHRSPIELER', null),
+                  (GameMode.solo, 'EINZELSPIELER', null),
+                  (GameMode.multi, 'MEHRSPIELER', null),
+                  (GameMode.defense, 'VERTEIDIGUNG', null),
                 ],
-                selected: multi,
-                onSelected: (v) => game.setMultiplayer(v ?? true),
+                selected: mode,
+                onSelected: (v) => game.setMode(v ?? GameMode.multi),
               ),
               const SizedBox(height: 6),
-              Text(
-                multi
-                    ? 'Spiele mit anderen: Schick den Link weiter. '
-                          'Es gibt keine CPU-Gegner.'
-                    : 'Du spielst allein gegen CPU-Panzer.',
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
-              ),
+              Text(switch (mode) {
+                GameMode.solo => 'Du spielst allein gegen CPU-Panzer.',
+                GameMode.multi =>
+                  'Spiele mit anderen: Schick den Link weiter. '
+                      'Es gibt keine CPU-Gegner.',
+                GameMode.defense =>
+                  'Gemeinsam gegen ${GameConfig.defenseWaves} Wellen, '
+                      'allein oder mit anderen. Die Feinde rollen über die '
+                      'Straße zum Stützpunkt. Für Abschüsse gibt es Mittel, '
+                      'davon baust du Geschütze (Taste B). Zerstörte Panzer '
+                      'kehren nach kurzer Zeit zurück.',
+              }, style: const TextStyle(color: BwColors.textDim, fontSize: 12)),
             ],
           ),
         ),
@@ -351,10 +379,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
 
   Widget _rosterColumn() {
     final game = widget.game;
-    return ValueListenableBuilder<bool>(
-      valueListenable: game.multiplayer,
-      builder: (context, multi, _) =>
-          multi ? _roster(game) : const SizedBox.shrink(),
+    return ValueListenableBuilder<GameMode>(
+      valueListenable: game.mode,
+      builder: (context, mode, _) =>
+          mode.withOthers ? _roster(game) : const SizedBox.shrink(),
     );
   }
 
@@ -393,9 +421,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         const _JoinedBanner()
                       else ...[
                         _modeChoice(context),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: widget.game.multiplayer,
-                          builder: (context, multi, _) => multi
+                        ValueListenableBuilder<GameMode>(
+                          valueListenable: widget.game.mode,
+                          builder: (context, mode, _) => mode.withOthers
                               ? Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: RoomInvite(game: widget.game),

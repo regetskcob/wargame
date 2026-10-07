@@ -54,6 +54,29 @@ class GameConfig {
   static const smokeRadius = 130.0;
   static const smokeSeconds = 10.0;
 
+  /// Defense: the base, the waves and the guns the players put down.
+  static const defenseWaves = 8;
+  static const baseHp = 1500.0;
+  static const raidDamage = 120.0;
+  static const firstWaveSeconds = 8;
+  static const waveBreakSeconds = 12;
+  static const enemySpawnEvery = 1.6;
+  static const maxEnemiesAlive = 6;
+  static const enemySpeed = 0.6;
+  static const enemyFireFactor = 3.0;
+  static const enemySyncInterval = 0.1;
+  static const respawnSeconds = 6.0;
+  static const startCredits = 150;
+  static const creditsPerKill = 20;
+  static const waveBonus = 50;
+  static const towerCost = 100;
+  static const maxTowers = 6;
+  static const towerSpacing = 60.0;
+  static const towerRange = 420.0;
+  static const towerCooldown = 0.45;
+  static const towerDamage = 18.0;
+  static const towerBulletSpeed = 560.0;
+
   static const countdownSeconds = 3;
   static const roundOverSeconds = 6;
 
