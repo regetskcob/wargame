@@ -273,8 +273,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             touch
                 ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus, unabhängig von der '
-                      'Wanne, und feuert ganz am Rand. FEUER schießt in '
-                      'Zielrichtung.'
+                      'Wanne, und feuert, sobald du über den Ring schiebst. '
+                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt.'
                 : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
                       'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
                       'Auf Touchgeräten steuerst du mit zwei Sticks am '
