@@ -57,8 +57,11 @@ Everything resolves from pub.dev. There are no git dependencies and no
   up the field on request. Private rooms by link, code or QR code, public
   rooms in a room list, and late joiners can watch the running round.
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
-  roll along the road to the base. Kills bring money for guns (key B), the
+  roll along the road to the base. CPU comrades fill the squad, and later the
+  base sends aircraft of its own. Kills bring money for guns (key B), the
   base hands out ammunition, and destroyed tanks return after a short time.
+  A base that holds well grows from a watchtower to barracks to a fortress.
+  See [Defense thresholds](#defense-thresholds) for the numbers.
 
 ### On the battlefield
 
@@ -89,11 +92,62 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
-  Gepard that hits aircraft properly) and mortars, three levels each, and
-  armour, gun, engine and magazine upgrades for the tank.
+  Gepard that hits aircraft properly), mortars and later howitzers, three
+  levels each, trenches that cover a tank, and armour, gun, engine and
+  magazine upgrades for the tank. The enemy shoots guns and trenches to
+  pieces.
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
   and markers for enemies off screen.
-- Keyboard and mouse, or two touch sticks on phones and tablets.
+- Keyboard and mouse, or two touch sticks on phones and tablets. The left
+  stick points where the tank should go, the right one aims and fires, and
+  an aim assist (on by default, switched with a button) turns the turret
+  onto the nearest enemy while the right thumb rests.
+
+### Defense thresholds
+
+The numbers that decide how a defense round grows. They live in
+`packages/game/lib/src/game_config.dart` and, for the guns,
+`packages/game/lib/src/game/defense/tower.dart`.
+
+**The base.** It starts with 1500 hit points. A wave counts as held well
+when the base loses at most 15 % of its current maximum during it. The
+count of such waves decides how far the base has grown:
+
+| Stage | Waves held well | Hit points | Comrades | Guns per player | Guns on the base |
+| --- | --- | --- | --- | --- | --- |
+| Watchtower | 0 | 1500 | start value | 6 | none |
+| Barracks | 2 | 2000 | +1 | 8 | cannon |
+| Fortress | 4 | 2500 | +2 | 10 | cannon (level 2) and flak |
+
+The 500 hit points of each step are added right away. The count is not
+reset by a bad wave, the base only waits longer for the next step.
+
+**The squad.** CPU comrades fill the squad up to 4 tanks, at least one joins
+even a full room. A destroyed comrade rolls out of the base again after 10
+seconds.
+
+**Air support.** From wave 3 the base sends an attack helicopter every wave,
+which stays 40 seconds. From wave 5 a jet follows 14 seconds into the wave
+and bombs the enemy closest to the base.
+
+**Money.** 150 at the start, 20 per tank, 40 per aircraft, 5 per soldier and
+50 for every wave beaten off.
+
+**Guns and trenches.**
+
+| Kind | Cost | From wave | Hit points (level 1) | Job |
+| --- | --- | --- | --- | --- |
+| Cannon | 100 | 1 | 240 | tanks |
+| Flak | 120 | 1 | 200 | aircraft and drones |
+| Mortar | 150 | 1 | 200 | area fire up to 620 |
+| Howitzer | 220 | 4 | 300 | heavy area fire up to 1050 |
+| Trench | 60 | 2 | 360 | a tank in it takes half damage |
+
+Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
+faster; trenches have no levels. Enemy shells, bombs, barrages and drones
+wear guns and trenches down, and enemy tanks and helicopters go for them
+when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
+player, they do not count as guns.
 
 ### After the round
 
@@ -112,6 +166,9 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - CPU tanks on three levels, the defense mode and the rematch button.
 - Defense: four maps with river and bridges, helicopters, jets and drones,
   gun types (cannon, flak, mortar), gun and tank upgrades.
+- Defense: CPU comrades, the base's own helicopters and jets, howitzers and
+  trenches, guns the enemy can destroy and a base that grows with success.
+  A wider view, and touch controls with direction driving and aim assist.
 - Fighting infantry, the inventory, new gems and the Lynx and Panther with
   vehicles unlocked by rank.
 - Ranks, rating, badges and the leaderboards.
@@ -339,8 +396,11 @@ flutter build web --base-href /your-repo/ \
 - In the defense mode the players hold a base together on a fixed map without
   the closing zone. The host runs the enemy waves like CPU tanks and is the
   authority over the base: it broadcasts the base's hit points, the wave and
-  the result as `defense`. Guns go up with `tower`, and only their builder
-  aims and fires them, so their shots travel as ordinary `shoot` events.
+  the result as `defense`, along with how far the base has grown. Guns go up
+  with `tower`, and only their builder aims and fires them, so their shots
+  travel as ordinary `shoot` events. The host also keeps the guns' hit
+  points and sends them with `tower` after every hit; at nothing the gun is
+  gone on every client.
 - Every player records their round through the `record_round` database
   function. It clamps the numbers, grants experience and moves the Elo rating
   against the human opponents the player outlasted, and keeps the round in
