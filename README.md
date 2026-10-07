@@ -34,8 +34,9 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - A rematch button on the end screen, and a replay of the last round.
 - Ranks from experience, an Elo rating, ten badges, an all time and a weekly
   leaderboard and statistics per vehicle.
-- Guest accounts that can be secured by e-mail or with a GitHub or Google
-  login, private rooms by link or code and a list of public rooms.
+- Guest accounts, and behind a switch the option to secure them by e-mail or
+  with a GitHub or Google login. Private rooms by link or code and a list of
+  public rooms.
 
 ## Packages
 
@@ -172,7 +173,9 @@ is no server of our own.
    migrations, but rating, experience, badges and the saved call sign only
    work once they are applied. Push the migrations before the game.
 
-   For lasting accounts, set the URL of the game as Site URL and add it with
+   Securing the guest account and signing in on another device are switched
+   off for now. Build with `--dart-define=ACCOUNTS=true` to show them in the
+   lobby once the following is in place. For lasting accounts, set the URL of the game as Site URL and add it with
    `/**` to the redirect URLs (Authentication, URL Configuration), so the
    links in the mails lead back to the game, and turn on "Allow manual
    linking". Without a custom SMTP server Supabase only mails the members of

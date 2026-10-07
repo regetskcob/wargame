@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../env.dart';
 import '../game_config.dart';
 import '../game/bot_level.dart';
 import '../game/game_mode.dart';
@@ -114,8 +115,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         ),
         const SizedBox(height: 16),
         PilotCard(progress: game.progress),
-        const SizedBox(height: 8),
-        AccountPanel(accounts: game.accounts),
+        if (Env.accounts) ...[
+          const SizedBox(height: 8),
+          AccountPanel(accounts: game.accounts),
+        ],
         const SizedBox(height: 16),
         TextField(
           controller: _nameController,
