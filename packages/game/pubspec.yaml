@@ -1,5 +1,5 @@
 name: game
-description: "Last-ship-standing multiplayer space arena built with Flame and Supabase."
+description: "Last-tank-standing multiplayer Panzergefecht built with Flame and Supabase."
 publish_to: none
 version: 0.1.0+1
 resolution: workspace

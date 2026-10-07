@@ -6,6 +6,7 @@ import '../game/components/storm_zone.dart';
 import '../game/space_game.dart';
 import '../game_config.dart';
 import '../theme.dart';
+import 'widgets/enemy_indicators.dart';
 import 'widgets/health_bar.dart';
 import 'widgets/kill_feed_view.dart';
 import 'widgets/mini_map.dart';
@@ -72,6 +73,7 @@ class _HudOverlayState extends State<HudOverlay> {
             child: MuteButton(),
           ),
         ),
+        EnemyIndicators(game: game),
         ValueListenableBuilder<bool>(
           valueListenable: game.touchMode,
           builder: (context, touch, _) =>
@@ -204,9 +206,16 @@ class _HudOverlayState extends State<HudOverlay> {
             const SizedBox(height: 8),
             KillFeedView(feed: game.killFeed),
             const Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: MiniMap(game: game),
+            // With touch controls both thumbs own the lower corners, so the
+            // map moves to the middle.
+            ValueListenableBuilder<bool>(
+              valueListenable: game.touchMode,
+              builder: (context, touch, _) => Align(
+                alignment: touch
+                    ? Alignment.bottomCenter
+                    : Alignment.bottomRight,
+                child: MiniMap(game: game, size: touch ? 104 : 150),
+              ),
             ),
           ],
         ),

@@ -21,6 +21,7 @@ class GameConfig {
   static const asteroidBumpDamage = 5.0;
 
   static const stateSyncInterval = 0.05;
+  static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
   static const remoteTeleportDistance = 200.0;

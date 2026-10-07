@@ -22,9 +22,13 @@ class RemoteShip extends ShipBase {
   final Vector2 _target;
   final velocity = Vector2.zero();
   late double _targetAngle;
+
+  /// When the last state arrived, to notice tanks that went silent.
+  DateTime lastSeen = DateTime.now();
   late double _targetTurret = turretAngle;
 
   void applyState(ShipStatePayload state) {
+    lastSeen = DateTime.now();
     _target.setValues(state.x, state.y);
     velocity.setValues(state.vx, state.vy);
     _targetAngle = state.rotation;

@@ -5,8 +5,9 @@ import 'package:flutter/material.dart';
 import '../../game/touch_input.dart';
 import '../../theme.dart';
 
-/// Steering on the left, throttle, brake and fire on the right and an aim
-/// stick for the turret in between.
+/// Two sticks and a fire button, the usual twin stick layout for a tank: the
+/// left thumb drives (up is forward, sideways turns), the right thumb aims the
+/// turret and fires when pushed to the edge, and FEUER fires without aiming.
 class TouchControls extends StatelessWidget {
   const TouchControls({required this.input, super.key});
 
@@ -15,36 +16,31 @@ class TouchControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      minimum: const EdgeInsets.all(16),
+      minimum: const EdgeInsets.all(14),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final wide = constraints.maxWidth >= 600;
+          final shortest = min(constraints.maxWidth, constraints.maxHeight);
+          final stick = (shortest * 0.34).clamp(112.0, 170.0);
           return Stack(
             children: [
               Align(
                 alignment: Alignment.bottomLeft,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _HoldButton(
-                      icon: Icons.rotate_left,
-                      label: 'LINKS',
-                      onChanged: (down) => input.left = down,
-                    ),
-                    const SizedBox(width: 12),
-                    _HoldButton(
-                      icon: Icons.rotate_right,
-                      label: 'RECHTS',
-                      onChanged: (down) => input.right = down,
-                    ),
-                  ],
-                ),
-              ),
-              Align(
-                alignment: wide ? Alignment.bottomCenter : Alignment.bottomLeft,
-                child: Padding(
-                  padding: EdgeInsets.only(bottom: wide ? 0 : 96),
-                  child: _AimStick(input: input),
+                child: _Stick(
+                  size: stick,
+                  label: 'FAHREN',
+                  onChanged: (v, _) {
+                    final active = v.distance > 0.18;
+                    input
+                      ..left = active && v.dx < -0.3
+                      ..right = active && v.dx > 0.3
+                      ..thrust = active && v.dy < -0.25
+                      ..brake = active && v.dy > 0.25;
+                  },
+                  onReleased: () => input
+                    ..left = false
+                    ..right = false
+                    ..thrust = false
+                    ..brake = false,
                 ),
               ),
               Align(
@@ -53,29 +49,24 @@ class TouchControls extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _HoldButton(
-                          icon: Icons.keyboard_arrow_up,
-                          label: 'VOR',
-                          onChanged: (down) => input.thrust = down,
-                        ),
-                        const SizedBox(height: 12),
-                        _HoldButton(
-                          icon: Icons.keyboard_arrow_down,
-                          label: 'BREMSE',
-                          onChanged: (down) => input.brake = down,
-                        ),
-                      ],
-                    ),
-                    const SizedBox(width: 20),
                     _HoldButton(
                       icon: Icons.gps_fixed,
                       label: 'FEUER',
-                      size: 112,
+                      size: stick * 0.62,
                       accent: BwColors.danger,
                       onChanged: (down) => input.fire = down,
+                    ),
+                    const SizedBox(width: 12),
+                    _Stick(
+                      size: stick,
+                      label: 'ZIELEN',
+                      onChanged: (v, _) {
+                        if (v.distance > 0.18) {
+                          input.aim = atan2(v.dx, -v.dy);
+                        }
+                        input.aimFire = v.distance > 0.82;
+                      },
+                      onReleased: () => input.aimFire = false,
                     ),
                   ],
                 ),
@@ -88,64 +79,106 @@ class TouchControls extends StatelessWidget {
   }
 }
 
-/// Drag to point the turret. The angle stays after the finger lifts.
-class _AimStick extends StatefulWidget {
-  const _AimStick({required this.input});
+/// A stick that reports its deflection as a vector of length 0 to 1.
+class _Stick extends StatefulWidget {
+  const _Stick({
+    required this.size,
+    required this.label,
+    required this.onChanged,
+    required this.onReleased,
+  });
 
-  final TouchInput input;
+  final double size;
+  final String label;
+  final void Function(Offset deflection, bool active) onChanged;
+  final VoidCallback onReleased;
 
   @override
-  State<_AimStick> createState() => _AimStickState();
+  State<_Stick> createState() => _StickState();
 }
 
-class _AimStickState extends State<_AimStick> {
-  static const _size = 120.0;
+class _StickState extends State<_Stick> {
   Offset _knob = Offset.zero;
   bool _active = false;
+  int? _pointer;
+
+  double get _radius => widget.size / 2 - widget.size * 0.17;
 
   void _update(Offset local) {
-    final delta = local - const Offset(_size / 2, _size / 2);
-    if (delta.distance < 10) {
-      return;
-    }
-    widget.input.aim = atan2(delta.dx, -delta.dy);
+    final delta = local - Offset(widget.size / 2, widget.size / 2);
+    final length = delta.distance;
+    final clamped = length > _radius ? delta / length * _radius : delta;
     setState(() {
       _active = true;
-      _knob = delta.distance > _size / 2 - 22
-          ? delta / delta.distance * (_size / 2 - 22)
-          : delta;
+      _knob = clamped;
     });
+    widget.onChanged(clamped / _radius, true);
+  }
+
+  void _release() {
+    _pointer = null;
+    setState(() {
+      _active = false;
+      _knob = Offset.zero;
+    });
+    widget.onReleased();
+  }
+
+  @override
+  void dispose() {
+    if (_active) {
+      widget.onReleased();
+    }
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final knob = widget.size * 0.34;
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (e) => _update(e.localPosition),
-      onPointerMove: (e) => _update(e.localPosition),
-      onPointerUp: (_) => setState(() => _active = false),
-      onPointerCancel: (_) => setState(() => _active = false),
+      onPointerDown: (e) {
+        _pointer ??= e.pointer;
+        if (_pointer == e.pointer) {
+          _update(e.localPosition);
+        }
+      },
+      onPointerMove: (e) {
+        if (_pointer == e.pointer) {
+          _update(e.localPosition);
+        }
+      },
+      onPointerUp: (e) {
+        if (_pointer == e.pointer) {
+          _release();
+        }
+      },
+      onPointerCancel: (e) {
+        if (_pointer == e.pointer) {
+          _release();
+        }
+      },
       child: SizedBox(
-        width: _size,
-        height: _size,
+        width: widget.size,
+        height: widget.size,
         child: Stack(
           alignment: Alignment.center,
           children: [
             Container(
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0x66000000),
+                color: Color(_active ? 0x88000000 : 0x55000000),
                 border: Border.all(
                   color: _active ? BwColors.amber : BwColors.sand,
                   width: 2,
                 ),
               ),
             ),
-            const Positioned(
-              top: 6,
+            Positioned(
+              top: widget.size * 0.07,
               child: Text(
-                'ZIELEN',
-                style: TextStyle(
+                widget.label,
+                style: const TextStyle(
                   fontSize: 9,
                   letterSpacing: 1.5,
                   color: BwColors.textDim,
@@ -155,14 +188,13 @@ class _AimStickState extends State<_AimStick> {
             Transform.translate(
               offset: _knob,
               child: Container(
-                width: 44,
-                height: 44,
+                width: knob,
+                height: knob,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: _active ? BwColors.amber : BwColors.olive,
                   border: Border.all(color: BwColors.sand, width: 2),
                 ),
-                child: const Icon(Icons.gps_fixed, size: 20),
               ),
             ),
           ],

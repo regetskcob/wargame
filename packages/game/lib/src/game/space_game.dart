@@ -141,6 +141,7 @@ class SpaceGame extends FlameGame
   int _bulletCounter = 0;
   int _spectateIndex = 0;
   int _lastTick = -1;
+  double _staleTimer = 0;
   double _engineTimer = 0;
 
   @override
@@ -184,6 +185,11 @@ class SpaceGame extends FlameGame
       }
     }
     _updatePowerUps();
+    _staleTimer += dt;
+    if (_staleTimer >= 1) {
+      _staleTimer = 0;
+      _dropSilentTanks();
+    }
     _engineTimer += dt;
     if (_engineTimer >= 0.1) {
       _engineTimer = 0;
@@ -882,6 +888,23 @@ class SpaceGame extends FlameGame
       ...killFeed.value,
       entry,
     ].reversed.take(6).toList().reversed.toList();
+  }
+
+  /// Broadcast is fire and forget, so a death message can get lost, and a
+  /// player whose window froze never sends one. Every tank sends its state at
+  /// least once a second, so one that has been silent for long is gone.
+  /// Without this the round would wait forever for an enemy that is not there.
+  void _dropSilentTanks() {
+    final current = phase.value;
+    if (current != GamePhase.playing && current != GamePhase.spectating) {
+      return;
+    }
+    final now = DateTime.now();
+    for (final entry in remoteShips.entries.toList()) {
+      if (now.difference(entry.value.lastSeen) > GameConfig.silentTankTimeout) {
+        _handleRemoteDeath(entry.key, explode: false);
+      }
+    }
   }
 
   /// A bot of this client was destroyed.

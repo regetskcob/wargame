@@ -6,12 +6,15 @@ class TouchInput {
   bool brake = false;
   bool fire = false;
 
+  /// Set while the aim stick is pushed to its edge, which also fires.
+  bool aimFire = false;
+
   /// World angle picked with the aim stick. Stays set after release, so the
   /// turret keeps pointing where it was last aimed.
   double? aim;
 
   void reset() {
-    left = right = thrust = brake = fire = false;
+    left = right = thrust = brake = fire = aimFire = false;
     aim = null;
   }
 }

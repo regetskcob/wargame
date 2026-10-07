@@ -201,7 +201,7 @@ class PlayerShip extends ShipBase
       rapidFireLeft = max(0, rapidFireLeft - dt);
       gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
     }
-    if ((_fire || input.fire) && _fireCooldown <= 0) {
+    if ((_fire || input.fire || input.aimFire) && _fireCooldown <= 0) {
       _fireCooldown =
           stats.fireCooldown *
           (rapidFireLeft > 0 ? GameConfig.rapidFireFactor : 1);
