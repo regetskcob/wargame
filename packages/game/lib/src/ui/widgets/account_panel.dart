@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -28,7 +30,17 @@ class _AccountPanelState extends State<AccountPanel> {
   var _error = false;
 
   @override
+  void initState() {
+    super.initState();
+    widget.accounts.providers.addListener(_refresh);
+    unawaited(widget.accounts.loadProviders());
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
   void dispose() {
+    widget.accounts.providers.removeListener(_refresh);
     _email.dispose();
     _code.dispose();
     super.dispose();
@@ -64,14 +76,18 @@ class _AccountPanelState extends State<AccountPanel> {
       });
       return;
     }
-    _run(() async {
-      if (_signIn) {
-        await widget.accounts.sendSignInMail(email);
-      } else {
-        await widget.accounts.secureWithEmail(email);
-      }
-      _step = _Step.codeSent;
-    }, 'Mail ist unterwegs. Öffne den Link oder gib den Code ein.');
+    _run(
+      () async {
+        if (_signIn) {
+          await widget.accounts.sendSignInMail(email);
+        } else {
+          await widget.accounts.secureWithEmail(email);
+        }
+        _step = _Step.codeSent;
+      },
+      'Mail ist unterwegs. Öffne den Link darin, oder gib den Code ein, '
+      'falls die Mail einen enthält.',
+    );
   }
 
   void _verify() {
@@ -191,7 +207,7 @@ class _AccountPanelState extends State<AccountPanel> {
               onPressed: _busy ? null : _sendMail,
               child: Text(_signIn ? 'ANMELDELINK SENDEN' : 'KONTO SICHERN'),
             ),
-            for (final (provider, label) in AccountService.providers)
+            for (final (provider, label) in widget.accounts.providers.value)
               OutlinedButton(
                 onPressed: _busy
                     ? null

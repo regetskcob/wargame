@@ -172,12 +172,16 @@ is no server of our own.
    migrations, but rating, experience, badges and the saved call sign only
    work once they are applied. Push the migrations before the game.
 
-   For lasting accounts also turn on "Allow manual linking" and keep e-mail
-   sign-in enabled. To show the code in the sign-in and change mails, add
-   `{{ .Token }}` to the "Magic Link" and "Change Email Address" templates.
-   GitHub and Google logins need the providers set up under Sign In /
-   Providers, and the URL of the game in the redirect URLs under URL
-   Configuration.
+   For lasting accounts, set the URL of the game as Site URL and add it with
+   `/**` to the redirect URLs (Authentication, URL Configuration), so the
+   links in the mails lead back to the game, and turn on "Allow manual
+   linking". Without a custom SMTP server Supabase only mails the members of
+   the project team, a few mails an hour, so real players need SMTP set up
+   under Authentication, Emails. With SMTP in place the German templates in
+   `supabase/templates` can be used, they also carry the code the lobby asks
+   for. GitHub and Google logins need an OAuth app at the provider, entered
+   under Sign In / Providers. The lobby only shows the logins the project has
+   switched on.
 
 2. In the GitHub repository, set Pages to the "GitHub Actions" source and add
    the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable

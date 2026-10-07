@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../env.dart';
 import '../net/room.dart';
 
 /// Turns the anonymous guest account every player starts with into a lasting
@@ -21,12 +24,37 @@ class AccountService {
 
   late final user = ValueNotifier<User?>(_client.auth.currentUser);
 
-  /// Logins offered next to e-mail. They have to be enabled in the Supabase
-  /// project, see the README.
-  static const providers = [
+  /// Logins that can be offered next to e-mail, see the README.
+  static const _knownProviders = [
     (OAuthProvider.github, 'GITHUB'),
     (OAuthProvider.google, 'GOOGLE'),
   ];
+
+  /// The logins the Supabase project has switched on. Empty until the
+  /// settings arrived, and when none is set up.
+  final providers = ValueNotifier<List<(OAuthProvider, String)>>(const []);
+
+  /// Asks the project which logins it offers, so the lobby only shows
+  /// buttons that work.
+  Future<void> loadProviders() async {
+    try {
+      final response = await http
+          .get(
+            Uri.parse('${Env.supabaseUrl}/auth/v1/settings'),
+            headers: {'apikey': Env.supabaseKey},
+          )
+          .timeout(const Duration(seconds: 5));
+      final external =
+          (jsonDecode(response.body) as Map<String, dynamic>)['external']
+              as Map<String, dynamic>;
+      providers.value = [
+        for (final provider in _knownProviders)
+          if (external[provider.$1.name] == true) provider,
+      ];
+    } on Object {
+      providers.value = const [];
+    }
+  }
 
   bool get isGuest => user.value?.isAnonymous ?? true;
 
