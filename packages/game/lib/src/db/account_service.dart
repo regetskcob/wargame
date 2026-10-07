@@ -20,6 +20,12 @@ class AccountService {
   }
 
   final SupabaseClient _client;
+
+  /// This page was opened from the link in a mail, but the browser could
+  /// not finish the sign-in there: the link was opened in another browser,
+  /// or in a private tab that does not share storage with the one that asked
+  /// for the mail.
+  static bool mailLinkFailed = false;
   late final StreamSubscription<AuthState> _subscription;
 
   late final user = ValueNotifier<User?>(_client.auth.currentUser);
@@ -103,6 +109,13 @@ class AccountService {
       token: code.trim(),
       type: signIn ? OtpType.email : OtpType.emailChange,
     );
+    user.value = _client.auth.currentUser;
+  }
+
+  /// Fetches the account again, to notice an address that was confirmed
+  /// through the mail in another tab or on another device.
+  Future<void> refresh() async {
+    await _client.auth.refreshSession();
     user.value = _client.auth.currentUser;
   }
 

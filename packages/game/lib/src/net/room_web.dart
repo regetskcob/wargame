@@ -40,6 +40,49 @@ void _rememberHosted(String code) {
   }
 }
 
+const _guestKey = 'panzergefecht.guest';
+
+/// Whether this browser chose to play as a guest before.
+bool prefersGuest() {
+  try {
+    return web.window.localStorage.getItem(_guestKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that this browser plays as a guest, so the welcome page does
+/// not ask again.
+void rememberGuest() {
+  try {
+    web.window.localStorage.setItem(_guestKey, '1');
+  } on Object {
+    // Without storage the welcome page simply asks again next time.
+  }
+}
+
+/// Back from a sign-in mail: drops its one time code and any room from the
+/// address, so a reload does not try the code again and the game opens a
+/// fresh room on the start page.
+void leaveMailLink() {
+  final uri = Uri.base;
+  final params = Map.of(uri.queryParameters)
+    ..remove('code')
+    ..remove('room');
+  // Built anew: replace() keeps the old query when given none.
+  web.window.history.replaceState(
+    null,
+    '',
+    Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString(),
+  );
+}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => _hosting;
 
@@ -76,8 +119,14 @@ String roomLink(String room) {
   ).toString();
 }
 
-/// Address that sign-in links lead back to: the game itself, in this room.
-String? authRedirect() => Uri.base.replace(fragment: '').toString();
+/// Address that sign-in links lead back to: the start page of the game, not
+/// the room the mail was asked for in.
+String? authRedirect() => Uri(
+  scheme: Uri.base.scheme,
+  host: Uri.base.host,
+  port: Uri.base.hasPort ? Uri.base.port : null,
+  path: Uri.base.path,
+).toString();
 
 /// Opens [room] in this window, as if its link had been followed.
 bool joinRoom(String room) {

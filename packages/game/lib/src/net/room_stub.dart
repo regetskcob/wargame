@@ -4,6 +4,17 @@ import '../env.dart';
 /// from, so everybody meets in the default room.
 String resolveRoom() => Env.room;
 
+/// Whether this device chose to play as a guest before. Outside the browser
+/// nothing is stored, so the welcome page asks every time.
+bool prefersGuest() => false;
+
+/// Remembers that this device plays as a guest.
+void rememberGuest() {}
+
+/// Back from a sign-in mail: drops its code and room from the address.
+/// Outside the browser there is none.
+void leaveMailLink() {}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => true;
 
