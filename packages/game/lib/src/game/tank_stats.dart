@@ -12,6 +12,7 @@ class TankStats {
     required this.damage,
     required this.bulletSpeed,
     required this.barrels,
+    required this.ammo,
     required this.sound,
     required this.blurb,
   });
@@ -29,6 +30,9 @@ class TankStats {
 
   /// Bullets per shot, fired side by side.
   final int barrels;
+
+  /// Shots in a full magazine. A shot of the twin gun counts once.
+  final int ammo;
   final String sound;
   final String blurb;
 
@@ -42,6 +46,7 @@ class TankStats {
       acceleration: 0.8,
       turnRate: 0.85,
       fireCooldown: 0.6,
+      ammo: 20,
       damage: 30,
       bulletSpeed: 520,
       barrels: 1,
@@ -54,6 +59,7 @@ class TankStats {
       acceleration: 1.1,
       turnRate: 1.0,
       fireCooldown: 0.17,
+      ammo: 90,
       damage: 8,
       bulletSpeed: 430,
       barrels: 1,
@@ -66,6 +72,7 @@ class TankStats {
       acceleration: 0.9,
       turnRate: 0.9,
       fireCooldown: 0.3,
+      ammo: 45,
       damage: 9,
       bulletSpeed: 450,
       barrels: 2,
@@ -78,6 +85,7 @@ class TankStats {
       acceleration: 1.35,
       turnRate: 1.25,
       fireCooldown: 0.26,
+      ammo: 55,
       damage: 11,
       bulletSpeed: 400,
       barrels: 1,

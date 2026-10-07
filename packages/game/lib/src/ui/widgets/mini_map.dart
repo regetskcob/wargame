@@ -133,13 +133,27 @@ class _MiniMapPainter extends CustomPainter {
       );
     }
     for (final crate in game.powerUps.values) {
-      canvas.drawRect(
-        Rect.fromCenter(
-          center: toMap(crate.position.x, crate.position.y),
-          width: 5,
-          height: 5,
-        ),
-        Paint()..color = crate.type.color,
+      final c = toMap(crate.position.x, crate.position.y);
+      final paint = Paint()..color = crate.type.color;
+      if (crate.type.gem) {
+        canvas.drawPath(
+          Path()
+            ..moveTo(c.dx, c.dy - 4)
+            ..lineTo(c.dx + 3.5, c.dy)
+            ..lineTo(c.dx, c.dy + 4)
+            ..lineTo(c.dx - 3.5, c.dy)
+            ..close(),
+          paint,
+        );
+      } else {
+        canvas.drawRect(Rect.fromCenter(center: c, width: 5, height: 5), paint);
+      }
+    }
+    for (final drone in game.drones.values) {
+      canvas.drawCircle(
+        toMap(drone.position.x, drone.position.y),
+        2,
+        Paint()..color = const Color(0xFFFF3D00),
       );
     }
 

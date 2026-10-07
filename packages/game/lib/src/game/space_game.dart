@@ -23,8 +23,11 @@ import '../net/payloads/power_up_payload.dart';
 import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
+import '../net/payloads/special_payload.dart';
 import 'components/aim_overlay.dart';
 import 'components/asteroid_field.dart';
+import 'components/drone.dart';
+import 'components/grenade.dart';
 import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/obstacle.dart';
@@ -44,6 +47,7 @@ import 'kill_feed.dart';
 import 'components/ship_base.dart';
 import 'components/wreck.dart';
 import 'round_stats.dart';
+import 'special_weapon.dart';
 import 'tank_stats.dart';
 import 'touch_input.dart';
 import 'round_state.dart';
@@ -83,6 +87,18 @@ class SpaceGame extends FlameGame
   final rapidFireSeconds = ValueNotifier<int>(0);
   final notice = ValueNotifier<String?>(null);
   async.Timer? _noticeTimer;
+
+  /// Rounds left in the local tank's magazine.
+  late final ammoNotifier = ValueNotifier<int>(myStats.ammo);
+
+  /// Special weapon of the local tank and its charges, null without one.
+  final specialNotifier = ValueNotifier<(SpecialWeapon, int)?>(null);
+
+  /// Drones in the air, the local ones and those of other players.
+  final drones = <String, Drone>{};
+
+  /// Blasts already applied, since a drone's blast also arrives by message.
+  final _blasts = <String>{};
 
   List<PowerUpSlot> _powerUpSlots = const [];
   final powerUps = <int, PowerUp>{};
@@ -223,6 +239,9 @@ class SpaceGame extends FlameGame
       ..onSmoke = _onSmoke
       ..onObstacle = _onObstacle
       ..onSoldier = _onSoldier
+      ..onGrenade = _onGrenade
+      ..onDrone = _onDrone
+      ..onBlast = _onBlast
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
       ..onPeerLeft = _onPeerLeft;
@@ -504,6 +523,8 @@ class SpaceGame extends FlameGame
       }
     }
     hpNotifier.value = myMaxHp;
+    ammoNotifier.value = myStats.ammo;
+    specialNotifier.value = null;
     aliveCount.value = activeRound.alive.length;
     winnerName.value = null;
     if (activeRound.participants.contains(myId)) {
@@ -555,9 +576,13 @@ class SpaceGame extends FlameGame
     }
   }
 
-  void collectPowerUp(PowerUp crate) {
-    final ship = myShip;
-    if (ship == null || phase.value != GamePhase.playing || ship.hp <= 0) {
+  /// [ship] drove over [crate]: the player's tank or a bot of this client.
+  void collectPowerUp(PowerUp crate, PlayerShip ship) {
+    final mine = ship == myShip;
+    final live =
+        phase.value == GamePhase.playing ||
+        (!mine && phase.value == GamePhase.spectating);
+    if (!live || ship.hp <= 0) {
       return;
     }
     final slot = crate.slot;
@@ -569,29 +594,46 @@ class SpaceGame extends FlameGame
     crate.removeFromParent();
     net.send(
       NetEvent.pickup,
-      PickupPayload(id: myId, powerUpId: slot.id).toJson(),
+      PickupPayload(id: ship.playerId, powerUpId: slot.id).toJson(),
     );
     switch (slot.type) {
       case PowerUpType.repair:
         ship.hp = min(ship.stats.maxHp, ship.hp + GameConfig.repairAmount);
-        hpNotifier.value = ship.hp;
+        if (mine) {
+          hpNotifier.value = ship.hp;
+        }
       case PowerUpType.rapidFire:
         ship.rapidFireLeft = GameConfig.rapidFireSeconds;
-        rapidFireSeconds.value = GameConfig.rapidFireSeconds.ceil();
+        if (mine) {
+          rapidFireSeconds.value = GameConfig.rapidFireSeconds.ceil();
+        }
+      case PowerUpType.ammo:
+        ship.setAmmo(
+          ship.ammo + (ship.stats.ammo * GameConfig.ammoRefillShare).ceil(),
+        );
+      case PowerUpType.grenades || PowerUpType.drone:
+        ship.arm(slot.type.weapon!);
       case PowerUpType.smoke:
         _addSmoke(ship.position.clone());
         net.send(
           NetEvent.smoke,
           SmokePayload(
-            id: myId,
+            id: ship.playerId,
             x: ship.position.x,
             y: ship.position.y,
           ).toJson(),
         );
     }
-    AudioService.play('go', volume: 0.5);
+    if (mine) {
+      AudioService.play('go', volume: 0.5);
+      showNotice(slot.type.label);
+    }
+  }
+
+  /// Flashes [text] in the middle of the HUD for two seconds.
+  void showNotice(String text) {
     _noticeTimer?.cancel();
-    notice.value = slot.type.label;
+    notice.value = text;
     _noticeTimer = async.Timer(
       const Duration(seconds: 2),
       () => notice.value = null,
@@ -666,6 +708,250 @@ class SpaceGame extends FlameGame
       volume: 0.8,
       distance: ship == myShip ? null : _distanceToView(ship.position),
     );
+  }
+
+  /// Tanks [id] may shoot at: everybody alive outside its own team.
+  Iterable<ShipBase> enemiesOf(String id) sync* {
+    final candidates = <ShipBase?>[
+      myShip,
+      ...remoteShips.values,
+      ...botShips.values,
+    ];
+    for (final ship in candidates) {
+      if (ship != null &&
+          ship.isMounted &&
+          ship.hp > 0 &&
+          ship.playerId != id &&
+          !sameTeam(id, ship.playerId)) {
+        yield ship;
+      }
+    }
+  }
+
+  /// Fires the special weapon of [ship], the player's tank or a local bot.
+  void fireSpecial(PlayerShip ship, SpecialWeapon weapon) {
+    final ownerId = ship.playerId;
+    final direction = ship.turretDirection;
+    final start = ship.position + direction * (GameConfig.shipRadius + 10);
+    switch (weapon) {
+      case SpecialWeapon.grenades:
+        final distance = _lobDistance(ship);
+        final target = ship.position + direction * distance;
+        final grenadeId = '$ownerId-g${_bulletCounter++}';
+        _launchGrenade(grenadeId, ownerId, start, target);
+        net.send(
+          NetEvent.grenade,
+          GrenadePayload(
+            id: ownerId,
+            grenadeId: grenadeId,
+            x: start.x,
+            y: start.y,
+            tx: target.x,
+            ty: target.y,
+          ).toJson(),
+        );
+      case SpecialWeapon.drone:
+        final droneId = '$ownerId-d${_bulletCounter++}';
+        final drone = Drone(
+          droneId: droneId,
+          ownerId: ownerId,
+          color: ship.shipColor,
+          position: start,
+          angle: ship.turretAngle,
+        );
+        drones[droneId] = drone;
+        _extras.add(drone);
+        world.add(drone);
+    }
+    ship.fireEffects();
+    AudioService.play(
+      'cannon',
+      volume: 0.6,
+      distance: ship == myShip ? null : _distanceToView(ship.position),
+    );
+  }
+
+  /// How far a grenade of [ship] flies: to the mouse, to where a bot wants
+  /// it, or most of the way for the touch controls.
+  double _lobDistance(PlayerShip ship) {
+    final wanted = ship.isBot
+        ? ship.input.lobDistance
+        : touch.aim != null
+        ? GameConfig.grenadeRange * 0.75
+        : pointerWorld()?.distanceTo(ship.position);
+    return (wanted ?? GameConfig.grenadeRange).clamp(
+      GameConfig.grenadeMinRange,
+      GameConfig.grenadeRange,
+    );
+  }
+
+  void _launchGrenade(String id, String ownerId, Vector2 from, Vector2 to) {
+    final grenade = Grenade(
+      grenadeId: id,
+      ownerId: ownerId,
+      from: from,
+      to: to,
+    );
+    final marker = GrenadeMarker(position: to.clone());
+    _extras
+      ..add(grenade)
+      ..add(marker);
+    world
+      ..add(marker)
+      ..add(grenade);
+  }
+
+  void _onGrenade(GrenadePayload payload) {
+    final activeRound = round;
+    if (activeRound == null || !activeRound.alive.contains(payload.id)) {
+      return;
+    }
+    final owner = remoteShips[payload.id];
+    owner?.fireEffects();
+    AudioService.play(
+      'cannon',
+      volume: 0.5,
+      distance: _distanceToView(Vector2(payload.x, payload.y)),
+    );
+    _launchGrenade(
+      payload.grenadeId,
+      payload.id,
+      Vector2(payload.x, payload.y),
+      Vector2(payload.tx, payload.ty),
+    );
+  }
+
+  void _onDrone(DronePayload payload) {
+    if (round == null || _blasts.contains(payload.droneId)) {
+      return;
+    }
+    final known = drones[payload.droneId];
+    if (known != null) {
+      known.applyState(payload);
+      return;
+    }
+    final drone = Drone(
+      droneId: payload.droneId,
+      ownerId: payload.id,
+      color: GameConfig.colorOf(_styleFor(payload.id)),
+      position: Vector2(payload.x, payload.y),
+      angle: payload.angle,
+      remote: true,
+    );
+    drones[payload.droneId] = drone;
+    _extras.add(drone);
+    world.add(drone);
+  }
+
+  void _onBlast(BlastPayload payload) {
+    if (round == null) {
+      return;
+    }
+    final weapon = SpecialWeapon.values.asNameMap()[payload.weapon];
+    if (weapon == null) {
+      return;
+    }
+    detonate(
+      ownerId: payload.id,
+      blastId: payload.blastId,
+      at: Vector2(payload.x, payload.y),
+      weapon: weapon,
+    );
+  }
+
+  /// Whether this client simulates the tank [id]: the player or a local bot.
+  bool _isLocal(String id) {
+    final activeRound = round;
+    return id == myId ||
+        (activeRound != null &&
+            activeRound.isBot(id) &&
+            activeRound.botHost == myId);
+  }
+
+  /// A grenade or drone of [ownerId] goes off at [at]. Every client damages
+  /// its own tanks and reports the hits, the owner's client also takes care
+  /// of buildings and soldiers. [announce] tells the others, for drones that
+  /// only their owner flies.
+  void detonate({
+    required String ownerId,
+    required String blastId,
+    required Vector2 at,
+    required SpecialWeapon weapon,
+    bool announce = false,
+  }) {
+    if (round == null || !_blasts.add(blastId)) {
+      return;
+    }
+    drones.remove(blastId)?.removeFromParent();
+    if (announce) {
+      net.send(
+        NetEvent.blast,
+        BlastPayload(
+          id: ownerId,
+          blastId: blastId,
+          weapon: weapon.name,
+          x: at.x,
+          y: at.y,
+        ).toJson(),
+      );
+    }
+    world.add(Explosion(position: at.clone(), color: weapon.color));
+    shakeAt(at, 9);
+    AudioService.play('explosion', distance: _distanceToView(at));
+
+    final targets = <PlayerShip>[
+      if (phase.value == GamePhase.playing && myShip != null) myShip!,
+      ...botShips.values,
+    ];
+    for (final ship in targets) {
+      if (ship.hp <= 0 ||
+          ship.playerId == ownerId ||
+          sameTeam(ownerId, ship.playerId)) {
+        continue;
+      }
+      final distance =
+          ship.position.distanceTo(at) - GameConfig.shipRadius * 0.6;
+      if (distance > weapon.radius) {
+        continue;
+      }
+      final damage = weapon.damageAt(max(0, distance));
+      if (ownerId == myId) {
+        registerHit(min(damage, ship.hp));
+      }
+      AudioService.play('hit');
+      ship.applyDamage(damage, killerId: ownerId);
+      net.send(
+        NetEvent.hit,
+        HitPayload(
+          id: ship.playerId,
+          shooterId: ownerId,
+          bulletId: blastId,
+          hp: ship.hp,
+        ).toJson(),
+      );
+    }
+
+    if (!_isLocal(ownerId)) {
+      return;
+    }
+    final solids = _asteroidField?.obstacles.where((o) => o.isMounted) ?? [];
+    for (final obstacle in solids.toList()) {
+      final rect = obstacle.toRect();
+      final nearest = Vector2(
+        at.x.clamp(rect.left, rect.right),
+        at.y.clamp(rect.top, rect.bottom),
+      );
+      if (nearest.distanceTo(at) <= weapon.radius) {
+        damageObstacle(obstacle, weapon.damageAt(nearest.distanceTo(at)));
+      }
+    }
+    for (final soldier in soldierField?.soldiers.toList() ?? <Soldier>[]) {
+      if (!soldier.dead &&
+          soldier.isMounted &&
+          soldier.position.distanceTo(at) <= weapon.radius) {
+        runOver(soldier, ownerId);
+      }
+    }
   }
 
   void _onShoot(ShootPayload payload) {
@@ -1223,6 +1509,9 @@ class SpaceGame extends FlameGame
     _extras.clear();
     powerUps.clear();
     smokes.clear();
+    drones.clear();
+    _blasts.clear();
+    specialNotifier.value = null;
     _gone.clear();
     _powerUpSlots = const [];
     rapidFireSeconds.value = 0;

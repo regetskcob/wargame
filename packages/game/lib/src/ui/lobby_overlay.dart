@@ -275,11 +275,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus, unabhängig von der '
                       'Wanne, und feuert, sobald du über den Ring schiebst. '
-                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt.'
+                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt. '
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit dem runden Knopf über dem rechten Stick auslöst.'
                 : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
                       'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
-                      'Auf Touchgeräten steuerst du mit zwei Sticks am '
-                      'Bildschirm.',
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit F auslöst. Auf Touchgeräten steuerst du mit zwei '
+                      'Sticks am Bildschirm.',
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ),

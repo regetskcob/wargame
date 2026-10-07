@@ -12,6 +12,7 @@ import 'payloads/power_up_payload.dart';
 import 'payloads/round_start_payload.dart';
 import 'payloads/ship_state_payload.dart';
 import 'payloads/shoot_payload.dart';
+import 'payloads/special_payload.dart';
 
 class NetService {
   NetService({required this.myId, required this.room});
@@ -29,6 +30,9 @@ class NetService {
   void Function(SmokePayload payload)? onSmoke;
   void Function(ObstaclePayload payload)? onObstacle;
   void Function(SoldierPayload payload)? onSoldier;
+  void Function(GrenadePayload payload)? onGrenade;
+  void Function(DronePayload payload)? onDrone;
+  void Function(BlastPayload payload)? onBlast;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
@@ -66,6 +70,18 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.soldier.name),
       (json) => onSoldier?.call(SoldierPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.grenade.name),
+      (json) => onGrenade?.call(GrenadePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.drone.name),
+      (json) => onDrone?.call(DronePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.blast.name),
+      (json) => onBlast?.call(BlastPayload.fromJson(json)),
     );
     _listen(
       channel.onBroadcast(event: NetEvent.obstacle.name),

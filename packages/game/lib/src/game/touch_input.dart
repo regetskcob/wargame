@@ -13,8 +13,15 @@ class TouchInput {
   /// turret keeps pointing where it was last aimed.
   double? aim;
 
+  /// Held while the special weapon button is pressed.
+  bool special = false;
+
+  /// How far a grenade should fly. Bots set it, players aim with the mouse.
+  double? lobDistance;
+
   void reset() {
-    left = right = thrust = brake = fire = aimFire = false;
+    left = right = thrust = brake = fire = aimFire = special = false;
     aim = null;
+    lobDistance = null;
   }
 }

@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../game/components/storm_zone.dart';
+import '../game/special_weapon.dart';
 import '../game/space_game.dart';
 import '../game_config.dart';
 import '../theme.dart';
+import 'widgets/ammo_gauge.dart';
 import 'widgets/enemy_indicators.dart';
 import 'widgets/health_bar.dart';
 import 'widgets/kill_feed_view.dart';
@@ -81,7 +83,8 @@ class _HudOverlayState extends State<HudOverlay> {
               ),
             ),
           EnemyIndicators(game: game),
-          if (touch) TouchControls(input: game.touch),
+          if (touch)
+            TouchControls(input: game.touch, special: game.specialNotifier),
         ],
       ),
     );
@@ -135,6 +138,8 @@ class _HudOverlayState extends State<HudOverlay> {
                     builder: (context, hp, _) =>
                         HealthBar(hp: hp, maxHp: game.myMaxHp, compact: true),
                   ),
+                  const SizedBox(height: 4),
+                  _ammo(game, compact: true),
                   KillFeedView(feed: game.killFeed, compact: true),
                 ],
               ),
@@ -182,6 +187,14 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  Widget _ammo(SpaceGame game, {bool compact = false}) {
+    return ValueListenableBuilder<int>(
+      valueListenable: game.ammoNotifier,
+      builder: (context, ammo, _) =>
+          AmmoGauge(ammo: ammo, maxAmmo: game.myStats.ammo, compact: compact),
+    );
+  }
+
   Widget _effects(SpaceGame game) {
     return IgnorePointer(
       child: Align(
@@ -218,6 +231,21 @@ class _HudOverlayState extends State<HudOverlay> {
                       ),
                     ),
             ),
+            // On phones the special weapon button shows the same.
+            if (!game.touchMode.value)
+              ValueListenableBuilder<(SpecialWeapon, int)?>(
+                valueListenable: game.specialNotifier,
+                builder: (context, special, _) => special == null
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: SpecialPlate(
+                          weapon: special.$1,
+                          charges: special.$2,
+                          keyHint: 'F',
+                        ),
+                      ),
+              ),
           ],
         ),
       ),
@@ -234,10 +262,18 @@ class _HudOverlayState extends State<HudOverlay> {
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                ValueListenableBuilder<double>(
-                  valueListenable: game.hpNotifier,
-                  builder: (context, hp, _) =>
-                      HealthBar(hp: hp, maxHp: game.myMaxHp),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ValueListenableBuilder<double>(
+                      valueListenable: game.hpNotifier,
+                      builder: (context, hp, _) =>
+                          HealthBar(hp: hp, maxHp: game.myMaxHp),
+                    ),
+                    const SizedBox(height: 6),
+                    _ammo(game),
+                  ],
                 ),
                 const Spacer(),
                 Panel(

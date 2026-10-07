@@ -45,14 +45,38 @@ class GameConfig {
   static const barrierCount = 14;
   static const spawnRadius = 600.0;
 
-  static const powerUpSlots = 14;
+  static const powerUpSlots = 18;
   static const powerUpFirstAt = 5.0;
-  static const powerUpEvery = 7.0;
+  static const powerUpEvery = 6.0;
   static const repairAmount = 40.0;
   static const rapidFireSeconds = 8.0;
   static const rapidFireFactor = 0.45;
   static const smokeRadius = 130.0;
   static const smokeSeconds = 10.0;
+
+  /// Share of the full magazine an ammo gem puts back.
+  static const ammoRefillShare = 0.6;
+
+  /// At or below this share of the magazine the HUD warns.
+  static const ammoLowShare = 0.2;
+
+  static const grenadeCharges = 3;
+  static const grenadeCooldown = 1.1;
+  static const grenadeRange = 380.0;
+  static const grenadeMinRange = 90.0;
+  static const grenadeFlightSeconds = 0.9;
+  static const grenadeRadius = 85.0;
+  static const grenadeDamage = 45.0;
+
+  static const droneCharges = 1;
+  static const droneCooldown = 1.5;
+  static const droneSpeed = 230.0;
+  static const droneTurnRate = 3.2;
+  static const droneSeconds = 10.0;
+  static const droneTrigger = 34.0;
+  static const droneRadius = 75.0;
+  static const droneDamage = 60.0;
+  static const droneSyncInterval = 0.08;
 
   static const countdownSeconds = 3;
   static const roundOverSeconds = 6;

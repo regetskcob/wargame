@@ -1,7 +1,9 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../../theme.dart';
 
@@ -11,10 +13,13 @@ import '../../theme.dart';
 /// thumb drives (up is forward, sideways turns), the right thumb aims the
 /// turret and fires as soon as the stick is pushed past the outer ring. The
 /// sticks appear wherever the thumb lands, so nobody has to find a button.
+/// Only a special weapon from a gem gets a button of its own, right above the
+/// aim stick.
 class TouchControls extends StatelessWidget {
-  const TouchControls({required this.input, super.key});
+  const TouchControls({required this.input, required this.special, super.key});
 
   final TouchInput input;
+  final ValueListenable<(SpecialWeapon, int)?> special;
 
   /// Share of the stick radius past which the aim stick fires.
   static const fireRing = 0.62;
@@ -76,9 +81,93 @@ class TouchControls extends StatelessWidget {
                   onReleased: () => input.aimFire = false,
                 ),
               ),
+              Positioned(
+                right: 8,
+                top: max(0, zoneTop - 76),
+                child: ValueListenableBuilder<(SpecialWeapon, int)?>(
+                  valueListenable: special,
+                  builder: (context, loadout, _) => loadout == null
+                      ? const SizedBox()
+                      : _SpecialButton(
+                          weapon: loadout.$1,
+                          charges: loadout.$2,
+                          onHeld: (held) => input.special = held,
+                        ),
+                ),
+              ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Round button for the special weapon, firing while held.
+class _SpecialButton extends StatefulWidget {
+  const _SpecialButton({
+    required this.weapon,
+    required this.charges,
+    required this.onHeld,
+  });
+
+  final SpecialWeapon weapon;
+  final int charges;
+  final ValueChanged<bool> onHeld;
+
+  @override
+  State<_SpecialButton> createState() => _SpecialButtonState();
+}
+
+class _SpecialButtonState extends State<_SpecialButton> {
+  bool _down = false;
+
+  void _set(bool down) {
+    if (_down == down) {
+      return;
+    }
+    setState(() => _down = down);
+    widget.onHeld(down);
+  }
+
+  @override
+  void dispose() {
+    if (_down) {
+      widget.onHeld(false);
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.weapon.color;
+    return Listener(
+      behavior: HitTestBehavior.opaque,
+      onPointerDown: (_) => _set(true),
+      onPointerUp: (_) => _set(false),
+      onPointerCancel: (_) => _set(false),
+      child: Container(
+        width: 68,
+        height: 68,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: _down ? color.withValues(alpha: 0.6) : const Color(0x88000000),
+          border: Border.all(color: color, width: 2.5),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.diamond, size: 20, color: color),
+            Text(
+              widget.weapon == SpecialWeapon.drone ? 'DROHNE' : 'GRANATE',
+              style: const TextStyle(fontSize: 8, letterSpacing: 1),
+            ),
+            Text(
+              '×${widget.charges}',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
     );
   }
