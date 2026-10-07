@@ -9,6 +9,7 @@ import '../theme.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/panel.dart';
+import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 
@@ -318,6 +319,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      RoomInvite(game: widget.game),
+                      const SizedBox(height: 24),
                       if (narrow) ...[
                         _pilotColumn(context),
                         const SizedBox(height: 24),

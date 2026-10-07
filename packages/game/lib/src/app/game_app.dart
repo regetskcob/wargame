@@ -10,6 +10,7 @@ import '../db/score_service.dart';
 import '../game/game_phase.dart';
 import '../game/space_game.dart';
 import '../net/net_service.dart';
+import '../net/room.dart';
 import '../theme.dart';
 import '../ui/countdown_overlay.dart';
 import '../ui/hud_overlay.dart';
@@ -38,7 +39,7 @@ class _GameAppState extends State<GameApp> {
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
     game = SpaceGame(
-      net: NetService(myId: myId),
+      net: NetService(myId: myId, room: resolveRoom()),
       myId: myId,
       scoreService: ScoreService(client),
     );

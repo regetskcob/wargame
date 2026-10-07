@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../env.dart';
 import 'net_events.dart';
 import 'payloads/death_payload.dart';
 import 'payloads/hit_payload.dart';
@@ -15,9 +14,12 @@ import 'payloads/ship_state_payload.dart';
 import 'payloads/shoot_payload.dart';
 
 class NetService {
-  NetService({required this.myId});
+  NetService({required this.myId, required this.room});
 
   final String myId;
+
+  /// Code of the room whose channel this connects to.
+  final String room;
 
   void Function(ShipStatePayload payload)? onShipState;
   void Function(ShootPayload payload)? onShoot;
@@ -41,7 +43,7 @@ class NetService {
   Future<void> connect(LobbyPresence me) async {
     _me = me;
     final channel = _client.channel(
-      'game-arena-${Env.room}',
+      'game-arena-$room',
       options: const RealtimeChannelConfig(self: false),
     );
     _channel = channel;
