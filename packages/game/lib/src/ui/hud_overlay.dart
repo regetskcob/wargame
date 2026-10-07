@@ -139,11 +139,12 @@ class _HudOverlayState extends State<HudOverlay> {
         final round = game.round;
         if (round != null && round.defense) {
           final enemies = game.enemiesOnField;
+          final allies = round.alive.where(round.isAlly).length;
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
             builder: (context, state, _) => Text(
               'WELLE ${state?.wave ?? 0}/${GameConfig.defenseWaves}'
-              '   FEINDE $enemies',
+              '   FEINDE $enemies   KAMERADEN $allies',
               style: style,
             ),
           );

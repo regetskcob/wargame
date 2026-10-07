@@ -5,6 +5,7 @@ import 'dart:ui' show Canvas, Color, Gradient, Offset, Paint, Rect, Size;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
+import 'package:flame/experimental.dart' show Rectangle;
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -57,6 +58,7 @@ import 'components/remote_ship.dart';
 import 'components/starfield.dart';
 import 'components/storm_zone.dart';
 import 'defense/aircraft.dart';
+import 'defense/ally_brain.dart';
 import 'defense/defense_brain.dart';
 import 'defense/defense_director.dart';
 import 'defense/defense_field.dart';
@@ -1169,6 +1171,7 @@ class SpaceGame extends FlameGame
     _defenseField = field;
     _setGround(field.theme, plain: true);
     world.add(field);
+    _fitCamera();
     credits.value = GameConfig.startCredits;
     _towerCounter = 0;
     guard.worldReach = DefenseMap.bounds.bottomRight.distance;
@@ -1209,7 +1212,10 @@ class SpaceGame extends FlameGame
       }
     }
     if (activeRound.botHost == myId) {
-      final director = DefenseDirector(startedAt: activeRound.startedAt);
+      final director = DefenseDirector(
+        startedAt: activeRound.startedAt,
+        allies: max(1, GameConfig.defenseSquad - players.length),
+      );
       _extras.add(director);
       world.add(director);
     }
@@ -1274,6 +1280,56 @@ class SpaceGame extends FlameGame
     final brain = DefenseBrain(ship: ship, controls: controls, map: map);
     _extras.add(brain);
     world.add(brain);
+  }
+
+  /// Host of a defense round: a CPU comrade rolls out of the base to the
+  /// post of [slot].
+  void spawnAlly(String id, int slot) {
+    final activeRound = round;
+    final map = defenseMap;
+    if (activeRound == null || map == null) {
+      return;
+    }
+    final style = activeRound.allyStyle(id);
+    final route = map.allyRoute(slot);
+    final at =
+        map.base +
+        (route.first - map.base).normalized() * (DefenseMap.baseRadius + 30);
+    final controls = TouchInput();
+    final ship =
+        PlayerShip(
+            playerId: id,
+            playerName: activeRound.botName(id),
+            shipColor: GameConfig.colorOf(style),
+            tankType: GameConfig.typeOf(style),
+            position: at,
+            angle: _headingFrom(at, route.first),
+            controls: controls,
+          )
+          ..team = 1
+          ..endlessAmmo = true
+          ..syncInterval = GameConfig.enemySyncInterval;
+    activeRound.alive.add(id);
+    aliveCount.value = activeRound.alive.length;
+    botShips[id] = ship;
+    world.add(ship);
+    final brain = AllyBrain(
+      ship: ship,
+      controls: controls,
+      map: map,
+      slot: slot,
+    );
+    _extras.add(brain);
+    world.add(brain);
+  }
+
+  /// Host: enemy tanks of the current wave still on the field.
+  int get enemiesAlive {
+    final activeRound = round;
+    if (activeRound == null) {
+      return 0;
+    }
+    return botShips.keys.where(activeRound.isEnemy).length;
   }
 
   /// Host of a defense round: a squad on foot marches in down the road.
@@ -1396,7 +1452,7 @@ class SpaceGame extends FlameGame
     if (activeRound == null) {
       return false;
     }
-    return botShips.isNotEmpty ||
+    return botShips.keys.any(activeRound.isEnemy) ||
         aircraft.values.any((plane) => !plane.remote) ||
         drones.values.any(
           (drone) => !drone.remote && activeRound.isEnemy(drone.ownerId),
@@ -1846,7 +1902,7 @@ class SpaceGame extends FlameGame
   void fireTower(Tower tower) {
     final direction = Vector2(sin(tower.turretAngle), -cos(tower.turretAngle));
     final bulletId = '$myId-${_bulletCounter++}';
-    final start = tower.position + direction * 28;
+    final start = tower.position + direction * 44;
     tower.fired(direction);
     _spawnBullet(
       bulletId: bulletId,
@@ -1938,6 +1994,24 @@ class SpaceGame extends FlameGame
                 if (outside(soldier)) soldier,
             ]);
     }
+  }
+
+  /// What a CPU comrade in [ship] fires at: a Gepard goes for aircraft and
+  /// drones first, every comrade for tanks before soldiers.
+  PositionComponent? allyTarget(PlayerShip ship, double range) {
+    final at = ship.position;
+    if (ship.tankType == TankType.gepard) {
+      final air = _nearestOf(at, range, [
+        for (final plane in aircraft.values)
+          if (plane.hp > 0) plane,
+        for (final drone in drones.values)
+          if (round?.isEnemy(drone.ownerId) ?? false) drone,
+      ]);
+      if (air != null) {
+        return air;
+      }
+    }
+    return nearestEnemy(at, range) ?? _nearestEnemySoldier(at, range);
   }
 
   Iterable<Soldier> get _enemySoldiers =>
@@ -3122,6 +3196,7 @@ class SpaceGame extends FlameGame
           activeRound.defense &&
           !activeRound.destroyedEnemies.contains(raw.id) &&
           (activeRound.isEnemy(raw.id) ||
+              activeRound.isAlly(raw.id) ||
               activeRound.participants.contains(raw.id));
       if (joins) {
         activeRound.alive.add(raw.id);
@@ -3263,14 +3338,40 @@ class SpaceGame extends FlameGame
 
   /// Pixels per world unit. The shorter side of the window always shows the
   /// same stretch of the world, the longer side simply shows more, so the map
-  /// fills the whole window without black bars.
+  /// fills the whole window without black bars. A defense round looks from
+  /// further up, to keep the road and the guns in view.
   double get viewScale =>
-      min(canvasSize.x, canvasSize.y) / GameConfig.viewShortSide;
+      min(canvasSize.x, canvasSize.y) /
+      (defenseMap != null
+          ? GameConfig.defenseViewShortSide
+          : GameConfig.viewShortSide);
 
   @override
   void onGameResize(Vector2 size) {
     super.onGameResize(size);
-    camera.viewfinder.zoom = viewScale;
+    _fitCamera();
+  }
+
+  /// Zooms for the current round. In a defense round the camera also stays
+  /// over the field, instead of showing the dark beyond the border when the
+  /// player stands at the base near the edge.
+  void _fitCamera() {
+    final scale = viewScale;
+    camera.viewfinder.zoom = scale;
+    if (defenseMap == null || scale <= 0) {
+      camera.setBounds(null);
+      return;
+    }
+    const margin = 60.0;
+    final dx = max(
+      1.0,
+      DefenseMap.halfWidth + margin - canvasSize.x / 2 / scale,
+    );
+    final dy = max(
+      1.0,
+      DefenseMap.halfHeight + margin - canvasSize.y / 2 / scale,
+    );
+    camera.setBounds(Rectangle.fromLTRB(-dx, -dy, dx, dy));
   }
 
   /// World position the mouse points at.
@@ -3517,6 +3618,9 @@ class SpaceGame extends FlameGame
     if (activeRound != null && activeRound.isEnemy(id)) {
       return activeRound.enemyStyle(id);
     }
+    if (activeRound != null && activeRound.isAlly(id)) {
+      return activeRound.allyStyle(id);
+    }
     return activeRound?.bots[id] ?? _rosterMember(id)?.colorIndex ?? 0;
   }
 
@@ -3627,7 +3731,7 @@ class SpaceGame extends FlameGame
     world.add(Explosion(position: bot.position.clone(), color: bot.shipColor));
     shakeAt(bot.position, 8);
     // Waves leave far too many wrecks, only the explosion stays.
-    if (!activeRound.isEnemy(bot.playerId)) {
+    if (!activeRound.defense) {
       _addWreck(bot);
     }
     AudioService.play('explosion', distance: _distanceToView(bot.position));
@@ -3676,7 +3780,7 @@ class SpaceGame extends FlameGame
       return;
     }
     activeRound.markDead(id);
-    if (activeRound.isEnemy(id)) {
+    if (activeRound.isEnemy(id) || activeRound.isAlly(id)) {
       activeRound.destroyedEnemies.add(id);
     }
     aliveCount.value = activeRound.alive.length;
@@ -3687,7 +3791,7 @@ class SpaceGame extends FlameGame
           Explosion(position: ship.position.clone(), color: ship.shipColor),
         );
         shakeAt(ship.position, 8);
-        if (!activeRound.isEnemy(id)) {
+        if (!activeRound.isEnemy(id) && !activeRound.isAlly(id)) {
           _addWreck(ship);
         }
         AudioService.play(
@@ -4016,6 +4120,7 @@ class SpaceGame extends FlameGame
     _defenseField?.removeFromParent();
     _defenseField = null;
     defenseMap = null;
+    _fitCamera();
     defense.value = null;
     for (final tower in towers.values) {
       tower.removeFromParent();

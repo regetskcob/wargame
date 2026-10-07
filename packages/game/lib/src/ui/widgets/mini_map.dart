@@ -303,16 +303,14 @@ class _MiniMapPainter extends CustomPainter {
         Paint()..color = crate.type.color,
       );
     }
-    final towerPaint = Paint()..color = Colors.white70;
     for (final tower in game.towers.values) {
-      canvas.drawRect(
-        Rect.fromCenter(
-          center: toMap(tower.position.x, tower.position.y),
-          width: 4,
-          height: 4,
-        ),
-        towerPaint,
+      final at = Rect.fromCenter(
+        center: toMap(tower.position.x, tower.position.y),
+        width: 6,
+        height: 6,
       );
+      canvas.drawRect(at.inflate(1), Paint()..color = Colors.black);
+      canvas.drawRect(at, Paint()..color = tower.color);
     }
     for (final ship in [...game.remoteShips.values, ...game.botShips.values]) {
       canvas.drawCircle(

@@ -33,24 +33,33 @@ class RoundState {
   /// Real people play against each other, so every tank gets its own colour.
   bool get distinctColors => bots.isEmpty;
 
-  /// Enemies of a defense round that are already destroyed, so a late state
-  /// message does not bring them back.
+  /// Enemies and comrades of a defense round that are already destroyed, so
+  /// a late state message does not bring them back.
   final destroyedEnemies = <String>{};
 
   /// Enemies of a defense round are called `td-<wave>-<n>` and run by the
   /// [botHost].
   bool isEnemy(String id) => defense && id.startsWith('td-');
 
-  bool isBot(String id) => bots.containsKey(id) || isEnemy(id);
+  /// CPU comrades of a defense round are called `ally-<slot>-<life>`, a new
+  /// life after every respawn, and run by the [botHost] as well.
+  bool isAlly(String id) => defense && id.startsWith('ally-');
 
-  /// "CPU-3" for the bot called `cpu-3`. Enemies of the defense are named
-  /// after what they are: `td-h-…` a helicopter, `td-j-…` a jet, `td-d-…` a
-  /// drone, `td-i-…` a squad on foot and every other one a tank.
+  bool isBot(String id) => bots.containsKey(id) || isEnemy(id) || isAlly(id);
+
+  /// "CPU-3" for the bot called `cpu-3` and "KAMERAD 2" for the comrade in
+  /// slot 1. Enemies of the defense are named after what they are:
+  /// `td-h-…` a helicopter, `td-j-…` a jet, `td-d-…` a drone, `td-i-…` a
+  /// squad on foot and every other one a tank.
   String botName(String id) {
-    if (!isEnemy(id)) {
-      return 'CPU-${id.split('-').last}';
+    final parts = id.split('-');
+    if (isAlly(id)) {
+      return 'KAMERAD ${(int.tryParse(parts[1]) ?? 0) + 1}';
     }
-    return switch (id.split('-')[1]) {
+    if (!isEnemy(id)) {
+      return 'CPU-${parts.last}';
+    }
+    return switch (parts[1]) {
       'h' => 'HUBSCHRAUBER',
       'j' => 'KAMPFJET',
       'd' => 'FEINDDROHNE',
@@ -67,6 +76,13 @@ class RoundState {
     return GameConfig.styleOf(DefenseMap.enemyType(wave, n).index, 1);
   }
 
+  /// Look of a comrade, which follows from its slot: in camouflage, so it
+  /// stands apart from the loud colours of the players and from the enemy.
+  int allyStyle(String id) {
+    final slot = int.tryParse(id.split('-')[1]) ?? 0;
+    return GameConfig.styleOf(DefenseMap.allyType(slot).index, 0);
+  }
+
   /// In a defense round every player is on team 1 and every enemy on 2.
   int teamOf(String id) {
     // The red and blue squads of a team round, `inf-1` and `inf-2`.
@@ -74,7 +90,7 @@ class RoundState {
       return int.tryParse(id.substring(4)) ?? 0;
     }
     if (defense) {
-      return participants.contains(id) ? 1 : 2;
+      return participants.contains(id) || isAlly(id) ? 1 : 2;
     }
     return teams[id] ?? 0;
   }
