@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../db/supabase_schema.g.dart';
@@ -24,7 +26,8 @@ class Leaderboard extends StatefulWidget {
 }
 
 class _LeaderboardState extends State<Leaderboard> {
-  late final Stream<List<ScoresRow>> _scores;
+  late Future<List<ScoresRow>> _scores;
+  Timer? _refresh;
   var _view = _View.total;
   late Future<List<WeeklyScoresRow>> _week;
   late Future<List<TankScoresRow>> _vehicles;
@@ -32,11 +35,21 @@ class _LeaderboardState extends State<Leaderboard> {
   @override
   void initState() {
     super.initState();
-    _scores = widget.game.scoreService.topScores(limit: 50);
     _reload();
+    _refresh = Timer.periodic(
+      const Duration(seconds: 30),
+      (_) => setState(_reload),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refresh?.cancel();
+    super.dispose();
   }
 
   void _reload() {
+    _scores = widget.game.scoreService.topScores(limit: 50);
     _week = widget.game.scoreService.weeklyScores();
     _vehicles = widget.game.scoreService.myTankScores();
   }
@@ -225,9 +238,29 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   Widget _total(BuildContext context) {
-    return StreamBuilder<List<ScoresRow>>(
-      stream: _scores,
+    return FutureBuilder<List<ScoresRow>>(
+      future: _scores,
       builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Row(
+            children: [
+              const Text(
+                'Bestenliste gerade nicht erreichbar.',
+                style: TextStyle(color: BwColors.textDim),
+              ),
+              TextButton(
+                onPressed: () => setState(_reload),
+                child: const Text('NEU LADEN'),
+              ),
+            ],
+          );
+        }
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const Text(
+            'Bestenliste wird geladen …',
+            style: TextStyle(color: BwColors.textDim),
+          );
+        }
         final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
           ..sort(_byRank);
         final shown = scores.take(widget.rows).toList();

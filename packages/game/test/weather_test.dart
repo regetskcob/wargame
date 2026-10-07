@@ -39,4 +39,25 @@ void main() {
     expect(make(Sky.clear, true).vision, isNotNull);
     expect(make(Sky.fog, true).vision!, lessThan(make(Sky.fog, false).vision!));
   });
+
+  test('the weather starts with the seed and turns in long rounds', () {
+    var turned = 0;
+    for (var seed = 0; seed < 200; seed++) {
+      expect(Conditions.skyAt(seed, 0), Conditions.forSeed(seed).sky);
+      expect(
+        Conditions.skyAt(seed, Conditions.spell - 1),
+        Conditions.forSeed(seed).sky,
+      );
+      // Every client works out the same sky for the same moment.
+      expect(Conditions.skyAt(seed, 500), Conditions.skyAt(seed, 500));
+      final skies = {
+        for (var t = 0.0; t < 600; t += Conditions.spell)
+          Conditions.skyAt(seed, t),
+      };
+      if (skies.length > 1) {
+        turned++;
+      }
+    }
+    expect(turned, greaterThan(100));
+  });
 }

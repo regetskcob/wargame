@@ -6,6 +6,7 @@ import '../game_config.dart';
 import '../net/room.dart';
 import '../theme.dart';
 import 'widgets/leaderboard.dart';
+import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/room_list.dart';
@@ -91,6 +92,8 @@ class LaunchView extends StatelessWidget {
         ],
         const SizedBox(height: 28),
         Leaderboard(game: game),
+        const SizedBox(height: 16),
+        const LegalLinks(),
       ],
     );
   }

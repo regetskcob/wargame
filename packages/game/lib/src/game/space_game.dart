@@ -346,14 +346,19 @@ class SpaceGame extends FlameGame
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
 
-  /// Weather and time of day picked in the lobby, null for random ones.
-  final skyChoice = ValueNotifier<Sky?>(null);
+  /// Time of day picked in the lobby, null for a random one. The weather is
+  /// always rolled from the seed and turns during long rounds.
   final nightChoice = ValueNotifier<bool?>(null);
 
   /// Weather and time of day of the current round.
   Conditions? conditions;
   final conditionsLabel = ValueNotifier<String?>(null);
   WeatherLayer? _weather;
+
+  /// The weather that is giving way, faded out over a few seconds.
+  WeatherLayer? _passingWeather;
+  double _weatherCheck = 0;
+  static const _weatherFade = 5.0;
   final mapName = ValueNotifier<String>(MapTheme.forest.name);
   StormZone? _stormZone;
   int _bulletCounter = 0;
@@ -421,15 +426,17 @@ class SpaceGame extends FlameGame
         (phase.value == GamePhase.playing ||
             phase.value == GamePhase.countdown) &&
         ship != null;
-    _weather?.render(
-      canvas,
-      Size(canvasSize.x, canvasSize.y),
-      camera: camera.viewfinder.position.toOffset(),
-      scale: viewScale,
-      heading: playing ? ship.angle : null,
-      // Spectators and the fallen see the whole field.
-      veil: playing,
-    );
+    for (final layer in [?_passingWeather, ?_weather]) {
+      layer.render(
+        canvas,
+        Size(canvasSize.x, canvasSize.y),
+        camera: camera.viewfinder.position.toOffset(),
+        scale: viewScale,
+        heading: playing ? ship.angle : null,
+        // Spectators and the fallen see the whole field.
+        veil: playing,
+      );
+    }
     if (_damageFlash > 0.01) {
       final size = canvasSize;
       final edge = Paint()
@@ -515,6 +522,7 @@ class SpaceGame extends FlameGame
     super.update(dt);
     _shake = max(0, _shake - dt * 28);
     _weather?.update(dt);
+    _turnWeather(dt);
     _damageFlash = max(0, _damageFlash - dt * 2.5);
     final activeRound = round;
     if (phase.value == GamePhase.countdown && activeRound != null) {
@@ -789,14 +797,10 @@ class SpaceGame extends FlameGame
       ..addAll(bots.keys)
       ..sort();
     final payload = RoundStartPayload(
-      seed: Conditions.seedWith(
-        switch (mapChoice.value) {
-          final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
-          null => Random().nextInt(1 << 30),
-        },
-        sky: skyChoice.value,
-        night: nightChoice.value,
-      ),
+      seed: Conditions.seedWith(switch (mapChoice.value) {
+        final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
+        null => Random().nextInt(1 << 30),
+      }, night: nightChoice.value),
       startedAt:
           DateTime.now().millisecondsSinceEpoch +
           GameConfig.countdownSeconds * 1000,
@@ -1170,6 +1174,14 @@ class SpaceGame extends FlameGame
     final field = DefenseField(seed: activeRound.seed, map: map);
     _defenseField = field;
     _setGround(field.theme, plain: true);
+    // Defense is fought by day, but the weather comes and goes as well.
+    conditions = Conditions(
+      sky: Conditions.forSeed(activeRound.seed).sky,
+      night: false,
+      theme: field.theme,
+    );
+    conditionsLabel.value = conditions!.label;
+    _weather = WeatherLayer(conditions!);
     world.add(field);
     _fitCamera();
     credits.value = GameConfig.startCredits;
@@ -1224,6 +1236,43 @@ class SpaceGame extends FlameGame
 
   static double _headingFrom(Vector2 from, Vector2 to) =>
       atan2(to.x - from.x, -(to.y - from.y));
+
+  /// Lets the weather turn when the seed says so, and fades the old sky out
+  /// while the new one comes in.
+  void _turnWeather(double dt) {
+    final current = _weather;
+    if (current != null && current.opacity < 1) {
+      current.opacity = min(1, current.opacity + dt / _weatherFade);
+    }
+    final passing = _passingWeather;
+    if (passing != null) {
+      passing
+        ..update(dt)
+        ..opacity -= dt / _weatherFade;
+      if (passing.opacity <= 0) {
+        _passingWeather = null;
+      }
+    }
+    _weatherCheck -= dt;
+    final activeRound = round;
+    final now = conditions;
+    if (_weatherCheck > 0 || activeRound == null || now == null) {
+      return;
+    }
+    _weatherCheck = 1;
+    final sky = Conditions.skyAt(activeRound.seed, _secondsIntoRound);
+    if (sky == now.sky) {
+      return;
+    }
+    final next = now.withSky(sky);
+    conditions = next;
+    conditionsLabel.value = next.label;
+    _passingWeather = current;
+    _weather = WeatherLayer(next)..opacity = 0;
+    if (phase.value == GamePhase.playing) {
+      showNotice('WETTERUMSCHWUNG: ${next.label.toUpperCase()}');
+    }
+  }
 
   /// Hills and hollows for the level of [activeRound], none on easy.
   void _raiseTerrain(
@@ -4378,6 +4427,7 @@ class SpaceGame extends FlameGame
     conditions = null;
     conditionsLabel.value = null;
     _weather = null;
+    _passingWeather = null;
     _asteroidField?.removeFromParent();
     _asteroidField = null;
     mudField?.removeFromParent();
