@@ -20,6 +20,7 @@ class HealthBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ratio = (hp / maxHp).clamp(0.0, 1.0);
+    final color = ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger;
     return SizedBox(
       width: compact ? 150 : 220,
       child: Panel(
@@ -30,19 +31,29 @@ class HealthBar extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: compact ? 11 : null,
-              ),
+            Row(
+              children: [
+                Icon(
+                  Icons.health_and_safety,
+                  size: compact ? 12 : 16,
+                  color: color,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: compact ? 11 : null,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: compact ? 3 : 6),
             LinearProgressIndicator(
               value: ratio,
               minHeight: compact ? 7 : 10,
               backgroundColor: Colors.black38,
-              color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+              color: color,
             ),
           ],
         ),
