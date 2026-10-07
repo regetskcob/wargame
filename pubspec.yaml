@@ -1,4 +1,4 @@
-name: supabase_flame_workshop_workspace
+name: wargame_workspace
 publish_to: none
 
 environment:
@@ -7,8 +7,6 @@ environment:
 
 workspace:
   - packages/game
-  - packages/skeleton
-  - packages/slides
 
 dev_dependencies:
   melos: ^8.9.0
@@ -27,12 +25,6 @@ melos:
     game:
       run: melos exec --scope=game -- flutter run -d chrome
       description: Run the game in Chrome.
-    skeleton:
-      run: melos exec --scope=skeleton -- flutter run -d chrome
-      description: Run the exercise skeleton in Chrome.
-    slides:
-      run: melos exec --scope=slides -- flutter run -d chrome
-      description: Run the slide deck in Chrome.
     build:game:web:
       run: melos exec --scope=game -- flutter build web
       description: Build the game for the web.
@@ -45,9 +37,3 @@ melos:
     build:game:ios:
       run: melos exec --scope=game -- flutter build ios --release
       description: Build the game for iOS (needs Xcode and a signing team).
-    build:skeleton:web:
-      run: melos exec --scope=skeleton -- flutter build web
-      description: Build the skeleton for the web.
-    build:slides:web:
-      run: melos exec --scope=slides -- flutter build web
-      description: Build the slide deck for the web.

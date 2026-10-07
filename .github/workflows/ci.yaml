@@ -16,10 +16,6 @@ jobs:
           flutter-version: 3.47.0
       - run: dart pub get
       - run: dart format --set-exit-if-changed .
-      - run: flutter analyze packages/game packages/skeleton packages/slides
+      - run: flutter analyze packages/game
       - run: flutter build web
         working-directory: packages/game
-      - run: flutter build web
-        working-directory: packages/slides
-      - run: flutter build web
-        working-directory: packages/skeleton
