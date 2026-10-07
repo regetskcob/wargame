@@ -7,6 +7,7 @@ import '../net/payloads/lobby_presence.dart';
 import '../game/components/tank_painter.dart';
 import '../theme.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/choice_row.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
@@ -63,9 +64,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         Row(
           children: [
             Expanded(
-              child: Text(
-                'PANZERGEFECHT',
-                style: Theme.of(context).textTheme.headlineLarge,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  'PANZERGEFECHT',
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.headlineLarge,
+                ),
               ),
             ),
             const MuteButton(),
@@ -86,18 +92,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 8),
         Text('FAHRZEUG', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (final type in TankType.values)
-              TankChoice(
-                type: type,
-                color: GameConfig.colorOf(_colorIndex),
-                selected: type == GameConfig.typeOf(_colorIndex),
-                onTap: () => _pick(type: type.index),
-              ),
-          ],
+        LayoutBuilder(
+          builder: (context, box) {
+            // Two or more cards per row that share the width evenly.
+            final columns = (((box.maxWidth + 8) / 120).floor()).clamp(2, 4);
+            final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+            return Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final type in TankType.values)
+                  TankChoice(
+                    type: type,
+                    width: width.floorToDouble(),
+                    color: GameConfig.colorOf(_colorIndex),
+                    selected: type == GameConfig.typeOf(_colorIndex),
+                    onTap: () => _pick(type: type.index),
+                  ),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 12),
         StatBars(type: GameConfig.typeOf(_colorIndex)),
@@ -119,125 +133,135 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
           ],
         ),
-        const SizedBox(height: 16),
-        Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.teamMode,
-          builder: (context, teams, _) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SegmentedButton<bool>(
-                showSelectedIcon: false,
-                segments: const [
-                  ButtonSegment(value: false, label: Text('ALLE GEGEN ALLE')),
-                  ButtonSegment(value: true, label: Text('TEAMS')),
-                ],
-                selected: {teams},
-                onSelectionChanged: (s) => game.teamMode.value = s.first,
-              ),
-              if (teams) ...[
-                const SizedBox(height: 10),
-                SegmentedButton<int>(
-                  showSelectedIcon: false,
-                  segments: [
-                    const ButtonSegment(value: 0, label: Text('AUTO')),
-                    ButtonSegment(
-                      value: 1,
-                      label: Text(
-                        'ROT',
-                        style: TextStyle(color: GameConfig.teamColors[1]),
-                      ),
-                    ),
-                    ButtonSegment(
-                      value: 2,
-                      label: Text(
-                        'BLAU',
-                        style: TextStyle(color: GameConfig.teamColors[2]),
-                      ),
-                    ),
+        if (game.net.isHost) ...[
+          const SizedBox(height: 16),
+          Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          ValueListenableBuilder<bool>(
+            valueListenable: game.teamMode,
+            builder: (context, teams, _) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ChoiceRow<bool>(
+                  options: const [
+                    (false, 'ALLE GEGEN ALLE', null),
+                    (true, 'TEAMS', null),
                   ],
-                  selected: {_teamPick},
-                  onSelectionChanged: (s) {
-                    setState(() => _teamPick = s.first);
-                    game.setTeamPick(_teamPick);
-                  },
+                  selected: teams,
+                  onSelected: (v) => game.teamMode.value = v ?? false,
                 ),
-                const SizedBox(height: 6),
-                const Text(
-                  'AUTO füllt das kleinere Team. Eigene Teammitglieder '
-                  'triffst du nicht.',
-                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                ),
+                if (teams) ...[
+                  const SizedBox(height: 10),
+                  ChoiceRow<int>(
+                    options: [
+                      (0, 'AUTO', null),
+                      (1, 'ROT', GameConfig.teamColors[1]),
+                      (2, 'BLAU', GameConfig.teamColors[2]),
+                    ],
+                    selected: _teamPick,
+                    onSelected: (v) {
+                      setState(() => _teamPick = v ?? 0);
+                      game.setTeamPick(_teamPick);
+                    },
+                  ),
+                  const SizedBox(height: 6),
+                  const Text(
+                    'AUTO füllt das kleinere Team. Eigene Teammitglieder '
+                    'triffst du nicht.',
+                    style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Text('CPU-GEGNER', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 4),
-        ValueListenableBuilder<int>(
-          valueListenable: game.botCount,
-          builder: (context, count, _) => Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton.outlined(
-                tooltip: 'Weniger',
-                onPressed: count > 0
-                    ? () => game.botCount.value = count - 1
-                    : null,
-                icon: const Icon(Icons.remove),
-              ),
-              SizedBox(
-                width: 56,
-                child: Text(
-                  '$count',
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineMedium,
-                ),
-              ),
-              IconButton.outlined(
-                tooltip: 'Mehr',
-                onPressed: count < 6
-                    ? () => game.botCount.value = count + 1
-                    : null,
-                icon: const Icon(Icons.add),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  count == 0 ? 'Nur echte Spieler.' : 'Läuft auf deinem Gerät: Das Fenster muss offen bleiben.',
-                  style: const TextStyle(color: BwColors.textDim, fontSize: 12),
-                ),
-              ),
-            ],
+          ValueListenableBuilder<bool>(
+            valueListenable: game.multiplayer,
+            builder: (context, multi, _) => multi
+                ? const SizedBox()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const SizedBox(height: 16),
+                      Text(
+                        'CPU-GEGNER',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      ValueListenableBuilder<int>(
+                        valueListenable: game.botCount,
+                        builder: (context, count, _) => Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton.outlined(
+                              tooltip: 'Weniger',
+                              onPressed: count > 0
+                                  ? () => game.botCount.value = count - 1
+                                  : null,
+                              icon: const Icon(Icons.remove),
+                            ),
+                            SizedBox(
+                              width: 56,
+                              child: Text(
+                                '$count',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .headlineMedium,
+                              ),
+                            ),
+                            IconButton.outlined(
+                              tooltip: 'Mehr',
+                              onPressed: count < 6
+                                  ? () => game.botCount.value = count + 1
+                                  : null,
+                              icon: const Icon(Icons.add),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                count == 0
+                                    ? 'Nur echte Spieler.'
+                                    : 'Läuft auf deinem Gerät.',
+                                style: const TextStyle(
+                                  color: BwColors.textDim,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
-        ),
-        const SizedBox(height: 16),
-        Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ValueListenableBuilder<int?>(
-          valueListenable: game.mapChoice,
-          builder: (context, choice, _) => SegmentedButton<int>(
-            showSelectedIcon: false,
-            emptySelectionAllowed: true,
-            segments: [
-              for (var i = 0; i < MapTheme.all.length; i++)
-                ButtonSegment(
-                  value: i,
-                  label: Text(MapTheme.all[i].name.toUpperCase()),
-                ),
-            ],
-            selected: {?choice},
-            onSelectionChanged: (s) =>
-                game.mapChoice.value = s.isEmpty ? null : s.first,
+          const SizedBox(height: 16),
+          Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          ValueListenableBuilder<int?>(
+            valueListenable: game.mapChoice,
+            builder: (context, choice, _) => ChoiceRow<int>(
+              allowNone: true,
+              options: [
+                for (var i = 0; i < MapTheme.all.length; i++)
+                  (i, MapTheme.all[i].name.toUpperCase(), null),
+              ],
+              selected: choice,
+              onSelected: (v) => game.mapChoice.value = v,
+            ),
           ),
-        ),
-        const SizedBox(height: 6),
-        const Text(
-          'Ohne Auswahl wird das Gelände zufällig bestimmt.',
-          style: TextStyle(color: BwColors.textDim, fontSize: 12),
-        ),
+          const SizedBox(height: 6),
+          const Text(
+            'Ohne Auswahl wird das Gelände zufällig bestimmt.',
+            style: TextStyle(color: BwColors.textDim, fontSize: 12),
+          ),
+        ] else ...[
+          const SizedBox(height: 16),
+          const Text(
+            'Modus, Gelände und CPU-Gegner legt der Gastgeber fest. '
+            'Du suchst dir hier nur Namen, Fahrzeug und Tarnung aus.',
+            style: TextStyle(color: BwColors.textDim, fontSize: 12),
+          ),
+        ],
         const SizedBox(height: 24),
         ValueListenableBuilder<List<LobbyPresence>>(
           valueListenable: game.roster,
@@ -248,14 +272,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               runSpacing: 12,
               children: [
                 FilledButton.icon(
-                  onPressed: live == null
+                  onPressed: live == null && game.canStart
                       ? () {
                           _apply();
                           game.startRound();
                         }
                       : null,
                   icon: const Icon(Icons.flag),
-                  label: const Text('ÜBUNG STARTEN'),
+                  label: Text(
+                    game.canStart ? 'ÜBUNG STARTEN' : 'WARTE AUF GASTGEBER',
+                  ),
                 ),
                 if (live != null)
                   OutlinedButton.icon(
@@ -287,8 +313,52 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// First step for the host: alone against CPU tanks or with other people.
+  Widget _modeChoice(BuildContext context) {
+    final game = widget.game;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('SPIELART', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        ValueListenableBuilder<bool>(
+          valueListenable: game.multiplayer,
+          builder: (context, multi, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChoiceRow<bool>(
+                options: const [
+                  (false, 'EINZELSPIELER', null),
+                  (true, 'MEHRSPIELER', null),
+                ],
+                selected: multi,
+                onSelected: (v) => game.setMultiplayer(v ?? true),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                multi
+                    ? 'Spiele mit anderen: Schick den Link weiter. '
+                          'Es gibt keine CPU-Gegner.'
+                    : 'Du spielst allein gegen CPU-Panzer.',
+                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _rosterColumn() {
     final game = widget.game;
+    return ValueListenableBuilder<bool>(
+      valueListenable: game.multiplayer,
+      builder: (context, multi, _) =>
+          multi ? _roster(game) : const SizedBox.shrink(),
+    );
+  }
+
+  Widget _roster(SpaceGame game) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -311,15 +381,28 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           final narrow = constraints.maxWidth < 720;
           return Center(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(narrow ? 8 : 16),
               child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 860),
                 child: Panel(
-                  padding: const EdgeInsets.all(24),
+                  padding: EdgeInsets.all(narrow ? 14 : 24),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      RoomInvite(game: widget.game),
+                      if (!widget.game.net.isHost)
+                        const _JoinedBanner()
+                      else ...[
+                        _modeChoice(context),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: widget.game.multiplayer,
+                          builder: (context, multi, _) => multi
+                              ? Padding(
+                                  padding: const EdgeInsets.only(top: 16),
+                                  child: RoomInvite(game: widget.game),
+                                )
+                              : const SizedBox(),
+                        ),
+                      ],
                       const SizedBox(height: 24),
                       if (narrow) ...[
                         _pilotColumn(context),
@@ -376,6 +459,37 @@ class ColorSwatchButton extends StatelessWidget {
               width: 2.5,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Shown to players who joined by a link: no code, no settings, just waiting.
+class _JoinedBanner extends StatelessWidget {
+  const _JoinedBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x44000000),
+        border: Border.all(color: BwColors.oliveLight),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            const Icon(Icons.hourglass_top, color: BwColors.amber),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                'Du bist dem Warteraum beigetreten. Der Gastgeber startet die '
+                'Übung, sobald alle da sind.',
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+          ],
         ),
       ),
     );
