@@ -112,10 +112,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                             _StatsRow(stats: game.roundStats),
                           ],
                           const SizedBox(height: 24),
-                          FilledButton(
-                            onPressed: game.backToLobby,
-                            child: const Text('ZURÜCK INS LAGER'),
-                          ),
+                          _Actions(game: game),
                         ],
                       ),
                     ),
@@ -126,6 +123,56 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
           },
         );
       },
+    );
+  }
+}
+
+/// Straight into the next round, or back to the waiting room. Only the
+/// player who may start rounds gets the rematch button, everybody else is
+/// pulled along when it is pressed.
+class _Actions extends StatelessWidget {
+  const _Actions({required this.game});
+
+  final SpaceGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    final rematch = game.canStart;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Wrap(
+          alignment: WrapAlignment.center,
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            if (rematch)
+              FilledButton.icon(
+                onPressed: game.rematch,
+                icon: const Icon(Icons.replay),
+                label: const Text('NOCHMAL'),
+              ),
+            if (rematch)
+              OutlinedButton(
+                onPressed: game.backToLobby,
+                child: const Text('ZURÜCK INS LAGER'),
+              )
+            else
+              FilledButton(
+                onPressed: game.backToLobby,
+                child: const Text('ZURÜCK INS LAGER'),
+              ),
+          ],
+        ),
+        if (!rematch) ...[
+          const SizedBox(height: 10),
+          const Text(
+            'Startet der Gastgeber eine neue Runde, bist du automatisch dabei.',
+            style: TextStyle(color: BwColors.textDim, fontSize: 12),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ],
     );
   }
 }

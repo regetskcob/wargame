@@ -358,11 +358,14 @@ class SpaceGame extends FlameGame
       return;
     }
     final solo = !multiplayer.value;
+    // Players still looking at the last end screen come along as well.
     final ids = <String>{
       myId,
       if (!solo)
         for (final member in roster.value)
-          if (member.phase == GamePhase.lobby.name) member.id,
+          if (member.phase == GamePhase.lobby.name ||
+              member.phase == GamePhase.roundOver.name)
+            member.id,
     }.toList();
     // CPU tanks only exist when playing alone, and then there are always some.
     final botCount = solo
@@ -395,6 +398,16 @@ class SpaceGame extends FlameGame
     _applyRoundStart(payload);
   }
 
+  /// Starts the next round straight from the end screen, in the same room
+  /// and with everybody who is still there.
+  void rematch() {
+    if (phase.value != GamePhase.roundOver || !canStart) {
+      return;
+    }
+    backToLobby();
+    startRound();
+  }
+
   void spectateLiveMatch() {
     if (phase.value != GamePhase.lobby) {
       return;
@@ -424,11 +437,17 @@ class SpaceGame extends FlameGame
   }
 
   void _onRoundStart(RoundStartPayload payload) {
+    final activeRound = round;
     if (phase.value == GamePhase.lobby) {
       _applyRoundStart(payload);
       return;
     }
-    final activeRound = round;
+    // A rematch pulls everybody off the end screen into the next round.
+    if (phase.value == GamePhase.roundOver &&
+        (activeRound == null || payload.startedAt > activeRound.startedAt)) {
+      _applyRoundStart(payload);
+      return;
+    }
     final beforeStart =
         phase.value == GamePhase.countdown ||
         phase.value == GamePhase.spectating;
