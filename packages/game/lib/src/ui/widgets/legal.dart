@@ -183,7 +183,10 @@ const _privacy = [
     'Konto mit E-Mail-Adresse (freiwillig)',
     'Sicherst du dein Gastkonto mit einer E-Mail-Adresse, speichert Supabase '
         'die Adresse, um dich anzumelden und dir Anmelde- und '
-        'Bestätigungsmails zu schicken. Die Adresse wird anderen Spielern '
+        'Bestätigungsmails zu schicken. Verschickt werden diese Mails über '
+        'den Mailserver unseres Webhosters do.de (Domain-Offensive), der dazu '
+        'deine E-Mail-Adresse und den Inhalt der Mail erhält. Die Adresse '
+        'wird anderen Spielern '
         'nie angezeigt, öffentlich erscheint nur dein Rufname. Sofern eine '
         'Anmeldung mit GitHub oder Google angeboten wird und du sie nutzt, '
         'erhalten wir von dort deine E-Mail-Adresse und eine Kennung des '
