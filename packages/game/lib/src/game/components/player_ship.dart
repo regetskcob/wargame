@@ -113,8 +113,16 @@ class PlayerShip extends ShipBase
   /// Tracks drive along the hull, so the tank never slides sideways: the
   /// velocity vector is always derived from the heading and [_speed].
   void _integrate(double dt) {
-    final turn =
+    final thrusting = _thrust || input.thrust;
+    final braking = _brake || input.brake;
+    var turn =
         ((_right || input.right) ? 1 : 0) - ((_left || input.left) ? 1 : 0);
+    // Steering follows the direction of travel: in reverse, left swings the
+    // rear to the left like a car would. Bots steer by heading, so not them.
+    final reversing = _speed < 0 || (_speed == 0 && braking && !thrusting);
+    if (reversing && !isBot) {
+      turn = -turn;
+    }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
     final maxSpeed =
@@ -127,9 +135,9 @@ class PlayerShip extends ShipBase
     angle +=
         turn * GameConfig.shipRotationSpeed * stats.turnRate * turnScale * dt;
 
-    if (_thrust || input.thrust) {
+    if (thrusting) {
       _speed += (_speed < 0 ? GameConfig.shipBrake : acceleration) * dt;
-    } else if (_brake || input.brake) {
+    } else if (braking) {
       _speed -= (_speed > 0 ? GameConfig.shipBrake : acceleration) * dt;
     } else {
       final decel = GameConfig.shipRollingResistance * dt;

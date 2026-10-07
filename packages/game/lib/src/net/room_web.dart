@@ -63,3 +63,20 @@ Future<bool> shareRoomLink(String url, String text) async {
     return false;
   }
 }
+
+/// Reloads the page without a room, which opens a fresh one with this
+/// session as its host.
+bool openFreshRoom() {
+  final uri = Uri.base;
+  final params = Map.of(uri.queryParameters)..remove('room');
+  web.window.location.assign(
+    Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString(),
+  );
+  return true;
+}

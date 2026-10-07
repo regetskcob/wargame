@@ -73,6 +73,30 @@ class GameConfig {
     'NATO-GRAU',
   ];
 
+  /// Multiplayer rounds paint every tank in its own loud colour instead of
+  /// camouflage, so players tell each other apart at a glance. Red and blue
+  /// are left out, they belong to the teams.
+  static const playerColors = [
+    Color(0xFFF2C230),
+    Color(0xFF2EC4B6),
+    Color(0xFFD94BC0),
+    Color(0xFFF08A24),
+    Color(0xFF9BD93B),
+    Color(0xFF8E6CEF),
+    Color(0xFFF2F2F2),
+    Color(0xFFFF8FA3),
+  ];
+
+  /// Colour of the player at [index] in a multiplayer round.
+  static Color playerColor(int index) =>
+      playerColors[index % playerColors.length];
+
+  static const lobbyIdleTimeout = Duration(minutes: 10);
+
+  /// How long the room may be without a host, or with two, before it settles
+  /// the question itself.
+  static const hostSettleSeconds = 3.0;
+
   /// A player's look travels as one number, the paint scheme in the low two
   /// bits and the vehicle above it, so the wire format stays a single int.
   static const styleCount = 16;
