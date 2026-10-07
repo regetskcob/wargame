@@ -1,8 +1,9 @@
 import 'dart:math';
-import 'dart:ui';
+import 'dart:ui' hide TextStyle;
 
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
+import 'package:flutter/painting.dart' show TextStyle;
 
 /// Churned up ground behind the tanks. One component paints all the marks, so
 /// a busy arena costs a single draw loop.
@@ -100,3 +101,73 @@ Vector2 jitter(Vector2 base, double amount) =>
       (_random.nextDouble() * 2 - 1) * amount,
       (_random.nextDouble() * 2 - 1) * amount,
     );
+
+/// A number that rises from a hit tank and fades out. [mine] marks a hit the
+/// local player dealt or took, and is drawn bigger.
+class DamageNumber extends PositionComponent {
+  DamageNumber({
+    required Vector2 position,
+    required double amount,
+    required Color color,
+    bool mine = false,
+  }) : _mine = mine,
+       _paint = TextPaint(
+         style: TextStyle(
+           color: color,
+           fontSize: mine ? 17 : 12,
+           fontWeight: FontWeight.w900,
+           shadows: const [Shadow(blurRadius: 3, color: Color(0xFF000000))],
+         ),
+       ),
+       _text = amount.round().clamp(1, 999).toString(),
+       super(
+         position: jitter(position, 10),
+         priority: 30,
+         anchor: Anchor.center,
+       );
+
+  final bool _mine;
+  final TextPaint _paint;
+  final String _text;
+  static const _lifetime = 0.9;
+  double _age = 0;
+
+  @override
+  void update(double dt) {
+    _age += dt;
+    position.y -= 38 * dt;
+    if (_age >= _lifetime) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final fade = (1 - _age / _lifetime).clamp(0.0, 1.0);
+    canvas.saveLayer(
+      null,
+      Paint()..color = Color.fromRGBO(255, 255, 255, fade),
+    );
+    if (_mine) {
+      // Hit marker: four short strokes around the number.
+      final marker = Paint()
+        ..color = const Color(0xFFFFFFFF)
+        ..strokeWidth = 2;
+      final spread = 14 + 8 * (_age / _lifetime);
+      for (final d in const [
+        (-1.0, -1.0),
+        (1.0, -1.0),
+        (-1.0, 1.0),
+        (1.0, 1.0),
+      ]) {
+        canvas.drawLine(
+          Offset(d.$1 * spread, d.$2 * spread),
+          Offset(d.$1 * (spread - 5), d.$2 * (spread - 5)),
+          marker,
+        );
+      }
+    }
+    _paint.render(canvas, _text, Vector2.zero(), anchor: Anchor.center);
+    canvas.restore();
+  }
+}

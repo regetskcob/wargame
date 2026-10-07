@@ -251,6 +251,14 @@ class PlayerShip extends ShipBase
     if (!isBot) {
       gameRef.hpNotifier.value = hp;
     }
+    // Zone ticks are tiny, only real hits get a number and a shake.
+    if (amount >= 2) {
+      if (isBot) {
+        gameRef.showHit(position, amount, mine: killerId == gameRef.myId);
+      } else {
+        gameRef.onLocalDamage(position, amount);
+      }
+    }
     if (hp <= 0) {
       if (isBot) {
         gameRef.onBotDeath(this, killerId);

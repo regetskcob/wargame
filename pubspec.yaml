@@ -36,6 +36,15 @@ melos:
     build:game:web:
       run: melos exec --scope=game -- flutter build web
       description: Build the game for the web.
+    build:game:apk:
+      run: melos exec --scope=game -- flutter build apk --release
+      description: Build the game as an Android APK.
+    build:game:appbundle:
+      run: melos exec --scope=game -- flutter build appbundle --release
+      description: Build the game as an Android App Bundle for Google Play.
+    build:game:ios:
+      run: melos exec --scope=game -- flutter build ios --release
+      description: Build the game for iOS (needs Xcode and a signing team).
     build:skeleton:web:
       run: melos exec --scope=skeleton -- flutter build web
       description: Build the skeleton for the web.
