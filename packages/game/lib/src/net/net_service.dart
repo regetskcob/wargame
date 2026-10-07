@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'net_events.dart';
 import 'payloads/death_payload.dart';
+import 'payloads/defense_payload.dart';
 import 'payloads/hit_payload.dart';
 import 'payloads/lobby_presence.dart';
 import 'payloads/obstacle_payload.dart';
@@ -34,6 +35,8 @@ class NetService {
   void Function(SmokePayload payload)? onSmoke;
   void Function(ObstaclePayload payload)? onObstacle;
   void Function(SoldierPayload payload)? onSoldier;
+  void Function(DefensePayload payload)? onDefense;
+  void Function(TowerPayload payload)? onTower;
   void Function(GrenadePayload payload)? onGrenade;
   void Function(DronePayload payload)? onDrone;
   void Function(BlastPayload payload)? onBlast;
@@ -102,6 +105,14 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.smoke.name),
       (json) => onSmoke?.call(SmokePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.defense.name),
+      (json) => onDefense?.call(DefensePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.tower.name),
+      (json) => onTower?.call(TowerPayload.fromJson(json)),
     );
     _listen(
       channel.onBroadcast(event: NetEvent.close.name),

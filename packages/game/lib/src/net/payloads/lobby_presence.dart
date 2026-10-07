@@ -9,6 +9,8 @@ class LobbyPresence {
     this.owner = false,
     this.seed,
     this.startedAt,
+    this.defense = false,
+    this.botHost,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,8 @@ class LobbyPresence {
       owner: json['owner'] as bool? ?? false,
       seed: json['seed'] as int?,
       startedAt: json['startedAt'] as int?,
+      defense: json['defense'] as bool? ?? false,
+      botHost: json['botHost'] as String?,
     );
   }
 
@@ -42,6 +46,10 @@ class LobbyPresence {
   final int? seed;
   final int? startedAt;
 
+  /// The match is a defense round, run by [botHost].
+  final bool defense;
+  final String? botHost;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -55,6 +63,8 @@ class LobbyPresence {
       'owner': owner,
       'seed': seed,
       'startedAt': startedAt,
+      if (defense) 'defense': true,
+      if (botHost != null) 'botHost': botHost,
     };
   }
 }

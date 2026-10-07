@@ -9,7 +9,7 @@ import '../map_theme.dart';
 /// The ground of a map: patches of colour and a ring where the tanks start.
 /// City maps are paved and cut by two roads.
 class Starfield extends PositionComponent {
-  Starfield([this.theme = MapTheme.forest]) : super(priority: -20) {
+  Starfield(this.theme, {this.plain = false}) : super(priority: -20) {
     final random = Random(7);
     _patches = [
       for (var i = 0; i < 480; i++)
@@ -27,6 +27,10 @@ class Starfield extends PositionComponent {
   }
 
   final MapTheme theme;
+
+  /// Without the start ring and the crossroads, for the defense map that
+  /// brings its own road.
+  final bool plain;
   late final List<(Offset, double, Color)> _patches;
 
   @override
@@ -45,6 +49,9 @@ class Starfield extends PositionComponent {
         ),
         Paint()..color = color,
       );
+    }
+    if (plain) {
+      return;
     }
     if (theme.roads) {
       _paintRoads(canvas, reach);

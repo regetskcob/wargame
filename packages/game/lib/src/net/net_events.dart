@@ -8,6 +8,8 @@ enum NetEvent {
   smoke,
   obstacle,
   soldier,
+  defense,
+  tower,
   grenade,
   drone,
   blast,
