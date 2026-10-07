@@ -93,8 +93,8 @@ class Conditions {
   /// How far a tank can see, in world units. Null means as far as the screen.
   double? get vision {
     final weather = switch (sky) {
-      Sky.fog => 380.0,
-      Sky.precipitation when sand => 440.0,
+      Sky.fog => 460.0,
+      Sky.precipitation when sand => 500.0,
       _ => null,
     };
     if (!night) {
@@ -147,18 +147,21 @@ class WeatherLayer {
 
   /// [camera] is the world point in the middle of the screen, [scale] the
   /// pixels per world unit, [heading] the hull angle of the player's tank for
-  /// the headlights, null without a tank.
+  /// the headlights, null without a tank. [focus] is where that tank is on
+  /// the screen: the camera stops at the edge of a defense field, so it is
+  /// not always the middle.
   void render(
     Canvas canvas,
     Size size, {
     required Offset camera,
     required double scale,
     double? heading,
+    Offset? focus,
     bool veil = true,
   }) {
     _precipitation(canvas, size, camera, scale);
     if (veil) {
-      _veil(canvas, size, scale, heading);
+      _veil(canvas, size, scale, heading, focus);
     }
   }
 
@@ -226,7 +229,13 @@ class WeatherLayer {
     }
   }
 
-  void _veil(Canvas canvas, Size size, double scale, double? heading) {
+  void _veil(
+    Canvas canvas,
+    Size size,
+    double scale,
+    double? heading,
+    Offset? focus,
+  ) {
     final vision = conditions.vision;
     if (vision == null) {
       return;
@@ -235,12 +244,14 @@ class WeatherLayer {
     if (conditions.night) {
       shade = const Color(0xE6040814);
     } else if (conditions.sand) {
-      shade = const Color(0xC8B9935A);
+      shade = const Color(0xA8B9935A);
     } else {
-      shade = const Color(0xD8B4BAC0);
+      // Thick enough to hide what is far, light enough to still make out
+      // the road and the woods.
+      shade = const Color(0xA8B4BAC0);
     }
     final rect = Offset.zero & size;
-    final centre = rect.center;
+    final centre = focus ?? rect.center;
     final radius = vision * scale;
     canvas.saveLayer(rect, Paint());
     canvas.drawRect(

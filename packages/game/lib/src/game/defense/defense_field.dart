@@ -45,10 +45,25 @@ class DefenseField extends Component {
         (b) => b.centre.distanceTo(position) < b.halfLength + radius + 30,
       );
 
+  /// River and road lie in the world itself, under the soldiers and the
+  /// tracks. As children of the field they would be drawn at the field's
+  /// own place in the world, over everything that walks on the road.
+  late final _ground = _Ground(map: map, theme: theme);
+
+  @override
+  void onMount() {
+    super.onMount();
+    parent?.add(_ground);
+  }
+
+  @override
+  void onRemove() {
+    _ground.removeFromParent();
+    super.onRemove();
+  }
+
   @override
   void onLoad() {
-    add(_River(map: map, theme: theme));
-    add(_Road(map: map, theme: theme));
     headquarters = Headquarters(
       position: map.base.clone(),
       approach: (map.road[map.road.length - 2] - map.base).normalized(),
@@ -149,6 +164,15 @@ class DefenseField extends Component {
 }
 
 /// The river with its banks, below the road so the bridges lie on top.
+/// River and road of the field, below soldiers (-12) and tracks (-15).
+class _Ground extends Component {
+  _Ground({required DefenseMap map, required MapTheme theme})
+    : super(priority: -17) {
+    add(_River(map: map, theme: theme));
+    add(_Road(map: map, theme: theme));
+  }
+}
+
 class _River extends PositionComponent {
   _River({required this.map, required this.theme}) : super(priority: -16);
 

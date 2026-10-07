@@ -433,6 +433,11 @@ class SpaceGame extends FlameGame
         camera: camera.viewfinder.position.toOffset(),
         scale: viewScale,
         heading: playing ? ship.angle : null,
+        focus: playing
+            ? ((ship.position - camera.viewfinder.position) * viewScale +
+                      canvasSize / 2)
+                  .toOffset()
+            : null,
         // Spectators and the fallen see the whole field.
         veil: playing,
       );
