@@ -7,6 +7,7 @@ class RoundStartPayload {
     this.bots = const {},
     this.botHost,
     this.botLevel,
+    this.defense = false,
   });
 
   factory RoundStartPayload.fromJson(Map<String, dynamic> json) {
@@ -16,6 +17,7 @@ class RoundStartPayload {
       participants: (json['participants'] as List<dynamic>).cast<String>(),
       botHost: json['botHost'] as String?,
       botLevel: json['botLevel'] as int?,
+      defense: json['defense'] as bool? ?? false,
       bots: {
         for (final entry
             in (json['bots'] as Map<String, dynamic>? ?? const {}).entries)
@@ -43,6 +45,10 @@ class RoundStartPayload {
   /// Index of the [BotLevel], absent from older clients.
   final int? botLevel;
 
+  /// Everybody together against waves of enemies on the fixed map, run by
+  /// [botHost].
+  final bool defense;
+
   Map<String, dynamic> toJson() {
     return {
       'seed': seed,
@@ -52,6 +58,7 @@ class RoundStartPayload {
       if (bots.isNotEmpty) 'bots': bots,
       if (botHost != null) 'botHost': botHost,
       if (botLevel != null) 'botLevel': botLevel,
+      if (defense) 'defense': true,
     };
   }
 }

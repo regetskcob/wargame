@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game/src/game/components/power_up.dart';
 import 'package:game/src/net/payloads/ship_state_payload.dart';
-import 'package:game/src/net/payloads/special_payload.dart';
+import 'package:game/src/net/payloads/strike_payload.dart';
 
 void main() {
   test('mines survive the wire', () {

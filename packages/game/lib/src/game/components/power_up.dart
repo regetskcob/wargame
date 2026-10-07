@@ -5,20 +5,49 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import '../../game_config.dart';
+import '../special_weapon.dart';
 import 'storm_zone.dart';
 
 enum PowerUpType {
   repair('REPARATUR', Color(0xFF66BB6A)),
   smoke('NEBELWERFER', Color(0xFFB0BEC5)),
   rapidFire('SCHNELLFEUER', Color(0xFFFFB300)),
-  shield('SCHILD', Color(0xFF4FC3F7)),
+  shield('SCHILD', Color(0xFF80DEEA)),
   mines('MINEN', Color(0xFFE57373)),
-  artillery('ARTILLERIE', Color(0xFFFF7043));
+  artillery('ARTILLERIE', Color(0xFFFF7043)),
 
-  const PowerUpType(this.label, this.color);
+  /// Gems: refill the magazine or hand out a special weapon.
+  ammo('MUNITION', Color(0xFF4FC3F7), gem: true),
+  grenades('GRANATWERFER', Color(0xFFEF5350), gem: true),
+  drone('DROHNE', Color(0xFFB388FF), gem: true);
+
+  const PowerUpType(this.label, this.color, {this.gem = false});
 
   final String label;
   final Color color;
+
+  /// Drawn as a gem instead of a crate.
+  final bool gem;
+
+  /// The special weapon this gem hands out, if any.
+  SpecialWeapon? get weapon => switch (this) {
+    PowerUpType.grenades => SpecialWeapon.grenades,
+    PowerUpType.drone => SpecialWeapon.drone,
+    _ => null,
+  };
+
+  /// Picks a type from a roll between 0 and 1. Ammo gems are the most common
+  /// drop, since every shot costs a round.
+  static PowerUpType fromRoll(double roll) {
+    var sum = 0.0;
+    for (final (type, share) in _odds) {
+      sum += share;
+      if (roll < sum) {
+        return type;
+      }
+    }
+    return _odds.last.$1;
+  }
 }
 
 /// One planned crate: when it appears, where and what it holds. Derived from
@@ -57,33 +86,25 @@ class PowerUpSlot {
             id: i,
             appearsAt: appearsAt,
             position: Vector2(cos(direction), sin(direction))..scale(distance),
-            type: _typeFor(roll),
+            type: PowerUpType.fromRoll(roll),
           );
         }(),
     ];
   }
 }
 
-/// How often each crate turns up, the shares add up to 1.
+/// How often each crate and gem turns up, the shares add up to 1.
 const _odds = [
-  (PowerUpType.repair, 0.25),
-  (PowerUpType.rapidFire, 0.2),
-  (PowerUpType.smoke, 0.15),
-  (PowerUpType.shield, 0.15),
-  (PowerUpType.mines, 0.12),
-  (PowerUpType.artillery, 0.13),
+  (PowerUpType.repair, 0.17),
+  (PowerUpType.rapidFire, 0.1),
+  (PowerUpType.smoke, 0.09),
+  (PowerUpType.shield, 0.1),
+  (PowerUpType.mines, 0.08),
+  (PowerUpType.artillery, 0.08),
+  (PowerUpType.ammo, 0.24),
+  (PowerUpType.grenades, 0.08),
+  (PowerUpType.drone, 0.06),
 ];
-
-PowerUpType _typeFor(double roll) {
-  var sum = 0.0;
-  for (final (type, share) in _odds) {
-    sum += share;
-    if (roll < sum) {
-      return type;
-    }
-  }
-  return _odds.last.$1;
-}
 
 /// A crate lying on the field, picked up by driving over it.
 class PowerUp extends PositionComponent {
@@ -111,6 +132,10 @@ class PowerUp extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
+    if (type.gem) {
+      _renderGem(canvas);
+      return;
+    }
     final center = (size / 2).toOffset();
     final pulse = 1 + 0.08 * sin(_time * 4);
     final color = type.color;
@@ -189,6 +214,67 @@ class PowerUp extends PositionComponent {
           center.translate(0, 10),
           paint,
         );
+      case PowerUpType.ammo || PowerUpType.grenades || PowerUpType.drone:
+        break;
+    }
+  }
+
+  /// A cut stone floating above its shadow, with a glow and a glint running
+  /// over the facets.
+  void _renderGem(Canvas canvas) {
+    final center = (size / 2).toOffset();
+    final color = type.color;
+    final bob = sin(_time * 3) * 2.5;
+    final pulse = 1 + 0.1 * sin(_time * 4);
+    canvas.drawOval(
+      Rect.fromCenter(center: center.translate(0, 12), width: 20, height: 7),
+      Paint()..color = const Color(0x55000000),
+    );
+    canvas.drawCircle(
+      center.translate(0, bob),
+      21 * pulse,
+      Paint()..color = color.withValues(alpha: 0.22),
+    );
+    final c = center.translate(0, bob - 2);
+    const w = 11.0;
+    const top = 6.0;
+    const bottom = 12.0;
+    final crown = Path()
+      ..moveTo(c.dx - w, c.dy)
+      ..lineTo(c.dx - w * 0.5, c.dy - top)
+      ..lineTo(c.dx + w * 0.5, c.dy - top)
+      ..lineTo(c.dx + w, c.dy)
+      ..close();
+    final pavilion = Path()
+      ..moveTo(c.dx - w, c.dy)
+      ..lineTo(c.dx + w, c.dy)
+      ..lineTo(c.dx, c.dy + bottom)
+      ..close();
+    canvas.drawPath(
+      pavilion,
+      Paint()..color = Color.lerp(color, const Color(0xFF000000), 0.35)!,
+    );
+    canvas.drawPath(
+      crown,
+      Paint()..color = Color.lerp(color, const Color(0xFFFFFFFF), 0.25)!,
+    );
+    final edge = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2
+      ..color = const Color(0xCCFFFFFF);
+    canvas.drawPath(crown, edge);
+    canvas.drawPath(pavilion, edge);
+    canvas.drawLine(c.translate(-w * 0.5, -top), c.translate(0, bottom), edge);
+    canvas.drawLine(c.translate(w * 0.5, -top), c.translate(0, bottom), edge);
+    // A glint that sweeps across every two seconds.
+    final glint = (_time % 2) / 2;
+    if (glint < 0.35) {
+      final x = c.dx - w + 2 * w * (glint / 0.35);
+      canvas.drawCircle(
+        Offset(x, c.dy - top * 0.5),
+        2.2,
+        Paint()..color = const Color(0xEEFFFFFF),
+      );
     }
   }
 }

@@ -19,10 +19,7 @@ void main() {
       ..add(NetEvent.roundStart, {'id': 'a'})
       ..add(NetEvent.death, {'id': 'b'});
     final replay = recorder.finish()!;
-    expect(replay.events.map((e) => e.event), [
-      NetEvent.shoot,
-      NetEvent.death,
-    ]);
+    expect(replay.events.map((e) => e.event), [NetEvent.shoot, NetEvent.death]);
     expect(replay.events.first.at, inInclusiveRange(1900, 3000));
     expect(replay.names['a'], 'A');
     expect(recorder.recording, isFalse);

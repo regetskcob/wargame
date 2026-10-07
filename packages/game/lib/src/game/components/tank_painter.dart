@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 /// The vehicles a player can pick, all drawn in code from above.
@@ -44,6 +45,11 @@ typedef _TurretPass = void Function(void Function() draw);
 ///
 /// The turret turns by [turretAngle] radians against the hull, [recoil]
 /// (0 to 1) slides it back and [flash] (0 to 1) lights the muzzle.
+///
+/// [wear] (0 to 1) blackens the paint and punches holes, scorch marks and
+/// scratches into hull and turret, laid out by [scarSeed] so every tank keeps
+/// its own scars. [flame] is a running time in seconds that animates a fire
+/// on the engine deck, null for none.
 void paintTank(
   Canvas canvas,
   double size,
@@ -53,17 +59,41 @@ void paintTank(
   double turretAngle = 0,
   double recoil = 0,
   double flash = 0,
+  double wear = 0,
+  int scarSeed = 0,
+  double? flame,
 }) {
+  if (wear > 0) {
+    hull = Color.lerp(hull, const Color(0xFF1B1712), 0.4 * wear)!;
+    deck = deck == null
+        ? null
+        : Color.lerp(deck, const Color(0xFF1B1712), 0.4 * wear)!;
+  }
+  final scars = wear > 0 ? _scars(scarSeed, wear) : const <_Scar>[];
   final dark = Color.lerp(hull, const Color(0xFF000000), 0.5)!;
   final light = deck ?? Color.lerp(hull, const Color(0xFFFFFFFF), 0.14)!;
   final pivot = _pivots[type]!;
   void turret(void Function() draw) {
+    // The hull is complete when the turret goes on, so its scars go here.
+    for (final scar in scars) {
+      if (!scar.onTurret) {
+        scar.paint(canvas);
+      }
+    }
+    if (flame != null) {
+      _engineFire(canvas, flame);
+    }
     canvas.save();
     canvas.translate(pivot.dx, pivot.dy);
     canvas.rotate(turretAngle);
     canvas.translate(0, recoil * 2.5);
     canvas.translate(-pivot.dx, -pivot.dy);
     draw();
+    for (final scar in scars) {
+      if (scar.onTurret) {
+        scar.paint(canvas, around: pivot);
+      }
+    }
     if (flash > 0) {
       for (final muzzle in _muzzles[type]!) {
         _muzzleFlash(canvas, muzzle, flash);
@@ -110,6 +140,99 @@ void _muzzleFlash(Canvas canvas, Offset tip, double flash) {
     2.4,
     Paint()..color = const Color(0xFFFFFFFF).withValues(alpha: flash),
   );
+}
+
+enum _ScarKind { hole, scorch, scratch }
+
+/// One mark of battle damage on the 48 grid.
+class _Scar {
+  const _Scar(this.kind, this.at, this.size, this.angle, this.onTurret);
+
+  final _ScarKind kind;
+  final Offset at;
+  final double size;
+  final double angle;
+
+  /// Turret scars sit relative to the turret pivot and turn with it.
+  final bool onTurret;
+
+  void paint(Canvas canvas, {Offset around = Offset.zero}) {
+    final c = at + around;
+    switch (kind) {
+      case _ScarKind.scorch:
+        canvas.drawCircle(
+          c,
+          size * 2,
+          Paint()
+            ..shader = Gradient.radial(c, size * 2, const [
+              Color(0xE60E0B08),
+              Color(0x000E0B08),
+            ]),
+        );
+      case _ScarKind.hole:
+        canvas.drawCircle(c, size * 0.85, _fill(const Color(0xAAB8B0A0)));
+        canvas.drawCircle(c, size * 0.55, _fill(const Color(0xFF0A0806)));
+        final crack = _line(const Color(0xCC0A0806), 0.6);
+        for (var i = 0; i < 3; i++) {
+          final a = angle + i * 2.1;
+          canvas.drawLine(
+            c + Offset(cos(a), sin(a)) * size * 0.5,
+            c + Offset(cos(a), sin(a)) * size * 1.4,
+            crack,
+          );
+        }
+      case _ScarKind.scratch:
+        final d = Offset(cos(angle), sin(angle)) * size;
+        canvas.drawLine(c - d, c + d, _line(const Color(0xCCD8D2C4), 0.7));
+    }
+  }
+}
+
+/// Scars that [wear] has uncovered. They appear one after the other as the
+/// tank takes hits, always in the same spots for the same [seed].
+List<_Scar> _scars(int seed, double wear) {
+  final random = Random(seed);
+  final scars = <_Scar>[];
+  for (var i = 0; i < 9; i++) {
+    // Draw every value even for hidden scars to keep the layout stable.
+    final kind = _ScarKind.values[random.nextInt(_ScarKind.values.length)];
+    final onTurret = i % 3 == 1;
+    // Hull scars go on the bow, the engine deck or the flanks, where the
+    // turret does not cover them.
+    final zone = random.nextInt(3);
+    final u = random.nextDouble();
+    final v = random.nextDouble();
+    final at = onTurret
+        ? Offset(u * 10 - 5, v * 10 - 5)
+        : switch (zone) {
+            0 => Offset(19 + u * 10, 9 + v * 5),
+            1 => Offset(17.5 + u * 13, 36 + v * 8),
+            _ => Offset(u < 0.5 ? 16.5 + v * 1.5 : 30 + v * 1.5, 14 + u * 22),
+          };
+    final size = 2 + random.nextDouble() * 1.8;
+    final angle = random.nextDouble() * 2 * pi;
+    if (wear >= 0.08 + i * 0.09) {
+      scars.add(_Scar(kind, at, size, angle, onTurret));
+    }
+  }
+  return scars;
+}
+
+/// Flickering flames over the engine deck.
+void _engineFire(Canvas canvas, double time) {
+  const base = Offset(24, 41);
+  for (var i = 0; i < 3; i++) {
+    final phase = time * (9 + i * 3.7) + i * 2;
+    final r = 3.4 + sin(phase) * 0.9 - i * 0.7;
+    final c = base + Offset(sin(phase * 0.7) * 1.6 + (i - 1) * 2.4, -i * 1.4);
+    canvas.drawCircle(
+      c,
+      r + 1.8,
+      _fill(const Color(0xFFE65100).withValues(alpha: 0.55)),
+    );
+    canvas.drawCircle(c, r, _fill(const Color(0xFFFFA000)));
+    canvas.drawCircle(c, r * 0.45, _fill(const Color(0xFFFFF59D)));
+  }
 }
 
 Paint _fill(Color color) => Paint()..color = color;

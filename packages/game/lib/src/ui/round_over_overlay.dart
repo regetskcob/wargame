@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../game/round_stats.dart';
+import '../game_config.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
@@ -96,7 +97,11 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                           ValueListenableBuilder<String?>(
                             valueListenable: game.winnerName,
                             builder: (context, winner, _) => Text(
-                              winner == null
+                              game.round?.defense ?? false
+                                  ? won
+                                        ? 'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!'
+                                        : 'Der Stützpunkt ist in Welle ${game.defense.value?.wave ?? 0} gefallen.'
+                                  : winner == null
                                   ? 'Unentschieden. Das Sperrgebiet gewinnt.'
                                   : won
                                   ? (game.round?.teamMode ?? false
@@ -114,7 +119,34 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                             RoundRewards(progress: game.progress),
                           ],
                           const SizedBox(height: 24),
-                          _Actions(game: game),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: game.isHost,
+                            builder: (context, host, _) => Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: host ? game.rematch : null,
+                                  icon: const Icon(Icons.replay),
+                                  label: Text(
+                                    host
+                                        ? 'NEUES SPIEL'
+                                        : 'WARTE AUF GASTGEBER',
+                                  ),
+                                ),
+                                OutlinedButton(
+                                  onPressed: game.backToLobby,
+                                  child: const Text('ZURÜCK INS LAGER'),
+                                ),
+                                OutlinedButton.icon(
+                                  onPressed: game.watchReplay,
+                                  icon: const Icon(Icons.movie_outlined),
+                                  label: const Text('WIEDERHOLUNG'),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -125,61 +157,6 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
           },
         );
       },
-    );
-  }
-}
-
-/// Straight into the next round, or back to the waiting room. Only the
-/// player who may start rounds gets the rematch button, everybody else is
-/// pulled along when it is pressed.
-class _Actions extends StatelessWidget {
-  const _Actions({required this.game});
-
-  final SpaceGame game;
-
-  @override
-  Widget build(BuildContext context) {
-    final rematch = game.canStart;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Wrap(
-          alignment: WrapAlignment.center,
-          spacing: 12,
-          runSpacing: 12,
-          children: [
-            if (rematch)
-              FilledButton.icon(
-                onPressed: game.rematch,
-                icon: const Icon(Icons.replay),
-                label: const Text('NOCHMAL'),
-              ),
-            if (rematch)
-              OutlinedButton(
-                onPressed: game.backToLobby,
-                child: const Text('ZURÜCK INS LAGER'),
-              )
-            else
-              FilledButton(
-                onPressed: game.backToLobby,
-                child: const Text('ZURÜCK INS LAGER'),
-              ),
-            OutlinedButton.icon(
-              onPressed: game.watchReplay,
-              icon: const Icon(Icons.movie_outlined),
-              label: const Text('WIEDERHOLUNG'),
-            ),
-          ],
-        ),
-        if (!rematch) ...[
-          const SizedBox(height: 10),
-          const Text(
-            'Startet der Gastgeber eine neue Runde, bist du automatisch dabei.',
-            style: TextStyle(color: BwColors.textDim, fontSize: 12),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ],
     );
   }
 }

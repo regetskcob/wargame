@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../../game_config.dart';
 import '../game_phase.dart';
+import '../special_weapon.dart';
 import '../space_game.dart';
 
 /// Shows where the gun points: a dotted line out of the barrel as far as the
@@ -38,6 +39,9 @@ class AimOverlay extends Component with HasGameRef<SpaceGame> {
     }
 
     final point = game.pointerWorld();
+    if (ship.special == SpecialWeapon.grenades) {
+      _grenadeRing(canvas, ship.position, direction, point, game.touch.aim);
+    }
     if (point == null || game.touch.aim != null) {
       return;
     }
@@ -54,6 +58,42 @@ class AimOverlay extends Component with HasGameRef<SpaceGame> {
         c + Offset(cos(a) * 5, sin(a) * 5),
         c + Offset(cos(a) * 14, sin(a) * 14),
         line,
+      );
+    }
+  }
+
+  /// Where a grenade would land right now, with its blast radius.
+  void _grenadeRing(
+    Canvas canvas,
+    Vector2 from,
+    Vector2 direction,
+    Vector2? pointer,
+    double? stick,
+  ) {
+    final wanted = stick != null
+        ? GameConfig.grenadeRange * 0.75
+        : pointer?.distanceTo(from) ?? GameConfig.grenadeRange;
+    final distance = wanted.clamp(
+      GameConfig.grenadeMinRange,
+      GameConfig.grenadeRange,
+    );
+    final at = from + direction * distance;
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.6
+      ..color = const Color(0x99EF5350);
+    const dashes = 24;
+    for (var i = 0; i < dashes; i++) {
+      final a = 2 * pi * i / dashes;
+      canvas.drawArc(
+        Rect.fromCircle(
+          center: Offset(at.x, at.y),
+          radius: GameConfig.grenadeRadius,
+        ),
+        a,
+        pi / dashes,
+        false,
+        paint,
       );
     }
   }

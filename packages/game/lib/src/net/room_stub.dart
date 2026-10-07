@@ -19,3 +19,7 @@ String? authRedirect() => null;
 /// Switches to [room]. Outside the browser there is no address to switch, so
 /// this returns false.
 bool joinRoom(String room) => false;
+
+/// Opens a fresh room. False when this platform cannot, the game then joins
+/// its one room again.
+bool openFreshRoom() => false;

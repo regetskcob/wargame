@@ -5,10 +5,18 @@ import '../../net/payloads/lobby_presence.dart';
 import '../../theme.dart';
 
 class PlayerList extends StatelessWidget {
-  const PlayerList({required this.members, required this.myId, super.key});
+  const PlayerList({
+    required this.members,
+    required this.myId,
+    required this.colorOf,
+    super.key,
+  });
 
   final List<LobbyPresence> members;
   final String myId;
+
+  /// Colour the member's tank will have, camouflage or a player colour.
+  final Color Function(LobbyPresence member) colorOf;
 
   @override
   Widget build(BuildContext context) {
@@ -28,11 +36,7 @@ class PlayerList extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.shield,
-                  size: 16,
-                  color: GameConfig.colorOf(member.colorIndex),
-                ),
+                Icon(Icons.shield, size: 16, color: colorOf(member)),
                 const SizedBox(width: 8),
                 Text(member.id == myId ? '${member.name} (du)' : member.name),
                 if (member.host) ...[

@@ -10,7 +10,10 @@ import '../../game_config.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
+import '../defense/defense_map.dart';
 import '../game_phase.dart';
+import '../special_weapon.dart';
+import '../tank_damage.dart';
 import '../touch_input.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
@@ -44,8 +47,25 @@ class PlayerShip extends ShipBase
 
   final velocity = Vector2.zero();
   double _speed = 0;
+
+  /// Enemies of a defense round drive slower, shoot less often and report
+  /// their state less often than a player's tank.
+  double speedFactor = 1;
+  double fireFactor = 1;
+  double syncInterval = GameConfig.stateSyncInterval;
+
+  /// Enemies of a defense round never run dry, there are no gems for them.
+  bool endlessAmmo = false;
   double rapidFireLeft = 0;
   double shieldLeft = 0;
+
+  /// Rounds left in the magazine. Gems put more back.
+  late int ammo = stats.ammo;
+
+  /// Special weapon from a gem and the charges it has left.
+  SpecialWeapon? special;
+  int specialCharges = 0;
+  double _specialCooldown = 0;
 
   /// Forward speed as a share of this tank's top speed, below 0 in reverse.
   double get load => _speed / (GameConfig.shipMaxSpeed * stats.speed);
@@ -55,10 +75,23 @@ class PlayerShip extends ShipBase
   bool _left = false;
   bool _right = false;
   bool _fire = false;
+  bool _special = false;
   bool _turretLeft = false;
   bool _turretRight = false;
   bool _aimed = false;
   final _trees = <Asteroid>{};
+
+  /// Drift a battered running gear puts on the heading, and where it heads.
+  double _wobble = 0;
+  double _wobbleTarget = 0;
+  double _wobbleTimer = 0;
+
+  /// Seconds the engine still sputters after a misfire.
+  double _stall = 0;
+
+  /// Worst stage the driver has been warned about, to warn only once.
+  DamageStage _announced = DamageStage.intact;
+  static final _random = Random();
 
   double _fireCooldown = 0;
   double _sinceSync = 0;
@@ -91,8 +124,12 @@ class PlayerShip extends ShipBase
         keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD);
     _fire = keysPressed.contains(LogicalKeyboardKey.space);
+    _special = keysPressed.contains(LogicalKeyboardKey.keyF);
     _turretLeft = keysPressed.contains(LogicalKeyboardKey.keyQ);
     _turretRight = keysPressed.contains(LogicalKeyboardKey.keyE);
+    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyB) {
+      gameRef.buildTower();
+    }
     return true;
   }
 
@@ -110,6 +147,7 @@ class PlayerShip extends ShipBase
     _aim(dt);
     _applyZoneDamage(dt);
     _handleFire(dt);
+    _handleSpecial(dt);
     _broadcastState(dt);
   }
 
@@ -127,23 +165,59 @@ class PlayerShip extends ShipBase
   /// Tracks drive along the hull, so the tank never slides sideways: the
   /// velocity vector is always derived from the heading and [_speed].
   void _integrate(double dt) {
-    final turn =
+    final thrusting = _thrust || input.thrust;
+    final braking = _brake || input.brake;
+    var turn =
         ((_right || input.right) ? 1 : 0) - ((_left || input.left) ? 1 : 0);
+    // Steering follows the direction of travel: in reverse, left swings the
+    // rear to the left like a car would. Bots steer by heading, so not them.
+    final reversing = _speed < 0 || (_speed == 0 && braking && !thrusting);
+    if (reversing && !isBot) {
+      turn = -turn;
+    }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
+    // Hits cost top speed, pulling power and steering.
+    final damage = this.damage;
     final maxSpeed =
         GameConfig.shipMaxSpeed *
         stats.speed *
+        speedFactor *
+        damage.speedFactor *
         min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
-    final acceleration = GameConfig.shipAcceleration * stats.acceleration;
+    final acceleration =
+        GameConfig.shipAcceleration *
+        stats.acceleration *
+        damage.accelerationFactor;
     // Tracks turn slower at full speed, and almost on the spot when standing.
     final turnScale = 1 - 0.35 * (_speed.abs() / maxSpeed);
     angle +=
-        turn * GameConfig.shipRotationSpeed * stats.turnRate * turnScale * dt;
+        turn *
+        GameConfig.shipRotationSpeed *
+        stats.turnRate *
+        damage.turnFactor *
+        turnScale *
+        dt;
+    _rattle(damage, maxSpeed, dt);
 
-    if (_thrust || input.thrust) {
+    // A misfiring engine drops the throttle for a moment.
+    _stall = max(0, _stall - dt);
+    if (thrusting &&
+        _stall <= 0 &&
+        _random.nextDouble() < damage.stallRate * dt) {
+      _stall = 0.25 + _random.nextDouble() * 0.35;
+      backfire();
+      if (!isBot) {
+        gameRef.shake(2);
+        AudioService.play('tick', volume: 0.5);
+      }
+    }
+    if (_stall > 0) {
+      final decel = GameConfig.shipRollingResistance * 0.3 * dt;
+      _speed = _speed.abs() <= decel ? 0 : _speed - decel * _speed.sign;
+    } else if (thrusting) {
       _speed += (_speed < 0 ? GameConfig.shipBrake : acceleration) * dt;
-    } else if (_brake || input.brake) {
+    } else if (braking) {
       _speed -= (_speed > 0 ? GameConfig.shipBrake : acceleration) * dt;
     } else {
       final decel = GameConfig.shipRollingResistance * dt;
@@ -153,22 +227,65 @@ class PlayerShip extends ShipBase
     if (_speed > maxSpeed) {
       _speed = max(maxSpeed, _speed - 600 * dt);
     }
-    _speed = _speed.clamp(-GameConfig.shipReverseSpeed, maxSpeed);
+    _speed = _speed.clamp(
+      -GameConfig.shipReverseSpeed * damage.speedFactor,
+      maxSpeed,
+    );
 
     velocity
       ..setFrom(direction)
       ..scale(_speed);
     position.add(velocity * dt);
-    if (position.length > GameConfig.worldRadius) {
+    if (gameRef.defenseMap != null) {
+      final bounds = DefenseMap.bounds;
+      final x = position.x.clamp(bounds.left, bounds.right);
+      final y = position.y.clamp(bounds.top, bounds.bottom);
+      if (x != position.x || y != position.y) {
+        position.setValues(x, y);
+        _speed *= 0.4;
+      }
+    } else if (position.length > GameConfig.worldRadius) {
       position.scaleTo(GameConfig.worldRadius);
       _speed *= 0.4;
+    }
+  }
+
+  /// A damaged running gear makes the ride rough: the heading drifts, broken
+  /// track links knock the tank about and the driver feels every one of them.
+  void _rattle(TankDamage damage, double maxSpeed, double dt) {
+    final rough = damage.bumpiness;
+    final pace = maxSpeed <= 0 ? 0.0 : (_speed.abs() / maxSpeed).clamp(0, 1);
+    if (rough <= 0 || pace < 0.05) {
+      _wobble *= max(0, 1 - dt * 4);
+      return;
+    }
+    _wobbleTimer -= dt;
+    if (_wobbleTimer <= 0) {
+      _wobbleTimer = 0.15 + _random.nextDouble() * 0.35;
+      _wobbleTarget = (_random.nextDouble() * 2 - 1) * 0.8;
+    }
+    _wobble += (_wobbleTarget - _wobble) * min(1.0, dt * 6);
+    angle += _wobble * rough * pace * dt;
+    // Every so often a hard knock robs the tank of some of its speed.
+    if (_random.nextDouble() < rough * pace * 1.6 * dt) {
+      _speed *= 0.82;
+      angle += (_random.nextDouble() * 2 - 1) * 0.06 * rough;
+      bump(0.25 + 0.35 * rough);
+      if (!isBot) {
+        gameRef.shake(1.5 + 2.5 * rough);
+      }
+    } else if (!isBot) {
+      // A steady judder that grows with damage and speed.
+      gameRef.shake(28 * dt * 0.9 * rough * pace);
     }
   }
 
   /// The turret turns on its own: with the mouse, the aim stick or Q and E.
   /// Until one of them is used it simply follows the hull.
   void _aim(double dt) {
-    const turretSpeed = 10.0;
+    // A hit turret ring grinds and turns slower.
+    final drive = damage.turretFactor;
+    final turretSpeed = 10.0 * drive;
     final keys = (_turretRight ? 1 : 0) - (_turretLeft ? 1 : 0);
     double? target;
     final stick = input.aim;
@@ -183,7 +300,7 @@ class PlayerShip extends ShipBase
     }
     if (keys != 0) {
       _aimed = true;
-      turretAngle += keys * 3 * dt;
+      turretAngle += keys * 3 * drive * dt;
     } else if (target != null) {
       _aimed = true;
       final diff = (target - turretAngle).toNormalizedAngle();
@@ -197,7 +314,7 @@ class PlayerShip extends ShipBase
 
   void _applyZoneDamage(double dt) {
     final round = gameRef.round;
-    if (round == null) {
+    if (round == null || round.defense) {
       return;
     }
     final radius = StormZone.radiusAt(
@@ -211,22 +328,77 @@ class PlayerShip extends ShipBase
 
   void _handleFire(double dt) {
     _fireCooldown -= dt;
-    if (rapidFireLeft > 0 && !isBot) {
+    if (rapidFireLeft > 0) {
       rapidFireLeft = max(0, rapidFireLeft - dt);
-      gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
+      if (!isBot) {
+        gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
+      }
     }
     if ((_fire || input.fire || input.aimFire) && _fireCooldown <= 0) {
+      if (ammo <= 0 && !endlessAmmo) {
+        // Dry click, and a reminder that the magazine is empty.
+        _fireCooldown = 0.5;
+        if (!isBot) {
+          AudioService.play('tick', volume: 0.6);
+          gameRef.showNotice('MUNITION LEER');
+        }
+        return;
+      }
       _fireCooldown =
           stats.fireCooldown *
+          fireFactor *
           (rapidFireLeft > 0 ? GameConfig.rapidFireFactor : 1);
+      if (!endlessAmmo) {
+        setAmmo(ammo - 1);
+      }
       gameRef.fireFrom(this);
     }
+  }
+
+  void setAmmo(int value) {
+    ammo = value.clamp(0, stats.ammo);
+    if (!isBot) {
+      gameRef.ammoNotifier.value = ammo;
+    }
+  }
+
+  /// Hands out [weapon] with a full set of charges, replacing any other.
+  void arm(SpecialWeapon weapon) {
+    special = weapon;
+    specialCharges = weapon.charges;
+    _publishSpecial();
+  }
+
+  void _publishSpecial() {
+    if (!isBot) {
+      final weapon = special;
+      gameRef.specialNotifier.value = weapon == null
+          ? null
+          : (weapon, specialCharges);
+    }
+  }
+
+  void _handleSpecial(double dt) {
+    _specialCooldown -= dt;
+    final weapon = special;
+    if (weapon == null ||
+        _specialCooldown > 0 ||
+        !(_special || input.special)) {
+      return;
+    }
+    _specialCooldown = weapon.cooldown;
+    gameRef.fireSpecial(this, weapon);
+    specialCharges--;
+    if (specialCharges <= 0) {
+      special = null;
+    }
+    _publishSpecial();
   }
 
   void _broadcastState(double dt) {
     _sinceSync += dt;
     _sinceSend += dt;
-    if (_sinceSync < GameConfig.stateSyncInterval) {
+    if (_sinceSync < syncInterval) {
       return;
     }
     _sinceSync = 0;
@@ -267,10 +439,18 @@ class PlayerShip extends ShipBase
       amount *= GameConfig.shieldFactor;
     }
     hp -= amount;
-    flash();
+    takeHitEffects(amount);
+    // A real hit knocks the hull and the turret off line and brakes the tank.
+    if (amount >= 5 && hp > 0) {
+      final kick = min(0.16, amount / 260);
+      angle += (_random.nextBool() ? 1 : -1) * kick * _random.nextDouble();
+      turretAngle += (_random.nextBool() ? 1 : -1) * kick * 1.5;
+      _speed *= max(0.55, 1 - amount / 80);
+    }
     if (!isBot) {
       gameRef.hpNotifier.value = hp;
       gameRef.roundStats.damageTaken += amount;
+      _announceDamage();
     }
     // Zone ticks are tiny, only real hits get a number and a shake.
     if (amount >= 2) {
@@ -286,6 +466,23 @@ class PlayerShip extends ShipBase
       } else {
         gameRef.onLocalDeath(killerId);
       }
+    }
+  }
+
+  /// Tells the driver once per stage what broke. A repair crate that patches
+  /// the tank up lets the warnings come again.
+  void _announceDamage() {
+    final stage = damage.stage;
+    if (stage.index < _announced.index) {
+      _announced = stage;
+    }
+    if (hp <= 0 || stage.index <= _announced.index) {
+      return;
+    }
+    _announced = stage;
+    final notice = stage.notice;
+    if (notice != null) {
+      gameRef.showNotice(notice);
     }
   }
 
@@ -323,11 +520,9 @@ class PlayerShip extends ShipBase
         gameRef.triggerMine(other, this);
       }
     } else if (other is PowerUp) {
-      if (!isBot) {
-        gameRef.collectPowerUp(other);
-      }
+      gameRef.collectPowerUp(other, this);
     } else if (other is Soldier) {
-      if (load.abs() > 0.08) {
+      if (load.abs() > 0.08 && !other.airborne) {
         gameRef.runOver(other, playerId);
       }
     } else if (other is Asteroid) {

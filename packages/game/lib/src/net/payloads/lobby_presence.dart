@@ -6,9 +6,12 @@ class LobbyPresence {
     required this.phase,
     this.team = 0,
     this.host = false,
+    this.owner = false,
     this.seed,
     this.startedAt,
     this.uid,
+    this.defense = false,
+    this.botHost,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -19,9 +22,12 @@ class LobbyPresence {
       phase: json['phase'] as String,
       team: json['team'] as int? ?? 0,
       host: json['host'] as bool? ?? false,
+      owner: json['owner'] as bool? ?? false,
       seed: json['seed'] as int?,
       startedAt: json['startedAt'] as int?,
       uid: json['uid'] as String?,
+      defense: json['defense'] as bool? ?? false,
+      botHost: json['botHost'] as String?,
     );
   }
 
@@ -36,11 +42,18 @@ class LobbyPresence {
 
   /// Opened the room, so decides on mode, map and when the round starts.
   final bool host;
+
+  /// Opened the room. Stays its host; others only stand in while away.
+  final bool owner;
   final int? seed;
   final int? startedAt;
 
   /// Account id of the player, for the rating.
   final String? uid;
+
+  /// The match is a defense round, run by [botHost].
+  final bool defense;
+  final String? botHost;
 
   bool get inMatch => seed != null && startedAt != null;
 
@@ -52,9 +65,12 @@ class LobbyPresence {
       'phase': phase,
       'team': team,
       'host': host,
+      'owner': owner,
       'seed': seed,
       'startedAt': startedAt,
       if (uid != null) 'uid': uid,
+      if (defense) 'defense': true,
+      if (botHost != null) 'botHost': botHost,
     };
   }
 }

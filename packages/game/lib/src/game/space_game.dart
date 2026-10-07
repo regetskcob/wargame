@@ -17,6 +17,7 @@ import '../game_config.dart';
 import '../net/net_events.dart';
 import '../net/net_service.dart';
 import '../net/payloads/death_payload.dart';
+import '../net/payloads/defense_payload.dart';
 import '../net/payloads/hit_payload.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../net/payloads/obstacle_payload.dart';
@@ -26,13 +27,17 @@ import '../net/payloads/power_up_payload.dart';
 import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
+import '../net/payloads/strike_payload.dart';
 import '../net/replay.dart';
 import '../net/room_directory.dart';
+import '../net/room.dart';
 import 'components/aim_overlay.dart';
 import 'components/artillery_strike.dart';
 import 'components/asteroid.dart';
 import 'components/mine.dart';
 import 'components/asteroid_field.dart';
+import 'components/drone.dart';
+import 'components/grenade.dart';
 import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/obstacle.dart';
@@ -48,6 +53,12 @@ import 'components/smoke_cloud.dart';
 import 'components/remote_ship.dart';
 import 'components/starfield.dart';
 import 'components/storm_zone.dart';
+import 'defense/defense_brain.dart';
+import 'defense/defense_director.dart';
+import 'defense/defense_field.dart';
+import 'defense/defense_map.dart';
+import 'defense/tower.dart';
+import 'game_mode.dart';
 import 'game_phase.dart';
 import 'bot_brain.dart';
 import 'bot_level.dart';
@@ -56,6 +67,7 @@ import 'kill_feed.dart';
 import 'components/ship_base.dart';
 import 'components/wreck.dart';
 import 'round_stats.dart';
+import 'special_weapon.dart';
 import 'tank_stats.dart';
 import 'touch_input.dart';
 import 'round_state.dart';
@@ -115,6 +127,18 @@ class SpaceGame extends FlameGame
   final notice = ValueNotifier<String?>(null);
   async.Timer? _noticeTimer;
 
+  /// Rounds left in the local tank's magazine.
+  late final ammoNotifier = ValueNotifier<int>(myStats.ammo);
+
+  /// Special weapon of the local tank and its charges, null without one.
+  final specialNotifier = ValueNotifier<(SpecialWeapon, int)?>(null);
+
+  /// Drones in the air, the local ones and those of other players.
+  final drones = <String, Drone>{};
+
+  /// Blasts already applied, since a drone's blast also arrives by message.
+  final _blasts = <String>{};
+
   List<PowerUpSlot> _powerUpSlots = const [];
   final powerUps = <int, PowerUp>{};
   final _gone = <int>{};
@@ -128,11 +152,38 @@ class SpaceGame extends FlameGame
   /// Computer controlled tanks this client simulates.
   final botShips = <String, PlayerShip>{};
 
-  /// True to play with other people, false to play alone against CPU tanks.
-  /// Only the host can change it, everybody who joins plays multiplayer.
-  final multiplayer = ValueNotifier<bool>(true);
+  /// Alone against CPU tanks, against other people, or together against
+  /// waves. Only the host can change it, everybody who joins plays along.
+  final mode = ValueNotifier<GameMode>(GameMode.multi);
 
-  void setMultiplayer(bool value) => multiplayer.value = value;
+  void setMode(GameMode value) => mode.value = value;
+
+  /// Whether this player runs the room: picks mode and map and starts the
+  /// round. The one who opened the room keeps the role for good. Only when
+  /// they are gone does somebody else stand in, until they are back.
+  late final isHost = ValueNotifier<bool>(net.isHost);
+  double _hostlessFor = 0;
+  double _hostClashFor = 0;
+
+  /// Last time anything happened in the room, to close it when it idles.
+  DateTime _lastActivity = DateTime.now();
+
+  /// Why the room was closed, shown on the closed screen.
+  final closedReason = ValueNotifier<String?>(null);
+
+  /// Defense round: the fixed map, how the base and the waves stand, the
+  /// local player's money for guns and every gun on the field.
+  DefenseMap? defenseMap;
+  DefenseField? _defenseField;
+  final defense = ValueNotifier<DefensePayload?>(null);
+  final credits = ValueNotifier<int>(0);
+  final towers = <String, Tower>{};
+  int _towerCounter = 0;
+
+  /// Seconds until the local tank is back after it was destroyed in a
+  /// defense round, 0 while it is on the field.
+  final respawnSeconds = ValueNotifier<int>(0);
+  double _respawnTimer = 0;
 
   /// Whether the host lists this room publicly. Private rooms are only
   /// reachable by their link or code.
@@ -148,7 +199,8 @@ class SpaceGame extends FlameGame
   late final directory = RoomDirectory(room: net.room);
 
   void _updateListing() {
-    final listed = net.isHost && multiplayer.value && publicRoom.value;
+    final listed =
+        isHost.value && mode.value == GameMode.multi && publicRoom.value;
     final current = phase.value;
     unawaited(
       directory.advertise(
@@ -329,9 +381,15 @@ class SpaceGame extends FlameGame
       ..onSoldier = _onSoldier
       ..onMine = _onMine
       ..onArtillery = _onArtillery
+      ..onDefense = _onDefense
+      ..onTower = _onTower
+      ..onGrenade = _onGrenade
+      ..onDrone = _onDrone
+      ..onBlast = _onBlast
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
-      ..onPeerLeft = _onPeerLeft;
+      ..onPeerLeft = _onPeerLeft
+      ..onClose = _onClose;
     _accountId = scoreService.myId;
     await _loadPilot();
     accounts.user.addListener(_onAccountChanged);
@@ -340,7 +398,8 @@ class SpaceGame extends FlameGame
     directory.connect();
     for (final notifier in <Listenable>[
       publicRoom,
-      multiplayer,
+      mode,
+      isHost,
       teamMode,
       phase,
       roster,
@@ -373,10 +432,14 @@ class SpaceGame extends FlameGame
     }
     _playReplay();
     _updatePowerUps();
+    _updateRespawn(dt);
+    _resupply(dt);
     _staleTimer += dt;
     if (_staleTimer >= 1) {
+      _settleHost(_staleTimer);
       _staleTimer = 0;
       _dropSilentTanks();
+      _closeWhenIdle();
     }
     _engineTimer += dt;
     if (_engineTimer >= 0.1) {
@@ -430,10 +493,13 @@ class SpaceGame extends FlameGame
       colorIndex: myColorIndex,
       phase: phase.value.name,
       team: phase.value == GamePhase.lobby ? teamPick : myTeam,
-      host: net.isHost,
+      host: isHost.value,
+      owner: net.isHost,
       seed: round?.seed,
       startedAt: round?.startedAt,
       uid: scoreService.myId,
+      defense: round?.defense ?? false,
+      botHost: round?.defense ?? false ? round?.botHost : null,
     );
   }
 
@@ -496,24 +562,90 @@ class SpaceGame extends FlameGame
     return null;
   }
 
-  void _setGround(MapTheme theme) {
+  void _setGround(MapTheme theme, {bool plain = false}) {
     _ground?.removeFromParent();
-    _ground = Starfield(theme);
+    _ground = Starfield(theme, plain: plain);
     world.add(_ground!);
     mapName.value = theme.name;
   }
 
-  /// Whether the host of the room is in the waiting room right now.
-  bool get hostPresent => roster.value.any((m) => m.host);
+  /// Only the host starts a round. When the host leaves, the role moves on.
+  bool get canStart => isHost.value;
 
-  /// The host decides when it starts. When the host has left, anybody may.
-  bool get canStart => net.isHost || !hostPresent;
+  void _setHost(bool value) {
+    if (isHost.value == value) {
+      return;
+    }
+    isHost.value = value;
+    if (!value && mode.value == GameMode.solo) {
+      // Guests always play together, the settings belong to the host.
+      mode.value = GameMode.multi;
+    }
+    unawaited(pushPresence());
+  }
+
+  /// Makes sure the room has exactly one host. Presence takes a moment to
+  /// travel, so a missing or doubled host is only fixed once it lasts: then
+  /// the player with the smallest id stands in, and a stand-in hands back as
+  /// soon as the owner of the room returns.
+  void _settleHost(double dt) {
+    final members = roster.value;
+    if (phase.value == GamePhase.closed || !members.any((m) => m.id == myId)) {
+      _hostlessFor = _hostClashFor = 0;
+      return;
+    }
+    final hosts = [
+      for (final member in members)
+        if (member.host) member.id,
+    ];
+    _hostlessFor = hosts.isEmpty && !isHost.value ? _hostlessFor + dt : 0;
+    _hostClashFor = hosts.length > 1 ? _hostClashFor + dt : 0;
+    final first = (members.map((m) => m.id).toList()..sort()).first;
+    if (_hostlessFor >= GameConfig.hostSettleSeconds && first == myId) {
+      _hostlessFor = 0;
+      _setHost(true);
+    }
+    final outranked = members.any(
+      (m) => m.host && m.id != myId && (m.owner || m.id.compareTo(myId) < 0),
+    );
+    // The owner never steps down.
+    if (_hostClashFor >= GameConfig.hostSettleSeconds &&
+        isHost.value &&
+        !net.isHost &&
+        outranked) {
+      _hostClashFor = 0;
+      _setHost(false);
+    }
+  }
+
+  /// Colour of a player's tank as the lobby previews it: camouflage alone,
+  /// one colour per seat when playing with others.
+  Color lobbyColorOf(String id, int style) {
+    if (!mode.value.withOthers) {
+      return GameConfig.colorOf(style);
+    }
+    final seats = {myId, for (final member in roster.value) member.id}.toList()
+      ..sort();
+    return GameConfig.playerColor(max(0, seats.indexOf(id)));
+  }
+
+  Color _colorFor(String id) {
+    final activeRound = round;
+    if (activeRound != null && activeRound.distinctColors) {
+      final seat = activeRound.participants.indexOf(id);
+      if (seat >= 0) {
+        return GameConfig.playerColor(seat);
+      }
+    }
+    return GameConfig.colorOf(_styleFor(id));
+  }
 
   void startRound() {
     if (phase.value != GamePhase.lobby || !canStart) {
       return;
     }
-    final solo = !multiplayer.value;
+    final solo = mode.value == GameMode.solo;
+    final defending = mode.value == GameMode.defense;
     // Players still looking at the last end screen come along as well.
     final ids = <String>{
       myId,
@@ -527,7 +659,7 @@ class SpaceGame extends FlameGame
     final botCount = botsFor(
       solo: solo,
       humans: ids.length,
-      fill: fillWithBots.value,
+      fill: fillWithBots.value && !defending,
       teams: teamMode.value,
       random: random,
     );
@@ -551,25 +683,16 @@ class SpaceGame extends FlameGame
           DateTime.now().millisecondsSinceEpoch +
           GameConfig.countdownSeconds * 1000,
       participants: ids,
-      teams: _assignTeams(ids),
+      teams: defending ? const {} : _assignTeams(ids),
       bots: bots,
-      botHost: bots.isEmpty ? null : myId,
+      botHost: bots.isEmpty && !defending ? null : myId,
+      defense: defending,
       botLevel: bots.isEmpty ? null : botLevel.value.index,
     );
     if (!solo) {
       net.send(NetEvent.roundStart, payload.toJson());
     }
     _applyRoundStart(payload);
-  }
-
-  /// Starts the next round straight from the end screen, in the same room
-  /// and with everybody who is still there.
-  void rematch() {
-    if (phase.value != GamePhase.roundOver || !canStart) {
-      return;
-    }
-    backToLobby();
-    startRound();
   }
 
   void spectateLiveMatch() {
@@ -593,9 +716,12 @@ class SpaceGame extends FlameGame
       startedAt: live.startedAt!,
       participants: participants,
       teams: {
-        for (final member in roster.value)
-          if (member.inMatch && member.team > 0) member.id: member.team,
+        if (!live.defense)
+          for (final member in roster.value)
+            if (member.inMatch && member.team > 0) member.id: member.team,
       },
+      defense: live.defense,
+      botHost: live.botHost,
     );
     _applyRoundStart(payload);
   }
@@ -606,13 +732,10 @@ class SpaceGame extends FlameGame
       stopReplay();
     }
     final activeRound = round;
-    if (phase.value == GamePhase.lobby) {
-      _applyRoundStart(payload);
-      return;
-    }
-    // A rematch pulls everybody off the end screen into the next round.
-    if (phase.value == GamePhase.roundOver &&
-        (activeRound == null || payload.startedAt > activeRound.startedAt)) {
+    // Players still looking at the results join a rematch straight away.
+    if (phase.value == GamePhase.lobby ||
+        (phase.value == GamePhase.roundOver &&
+            payload.participants.contains(myId))) {
       _applyRoundStart(payload);
       return;
     }
@@ -635,6 +758,7 @@ class SpaceGame extends FlameGame
   /// recorded messages and the local player only watches.
   void _applyRoundStart(RoundStartPayload payload, {bool replay = false}) {
     _clearWorld();
+    _lastActivity = DateTime.now();
     final activeRound = RoundState(
       seed: payload.seed,
       startedAt: payload.startedAt,
@@ -643,8 +767,9 @@ class SpaceGame extends FlameGame
       bots: payload.bots,
       botHost: payload.botHost,
       botLevel: BotLevel.of(payload.botLevel),
+      defense: payload.defense,
     );
-    myTeam = payload.teams[myId] ?? 0;
+    myTeam = activeRound.teamOf(myId);
     guard.reset();
     killFeed.value = const [];
     if (!replay) {
@@ -659,6 +784,10 @@ class SpaceGame extends FlameGame
       roundStats = RoundStats();
     }
     round = activeRound;
+    if (activeRound.defense) {
+      _setUpDefense(activeRound);
+      return;
+    }
     _asteroidField = AsteroidField(seed: payload.seed);
     _setGround(_asteroidField!.theme);
     conditions = Conditions.forSeed(payload.seed);
@@ -670,6 +799,7 @@ class SpaceGame extends FlameGame
     soldierField = SoldierField(
       seed: payload.seed,
       startedAt: payload.startedAt,
+      onWave: () => showNotice('FALLSCHIRMJÄGER IM ANFLUG'),
     );
     _extras.add(soldierField!);
     world.add(soldierField!);
@@ -684,22 +814,10 @@ class SpaceGame extends FlameGame
         ..scale(GameConfig.spawnRadius);
       final facing = atan2(-spawn.x, spawn.y);
       final name = _nameFor(id);
-      final colorIndex = _styleFor(id);
-      final color = GameConfig.colorOf(colorIndex);
-      final tankType = GameConfig.typeOf(colorIndex);
+      final color = _colorFor(id);
+      final tankType = GameConfig.typeOf(_styleFor(id));
       if (id == myId && !replay) {
-        final ship = PlayerShip(
-          playerId: id,
-          playerName: name,
-          shipColor: color,
-          tankType: tankType,
-          position: spawn,
-          angle: facing,
-        );
-        myShip = ship;
-        ship.team = activeRound.teamOf(id);
-        world.add(ship);
-        camera.follow(ship, snap: true);
+        _spawnLocalShip(spawn, facing);
       } else if (!replay &&
           activeRound.isBot(id) &&
           activeRound.botHost == myId) {
@@ -724,20 +842,22 @@ class SpaceGame extends FlameGame
         _extras.add(brain);
         world.add(brain);
       } else {
-        final ship = RemoteShip(
-          playerId: id,
-          playerName: name,
-          shipColor: color,
-          tankType: tankType,
-          position: spawn,
-          angle: facing,
-        );
-        remoteShips[id] = ship;
-        ship.team = activeRound.teamOf(id);
-        world.add(ship);
+        _addRemoteShip(id, spawn, facing);
       }
     }
+    _enterRound(activeRound, payload: payload, replay: replay);
+  }
+
+  /// Last step of a round start. [payload] is given for rounds that are
+  /// recorded for a replay, [replay] while one is shown.
+  void _enterRound(
+    RoundState activeRound, {
+    RoundStartPayload? payload,
+    bool replay = false,
+  }) {
     hpNotifier.value = myMaxHp;
+    ammoNotifier.value = myStats.ammo;
+    specialNotifier.value = null;
     aliveCount.value = activeRound.alive.length;
     winnerName.value = null;
     if (replay) {
@@ -746,11 +866,13 @@ class SpaceGame extends FlameGame
       _spectateByIndex(max(0, targets.indexOf(myId)));
       return;
     }
-    _recorder.start(
-      payload,
-      names: {for (final id in activeRound.participants) id: _nameFor(id)},
-      styles: {for (final id in activeRound.participants) id: _styleFor(id)},
-    );
+    if (payload != null) {
+      _recorder.start(
+        payload,
+        names: {for (final id in activeRound.participants) id: _nameFor(id)},
+        styles: {for (final id in activeRound.participants) id: _styleFor(id)},
+      );
+    }
     if (activeRound.participants.contains(myId)) {
       _setPhase(GamePhase.countdown);
     } else {
@@ -847,12 +969,357 @@ class SpaceGame extends FlameGame
               at: strike.at + player.shift,
             ),
           );
-        case NetEvent.roundStart:
+        case NetEvent.grenade:
+          _onGrenade(GrenadePayload.fromJson(json));
+        case NetEvent.drone:
+          _onDrone(DronePayload.fromJson(json));
+        case NetEvent.blast:
+          _onBlast(BlastPayload.fromJson(json));
+        case NetEvent.roundStart ||
+            NetEvent.defense ||
+            NetEvent.tower ||
+            NetEvent.close:
           break;
       }
     }
     if (player.done && now > player.startedAt + player.replay.length + 3000) {
       stopReplay();
+    }
+  }
+
+  PlayerShip _spawnLocalShip(Vector2 at, double facing) {
+    final ship = PlayerShip(
+      playerId: myId,
+      playerName: myName,
+      shipColor: _colorFor(myId),
+      tankType: GameConfig.typeOf(myColorIndex),
+      position: at,
+      angle: facing,
+    );
+    myShip = ship;
+    ship.team = round?.teamOf(myId) ?? 0;
+    world.add(ship);
+    camera.follow(ship, snap: true);
+    return ship;
+  }
+
+  RemoteShip _addRemoteShip(String id, Vector2 at, double facing) {
+    final style = _styleFor(id);
+    final ship = RemoteShip(
+      playerId: id,
+      playerName: _nameFor(id),
+      shipColor: _colorFor(id),
+      tankType: GameConfig.typeOf(style),
+      position: at,
+      angle: facing,
+    );
+    ship.team = round?.teamOf(id) ?? 0;
+    remoteShips[id] = ship;
+    world.add(ship);
+    return ship;
+  }
+
+  /// The fixed map of a defense round: road, base and the players in front
+  /// of it. The player who runs the enemies also gets the director.
+  void _setUpDefense(RoundState activeRound) {
+    final map = DefenseMap.forSeed(activeRound.seed);
+    defenseMap = map;
+    final field = DefenseField(seed: activeRound.seed, map: map);
+    _defenseField = field;
+    _setGround(field.theme, plain: true);
+    world.add(field);
+    credits.value = GameConfig.startCredits;
+    _towerCounter = 0;
+    defense.value = DefensePayload(
+      id: activeRound.botHost ?? '',
+      hp: GameConfig.baseHp,
+      wave: 0,
+      nextWaveAt: activeRound.startedAt + GameConfig.firstWaveSeconds * 1000,
+    );
+    final players = activeRound.participants;
+    for (var i = 0; i < players.length; i++) {
+      final id = players[i];
+      final spawn = map.spawnFor(i, players.length);
+      final facing = _headingFrom(spawn, map.road[map.road.length - 2]);
+      if (id == myId) {
+        _spawnLocalShip(spawn, facing);
+      } else {
+        _addRemoteShip(id, spawn, facing);
+      }
+    }
+    if (activeRound.botHost == myId) {
+      final director = DefenseDirector(startedAt: activeRound.startedAt);
+      _extras.add(director);
+      world.add(director);
+    }
+    _enterRound(activeRound);
+  }
+
+  static double _headingFrom(Vector2 from, Vector2 to) =>
+      atan2(to.x - from.x, -(to.y - from.y));
+
+  /// Host of a defense round: an enemy rolls in at the start of the road.
+  void spawnEnemy(String id) {
+    final activeRound = round;
+    final map = defenseMap;
+    if (activeRound == null || map == null) {
+      return;
+    }
+    final style = activeRound.enemyStyle(id);
+    final controls = TouchInput();
+    final ship =
+        PlayerShip(
+            playerId: id,
+            playerName: activeRound.botName(id),
+            shipColor: GameConfig.colorOf(style),
+            tankType: GameConfig.typeOf(style),
+            position: map.entry.clone(),
+            angle: _headingFrom(map.entry, map.road[1]),
+            controls: controls,
+          )
+          ..team = 2
+          ..endlessAmmo = true
+          ..speedFactor = GameConfig.enemySpeed
+          ..fireFactor = GameConfig.enemyFireFactor
+          ..syncInterval = GameConfig.enemySyncInterval;
+    activeRound.alive.add(id);
+    aliveCount.value = activeRound.alive.length;
+    botShips[id] = ship;
+    world.add(ship);
+    final brain = DefenseBrain(ship: ship, controls: controls, map: map);
+    _extras.add(brain);
+    world.add(brain);
+  }
+
+  /// Host: an enemy made it to the base and blows itself up there.
+  void raidBase(PlayerShip enemy) {
+    if (enemy.hp <= 0) {
+      return;
+    }
+    damageBase(GameConfig.raidDamage * enemy.stats.maxHp / 100);
+    enemy.applyDamage(enemy.hp, killerId: null);
+  }
+
+  /// Host: enemy fire or a raid wore the base down.
+  void damageBase(double amount) {
+    final state = defense.value;
+    if (state == null || round?.botHost != myId) {
+      return;
+    }
+    publishDefense(state.copyWith(hp: max(0.0, state.hp - amount)));
+  }
+
+  /// Host: applies a new state of the base and the waves and sends it.
+  void publishDefense(DefensePayload state) {
+    _applyDefense(state);
+    net.send(NetEvent.defense, state.toJson());
+  }
+
+  void _onDefense(DefensePayload payload) {
+    if (round?.defense ?? false) {
+      _applyDefense(payload);
+    }
+  }
+
+  void _applyDefense(DefensePayload state) {
+    final before = defense.value;
+    final base = _defenseField?.headquarters;
+    if (before != null && base != null && state.hp < before.hp) {
+      base.flash();
+      shakeAt(base.position, 4);
+      AudioService.play(
+        'hit',
+        volume: 0.8,
+        distance: _distanceToView(base.position),
+      );
+    }
+    base?.hp = state.hp;
+    defense.value = state;
+    if (before != null &&
+        state.wave > 0 &&
+        state.nextWaveAt > 0 &&
+        before.nextWaveAt == 0) {
+      // A wave was beaten off.
+      credits.value += GameConfig.waveBonus;
+      showNotice('WELLE ${state.wave} ABGEWEHRT  +${GameConfig.waveBonus}');
+    } else if (before != null && state.wave > before.wave) {
+      showNotice('WELLE ${state.wave} ROLLT AN');
+      AudioService.play('go', volume: 0.6);
+    }
+    if (state.result != DefenseResult.running) {
+      _endDefense(won: state.result == DefenseResult.won);
+    }
+  }
+
+  /// Puts a gun where the local tank stands, if there is money and room.
+  void buildTower() {
+    final ship = myShip;
+    final map = defenseMap;
+    if (ship == null || map == null || phase.value != GamePhase.playing) {
+      return;
+    }
+    final mine = towers.values.where((t) => t.ownerId == myId).length;
+    final reason = credits.value < GameConfig.towerCost
+        ? 'Zu wenig Mittel'
+        : mine >= GameConfig.maxTowers
+        ? 'Höchstens ${GameConfig.maxTowers} Geschütze'
+        : map.whyNotBuild(ship.position, towers.values.map((t) => t.position));
+    if (reason != null) {
+      showNotice(reason.toUpperCase());
+      return;
+    }
+    credits.value -= GameConfig.towerCost;
+    final payload = TowerPayload(
+      id: myId,
+      index: _towerCounter++,
+      x: ship.position.x,
+      y: ship.position.y,
+    );
+    _addTower(payload);
+    net.send(NetEvent.tower, payload.toJson());
+    AudioService.play('go', volume: 0.5);
+  }
+
+  void _onTower(TowerPayload payload) {
+    if (round?.defense ?? false) {
+      _addTower(payload);
+    }
+  }
+
+  void _addTower(TowerPayload payload) {
+    final tower = Tower(
+      ownerId: payload.id,
+      index: payload.index,
+      color: _colorFor(payload.id),
+      position: Vector2(payload.x, payload.y),
+    );
+    if (towers.containsKey(tower.id)) {
+      return;
+    }
+    towers[tower.id] = tower;
+    world.add(tower);
+  }
+
+  /// A gun of the local player fires at the enemy it is aimed at.
+  void fireTower(Tower tower) {
+    final direction = Vector2(sin(tower.turretAngle), -cos(tower.turretAngle));
+    final bulletId = '$myId-${_bulletCounter++}';
+    final start = tower.position + direction * 28;
+    tower.fired(direction);
+    _spawnBullet(
+      bulletId: bulletId,
+      ownerId: myId,
+      position: start,
+      direction: direction,
+      color: tower.color,
+      speed: GameConfig.towerBulletSpeed,
+      damage: GameConfig.towerDamage,
+    );
+    net.send(
+      NetEvent.shoot,
+      ShootPayload(
+        id: myId,
+        bulletId: bulletId,
+        x: start.x,
+        y: start.y,
+        dx: direction.x,
+        dy: direction.y,
+        tower: tower.index,
+      ).toJson(),
+    );
+    AudioService.play(
+      'autocannon',
+      volume: 0.5,
+      distance: _distanceToView(tower.position),
+    );
+  }
+
+  Iterable<ShipBase> get _allTanks => [
+    ?myShip,
+    ...remoteShips.values,
+    ...botShips.values,
+  ];
+
+  ShipBase? _nearest(Vector2 from, double range, bool Function(int) team) {
+    ShipBase? best;
+    var bestDistance = range;
+    for (final ship in _allTanks) {
+      if (!ship.isMounted || ship.hp <= 0 || !team(ship.team)) {
+        continue;
+      }
+      final distance = ship.position.distanceTo(from);
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        best = ship;
+      }
+    }
+    return best;
+  }
+
+  /// Closest enemy of a defense round within [range] of [from].
+  ShipBase? nearestEnemy(Vector2 from, double range) =>
+      _nearest(from, range, (team) => team == 2);
+
+  /// Closest player tank within [range] of [from], for the enemies to shoot.
+  ShipBase? nearestDefender(Vector2 from, double range) =>
+      _nearest(from, range, (team) => team == 1);
+
+  Vector2 velocityOf(ShipBase ship) => switch (ship) {
+    final PlayerShip local => local.velocity,
+    final RemoteShip remote => remote.velocity,
+    _ => Vector2.zero(),
+  };
+
+  void _updateRespawn(double dt) {
+    if (_respawnTimer <= 0) {
+      return;
+    }
+    _respawnTimer -= dt;
+    respawnSeconds.value = max(0, _respawnTimer.ceil());
+    if (_respawnTimer > 0) {
+      return;
+    }
+    final activeRound = round;
+    final map = defenseMap;
+    if (activeRound == null ||
+        map == null ||
+        phase.value != GamePhase.playing) {
+      return;
+    }
+    final at = map.spawnFor(
+      activeRound.participants.indexOf(myId),
+      activeRound.participants.length,
+    );
+    _spawnLocalShip(at, _headingFrom(at, map.road[map.road.length - 2]));
+    activeRound.alive.add(myId);
+    aliveCount.value = activeRound.alive.length;
+    hpNotifier.value = myMaxHp;
+    ammoNotifier.value = myStats.ammo;
+    specialNotifier.value = null;
+  }
+
+  double _resupplied = 0;
+
+  /// Defense round: the base is the ammo dump. A tank next to it gets its
+  /// magazine refilled bit by bit, since no gems lie on this map.
+  void _resupply(double dt) {
+    final ship = myShip;
+    final map = defenseMap;
+    if (ship == null || map == null || phase.value != GamePhase.playing) {
+      return;
+    }
+    final near =
+        ship.position.distanceTo(map.base) <
+        DefenseMap.baseRadius + GameConfig.resupplyReach;
+    if (!near || ship.ammo >= ship.stats.ammo) {
+      _resupplied = 0;
+      return;
+    }
+    _resupplied += dt * ship.stats.ammo / GameConfig.resupplySeconds;
+    if (_resupplied >= 1) {
+      final rounds = _resupplied.floor();
+      _resupplied -= rounds;
+      ship.setAmmo(ship.ammo + rounds);
     }
   }
 
@@ -896,9 +1363,13 @@ class SpaceGame extends FlameGame
     }
   }
 
-  void collectPowerUp(PowerUp crate) {
-    final ship = myShip;
-    if (ship == null || phase.value != GamePhase.playing || ship.hp <= 0) {
+  /// [ship] drove over [crate]: the player's tank or a bot of this client.
+  void collectPowerUp(PowerUp crate, PlayerShip ship) {
+    final mine = ship == myShip;
+    final live =
+        phase.value == GamePhase.playing ||
+        (!mine && phase.value == GamePhase.spectating);
+    if (!live || ship.hp <= 0) {
       return;
     }
     final slot = crate.slot;
@@ -910,21 +1381,31 @@ class SpaceGame extends FlameGame
     crate.removeFromParent();
     net.send(
       NetEvent.pickup,
-      PickupPayload(id: myId, powerUpId: slot.id).toJson(),
+      PickupPayload(id: ship.playerId, powerUpId: slot.id).toJson(),
     );
     switch (slot.type) {
       case PowerUpType.repair:
         ship.hp = min(ship.stats.maxHp, ship.hp + GameConfig.repairAmount);
-        hpNotifier.value = ship.hp;
+        if (mine) {
+          hpNotifier.value = ship.hp;
+        }
       case PowerUpType.rapidFire:
         ship.rapidFireLeft = GameConfig.rapidFireSeconds;
-        rapidFireSeconds.value = GameConfig.rapidFireSeconds.ceil();
+        if (mine) {
+          rapidFireSeconds.value = GameConfig.rapidFireSeconds.ceil();
+        }
+      case PowerUpType.ammo:
+        ship.setAmmo(
+          ship.ammo + (ship.stats.ammo * GameConfig.ammoRefillShare).ceil(),
+        );
+      case PowerUpType.grenades || PowerUpType.drone:
+        ship.arm(slot.type.weapon!);
       case PowerUpType.smoke:
         _addSmoke(ship.position.clone());
         net.send(
           NetEvent.smoke,
           SmokePayload(
-            id: myId,
+            id: ship.playerId,
             x: ship.position.x,
             y: ship.position.y,
           ).toJson(),
@@ -939,9 +1420,16 @@ class SpaceGame extends FlameGame
       case PowerUpType.artillery:
         _callArtillery(ship);
     }
-    AudioService.play('go', volume: 0.5);
+    if (mine) {
+      AudioService.play('go', volume: 0.5);
+      showNotice(slot.type.label);
+    }
+  }
+
+  /// Flashes [text] in the middle of the HUD for two seconds.
+  void showNotice(String text) {
     _noticeTimer?.cancel();
-    notice.value = slot.type.label;
+    notice.value = text;
     _noticeTimer = async.Timer(
       const Duration(seconds: 2),
       () => notice.value = null,
@@ -1146,7 +1634,10 @@ class SpaceGame extends FlameGame
           damageObstacle(obstacle, GameConfig.artilleryDamage);
         }
       }
-      for (final tree in [...?_asteroidField?.trees]) {
+      for (final tree in [
+        ...?_asteroidField?.trees,
+        ...?_defenseField?.trees,
+      ]) {
         if (!tree.felled &&
             tree.position.distanceTo(strike.position) <
                 GameConfig.artilleryRadius) {
@@ -1207,12 +1698,279 @@ class SpaceGame extends FlameGame
     );
   }
 
-  void _onShoot(ShootPayload payload) {
+  /// Tanks [id] may shoot at: everybody alive outside its own team.
+  Iterable<ShipBase> enemiesOf(String id) sync* {
+    final candidates = <ShipBase?>[
+      myShip,
+      ...remoteShips.values,
+      ...botShips.values,
+    ];
+    for (final ship in candidates) {
+      if (ship != null &&
+          ship.isMounted &&
+          ship.hp > 0 &&
+          ship.playerId != id &&
+          !sameTeam(id, ship.playerId)) {
+        yield ship;
+      }
+    }
+  }
+
+  /// Fires the special weapon of [ship], the player's tank or a local bot.
+  void fireSpecial(PlayerShip ship, SpecialWeapon weapon) {
+    final ownerId = ship.playerId;
+    final direction = ship.turretDirection;
+    final start = ship.position + direction * (GameConfig.shipRadius + 10);
+    switch (weapon) {
+      case SpecialWeapon.grenades:
+        final distance = _lobDistance(ship);
+        final target = ship.position + direction * distance;
+        final grenadeId = '$ownerId-g${_bulletCounter++}';
+        _launchGrenade(grenadeId, ownerId, start, target);
+        net.send(
+          NetEvent.grenade,
+          GrenadePayload(
+            id: ownerId,
+            grenadeId: grenadeId,
+            x: start.x,
+            y: start.y,
+            tx: target.x,
+            ty: target.y,
+          ).toJson(),
+        );
+      case SpecialWeapon.drone:
+        final droneId = '$ownerId-d${_bulletCounter++}';
+        final drone = Drone(
+          droneId: droneId,
+          ownerId: ownerId,
+          color: ship.shipColor,
+          position: start,
+          angle: ship.turretAngle,
+        );
+        drones[droneId] = drone;
+        _extras.add(drone);
+        world.add(drone);
+    }
+    ship.fireEffects();
+    AudioService.play(
+      'cannon',
+      volume: 0.6,
+      distance: ship == myShip ? null : _distanceToView(ship.position),
+    );
+  }
+
+  /// How far a grenade of [ship] flies: to the mouse, to where a bot wants
+  /// it, or most of the way for the touch controls.
+  double _lobDistance(PlayerShip ship) {
+    final wanted = ship.isBot
+        ? ship.input.lobDistance
+        : touch.aim != null
+        ? GameConfig.grenadeRange * 0.75
+        : pointerWorld()?.distanceTo(ship.position);
+    return (wanted ?? GameConfig.grenadeRange).clamp(
+      GameConfig.grenadeMinRange,
+      GameConfig.grenadeRange,
+    );
+  }
+
+  void _launchGrenade(String id, String ownerId, Vector2 from, Vector2 to) {
+    final grenade = Grenade(
+      grenadeId: id,
+      ownerId: ownerId,
+      from: from,
+      to: to,
+    );
+    final marker = GrenadeMarker(position: to.clone());
+    _extras
+      ..add(grenade)
+      ..add(marker);
+    world
+      ..add(marker)
+      ..add(grenade);
+  }
+
+  void _onGrenade(GrenadePayload payload) {
     final activeRound = round;
     if (activeRound == null || !activeRound.alive.contains(payload.id)) {
       return;
     }
-    if (!guard.allowShot(payload.id, x: payload.x, y: payload.y)) {
+    final owner = remoteShips[payload.id];
+    owner?.fireEffects();
+    AudioService.play(
+      'cannon',
+      volume: 0.5,
+      distance: _distanceToView(Vector2(payload.x, payload.y)),
+    );
+    _launchGrenade(
+      payload.grenadeId,
+      payload.id,
+      Vector2(payload.x, payload.y),
+      Vector2(payload.tx, payload.ty),
+    );
+  }
+
+  void _onDrone(DronePayload payload) {
+    if (round == null || _blasts.contains(payload.droneId)) {
+      return;
+    }
+    final known = drones[payload.droneId];
+    if (known != null) {
+      known.applyState(payload);
+      return;
+    }
+    final drone = Drone(
+      droneId: payload.droneId,
+      ownerId: payload.id,
+      color: _colorFor(payload.id),
+      position: Vector2(payload.x, payload.y),
+      angle: payload.angle,
+      remote: true,
+    );
+    drones[payload.droneId] = drone;
+    _extras.add(drone);
+    world.add(drone);
+  }
+
+  void _onBlast(BlastPayload payload) {
+    if (round == null) {
+      return;
+    }
+    final weapon = SpecialWeapon.values.asNameMap()[payload.weapon];
+    if (weapon == null) {
+      return;
+    }
+    detonate(
+      ownerId: payload.id,
+      blastId: payload.blastId,
+      at: Vector2(payload.x, payload.y),
+      weapon: weapon,
+    );
+  }
+
+  /// Whether this client simulates the tank [id]: the player or a local bot.
+  bool _isLocal(String id) {
+    final activeRound = round;
+    return id == myId ||
+        (activeRound != null &&
+            activeRound.isBot(id) &&
+            activeRound.botHost == myId);
+  }
+
+  /// A grenade or drone of [ownerId] goes off at [at]. Every client damages
+  /// its own tanks and reports the hits, the owner's client also takes care
+  /// of buildings and soldiers. [announce] tells the others, for drones that
+  /// only their owner flies.
+  void detonate({
+    required String ownerId,
+    required String blastId,
+    required Vector2 at,
+    required SpecialWeapon weapon,
+    bool announce = false,
+  }) {
+    if (round == null || !_blasts.add(blastId)) {
+      return;
+    }
+    drones.remove(blastId)?.removeFromParent();
+    if (announce) {
+      net.send(
+        NetEvent.blast,
+        BlastPayload(
+          id: ownerId,
+          blastId: blastId,
+          weapon: weapon.name,
+          x: at.x,
+          y: at.y,
+        ).toJson(),
+      );
+    }
+    world.add(Explosion(position: at.clone(), color: weapon.color));
+    shakeAt(at, 9);
+    AudioService.play('explosion', distance: _distanceToView(at));
+
+    final targets = <PlayerShip>[
+      if (phase.value == GamePhase.playing && myShip != null) myShip!,
+      ...botShips.values,
+    ];
+    for (final ship in targets) {
+      if (ship.hp <= 0 ||
+          ship.playerId == ownerId ||
+          sameTeam(ownerId, ship.playerId)) {
+        continue;
+      }
+      final distance =
+          ship.position.distanceTo(at) - GameConfig.shipRadius * 0.6;
+      if (distance > weapon.radius) {
+        continue;
+      }
+      final damage = weapon.damageAt(max(0, distance));
+      if (ownerId == myId) {
+        registerHit(min(damage, ship.hp));
+      }
+      AudioService.play('hit');
+      ship.applyDamage(damage, killerId: ownerId);
+      net.send(
+        NetEvent.hit,
+        HitPayload(
+          id: ship.playerId,
+          shooterId: ownerId,
+          bulletId: blastId,
+          hp: ship.hp,
+        ).toJson(),
+      );
+    }
+
+    if (!_isLocal(ownerId)) {
+      return;
+    }
+    final solids = _asteroidField?.obstacles.where((o) => o.isMounted) ?? [];
+    for (final obstacle in solids.toList()) {
+      final rect = obstacle.toRect();
+      final nearest = Vector2(
+        at.x.clamp(rect.left, rect.right),
+        at.y.clamp(rect.top, rect.bottom),
+      );
+      if (nearest.distanceTo(at) <= weapon.radius) {
+        damageObstacle(obstacle, weapon.damageAt(nearest.distanceTo(at)));
+      }
+    }
+    for (final soldier in soldierField?.soldiers.toList() ?? <Soldier>[]) {
+      if (!soldier.dead &&
+          soldier.isMounted &&
+          !soldier.airborne &&
+          soldier.position.distanceTo(at) <= weapon.radius) {
+        runOver(soldier, ownerId);
+      }
+    }
+  }
+
+  void _onShoot(ShootPayload payload) {
+    final activeRound = round;
+    if (activeRound == null) {
+      return;
+    }
+    final towerIndex = payload.tower;
+    if (towerIndex != null) {
+      final tower = towers['${payload.id}#$towerIndex'];
+      final direction = Vector2(payload.dx, payload.dy);
+      tower?.fired(direction);
+      AudioService.play(
+        'autocannon',
+        volume: 0.5,
+        distance: _distanceToView(Vector2(payload.x, payload.y)),
+      );
+      _spawnBullet(
+        bulletId: payload.bulletId,
+        ownerId: payload.id,
+        position: Vector2(payload.x, payload.y),
+        direction: direction,
+        color: tower?.color ?? const Color(0xFFFFFFFF),
+        speed: GameConfig.towerBulletSpeed,
+        damage: GameConfig.towerDamage,
+      );
+      return;
+    }
+    if (!activeRound.alive.contains(payload.id) ||
+        !guard.allowShot(payload.id, x: payload.x, y: payload.y)) {
       return;
     }
     final owner = remoteShips[payload.id];
@@ -1237,15 +1995,17 @@ class SpaceGame extends FlameGame
     required Vector2 position,
     required Vector2 direction,
     required Color color,
+    double? speed,
+    double? damage,
   }) {
     final stats = _statsOf(ownerId);
     final bullet = Bullet(
       bulletId: bulletId,
       ownerId: ownerId,
       position: position.clone(),
-      velocity: direction.normalized()..scale(stats.bulletSpeed),
+      velocity: direction.normalized()..scale(speed ?? stats.bulletSpeed),
       color: color,
-      damage: stats.damage,
+      damage: damage ?? stats.damage,
     );
     bullets[bulletId] = bullet;
     world.add(bullet);
@@ -1262,8 +2022,28 @@ class SpaceGame extends FlameGame
   }
 
   void _onShipState(ShipStatePayload raw) {
-    if (round?.alive.contains(raw.id) != true) {
+    final activeRound = round;
+    if (activeRound == null) {
       return;
+    }
+    final ship = remoteShips[raw.id];
+    if (ship == null) {
+      // In a defense round enemies roll in during the round and players come
+      // back after they were destroyed.
+      final joins =
+          activeRound.defense &&
+          !activeRound.destroyedEnemies.contains(raw.id) &&
+          (activeRound.isEnemy(raw.id) ||
+              activeRound.participants.contains(raw.id));
+      if (joins) {
+        activeRound.alive.add(raw.id);
+        aliveCount.value = activeRound.alive.length;
+      }
+      if (!activeRound.alive.contains(raw.id)) {
+        return;
+      }
+      // A tank that comes back starts somewhere else: judge it afresh.
+      guard.forget(raw.id);
     }
     final checked = guard.checkState(raw.id, x: raw.x, y: raw.y, hp: raw.hp);
     final payload = ShipStatePayload(
@@ -1275,27 +2055,17 @@ class SpaceGame extends FlameGame
       rotation: raw.rotation,
       hp: checked.hp,
       turret: raw.turret,
+      shielded: raw.shielded,
     );
-    final ship = remoteShips[payload.id];
     if (ship != null) {
       ship.applyState(payload);
       return;
     }
-    final activeRound = round;
-    if (activeRound == null || !activeRound.alive.contains(payload.id)) {
-      return;
-    }
-    final newShip = RemoteShip(
-      playerId: payload.id,
-      playerName: _nameFor(payload.id),
-      shipColor: GameConfig.colorOf(_styleFor(payload.id)),
-      tankType: GameConfig.typeOf(_styleFor(payload.id)),
-      position: Vector2(payload.x, payload.y),
-      angle: payload.rotation,
-    );
-    newShip.team = activeRound.teamOf(payload.id);
-    remoteShips[payload.id] = newShip;
-    world.add(newShip);
+    _addRemoteShip(
+      payload.id,
+      Vector2(payload.x, payload.y),
+      payload.rotation,
+    ).applyState(payload);
   }
 
   void _onHit(HitPayload payload) {
@@ -1316,7 +2086,7 @@ class SpaceGame extends FlameGame
       }
       ship
         ..hp = hp
-        ..flash();
+        ..takeHitEffects(damage);
       AudioService.play(
         'hit',
         volume: 0.8,
@@ -1357,6 +2127,23 @@ class SpaceGame extends FlameGame
       DeathPayload(id: myId, killerId: killerId).toJson(),
     );
     _recordKill(myId, killerId);
+    if (round?.defense ?? false) {
+      // Defenders come back after a short while, the round goes on.
+      round?.alive.remove(myId);
+      world.add(
+        Explosion(position: ship.position.clone(), color: ship.shipColor),
+      );
+      shake(12);
+      _addWreck(ship);
+      AudioService.play('explosion');
+      ship.removeFromParent();
+      myShip = null;
+      camera.stop();
+      aliveCount.value = round?.alive.length ?? 0;
+      _respawnTimer = GameConfig.respawnSeconds;
+      respawnSeconds.value = _respawnTimer.ceil();
+      return;
+    }
     roundStats.finish(_secondsIntoRound);
     round?.markDead(myId);
     world.add(
@@ -1512,7 +2299,9 @@ class SpaceGame extends FlameGame
 
   void _onObstacle(ObstaclePayload payload) {
     if (payload.tree) {
-      final tree = _asteroidField?.treeAt(payload.index);
+      final tree =
+          _asteroidField?.treeAt(payload.index) ??
+          _defenseField?.treeAt(payload.index);
       if (tree != null && payload.hp < tree.hp) {
         _setTreeHp(tree, payload.hp);
       }
@@ -1549,7 +2338,11 @@ class SpaceGame extends FlameGame
     if (id == myId) {
       return myColorIndex;
     }
-    return round?.bots[id] ?? _rosterMember(id)?.colorIndex ?? 0;
+    final activeRound = round;
+    if (activeRound != null && activeRound.isEnemy(id)) {
+      return activeRound.enemyStyle(id);
+    }
+    return activeRound?.bots[id] ?? _rosterMember(id)?.colorIndex ?? 0;
   }
 
   String _nameFor(String id) {
@@ -1586,6 +2379,10 @@ class SpaceGame extends FlameGame
     if (activeRound == null) {
       return;
     }
+    if (killerId == null && activeRound.isEnemy(victimId)) {
+      // An enemy that blew itself up at the base, the base bar shows it.
+      return;
+    }
     if (killerId == myId && victimId != myId) {
       if (!replaying.value) {
         roundStats.kills++;
@@ -1594,6 +2391,9 @@ class SpaceGame extends FlameGame
       if (victim != null) {
         world.add(KillMarker(position: victim.position.clone()));
         shake(4);
+      }
+      if (activeRound.isEnemy(victimId)) {
+        credits.value += GameConfig.creditsPerKill;
       }
     }
     final entry = KillEntry(
@@ -1640,10 +2440,14 @@ class SpaceGame extends FlameGame
     );
     _recordKill(bot.playerId, killerId);
     activeRound.markDead(bot.playerId);
+    activeRound.destroyedEnemies.add(bot.playerId);
     aliveCount.value = activeRound.alive.length;
     world.add(Explosion(position: bot.position.clone(), color: bot.shipColor));
     shakeAt(bot.position, 8);
-    _addWreck(bot);
+    // Waves leave far too many wrecks, only the explosion stays.
+    if (!activeRound.isEnemy(bot.playerId)) {
+      _addWreck(bot);
+    }
     AudioService.play('explosion', distance: _distanceToView(bot.position));
     botShips.remove(bot.playerId);
     bot.removeFromParent();
@@ -1658,6 +2462,17 @@ class SpaceGame extends FlameGame
     final ship = remoteShips.remove(id);
     ship?.removeFromParent();
     final activeRound = round;
+    if (activeRound != null && activeRound.defense) {
+      for (final tower in towers.values.where((t) => t.ownerId == id)) {
+        tower.removeFromParent();
+      }
+      towers.removeWhere((_, tower) => tower.ownerId == id);
+      if (activeRound.botHost == id) {
+        // Nobody runs the waves any more, the base is lost.
+        _endDefense(won: false);
+        return;
+      }
+    }
     if (activeRound != null && activeRound.botHost == id) {
       // Nobody simulates the bots any more.
       for (final botId in activeRound.bots.keys) {
@@ -1679,6 +2494,9 @@ class SpaceGame extends FlameGame
       return;
     }
     activeRound.markDead(id);
+    if (activeRound.isEnemy(id)) {
+      activeRound.destroyedEnemies.add(id);
+    }
     aliveCount.value = activeRound.alive.length;
     final ship = remoteShips.remove(id);
     if (ship != null) {
@@ -1687,7 +2505,9 @@ class SpaceGame extends FlameGame
           Explosion(position: ship.position.clone(), color: ship.shipColor),
         );
         shakeAt(ship.position, 8);
-        _addWreck(ship);
+        if (!activeRound.isEnemy(id)) {
+          _addWreck(ship);
+        }
         AudioService.play(
           'explosion',
           distance: _distanceToView(ship.position),
@@ -1705,6 +2525,10 @@ class SpaceGame extends FlameGame
       return;
     }
     if (phase.value == GamePhase.lobby || phase.value == GamePhase.roundOver) {
+      return;
+    }
+    if (activeRound.defense) {
+      // Only the base decides a defense round, see [_applyDefense].
       return;
     }
     if (activeRound.teamMode) {
@@ -1811,6 +2635,63 @@ class SpaceGame extends FlameGame
     );
   }
 
+  /// The base held through every wave, or it fell.
+  void _endDefense({required bool won}) {
+    final activeRound = round;
+    if (activeRound == null ||
+        phase.value == GamePhase.lobby ||
+        phase.value == GamePhase.roundOver) {
+      return;
+    }
+    _respawnTimer = 0;
+    respawnSeconds.value = 0;
+    roundStats.finish(_secondsIntoRound);
+    winnerName.value = won ? 'Stützpunkt' : null;
+    if (activeRound.participants.contains(myId)) {
+      unawaited(
+        progress.recordRound(
+          name: myName,
+          stats: roundStats,
+          won: won,
+          tankType: GameConfig.typeOf(myColorIndex),
+          hpLeft: max(0, myShip?.hp ?? 0),
+          soldiers: 0,
+          night: false,
+          beaten: const [],
+          beatenBy: const [],
+        ),
+      );
+      outcome.value = won ? RoundOutcome.won : RoundOutcome.lost;
+      AudioService.play(won ? 'win' : 'lose');
+    }
+    final base = _defenseField?.headquarters;
+    if (base != null) {
+      if (won) {
+        final fireworks = Fireworks(centre: () => base.position);
+        _extras.add(fireworks);
+        world.add(fireworks);
+      } else {
+        world.add(
+          Explosion(
+            position: base.position.clone(),
+            color: const Color(0xFFFFB300),
+          ),
+        );
+        shakeAt(base.position, 14);
+        AudioService.play('explosion');
+      }
+    }
+    _setPhase(GamePhase.roundOver);
+    Future<void>.delayed(
+      const Duration(seconds: GameConfig.roundOverSeconds),
+      () {
+        if (round == activeRound && phase.value == GamePhase.roundOver) {
+          backToLobby();
+        }
+      },
+    );
+  }
+
   void backToLobby() {
     if (phase.value != GamePhase.roundOver) {
       return;
@@ -1818,8 +2699,82 @@ class SpaceGame extends FlameGame
     _clearWorld();
     round = null;
     myTeam = 0;
+    _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
+  }
+
+  /// Host only: straight from the results into the next round, with the same
+  /// settings and everybody who is still in the room.
+  void rematch() {
+    if (phase.value != GamePhase.roundOver || !canStart) {
+      return;
+    }
+    backToLobby();
+    startRound();
+  }
+
+  /// Closes the waiting room: as host for everybody, as guest just for you.
+  Future<void> closeRoom() async {
+    if (phase.value == GamePhase.closed) {
+      return;
+    }
+    final host = isHost.value;
+    _enterClosed(
+      host
+          ? 'Du hast den Warteraum geschlossen.'
+          : 'Du hast den Warteraum verlassen.',
+    );
+    await (host ? net.closeRoom() : net.dispose());
+  }
+
+  void _onClose(String id) {
+    final sender = _rosterMember(id);
+    if (sender == null || !sender.host || phase.value == GamePhase.closed) {
+      return;
+    }
+    _enterClosed('Der Gastgeber hat den Warteraum geschlossen.');
+    unawaited(net.dispose());
+  }
+
+  /// Nobody started a round or came and went for a long time: leave the
+  /// room, so forgotten tabs do not keep it open forever.
+  void _closeWhenIdle() {
+    if (phase.value != GamePhase.lobby) {
+      return;
+    }
+    final idle = DateTime.now().difference(_lastActivity);
+    if (idle < GameConfig.lobbyIdleTimeout) {
+      return;
+    }
+    _enterClosed(
+      'Der Warteraum wurde nach '
+      '${GameConfig.lobbyIdleTimeout.inMinutes} Minuten ohne Aktivität '
+      'geschlossen.',
+    );
+    unawaited(net.dispose());
+  }
+
+  void _enterClosed(String reason) {
+    _clearWorld();
+    round = null;
+    myTeam = 0;
+    roster.value = const [];
+    closedReason.value = reason;
+    _setPhase(GamePhase.closed);
+  }
+
+  /// Leaves the closed screen for a new room, hosted by this player.
+  Future<void> openNewRoom() async {
+    if (phase.value != GamePhase.closed || openFreshRoom()) {
+      return;
+    }
+    // No address bar to start over from: meet in the same room again.
+    _setHost(true);
+    _lastActivity = DateTime.now();
+    closedReason.value = null;
+    _setPhase(GamePhase.lobby);
+    await net.connect(_presencePayload());
   }
 
   /// One based position of the watched tank, for the button label.
@@ -1849,6 +2804,11 @@ class SpaceGame extends FlameGame
   }
 
   void _onRosterChanged(List<LobbyPresence> members) {
+    final before = {for (final member in roster.value) member.id};
+    final after = {for (final member in members) member.id};
+    if (before.length != after.length || !before.containsAll(after)) {
+      _lastActivity = DateTime.now();
+    }
     roster.value = members;
   }
 
@@ -1867,6 +2827,17 @@ class SpaceGame extends FlameGame
     mudField = null;
     _stormZone?.removeFromParent();
     _stormZone = null;
+    _defenseField?.removeFromParent();
+    _defenseField = null;
+    defenseMap = null;
+    defense.value = null;
+    for (final tower in towers.values) {
+      tower.removeFromParent();
+    }
+    towers.clear();
+    credits.value = 0;
+    _respawnTimer = 0;
+    respawnSeconds.value = 0;
     myShip?.removeFromParent();
     myShip = null;
     for (final ship in remoteShips.values) {
@@ -1890,6 +2861,9 @@ class SpaceGame extends FlameGame
     smokes.clear();
     mines.clear();
     shieldSeconds.value = 0;
+    drones.clear();
+    _blasts.clear();
+    specialNotifier.value = null;
     _gone.clear();
     _powerUpSlots = const [];
     rapidFireSeconds.value = 0;
@@ -1913,6 +2887,7 @@ class SpaceGame extends FlameGame
         OverlayIds.hud,
         OverlayIds.spectator,
         OverlayIds.roundOver,
+        OverlayIds.closed,
       ])
       ..add(switch (next) {
         GamePhase.lobby => OverlayIds.lobby,
@@ -1920,6 +2895,7 @@ class SpaceGame extends FlameGame
         GamePhase.playing => OverlayIds.hud,
         GamePhase.spectating => OverlayIds.spectator,
         GamePhase.roundOver => OverlayIds.roundOver,
+        GamePhase.closed => OverlayIds.closed,
       });
   }
 }

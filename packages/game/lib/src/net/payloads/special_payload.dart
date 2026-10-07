@@ -1,64 +1,109 @@
-/// A tank laid a few mines behind itself.
-class MinePayload {
-  const MinePayload({required this.id, required this.mines});
+/// A grenade left the launcher of [id] and lands at [tx], [ty].
+class GrenadePayload {
+  const GrenadePayload({
+    required this.id,
+    required this.grenadeId,
+    required this.x,
+    required this.y,
+    required this.tx,
+    required this.ty,
+  });
 
-  factory MinePayload.fromJson(Map<String, dynamic> json) {
-    return MinePayload(
+  factory GrenadePayload.fromJson(Map<String, dynamic> json) {
+    return GrenadePayload(
       id: json['id'] as String,
-      mines: [
-        for (final mine in json['mines'] as List<dynamic>)
-          (
-            id: (mine as Map<String, dynamic>)['id'] as String,
-            x: (mine['x'] as num).toDouble(),
-            y: (mine['y'] as num).toDouble(),
-          ),
-      ],
+      grenadeId: json['grenadeId'] as String,
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+      tx: (json['tx'] as num).toDouble(),
+      ty: (json['ty'] as num).toDouble(),
     );
   }
 
   final String id;
-  final List<({String id, double x, double y})> mines;
+  final String grenadeId;
+  final double x;
+  final double y;
+  final double tx;
+  final double ty;
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'mines': [
-      for (final mine in mines) {'id': mine.id, 'x': mine.x, 'y': mine.y},
-    ],
+    'grenadeId': grenadeId,
+    'x': x,
+    'y': y,
+    'tx': tx,
+    'ty': ty,
   };
 }
 
-/// A tank called in a barrage that lands on [x], [y] at [at], milliseconds
-/// since the epoch, so every client sees the shells strike at the same time.
-class ArtilleryPayload {
-  const ArtilleryPayload({
+/// Where a drone of [id] flies right now. Only its owner simulates it.
+class DronePayload {
+  const DronePayload({
     required this.id,
-    required this.strikeId,
+    required this.droneId,
     required this.x,
     required this.y,
-    required this.at,
+    required this.angle,
   });
 
-  factory ArtilleryPayload.fromJson(Map<String, dynamic> json) {
-    return ArtilleryPayload(
+  factory DronePayload.fromJson(Map<String, dynamic> json) {
+    return DronePayload(
       id: json['id'] as String,
-      strikeId: json['strikeId'] as String,
+      droneId: json['droneId'] as String,
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
-      at: json['at'] as int,
+      angle: (json['angle'] as num).toDouble(),
     );
   }
 
   final String id;
-  final String strikeId;
+  final String droneId;
   final double x;
   final double y;
-  final int at;
+  final double angle;
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'strikeId': strikeId,
+    'droneId': droneId,
     'x': x,
     'y': y,
-    'at': at,
+    'angle': angle,
+  };
+}
+
+/// A special weapon of [id] went off at [x], [y]. [weapon] is the name of a
+/// `SpecialWeapon`, which sets radius and damage.
+class BlastPayload {
+  const BlastPayload({
+    required this.id,
+    required this.blastId,
+    required this.weapon,
+    required this.x,
+    required this.y,
+  });
+
+  factory BlastPayload.fromJson(Map<String, dynamic> json) {
+    return BlastPayload(
+      id: json['id'] as String,
+      blastId: json['blastId'] as String,
+      weapon: json['weapon'] as String,
+      x: (json['x'] as num).toDouble(),
+      y: (json['y'] as num).toDouble(),
+    );
+  }
+
+  final String id;
+  final String blastId;
+  final String weapon;
+  final double x;
+  final double y;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'blastId': blastId,
+    'weapon': weapon,
+    'x': x,
+    'y': y,
   };
 }

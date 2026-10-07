@@ -1,1 +1,1 @@
-enum GamePhase { lobby, countdown, playing, spectating, roundOver }
+enum GamePhase { lobby, countdown, playing, spectating, roundOver, closed }

@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../game_config.dart';
 import '../game/bot_level.dart';
+import '../game/game_mode.dart';
 import '../game/map_theme.dart';
 import '../game/weather.dart';
 import '../game/space_game.dart';
@@ -33,6 +36,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   late final TextEditingController _nameController;
   late int _colorIndex;
   late int _teamPick = widget.game.teamPick;
+  bool _closeArmed = false;
+  Timer? _closeTimer;
 
   @override
   void initState() {
@@ -53,6 +58,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   @override
   void dispose() {
     widget.game.pilotVersion.removeListener(_reloadPilot);
+    _closeTimer?.cancel();
     _nameController.dispose();
     super.dispose();
   }
@@ -97,9 +103,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
-          style: TextStyle(color: BwColors.textDim),
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => Text(
+            mode == GameMode.defense
+                ? 'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.'
+                : 'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
+            style: const TextStyle(color: BwColors.textDim),
+          ),
         ),
         const SizedBox(height: 16),
         PilotCard(progress: game.progress),
@@ -115,98 +126,86 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 8),
         Text('FAHRZEUG', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, box) {
-            // Two or more cards per row that share the width evenly, all
-            // vehicles in one row when there is room.
-            final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
-              2,
-              TankType.values.length,
-            );
-            final width = (box.maxWidth - 8 * (columns - 1)) / columns;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final type in TankType.values)
-                  TankChoice(
-                    type: type,
-                    width: width.floorToDouble(),
-                    color: GameConfig.colorOf(_colorIndex),
-                    selected: type == GameConfig.typeOf(_colorIndex),
-                    onTap: () => _pick(type: type.index),
-                  ),
-              ],
-            );
-          },
+        ListenableBuilder(
+          listenable: Listenable.merge([game.roster, game.mode]),
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) {
+              // Two or more cards per row that share the width evenly, all
+              // vehicles in one row when there is room.
+              final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
+                2,
+                TankType.values.length,
+              );
+              final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final type in TankType.values)
+                    TankChoice(
+                      type: type,
+                      width: width.floorToDouble(),
+                      color: game.lobbyColorOf(game.myId, _colorIndex),
+                      selected: type == GameConfig.typeOf(_colorIndex),
+                      onTap: () => _pick(type: type.index),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
         const SizedBox(height: 12),
         StatBars(type: GameConfig.typeOf(_colorIndex)),
         const SizedBox(height: 16),
-        Text('TARNUNG', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ValueListenableBuilder(
-          valueListenable: game.progress.rank,
-          builder: (context, rank, _) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (var i = 0; i < GameConfig.shipColors.length; i++)
-                Tooltip(
-                  message: game.progress.unlocked(i)
-                      ? GameConfig.colorNames[i]
-                      : '${GameConfig.colorNames[i]}: ab Stufe '
-                            '${GameConfig.colorLevels[i]}',
-                  child: ColorSwatchButton(
-                    color: GameConfig.shipColors[i],
-                    selected: i == _colorIndex % GameConfig.shipColors.length,
-                    locked: !game.progress.unlocked(i),
-                    onTap: () => _pick(color: i),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        if (game.net.isHost) ...[
-          const SizedBox(height: 16),
-          Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
-          ValueListenableBuilder<bool>(
-            valueListenable: game.teamMode,
-            builder: (context, teams, _) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ChoiceRow<bool>(
-                  options: const [
-                    (false, 'ALLE GEGEN ALLE', null),
-                    (true, 'TEAMS', null),
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => mode.withOthers
+              ? const Text(
+                  'Mit anderen fährt jeder Panzer in einer eigenen, '
+                  'gut sichtbaren Farbe statt in Tarnung.',
+                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TARNUNG',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    ValueListenableBuilder(
+                      valueListenable: game.progress.rank,
+                      builder: (context, rank, _) => Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var i = 0; i < GameConfig.shipColors.length; i++)
+                            Tooltip(
+                              message: game.progress.unlocked(i)
+                                  ? GameConfig.colorNames[i]
+                                  : '${GameConfig.colorNames[i]}: ab Stufe '
+                                        '${GameConfig.colorLevels[i]}',
+                              child: ColorSwatchButton(
+                                color: GameConfig.shipColors[i],
+                                selected:
+                                    i ==
+                                    _colorIndex % GameConfig.shipColors.length,
+                                locked: !game.progress.unlocked(i),
+                                onTap: () => _pick(color: i),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
                   ],
-                  selected: teams,
-                  onSelected: (v) => game.teamMode.value = v ?? false,
                 ),
-                if (teams) ...[
-                  const SizedBox(height: 10),
-                  ChoiceRow<int>(
-                    options: [
-                      (0, 'AUTO', null),
-                      (1, 'ROT', GameConfig.teamColors[1]),
-                      (2, 'BLAU', GameConfig.teamColors[2]),
-                    ],
-                    selected: _teamPick,
-                    onSelected: (v) {
-                      setState(() => _teamPick = v ?? 0);
-                      game.setTeamPick(_teamPick);
-                    },
-                  ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'AUTO füllt das kleinere Team. Eigene Teammitglieder '
-                    'triffst du nicht.',
-                    style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                  ),
-                ],
-              ],
-            ),
+        ),
+        if (game.isHost.value) ...[
+          ValueListenableBuilder<GameMode>(
+            valueListenable: game.mode,
+            builder: (context, mode, _) => mode == GameMode.defense
+                ? const SizedBox()
+                : _teamChoice(context),
           ),
           const SizedBox(height: 16),
           Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
@@ -260,7 +259,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 16),
           const Text(
             'Modus und Gelände legt der Gastgeber fest. '
-            'Du suchst dir hier nur Namen, Fahrzeug und Tarnung aus.',
+            'Du suchst dir hier nur Namen und Fahrzeug aus.',
             style: TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ],
@@ -301,6 +300,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           label: const Text('LETZTE RUNDE ANSEHEN'),
                         ),
                 ),
+                OutlinedButton.icon(
+                  onPressed: _confirmClose,
+                  style: _closeArmed
+                      ? OutlinedButton.styleFrom(
+                          foregroundColor: BwColors.danger,
+                          side: const BorderSide(color: BwColors.danger),
+                        )
+                      : null,
+                  icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+                  label: Text(switch ((_closeArmed, game.isHost.value)) {
+                    (true, true) => 'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                    (true, false) => 'WIRKLICH VERLASSEN?',
+                    (false, true) => 'WARTERAUM SCHLIESSEN',
+                    (false, false) => 'WARTERAUM VERLASSEN',
+                  }),
+                ),
               ],
             );
           },
@@ -313,12 +328,67 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus, unabhängig von der '
                       'Wanne, und feuert, sobald du über den Ring schiebst. '
-                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt.'
+                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt. '
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit dem runden Knopf über dem rechten Stick auslöst.'
                 : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
                       'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
-                      'Auf Touchgeräten steuerst du mit zwei Sticks am '
-                      'Bildschirm.',
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit F auslöst. Auf Touchgeräten steuerst du mit zwei '
+                      'Sticks am Bildschirm.',
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Free for all or red against blue, for the host.
+  Widget _teamChoice(BuildContext context) {
+    final game = widget.game;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        ValueListenableBuilder<bool>(
+          valueListenable: game.teamMode,
+          builder: (context, teams, _) => Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ChoiceRow<bool>(
+                options: const [
+                  (false, 'ALLE GEGEN ALLE', null),
+                  (true, 'TEAMS', null),
+                ],
+                selected: teams,
+                onSelected: (v) => game.teamMode.value = v ?? false,
+              ),
+              if (teams) ...[
+                const SizedBox(height: 10),
+                ChoiceRow<int>(
+                  options: [
+                    (0, 'AUTO', null),
+                    (1, 'ROT', GameConfig.teamColors[1]),
+                    (2, 'BLAU', GameConfig.teamColors[2]),
+                  ],
+                  selected: _teamPick,
+                  onSelected: (v) {
+                    setState(() => _teamPick = v ?? 0);
+                    game.setTeamPick(_teamPick);
+                  },
+                ),
+                const SizedBox(height: 6),
+                const Text(
+                  'AUTO füllt das kleinere Team. Eigene Teammitglieder '
+                  'triffst du nicht.',
+                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                ),
+              ],
+            ],
           ),
         ),
       ],
@@ -333,20 +403,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         Text('SPIELART', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.multiplayer,
-          builder: (context, multi, _) => Column(
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChoiceRow<bool>(
+              ChoiceRow<GameMode>(
                 options: const [
-                  (false, 'EINZELSPIELER', null),
-                  (true, 'MEHRSPIELER', null),
+                  (GameMode.solo, 'EINZELSPIELER', null),
+                  (GameMode.multi, 'MEHRSPIELER', null),
+                  (GameMode.defense, 'VERTEIDIGUNG', null),
                 ],
-                selected: multi,
-                onSelected: (v) => game.setMultiplayer(v ?? true),
+                selected: mode,
+                onSelected: (v) => game.setMode(v ?? GameMode.multi),
               ),
-              if (multi && roomLink(game.net.room).isNotEmpty) ...[
+              if (mode == GameMode.multi &&
+                  roomLink(game.net.room).isNotEmpty) ...[
                 const SizedBox(height: 10),
                 ValueListenableBuilder<bool>(
                   valueListenable: game.publicRoom,
@@ -361,53 +433,62 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ],
               const SizedBox(height: 6),
-              Text(
-                multi
-                    ? 'Spiele mit anderen: Schick den Link weiter. Ein '
-                          'öffentlicher Raum steht außerdem in der Raumliste.'
-                    : 'Du spielst allein gegen ${GameConfig.minBots} bis '
-                          '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
-                          'ausgewürfelt.',
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'CPU-GEGNER',
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: 8),
-              if (multi) ...[
-                ValueListenableBuilder<bool>(
-                  valueListenable: game.fillWithBots,
-                  builder: (context, fill, _) => ChoiceRow<bool>(
-                    options: const [
-                      (false, 'NUR MENSCHEN', null),
-                      (true, 'MIT CPU AUFFÜLLEN', null),
+              Text(switch (mode) {
+                GameMode.solo =>
+                  'Du spielst allein gegen ${GameConfig.minBots} bis '
+                      '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
+                      'ausgewürfelt.',
+                GameMode.multi =>
+                  'Spiele mit anderen: Schick den Link weiter. Ein '
+                      'öffentlicher Raum steht außerdem in der Raumliste.',
+                GameMode.defense =>
+                  'Gemeinsam gegen ${GameConfig.defenseWaves} Wellen, '
+                      'allein oder mit anderen. Die Feinde rollen über die '
+                      'Straße zum Stützpunkt. Für Abschüsse gibt es Mittel, '
+                      'davon baust du Geschütze (Taste B). Munition gibt es am '
+                      'Stützpunkt, zerstörte Panzer kehren nach kurzer Zeit '
+                      'zurück.',
+              }, style: const TextStyle(color: BwColors.textDim, fontSize: 12)),
+              if (mode != GameMode.defense) ...[
+                const SizedBox(height: 16),
+                Text(
+                  'CPU-GEGNER',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 8),
+                if (mode == GameMode.multi) ...[
+                  ValueListenableBuilder<bool>(
+                    valueListenable: game.fillWithBots,
+                    builder: (context, fill, _) => ChoiceRow<bool>(
+                      options: const [
+                        (false, 'NUR MENSCHEN', null),
+                        (true, 'MIT CPU AUFFÜLLEN', null),
+                      ],
+                      selected: fill,
+                      onSelected: (v) => game.fillWithBots.value = v ?? false,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
+                ValueListenableBuilder<BotLevel>(
+                  valueListenable: game.botLevel,
+                  builder: (context, level, _) => ChoiceRow<BotLevel>(
+                    options: [
+                      for (final option in BotLevel.values)
+                        (option, option.label, null),
                     ],
-                    selected: fill,
-                    onSelected: (v) => game.fillWithBots.value = v ?? false,
+                    selected: level,
+                    onSelected: (v) => game.botLevel.value = v ?? level,
                   ),
                 ),
-                const SizedBox(height: 10),
-              ],
-              ValueListenableBuilder<BotLevel>(
-                valueListenable: game.botLevel,
-                builder: (context, level, _) => ChoiceRow<BotLevel>(
-                  options: [
-                    for (final option in BotLevel.values)
-                      (option, option.label, null),
-                  ],
-                  selected: level,
-                  onSelected: (v) => game.botLevel.value = v ?? level,
-                ),
-              ),
-              if (multi) ...[
-                const SizedBox(height: 6),
-                const Text(
-                  'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
-                  'und gleicht bei Teams die Seiten aus.',
-                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                ),
+                if (mode == GameMode.multi) ...[
+                  const SizedBox(height: 6),
+                  const Text(
+                    'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
+                    'und gleicht bei Teams die Seiten aus.',
+                    style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                  ),
+                ],
               ],
             ],
           ),
@@ -418,10 +499,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
 
   Widget _rosterColumn() {
     final game = widget.game;
-    return ValueListenableBuilder<bool>(
-      valueListenable: game.multiplayer,
-      builder: (context, multi, _) =>
-          multi ? _roster(game) : const SizedBox.shrink(),
+    return ValueListenableBuilder<GameMode>(
+      valueListenable: game.mode,
+      builder: (context, mode, _) =>
+          mode.withOthers ? _roster(game) : const SizedBox.shrink(),
     );
   }
 
@@ -432,15 +513,43 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         ValueListenableBuilder<List<LobbyPresence>>(
           valueListenable: game.roster,
-          builder: (context, roster, _) =>
-              PlayerList(members: roster, myId: game.myId),
+          builder: (context, roster, _) => PlayerList(
+            members: roster,
+            myId: game.myId,
+            colorOf: (member) =>
+                game.lobbyColorOf(member.id, member.colorIndex),
+          ),
         ),
       ],
     );
   }
 
+  /// Closing takes two clicks: the first one asks, the second one closes.
+  void _confirmClose() {
+    if (_closeArmed) {
+      _closeTimer?.cancel();
+      widget.game.closeRoom();
+      return;
+    }
+    setState(() => _closeArmed = true);
+    _closeTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() => _closeArmed = false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // A guest stands in when the host leaves and hands back on return: the
+    // whole lobby follows the role.
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.game.isHost,
+      builder: (context, _, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xAA000000),
       child: LayoutBuilder(
@@ -456,13 +565,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!widget.game.net.isHost)
+                      if (!widget.game.isHost.value)
                         const _JoinedBanner()
                       else ...[
                         _modeChoice(context),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: widget.game.multiplayer,
-                          builder: (context, multi, _) => multi
+                        ValueListenableBuilder<GameMode>(
+                          valueListenable: widget.game.mode,
+                          builder: (context, mode, _) => mode.withOthers
                               ? Padding(
                                   padding: const EdgeInsets.only(top: 16),
                                   child: RoomInvite(game: widget.game),

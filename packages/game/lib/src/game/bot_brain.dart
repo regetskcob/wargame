@@ -8,11 +8,13 @@ import 'bot_level.dart';
 import 'components/artillery_strike.dart';
 import 'components/obstacle.dart';
 import 'components/player_ship.dart';
+import 'components/power_up.dart';
 import 'components/remote_ship.dart';
 import 'components/ship_base.dart';
 import 'components/storm_zone.dart';
 import 'game_phase.dart';
 import 'space_game.dart';
+import 'special_weapon.dart';
 import 'touch_input.dart';
 
 /// Drives a computer controlled tank by pressing the same virtual buttons a
@@ -35,6 +37,7 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
   double _aimError = 0;
   double _errorTimer = 0;
   double _fireGate = 0;
+  double _specialGate = 0;
   double _stuckTimer = 0;
   double _reverseTimer = 0;
   double _reverseTurn = 1;
@@ -140,6 +143,7 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     _wantBrake = false;
 
     final barrage = level.evasive ? _barrageOverhead() : null;
+    final pickup = _wantedPickup(safeRadius);
     if (ship.position.length > safeRadius - 70) {
       // Back into the safe circle first.
       _desiredHeading = _headingTo(Vector2.zero());
@@ -148,6 +152,12 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
       // Get out from under the shells.
       _desiredHeading = _headingTo(ship.position * 2 - barrage.position);
       _wantThrust = true;
+    } else if (pickup != null) {
+      _desiredHeading = _headingTo(pickup.position);
+      _wantThrust = true;
+      if (target != null) {
+        _hasLineOfSight = _clearShot(target.position);
+      }
     } else if (target == null) {
       _desiredHeading = _headingTo(Vector2.zero());
       _wantThrust = ship.position.length > 160;
@@ -205,6 +215,31 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     return null;
   }
 
+  /// A gem worth a detour: any ammo gem once the magazine runs low, and a
+  /// nearby special weapon gem while the bot has none.
+  PowerUp? _wantedPickup(double safeRadius) {
+    final lowAmmo = ship.ammo <= ship.stats.ammo * GameConfig.ammoLowShare;
+    PowerUp? best;
+    var bestDistance = double.infinity;
+    for (final crate in gameRef.powerUps.values) {
+      if (crate.position.length > safeRadius - 40) {
+        continue;
+      }
+      final distance = crate.position.distanceTo(ship.position);
+      final wanted = switch (crate.type) {
+        PowerUpType.ammo => lowAmmo,
+        PowerUpType.grenades ||
+        PowerUpType.drone => ship.special == null && distance < 350,
+        _ => false,
+      };
+      if (wanted && distance < bestDistance) {
+        bestDistance = distance;
+        best = crate;
+      }
+    }
+    return best;
+  }
+
   bool _clearShot(Vector2 to) {
     final from = ship.position;
     final steps = (from.distanceTo(to) / 24).ceil();
@@ -241,8 +276,11 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
   void _gunnery(double dt) {
     final target = _target;
     if (target == null || !target.isMounted) {
-      controls.fire = false;
+      controls
+        ..fire = false
+        ..special = false;
       _fireGate = 0;
+      _specialGate = 0;
       return;
     }
     final distance = target.position.distanceTo(ship.position);
@@ -262,6 +300,25 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
       _fireGate = 0;
     }
     // A short reaction time before the first shot at a fresh target.
-    controls.fire = _fireGate > level.reaction;
+    controls.fire = _fireGate > level.reaction && ship.ammo > 0;
+    _special(dt, aimPoint, onTarget);
+  }
+
+  /// Grenades go at targets in lobbing range, wall or not. The drone goes up
+  /// as soon as there is anybody to hunt.
+  void _special(double dt, Vector2 aimPoint, bool onTarget) {
+    final distance = aimPoint.distanceTo(ship.position);
+    final ready = switch (ship.special) {
+      SpecialWeapon.grenades =>
+        onTarget &&
+            distance > GameConfig.grenadeMinRange + 40 &&
+            distance < GameConfig.grenadeRange,
+      SpecialWeapon.drone => distance < 700,
+      null => false,
+    };
+    _specialGate = ready ? _specialGate + dt : 0;
+    controls
+      ..lobDistance = distance
+      ..special = _specialGate > 0.8;
   }
 }

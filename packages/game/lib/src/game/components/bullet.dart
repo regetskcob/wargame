@@ -4,6 +4,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import '../../game_config.dart';
+import '../defense/defense_field.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
 import 'effects.dart';
@@ -64,6 +65,13 @@ class Bullet extends PositionComponent
         gameRef.damageTree(other, damage);
       }
       removeFromParent();
+    } else if (other is Headquarters) {
+      // Players shoot over their own base, enemy shells wear it down. The
+      // player who runs the enemies keeps the score.
+      if (gameRef.round?.isEnemy(ownerId) ?? false) {
+        gameRef.damageBase(damage);
+        removeFromParent();
+      }
     } else if (other is Obstacle) {
       _impact(const Color(0xFFB8B0A0));
       // Only the shooter's client applies the damage and tells the others.

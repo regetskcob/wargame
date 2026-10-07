@@ -10,4 +10,10 @@ enum NetEvent {
   soldier,
   mine,
   artillery,
+  defense,
+  tower,
+  grenade,
+  drone,
+  blast,
+  close,
 }
