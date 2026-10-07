@@ -291,6 +291,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     icon: const Icon(Icons.visibility),
                     label: const Text('LAUFENDE ÜBUNG BEOBACHTEN'),
                   ),
+                ValueListenableBuilder(
+                  valueListenable: game.lastReplay,
+                  builder: (context, replay, _) => replay == null
+                      ? const SizedBox.shrink()
+                      : OutlinedButton.icon(
+                          onPressed: game.watchReplay,
+                          icon: const Icon(Icons.movie_outlined),
+                          label: const Text('LETZTE RUNDE ANSEHEN'),
+                        ),
+                ),
               ],
             );
           },

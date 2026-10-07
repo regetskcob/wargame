@@ -97,7 +97,7 @@ class _LeaderboardState extends State<Leaderboard> {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 640),
+        constraints: const BoxConstraints(minWidth: 740),
         child: Table(
           defaultVerticalAlignment: TableCellVerticalAlignment.middle,
           columnWidths: const {

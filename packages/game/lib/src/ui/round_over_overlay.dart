@@ -164,6 +164,11 @@ class _Actions extends StatelessWidget {
                 onPressed: game.backToLobby,
                 child: const Text('ZURÜCK INS LAGER'),
               ),
+            OutlinedButton.icon(
+              onPressed: game.watchReplay,
+              icon: const Icon(Icons.movie_outlined),
+              label: const Text('WIEDERHOLUNG'),
+            ),
           ],
         ),
         if (!rematch) ...[

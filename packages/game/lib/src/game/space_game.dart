@@ -26,6 +26,7 @@ import '../net/payloads/power_up_payload.dart';
 import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
+import '../net/replay.dart';
 import '../net/room_directory.dart';
 import 'components/aim_overlay.dart';
 import 'components/artillery_strike.dart';
@@ -136,6 +137,12 @@ class SpaceGame extends FlameGame
   /// Whether the host lists this room publicly. Private rooms are only
   /// reachable by their link or code.
   final publicRoom = ValueNotifier<bool>(false);
+
+  /// Records the current round, and the last one to watch again.
+  final _recorder = ReplayRecorder();
+  final lastReplay = ValueNotifier<Replay?>(null);
+  final replaying = ValueNotifier<bool>(false);
+  ReplayPlayer? _replayPlayer;
 
   /// The public list of rooms.
   late final directory = RoomDirectory(room: net.room);
@@ -328,6 +335,7 @@ class SpaceGame extends FlameGame
     _accountId = scoreService.myId;
     await _loadPilot();
     accounts.user.addListener(_onAccountChanged);
+    net.recorder = _recorder;
     await net.connect(_presencePayload());
     directory.connect();
     for (final notifier in <Listenable>[
@@ -363,6 +371,7 @@ class SpaceGame extends FlameGame
         AudioService.play('go');
       }
     }
+    _playReplay();
     _updatePowerUps();
     _staleTimer += dt;
     if (_staleTimer >= 1) {
@@ -592,6 +601,10 @@ class SpaceGame extends FlameGame
   }
 
   void _onRoundStart(RoundStartPayload payload) {
+    // A real round beats watching an old one.
+    if (replaying.value) {
+      stopReplay();
+    }
     final activeRound = round;
     if (phase.value == GamePhase.lobby) {
       _applyRoundStart(payload);
@@ -618,7 +631,9 @@ class SpaceGame extends FlameGame
     return payload.seed < current.seed;
   }
 
-  void _applyRoundStart(RoundStartPayload payload) {
+  /// Builds the world of a round. With [replay] every tank is driven by the
+  /// recorded messages and the local player only watches.
+  void _applyRoundStart(RoundStartPayload payload, {bool replay = false}) {
     _clearWorld();
     final activeRound = RoundState(
       seed: payload.seed,
@@ -631,16 +646,18 @@ class SpaceGame extends FlameGame
     );
     myTeam = payload.teams[myId] ?? 0;
     guard.reset();
-    progress.clearRound();
-    _uids
-      ..clear()
-      ..addAll({
-        for (final member in roster.value)
-          if (member.uid != null && payload.participants.contains(member.id))
-            member.id: member.uid!,
-      });
     killFeed.value = const [];
-    roundStats = RoundStats();
+    if (!replay) {
+      progress.clearRound();
+      _uids
+        ..clear()
+        ..addAll({
+          for (final member in roster.value)
+            if (member.uid != null && payload.participants.contains(member.id))
+              member.id: member.uid!,
+        });
+      roundStats = RoundStats();
+    }
     round = activeRound;
     _asteroidField = AsteroidField(seed: payload.seed);
     _setGround(_asteroidField!.theme);
@@ -670,7 +687,7 @@ class SpaceGame extends FlameGame
       final colorIndex = _styleFor(id);
       final color = GameConfig.colorOf(colorIndex);
       final tankType = GameConfig.typeOf(colorIndex);
-      if (id == myId) {
+      if (id == myId && !replay) {
         final ship = PlayerShip(
           playerId: id,
           playerName: name,
@@ -683,7 +700,9 @@ class SpaceGame extends FlameGame
         ship.team = activeRound.teamOf(id);
         world.add(ship);
         camera.follow(ship, snap: true);
-      } else if (activeRound.isBot(id) && activeRound.botHost == myId) {
+      } else if (!replay &&
+          activeRound.isBot(id) &&
+          activeRound.botHost == myId) {
         final controls = TouchInput();
         final ship = PlayerShip(
           playerId: id,
@@ -721,6 +740,17 @@ class SpaceGame extends FlameGame
     hpNotifier.value = myMaxHp;
     aliveCount.value = activeRound.alive.length;
     winnerName.value = null;
+    if (replay) {
+      _setPhase(GamePhase.spectating);
+      final targets = [...remoteShips.keys];
+      _spectateByIndex(max(0, targets.indexOf(myId)));
+      return;
+    }
+    _recorder.start(
+      payload,
+      names: {for (final id in activeRound.participants) id: _nameFor(id)},
+      styles: {for (final id in activeRound.participants) id: _styleFor(id)},
+    );
     if (activeRound.participants.contains(myId)) {
       _setPhase(GamePhase.countdown);
     } else {
@@ -728,6 +758,102 @@ class SpaceGame extends FlameGame
       _spectateByIndex(0);
     }
     unawaited(pushPresence());
+  }
+
+  /// Watches the round that just ended, or the last one recorded, again.
+  void watchReplay() {
+    final current = phase.value;
+    if (current != GamePhase.lobby && current != GamePhase.roundOver) {
+      return;
+    }
+    final recorded = _recorder.finish();
+    if (recorded != null) {
+      lastReplay.value = recorded;
+    }
+    final replay = lastReplay.value;
+    if (replay == null) {
+      return;
+    }
+    // A short moment to look around before the first shots.
+    final startedAt = DateTime.now().millisecondsSinceEpoch + 1500;
+    _replayPlayer = ReplayPlayer(replay, startedAt: startedAt);
+    net.muted = true;
+    replaying.value = true;
+    final original = replay.round;
+    _applyRoundStart(
+      RoundStartPayload(
+        seed: original.seed,
+        startedAt: startedAt,
+        participants: original.participants,
+        teams: original.teams,
+        bots: original.bots,
+        botHost: original.botHost,
+        botLevel: original.botLevel,
+      ),
+      replay: true,
+    );
+  }
+
+  void stopReplay() {
+    if (_replayPlayer == null) {
+      return;
+    }
+    _replayPlayer = null;
+    replaying.value = false;
+    net.muted = false;
+    _clearWorld();
+    round = null;
+    _setPhase(GamePhase.lobby);
+    unawaited(pushPresence());
+  }
+
+  /// Feeds the recorded messages that are due into the game, as if they had
+  /// just come over the network.
+  void _playReplay() {
+    final player = _replayPlayer;
+    if (player == null) {
+      return;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (final event in player.due(now).toList()) {
+      final json = event.payload;
+      switch (event.event) {
+        case NetEvent.state:
+          _onShipState(ShipStatePayload.fromJson(json));
+        case NetEvent.shoot:
+          _onShoot(ShootPayload.fromJson(json));
+        case NetEvent.hit:
+          _onHit(HitPayload.fromJson(json));
+        case NetEvent.death:
+          _onDeath(DeathPayload.fromJson(json));
+        case NetEvent.pickup:
+          _onPickup(PickupPayload.fromJson(json));
+        case NetEvent.smoke:
+          _onSmoke(SmokePayload.fromJson(json));
+        case NetEvent.obstacle:
+          _onObstacle(ObstaclePayload.fromJson(json));
+        case NetEvent.soldier:
+          _onSoldier(SoldierPayload.fromJson(json));
+        case NetEvent.mine:
+          _onMine(MinePayload.fromJson(json));
+        case NetEvent.artillery:
+          final strike = ArtilleryPayload.fromJson(json);
+          _onArtillery(
+            ArtilleryPayload(
+              id: strike.id,
+              strikeId: strike.strikeId,
+              x: strike.x,
+              y: strike.y,
+              at: strike.at + player.shift,
+            ),
+          );
+        case NetEvent.roundStart:
+          break;
+      }
+    }
+    if (player.done && now > player.startedAt + player.replay.length + 3000) {
+      stopReplay();
+    }
   }
 
   LobbyPresence? _rosterMember(String id) {
@@ -1011,7 +1137,8 @@ class SpaceGame extends FlameGame
         strike.strikeId,
       );
     }
-    if (strike.ownerId == myId || botShips.containsKey(strike.ownerId)) {
+    if (!replaying.value &&
+        (strike.ownerId == myId || botShips.containsKey(strike.ownerId))) {
       for (final obstacle in [...?_asteroidField?.obstacles]) {
         if (obstacle.hp > 0 &&
             obstacle.position.distanceTo(strike.position) <
@@ -1184,7 +1311,7 @@ class SpaceGame extends FlameGame
           shake(1.5);
         }
       }
-      if (payload.shooterId == myId) {
+      if (payload.shooterId == myId && !replaying.value) {
         registerHit(damage);
       }
       ship
@@ -1295,6 +1422,11 @@ class SpaceGame extends FlameGame
       distance: _distanceToView(obstacle.position),
     );
   }
+
+  /// Whether this client decides what the shells of [ownerId] do to the
+  /// ground: its own and those of its CPU tanks, never during a replay.
+  bool runsShooter(String ownerId) =>
+      !replaying.value && (ownerId == myId || botShips.containsKey(ownerId));
 
   /// Applies a shell hit to a tree and tells the other players.
   void damageTree(Asteroid tree, double damage) {
@@ -1411,6 +1543,9 @@ class SpaceGame extends FlameGame
   }
 
   int _styleFor(String id) {
+    if (_replayPlayer?.replay.styles[id] case final style?) {
+      return style;
+    }
     if (id == myId) {
       return myColorIndex;
     }
@@ -1418,6 +1553,9 @@ class SpaceGame extends FlameGame
   }
 
   String _nameFor(String id) {
+    if (_replayPlayer?.replay.names[id] case final name?) {
+      return name;
+    }
     if (id == myId) {
       return myName;
     }
@@ -1449,7 +1587,9 @@ class SpaceGame extends FlameGame
       return;
     }
     if (killerId == myId && victimId != myId) {
-      roundStats.kills++;
+      if (!replaying.value) {
+        roundStats.kills++;
+      }
       final victim = remoteShips[victimId] ?? botShips[victimId];
       if (victim != null) {
         world.add(KillMarker(position: victim.position.clone()));
@@ -1512,6 +1652,9 @@ class SpaceGame extends FlameGame
   }
 
   void _onPeerLeft(String id) {
+    if (replaying.value) {
+      return;
+    }
     final ship = remoteShips.remove(id);
     ship?.removeFromParent();
     final activeRound = round;
@@ -1601,6 +1744,10 @@ class SpaceGame extends FlameGame
     activeRound
       ..winnerId = winnerId
       ..winnerTeam = winnerTeam;
+    if (replaying.value) {
+      // The replay runs to its last message and ends by itself.
+      return;
+    }
     roundStats.finish(_secondsIntoRound);
     final teamWin = winnerTeam != null;
     final myTeamWon = teamWin && myTeam == winnerTeam;
@@ -1706,6 +1853,10 @@ class SpaceGame extends FlameGame
   }
 
   void _clearWorld() {
+    final recorded = _recorder.finish();
+    if (recorded != null) {
+      lastReplay.value = recorded;
+    }
     _setGround(MapTheme.forest);
     conditions = null;
     conditionsLabel.value = null;

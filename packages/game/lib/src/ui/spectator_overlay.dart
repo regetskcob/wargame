@@ -32,8 +32,26 @@ class SpectatorOverlay extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.visibility, size: 18),
-                  const SizedBox(width: 8),
+                  if (game.replaying.value) ...[
+                    const Icon(
+                      Icons.movie_outlined,
+                      size: 18,
+                      color: BwColors.amber,
+                    ),
+                    const SizedBox(width: 6),
+                    const Text(
+                      'WIEDERHOLUNG',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 2,
+                        color: BwColors.amber,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                  ] else ...[
+                    const Icon(Icons.visibility, size: 18),
+                    const SizedBox(width: 8),
+                  ],
                   ValueListenableBuilder<String?>(
                     valueListenable: game.spectatingName,
                     builder: (context, name, _) =>
@@ -71,6 +89,11 @@ class SpectatorOverlay extends StatelessWidget {
                       },
                     ),
                   ),
+                  if (game.replaying.value)
+                    TextButton(
+                      onPressed: game.stopReplay,
+                      child: const Text('BEENDEN'),
+                    ),
                 ],
               ),
             ),

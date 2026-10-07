@@ -13,6 +13,7 @@ import 'payloads/power_up_payload.dart';
 import 'payloads/round_start_payload.dart';
 import 'payloads/ship_state_payload.dart';
 import 'payloads/shoot_payload.dart';
+import 'replay.dart';
 
 class NetService {
   NetService({required this.myId, required this.room, this.isHost = true});
@@ -39,6 +40,13 @@ class NetService {
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
 
+  /// Keeps the messages of the current round for a replay.
+  ReplayRecorder? recorder;
+
+  /// While a replay runs, the game neither sends nor hears match messages.
+  /// The waiting room and round starts still come through.
+  bool muted = false;
+
   RealtimeChannel? _channel;
   LobbyPresence? _me;
   bool _disposed = false;
@@ -54,43 +62,53 @@ class NetService {
     );
     _channel = channel;
     _listen(
-      channel.onBroadcast(event: NetEvent.state.name),
+      channel,
+      NetEvent.state,
       (json) => onShipState?.call(ShipStatePayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.shoot.name),
+      channel,
+      NetEvent.shoot,
       (json) => onShoot?.call(ShootPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.hit.name),
+      channel,
+      NetEvent.hit,
       (json) => onHit?.call(HitPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.death.name),
+      channel,
+      NetEvent.death,
       (json) => onDeath?.call(DeathPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.soldier.name),
+      channel,
+      NetEvent.soldier,
       (json) => onSoldier?.call(SoldierPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.obstacle.name),
+      channel,
+      NetEvent.obstacle,
       (json) => onObstacle?.call(ObstaclePayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.pickup.name),
+      channel,
+      NetEvent.pickup,
       (json) => onPickup?.call(PickupPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.mine.name),
+      channel,
+      NetEvent.mine,
       (json) => onMine?.call(MinePayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.artillery.name),
+      channel,
+      NetEvent.artillery,
       (json) => onArtillery?.call(ArtilleryPayload.fromJson(json)),
     );
     _listen(
-      channel.onBroadcast(event: NetEvent.smoke.name),
+      channel,
+      NetEvent.smoke,
       (json) => onSmoke?.call(SmokePayload.fromJson(json)),
     );
     _subscriptions.add(
@@ -136,14 +154,16 @@ class NetService {
   }
 
   void _listen(
-    Stream<Map<String, dynamic>> stream,
+    RealtimeChannel channel,
+    NetEvent event,
     void Function(Map<String, dynamic> json) handler,
   ) {
     _subscriptions.add(
-      stream.listen((json) {
-        if (json['id'] == myId) {
+      channel.onBroadcast(event: event.name).listen((json) {
+        if (json['id'] == myId || muted) {
           return;
         }
+        recorder?.add(event, json);
         handler(json);
       }),
     );
@@ -167,6 +187,10 @@ class NetService {
   }
 
   void send(NetEvent event, Map<String, dynamic> payload) {
+    if (muted) {
+      return;
+    }
+    recorder?.add(event, payload);
     final channel = _channel;
     if (channel == null) {
       return;
