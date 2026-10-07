@@ -97,6 +97,17 @@ class SpaceGame extends FlameGame
   final botShips = <String, PlayerShip>{};
   final botCount = ValueNotifier<int>(0);
 
+  /// True to play with other people, false to play alone against CPU tanks.
+  /// Only the host can change it, everybody who joins plays multiplayer.
+  final multiplayer = ValueNotifier<bool>(true);
+
+  void setMultiplayer(bool value) {
+    multiplayer.value = value;
+    if (!value && botCount.value == 0) {
+      botCount.value = 3;
+    }
+  }
+
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
   int myTeam = 0;
@@ -275,6 +286,7 @@ class SpaceGame extends FlameGame
       colorIndex: myColorIndex,
       phase: phase.value.name,
       team: phase.value == GamePhase.lobby ? teamPick : myTeam,
+      host: net.isHost,
       seed: round?.seed,
       startedAt: round?.startedAt,
     );
@@ -338,18 +350,28 @@ class SpaceGame extends FlameGame
     mapName.value = theme.name;
   }
 
+  /// Whether the host of the room is in the waiting room right now.
+  bool get hostPresent => roster.value.any((m) => m.host);
+
+  /// The host decides when it starts. When the host has left, anybody may.
+  bool get canStart => net.isHost || !hostPresent;
+
   void startRound() {
-    if (phase.value != GamePhase.lobby) {
+    if (phase.value != GamePhase.lobby || !canStart) {
       return;
     }
+    final solo = !multiplayer.value;
     final ids = <String>{
       myId,
-      for (final member in roster.value)
-        if (member.phase == GamePhase.lobby.name) member.id,
+      if (!solo)
+        for (final member in roster.value)
+          if (member.phase == GamePhase.lobby.name) member.id,
     }.toList();
+    // CPU tanks only exist when playing alone.
     final bots = <String, int>{
-      for (var i = 1; i <= botCount.value; i++)
-        'cpu-$i': Random().nextInt(GameConfig.styleCount),
+      if (solo)
+        for (var i = 1; i <= botCount.value; i++)
+          'cpu-$i': Random().nextInt(GameConfig.styleCount),
     };
     ids
       ..addAll(bots.keys)
@@ -367,7 +389,9 @@ class SpaceGame extends FlameGame
       bots: bots,
       botHost: bots.isEmpty ? null : myId,
     );
-    net.send(NetEvent.roundStart, payload.toJson());
+    if (!solo) {
+      net.send(NetEvent.roundStart, payload.toJson());
+    }
     _applyRoundStart(payload);
   }
 

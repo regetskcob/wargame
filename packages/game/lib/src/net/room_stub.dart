@@ -4,6 +4,9 @@ import '../env.dart';
 /// from, so everybody meets in the default room.
 String resolveRoom() => Env.room;
 
+/// True when this session opened the room, false when it joined by a link.
+bool isRoomHost() => true;
+
 /// Link that brings others into [room], empty when there is none to share.
 String roomLink(String room) => '';
 

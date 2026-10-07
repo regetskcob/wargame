@@ -39,7 +39,7 @@ class _GameAppState extends State<GameApp> {
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
     game = SpaceGame(
-      net: NetService(myId: myId, room: resolveRoom()),
+      net: NetService(myId: myId, room: resolveRoom(), isHost: isRoomHost()),
       myId: myId,
       scoreService: ScoreService(client),
     );
