@@ -42,11 +42,13 @@ class ArtilleryStrike extends PositionComponent with HasGameRef<SpaceGame> {
     final due = ((-left + 0.3) / 0.6 * _shells).floor().clamp(0, _shells);
     while (_shellsFired < due) {
       _shellsFired++;
-      final spread =
-          Vector2(_random.nextDouble() * 2 - 1, _random.nextDouble() * 2 - 1)
-            ..scale(GameConfig.artilleryRadius * 0.7);
+      final spread = Vector2(
+        _random.nextDouble() * 2 - 1,
+        _random.nextDouble() * 2 - 1,
+      )..scale(GameConfig.artilleryRadius * 0.7);
       final point = position + spread;
       parent?.add(Explosion(position: point, color: const Color(0xFF6B5A3A)));
+      gameRef.addCrater(point, 14 + _random.nextDouble() * 8);
       gameRef.shakeAt(point, 5);
     }
     if (!_landed && left <= 0) {
@@ -97,8 +99,10 @@ class ArtilleryStrike extends PositionComponent with HasGameRef<SpaceGame> {
   }
 }
 
-/// Small puff of smoke that marks where a mine went off.
-void mineBlast(Component parent, Vector2 at) {
+/// Blast, smoke and a crater where a mine went off.
+void mineBlast(SpaceGame game, Vector2 at) {
+  game.addCrater(at, 12);
+  final parent = game.world;
   parent.addAll([
     Explosion(position: at, color: const Color(0xFF3A3A30)),
     puff(

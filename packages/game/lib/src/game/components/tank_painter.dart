@@ -408,10 +408,7 @@ void _wiesel(
   turret(() {
     // TOW launch tube on a pedestal, set off to the right
     canvas.drawRect(const Rect.fromLTWH(25.8, 0.5, 3.4, 27), _fill(_steel));
-    canvas.drawRect(
-      const Rect.fromLTWH(25.4, 0, 4.2, 1.8),
-      _fill(_barrelTip),
-    );
+    canvas.drawRect(const Rect.fromLTWH(25.4, 0, 4.2, 1.8), _fill(_barrelTip));
     canvas.drawRect(const Rect.fromLTWH(26.3, 4, 2.4, 0.8), _fill(dark));
     canvas.drawCircle(const Offset(24, 27), 4.6, _fill(dark));
     canvas.drawCircle(const Offset(24, 27), 3.4, _fill(light));

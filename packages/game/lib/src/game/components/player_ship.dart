@@ -58,7 +58,7 @@ class PlayerShip extends ShipBase
   bool _turretLeft = false;
   bool _turretRight = false;
   bool _aimed = false;
-  int _treeContacts = 0;
+  final _trees = <Asteroid>{};
 
   double _fireCooldown = 0;
   double _sinceSync = 0;
@@ -134,7 +134,7 @@ class PlayerShip extends ShipBase
     final maxSpeed =
         GameConfig.shipMaxSpeed *
         stats.speed *
-        min(_treeContacts > 0 ? 0.55 : 1.0, soft ? 0.6 : 1.0);
+        min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration = GameConfig.shipAcceleration * stats.acceleration;
     // Tracks turn slower at full speed, and almost on the spot when standing.
     final turnScale = 1 - 0.35 * (_speed.abs() / maxSpeed);
@@ -330,7 +330,7 @@ class PlayerShip extends ShipBase
         gameRef.runOver(other, playerId);
       }
     } else if (other is Asteroid) {
-      _treeContacts++;
+      _trees.add(other);
     } else if (other is Obstacle) {
       final impact = load.abs();
       if (impact > 0.4) {
@@ -343,8 +343,8 @@ class PlayerShip extends ShipBase
   @override
   void onCollisionEnd(PositionComponent other) {
     super.onCollisionEnd(other);
-    if (other is Asteroid && _treeContacts > 0) {
-      _treeContacts--;
+    if (other is Asteroid) {
+      _trees.remove(other);
     }
   }
 

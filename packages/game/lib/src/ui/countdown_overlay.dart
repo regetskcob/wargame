@@ -53,6 +53,21 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                 ),
               ),
             ),
+            ValueListenableBuilder<String?>(
+              valueListenable: widget.game.conditionsLabel,
+              builder: (context, label, _) => label == null
+                  ? const SizedBox()
+                  : Text(
+                      'WETTER: ${label.toUpperCase()}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        letterSpacing: 3,
+                        fontWeight: FontWeight.w700,
+                        color: Color(0xFFE6E2D3),
+                        shadows: [Shadow(blurRadius: 8, color: Colors.black)],
+                      ),
+                    ),
+            ),
             Text(
               seconds > 0 ? '$seconds' : 'Feuer frei!',
               style: const TextStyle(

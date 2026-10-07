@@ -63,6 +63,7 @@ class _IndicatorPainter extends CustomPainter {
               (ship) =>
                   ship.isMounted &&
                   !ship.hidden &&
+                  game.canSee(ship.position) &&
                   !game.sameTeam(me.playerId, ship.playerId),
             )
             .toList()

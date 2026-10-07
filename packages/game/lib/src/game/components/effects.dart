@@ -15,6 +15,13 @@ class TrackLayer extends Component {
 
   final _marks = <_Mark>[];
 
+  /// Scorched holes from mines and barrages, kept for the whole round.
+  final _craters = <(double, double, double)>[];
+
+  void addCrater(Vector2 at, double radius) {
+    _craters.add((at.x, at.y, radius));
+  }
+
   void addMarks(
     Vector2 left,
     Vector2 right,
@@ -29,7 +36,10 @@ class TrackLayer extends Component {
     }
   }
 
-  void clear() => _marks.clear();
+  void clear() {
+    _marks.clear();
+    _craters.clear();
+  }
 
   @override
   void update(double dt) {
@@ -42,6 +52,18 @@ class TrackLayer extends Component {
   @override
   void render(Canvas canvas) {
     final paint = Paint();
+    for (final (x, y, radius) in _craters) {
+      paint.color = const Color(0x55241A10);
+      canvas.drawCircle(Offset(x, y), radius * 1.25, paint);
+      paint.color = const Color(0x99140E08);
+      canvas.drawCircle(Offset(x, y), radius * 0.8, paint);
+      paint.color = const Color(0x55000000);
+      canvas.drawCircle(
+        Offset(x + radius * 0.15, y + radius * 0.1),
+        radius * 0.45,
+        paint,
+      );
+    }
     for (final mark in _marks) {
       final fade = 1 - mark.age / _lifetime;
       paint.color = mark.bloody
@@ -209,7 +231,10 @@ class KillMarker extends PositionComponent {
       ..strokeCap = StrokeCap.round;
     canvas.drawLine(Offset(-arm, -arm), Offset(arm, arm), paint);
     canvas.drawLine(Offset(arm, -arm), Offset(-arm, arm), paint);
-    canvas.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, fade));
+    canvas.saveLayer(
+      null,
+      Paint()..color = Color.fromRGBO(255, 255, 255, fade),
+    );
     _label.render(
       canvas,
       'ABSCHUSS',

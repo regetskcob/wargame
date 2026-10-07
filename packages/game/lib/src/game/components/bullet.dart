@@ -56,12 +56,18 @@ class Bullet extends PositionComponent
   ) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is Asteroid) {
+      if (other.felled) {
+        return;
+      }
       _impact(const Color(0xFF6B5A3A));
+      if (ownerId == gameRef.myId || gameRef.botShips.containsKey(ownerId)) {
+        gameRef.damageTree(other, damage);
+      }
       removeFromParent();
     } else if (other is Obstacle) {
       _impact(const Color(0xFFB8B0A0));
       // Only the shooter's client applies the damage and tells the others.
-      if (ownerId == gameRef.myId) {
+      if (ownerId == gameRef.myId || gameRef.botShips.containsKey(ownerId)) {
         gameRef.damageObstacle(other, damage);
       }
       removeFromParent();

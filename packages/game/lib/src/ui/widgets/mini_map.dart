@@ -96,6 +96,9 @@ class _MiniMapPainter extends CustomPainter {
 
     final rockPaint = Paint()..color = BwColors.textDim;
     for (final rock in game.world.descendants().whereType<Asteroid>()) {
+      if (rock.felled) {
+        continue;
+      }
       canvas.drawCircle(
         toMap(rock.position.x, rock.position.y),
         (rock.radius * scale).clamp(1.0, 6.0),
@@ -144,7 +147,7 @@ class _MiniMapPainter extends CustomPainter {
     }
 
     for (final ship in [...game.remoteShips.values, ...game.botShips.values]) {
-      if (ship.hidden) {
+      if (ship.hidden || !game.canSee(ship.position)) {
         continue;
       }
       canvas.drawCircle(

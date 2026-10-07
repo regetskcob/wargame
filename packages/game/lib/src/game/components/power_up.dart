@@ -179,8 +179,16 @@ class PowerUp extends PositionComponent {
         }
       case PowerUpType.artillery:
         canvas.drawCircle(center, 7, paint..strokeWidth = 2);
-        canvas.drawLine(center.translate(-10, 0), center.translate(10, 0), paint);
-        canvas.drawLine(center.translate(0, -10), center.translate(0, 10), paint);
+        canvas.drawLine(
+          center.translate(-10, 0),
+          center.translate(10, 0),
+          paint,
+        );
+        canvas.drawLine(
+          center.translate(0, -10),
+          center.translate(0, 10),
+          paint,
+        );
     }
   }
 }

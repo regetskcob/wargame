@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game_config.dart';
 import '../game/map_theme.dart';
+import '../game/weather.dart';
 import '../game/space_game.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../game/components/tank_painter.dart';
@@ -189,9 +190,37 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               onSelected: (v) => game.mapChoice.value = v,
             ),
           ),
+          const SizedBox(height: 16),
+          Text('WETTER', style: Theme.of(context).textTheme.titleMedium),
+          const SizedBox(height: 8),
+          ValueListenableBuilder<Sky?>(
+            valueListenable: game.skyChoice,
+            builder: (context, choice, _) => ChoiceRow<Sky>(
+              allowNone: true,
+              options: const [
+                (Sky.clear, 'KLAR', null),
+                (Sky.precipitation, 'NIEDERSCHLAG', null),
+                (Sky.fog, 'NEBEL', null),
+              ],
+              selected: choice,
+              onSelected: (v) => game.skyChoice.value = v,
+            ),
+          ),
+          const SizedBox(height: 10),
+          ValueListenableBuilder<bool?>(
+            valueListenable: game.nightChoice,
+            builder: (context, choice, _) => ChoiceRow<bool>(
+              allowNone: true,
+              options: const [(false, 'TAG', null), (true, 'NACHT', null)],
+              selected: choice,
+              onSelected: (v) => game.nightChoice.value = v,
+            ),
+          ),
           const SizedBox(height: 6),
           const Text(
-            'Ohne Auswahl wird das Gelände zufällig bestimmt.',
+            'Ohne Auswahl werden Gelände, Wetter und Tageszeit zufällig '
+            'bestimmt. Nachts, im Nebel und im Sandsturm siehst du nur, was '
+            'nah ist.',
             style: TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ] else ...[

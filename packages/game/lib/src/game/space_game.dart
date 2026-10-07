@@ -26,12 +26,14 @@ import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
 import 'components/aim_overlay.dart';
 import 'components/artillery_strike.dart';
+import 'components/asteroid.dart';
 import 'components/mine.dart';
 import 'components/asteroid_field.dart';
 import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/obstacle.dart';
 import 'map_theme.dart';
+import 'weather.dart';
 import 'plausibility.dart';
 import 'components/bullet.dart';
 import 'components/explosion.dart';
@@ -148,6 +150,15 @@ class SpaceGame extends FlameGame
 
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
+
+  /// Weather and time of day picked in the lobby, null for random ones.
+  final skyChoice = ValueNotifier<Sky?>(null);
+  final nightChoice = ValueNotifier<bool?>(null);
+
+  /// Weather and time of day of the current round.
+  Conditions? conditions;
+  final conditionsLabel = ValueNotifier<String?>(null);
+  WeatherLayer? _weather;
   final mapName = ValueNotifier<String>(MapTheme.forest.name);
   StormZone? _stormZone;
   int _bulletCounter = 0;
@@ -172,6 +183,9 @@ class SpaceGame extends FlameGame
     final distance = _distanceToView(at);
     shake(strength * (1 - (distance / 700).clamp(0.0, 1.0)));
   }
+
+  /// Leaves a scorched hole in the ground until the round ends.
+  void addCrater(Vector2 at, double radius) => _tracks?.addCrater(at, radius);
 
   /// A tank at [at] took [amount] damage from a shell. [mine] marks hits the
   /// local player dealt or took.
@@ -207,6 +221,20 @@ class SpaceGame extends FlameGame
     if (rattle) {
       canvas.restore();
     }
+    final ship = myShip;
+    final playing =
+        (phase.value == GamePhase.playing ||
+            phase.value == GamePhase.countdown) &&
+        ship != null;
+    _weather?.render(
+      canvas,
+      Size(canvasSize.x, canvasSize.y),
+      camera: camera.viewfinder.position.toOffset(),
+      scale: viewScale,
+      heading: playing ? ship.angle : null,
+      // Spectators and the fallen see the whole field.
+      veil: playing,
+    );
     if (_damageFlash > 0.01) {
       final size = canvasSize;
       final edge = Paint()
@@ -250,6 +278,7 @@ class SpaceGame extends FlameGame
   void update(double dt) {
     super.update(dt);
     _shake = max(0, _shake - dt * 28);
+    _weather?.update(dt);
     _damageFlash = max(0, _damageFlash - dt * 2.5);
     final activeRound = round;
     if (phase.value == GamePhase.countdown && activeRound != null) {
@@ -388,10 +417,14 @@ class SpaceGame extends FlameGame
       ..addAll(bots.keys)
       ..sort();
     final payload = RoundStartPayload(
-      seed: switch (mapChoice.value) {
-        final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
-        null => Random().nextInt(1 << 31),
-      },
+      seed: Conditions.seedWith(
+        switch (mapChoice.value) {
+          final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
+          null => Random().nextInt(1 << 30),
+        },
+        sky: skyChoice.value,
+        night: nightChoice.value,
+      ),
       startedAt:
           DateTime.now().millisecondsSinceEpoch +
           GameConfig.countdownSeconds * 1000,
@@ -488,6 +521,9 @@ class SpaceGame extends FlameGame
     round = activeRound;
     _asteroidField = AsteroidField(seed: payload.seed);
     _setGround(_asteroidField!.theme);
+    conditions = Conditions.forSeed(payload.seed);
+    conditionsLabel.value = conditions!.label;
+    _weather = WeatherLayer(conditions!);
     _stormZone = StormZone(startedAt: payload.startedAt);
     _powerUpSlots = PowerUpSlot.schedule(payload.seed);
     world.add(_asteroidField!);
@@ -748,7 +784,7 @@ class SpaceGame extends FlameGame
     if (mines.remove(mine.mineId) == null) {
       return;
     }
-    mineBlast(world, mine.position.clone());
+    mineBlast(this, mine.position.clone());
     mine.removeFromParent();
     AudioService.play('explosion', distance: _distanceToView(mine.position));
     _damageLocal(ship, GameConfig.mineDamage, mine.ownerId, mine.mineId);
@@ -856,6 +892,13 @@ class SpaceGame extends FlameGame
           damageObstacle(obstacle, GameConfig.artilleryDamage);
         }
       }
+      for (final tree in [...?_asteroidField?.trees]) {
+        if (!tree.felled &&
+            tree.position.distanceTo(strike.position) <
+                GameConfig.artilleryRadius) {
+          damageTree(tree, tree.maxHp);
+        }
+      }
     }
   }
 
@@ -958,7 +1001,7 @@ class SpaceGame extends FlameGame
     bullets[bulletId]?.removeFromParent();
     final mine = mines.remove(bulletId);
     if (mine != null) {
-      mineBlast(world, mine.position.clone());
+      mineBlast(this, mine.position.clone());
       mine.removeFromParent();
       AudioService.play('explosion', distance: _distanceToView(mine.position));
     }
@@ -1078,6 +1121,17 @@ class SpaceGame extends FlameGame
     _checkRoundEnd();
   }
 
+  /// Whether the local player can make out [point] through night, fog or
+  /// sand. Without a tank of one's own everything is visible.
+  bool canSee(Vector2 point) {
+    final vision = conditions?.vision;
+    final ship = myShip;
+    if (vision == null || ship == null || phase.value != GamePhase.playing) {
+      return true;
+    }
+    return ship.position.distanceTo(point) <= vision;
+  }
+
   /// Pixels per world unit. The shorter side of the window always shows the
   /// same stretch of the world, the longer side simply shows more, so the map
   /// fills the whole window without black bars.
@@ -1112,6 +1166,38 @@ class SpaceGame extends FlameGame
       destroyed ? 'explosion' : 'hit',
       volume: 0.8,
       distance: _distanceToView(obstacle.position),
+    );
+  }
+
+  /// Applies a shell hit to a tree and tells the other players.
+  void damageTree(Asteroid tree, double damage) {
+    final hp = max(0.0, tree.hp - damage);
+    _setTreeHp(tree, hp);
+    net.send(
+      NetEvent.obstacle,
+      ObstaclePayload(id: myId, index: tree.index, hp: hp, tree: true).toJson(),
+    );
+  }
+
+  void _setTreeHp(Asteroid tree, double hp) {
+    if (!tree.setHp(hp)) {
+      return;
+    }
+    world.add(
+      puff(
+        position: tree.position.clone(),
+        color: tree.theme.treeOuter,
+        count: 10,
+        lifespan: 1.0,
+        speed: (20, 70),
+        size: (4, 10),
+        opacity: 0.8,
+      ),
+    );
+    AudioService.play(
+      'hit',
+      volume: 0.6,
+      distance: _distanceToView(tree.position),
     );
   }
 
@@ -1166,6 +1252,13 @@ class SpaceGame extends FlameGame
   }
 
   void _onObstacle(ObstaclePayload payload) {
+    if (payload.tree) {
+      final tree = _asteroidField?.treeAt(payload.index);
+      if (tree != null && payload.hp < tree.hp) {
+        _setTreeHp(tree, payload.hp);
+      }
+      return;
+    }
     final obstacle = _asteroidField?.obstacleAt(payload.index);
     if (obstacle == null) {
       return;
@@ -1471,6 +1564,9 @@ class SpaceGame extends FlameGame
 
   void _clearWorld() {
     _setGround(MapTheme.forest);
+    conditions = null;
+    conditionsLabel.value = null;
+    _weather = null;
     _asteroidField?.removeFromParent();
     _asteroidField = null;
     mudField?.removeFromParent();

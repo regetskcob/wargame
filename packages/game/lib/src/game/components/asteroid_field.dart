@@ -15,6 +15,10 @@ class AsteroidField extends Component {
   final int seed;
   final MapTheme theme;
   final obstacles = <Obstacle>[];
+  final trees = <Asteroid>[];
+
+  Asteroid? treeAt(int index) =>
+      index >= 0 && index < trees.length ? trees[index] : null;
 
   Obstacle? obstacleAt(int index) =>
       index >= 0 && index < obstacles.length ? obstacles[index] : null;
@@ -102,15 +106,16 @@ class AsteroidField extends Component {
           Vector2(cos(2 * pi * i / vertexCount), sin(2 * pi * i / vertexCount))
             ..scale(radius * (0.75 + random.nextDouble() * 0.25)),
       ];
-      add(
-        Asteroid(
-          position: position,
-          radius: radius,
-          vertices: vertices,
-          angle: random.nextDouble() * 2 * pi,
-          theme: theme,
-        ),
+      final tree = Asteroid(
+        index: trees.length,
+        position: position,
+        radius: radius,
+        vertices: vertices,
+        angle: random.nextDouble() * 2 * pi,
+        theme: theme,
       );
+      trees.add(tree);
+      add(tree);
       placed++;
     }
   }
