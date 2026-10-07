@@ -15,14 +15,25 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
 
   final int startedAt;
 
-  /// Number of CPU comrades on the side of the players.
+  /// Number of CPU comrades on the side of the players at the start. Every
+  /// step the base grows brings one more.
   final int allies;
+
+  int get _allySlots => allies + (gameRef.defense.value?.hq ?? 1) - 1;
 
   /// Per comrade slot: the tank on the field, how often it was sent and the
   /// seconds until the next one rolls out of the base.
-  late final _allyIds = List<String?>.filled(allies, null);
-  late final _allyLives = List<int>.filled(allies, 0);
-  late final _allyWait = List<double>.filled(allies, 0);
+  late final _allyIds = List<String?>.filled(
+    allies + GameConfig.hqNames.length - 1,
+    null,
+  );
+  late final _allyLives = List<int>.filled(_allyIds.length, 0);
+  late final _allyWait = List<double>.filled(_allyIds.length, 0);
+
+  /// Waves beaten off without heavy losses, and the base's hit points when
+  /// the current wave rolled in.
+  int _cleanWaves = 0;
+  double _hpAtWave = GameConfig.baseHp;
 
   final _queue = <_Spawn>[];
   int _spawned = 0;
@@ -50,6 +61,24 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     }
   }
 
+  /// A wave was beaten off. If the base held without heavy losses it may
+  /// grow: more hit points, a fresh comrade and a gun of its own.
+  DefensePayload _grow(DefensePayload state) {
+    final loss = _hpAtWave - state.hp;
+    if (loss <= GameConfig.baseMaxHp(state.hq) * GameConfig.hqCleanLoss) {
+      _cleanWaves++;
+    }
+    final level = GameConfig.hqLevelFor(_cleanWaves);
+    if (level <= state.hq) {
+      return state;
+    }
+    gameRef.armBase(level);
+    return state.copyWith(
+      hq: level,
+      hp: state.hp + GameConfig.hqHpStep * (level - state.hq),
+    );
+  }
+
   /// The defenders do not hold out on the ground alone for long: from a few
   /// waves in, the base sends aircraft of its own.
   void _sendSupport(int wave) {
@@ -69,7 +98,7 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
 
   /// Sends a fresh comrade for every one that was destroyed, after a while.
   void _keepAllies(double dt) {
-    for (var slot = 0; slot < allies; slot++) {
+    for (var slot = 0; slot < _allySlots; slot++) {
       final id = _allyIds[slot];
       if (id != null && gameRef.botShips.containsKey(id)) {
         continue;
@@ -102,6 +131,7 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     }
     if (state.nextWaveAt > 0 && _now >= state.nextWaveAt) {
       next = state.copyWith(wave: state.wave + 1, nextWaveAt: 0);
+      _hpAtWave = next.hp;
       _queue
         ..clear()
         ..addAll(_order(DefenseMap.planFor(next.wave)));
@@ -136,9 +166,9 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
         !gameRef.enemyForcesLeft) {
       next = next.wave >= GameConfig.defenseWaves
           ? next.copyWith(result: DefenseResult.won)
-          : next.copyWith(
-              nextWaveAt: _now + GameConfig.waveBreakSeconds * 1000,
-            );
+          : _grow(
+              next,
+            ).copyWith(nextWaveAt: _now + GameConfig.waveBreakSeconds * 1000);
     }
     _keepalive += dt;
     if (!identical(next, state) || _keepalive >= 1) {

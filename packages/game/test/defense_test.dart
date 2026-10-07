@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game/src/game_config.dart';
 import 'package:game/src/game/defense/defense_map.dart';
 import 'package:game/src/game/defense/tower.dart';
 import 'package:game/src/game/round_state.dart';
@@ -206,6 +207,43 @@ void main() {
     expect(TowerKind.howitzer.lobs, isTrue);
     expect(TowerKind.trench.isGun, isFalse);
     expect(TowerKind.trench.upgradable, isFalse);
+  });
+
+  test('the base grows with waves held without heavy losses', () {
+    expect(GameConfig.hqLevelFor(0), 1);
+    expect(GameConfig.hqLevelFor(1), 1);
+    expect(GameConfig.hqLevelFor(2), 2);
+    expect(GameConfig.hqLevelFor(4), 3);
+    expect(GameConfig.hqLevelFor(9), 3);
+    expect(GameConfig.baseMaxHp(3), greaterThan(GameConfig.baseMaxHp(1)));
+    expect(GameConfig.hqName(2), 'KASERNE');
+    final state = DefensePayload.fromJson(
+      const DefensePayload(id: 'a', hp: 1, wave: 2, hq: 3).toJson(),
+    );
+    expect(state.hq, 3);
+    expect(
+      DefensePayload.fromJson(
+        const DefensePayload(id: 'a', hp: 1, wave: 2).toJson(),
+      ).hq,
+      1,
+    );
+  });
+
+  test('guns can be shot to pieces, their hit points travel', () {
+    for (final kind in TowerKind.values) {
+      expect(kind.maxHpAt(1), greaterThan(0));
+      expect(kind.maxHpAt(3), greaterThan(kind.maxHpAt(1)));
+    }
+    final hit = TowerPayload.fromJson(
+      const TowerPayload(id: 'a', index: 1, x: 0, y: 0, hp: 12.5).toJson(),
+    );
+    expect(hit.hp, 12.5);
+    expect(
+      TowerPayload.fromJson(
+        const TowerPayload(id: 'a', index: 1, x: 0, y: 0).toJson(),
+      ).hp,
+      isNull,
+    );
   });
 
   test('later waves are bigger', () {

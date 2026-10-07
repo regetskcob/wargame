@@ -10,11 +10,13 @@ import '../../theme.dart';
 /// Twin stick controls for holding the phone with both hands.
 ///
 /// The lower part of each half of the screen is one big touch area. The left
-/// thumb drives (up is forward, sideways turns), the right thumb aims the
-/// turret and fires as soon as the stick is pushed past the outer ring. The
+/// thumb points where the tank should go: it turns that way by itself and
+/// drives, there is no fiddling with the tracks. The right thumb aims the
+/// turret and fires as soon as the stick is pushed past the outer ring.
+/// While it rests, the aim assist (switchable with the button above the
+/// stick) turns the turret onto the nearest enemy in range and fires. The
 /// sticks appear wherever the thumb lands, so nobody has to find a button.
-/// Only a special weapon from a gem gets a button of its own, right above the
-/// aim stick.
+/// A special weapon from a gem gets a button of its own, next to the assist.
 class TouchControls extends StatelessWidget {
   const TouchControls({required this.input, required this.special, super.key});
 
@@ -47,19 +49,9 @@ class TouchControls extends StatelessWidget {
                   size: stick,
                   label: 'FAHREN',
                   homeOnRight: false,
-                  onChanged: (v) {
-                    final active = v.distance > 0.18;
-                    input
-                      ..left = active && v.dx < -0.3
-                      ..right = active && v.dx > 0.3
-                      ..thrust = active && v.dy < -0.25
-                      ..brake = active && v.dy > 0.25;
-                  },
-                  onReleased: () => input
-                    ..left = false
-                    ..right = false
-                    ..thrust = false
-                    ..brake = false,
+                  onChanged: (v) =>
+                      input.drive = v.distance > 0.18 ? (v.dx, v.dy) : null,
+                  onReleased: () => input.drive = null,
                 ),
               ),
               Positioned(
@@ -73,13 +65,21 @@ class TouchControls extends StatelessWidget {
                   homeOnRight: true,
                   ring: fireRing,
                   onChanged: (v) {
+                    input.aimHeld = true;
                     if (v.distance > 0.18) {
                       input.aim = atan2(v.dx, -v.dy);
                     }
                     input.aimFire = v.distance > fireRing;
                   },
-                  onReleased: () => input.aimFire = false,
+                  onReleased: () => input
+                    ..aimFire = false
+                    ..aimHeld = false,
                 ),
+              ),
+              Positioned(
+                right: 84,
+                top: max(0, zoneTop - 76),
+                child: _AssistToggle(input: input),
               ),
               Positioned(
                 right: 8,
@@ -98,6 +98,70 @@ class TouchControls extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Switches the aim assist on and off. It starts on: on a phone the turret
+/// finding the enemy by itself leaves both thumbs for driving and dodging.
+class _AssistToggle extends StatefulWidget {
+  const _AssistToggle({required this.input});
+
+  final TouchInput input;
+
+  @override
+  State<_AssistToggle> createState() => _AssistToggleState();
+}
+
+class _AssistToggleState extends State<_AssistToggle> {
+  @override
+  void initState() {
+    super.initState();
+    widget.input.assist = true;
+  }
+
+  @override
+  void dispose() {
+    widget.input
+      ..assist = false
+      ..assistFire = false;
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final on = widget.input.assist;
+    final color = on ? BwColors.amber : BwColors.textDim;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => setState(() {
+        widget.input
+          ..assist = !on
+          ..assistFire = false;
+      }),
+      child: Container(
+        width: 68,
+        height: 68,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: on ? const Color(0x55FFB300) : const Color(0x88000000),
+          border: Border.all(color: color, width: 2.5),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.gps_fixed, size: 20, color: color),
+            const Text(
+              'ZIELHILFE',
+              style: TextStyle(fontSize: 7, letterSpacing: 0.5),
+            ),
+            Text(
+              on ? 'AN' : 'AUS',
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
       ),
     );
   }

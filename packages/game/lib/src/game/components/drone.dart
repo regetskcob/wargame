@@ -176,14 +176,14 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
 
   @override
   void render(Canvas canvas) {
-    // Shadow on the ground below and behind it.
+    // The component is already turned to its heading. The shadow falls
+    // below and behind it on the ground, the same way whatever the heading.
     canvas.drawCircle(
-      const Offset(7, 11),
+      (Vector2(7, 11)..rotate(-angle)).toOffset(),
       11,
       Paint()..color = const Color(0x40000000),
     );
     canvas.save();
-    canvas.rotate(angle);
     final arm = Paint()
       ..color = const Color(0xFF2B2E26)
       ..strokeWidth = 3

@@ -1730,8 +1730,17 @@ class SpaceGame extends FlameGame
         distance: _distanceToView(base.position),
       );
     }
-    base?.hp = state.hp;
+    base
+      ?..hp = state.hp
+      ..level = state.hq;
     defense.value = state;
+    if (before != null && state.hq > before.hq) {
+      showNotice(
+        'STÜTZPUNKT AUSGEBAUT: ${GameConfig.hqName(state.hq)}  '
+        '+${GameConfig.hqTowerStep} GESCHÜTZE',
+      );
+      AudioService.play('win', volume: 0.5);
+    }
     if (before != null &&
         state.wave > 0 &&
         state.nextWaveAt > 0 &&
@@ -1765,9 +1774,11 @@ class SpaceGame extends FlameGame
     final build = kind ?? towerChoice.value;
     towerChoice.value = build;
     final mine = towers.values
-        .where((t) => t.ownerId == myId && t.kind.isGun == build.isGun)
+        .where(
+          (t) => t.ownerId == myId && !t.isHq && t.kind.isGun == build.isGun,
+        )
         .length;
-    final limit = build.isGun ? GameConfig.maxTowers : GameConfig.maxTrenches;
+    final limit = build.isGun ? towerLimit : GameConfig.maxTrenches;
     final reason = !build.unlockedIn(defense.value?.wave ?? 0)
         ? '${build.label} ab Welle ${build.fromWave}'
         : credits.value < build.cost
@@ -1811,6 +1822,102 @@ class SpaceGame extends FlameGame
     showNotice('${next.label} ${next.cost}');
   }
 
+  /// How many guns a player may have: more as the base grows.
+  int get towerLimit =>
+      GameConfig.maxTowers +
+      GameConfig.hqTowerStep * ((defense.value?.hq ?? 1) - 1);
+
+  /// Host: the base grew to [level] and gets guns of its own, a cannon on
+  /// the barracks and flak on the fortress besides.
+  void armBase(int level) {
+    final map = defenseMap;
+    if (map == null) {
+      return;
+    }
+    final guns = [
+      if (level >= 2)
+        (Tower.hqIndex, TowerKind.cannon, map.base, level >= 3 ? 2 : 1),
+      if (level >= 3)
+        (Tower.hqIndex + 1, TowerKind.flak, map.base + Vector2(-34, 30), 1),
+    ];
+    for (final (index, kind, at, gunLevel) in guns) {
+      final payload = TowerPayload(
+        id: myId,
+        index: index,
+        x: at.x,
+        y: at.y,
+        kind: kind.index,
+        level: gunLevel,
+      );
+      _addTower(payload);
+      net.send(NetEvent.tower, payload.toJson());
+    }
+  }
+
+  /// Host: enemy fire hit [tower] for [damage]. Everybody learns how much
+  /// is left, at nothing it is gone.
+  void damageTower(Tower tower, double damage) {
+    if (round?.botHost != myId || tower.isHq || !tower.isMounted) {
+      return;
+    }
+    tower
+      ..hp -= damage
+      ..hit();
+    net.send(
+      NetEvent.tower,
+      TowerPayload(
+        id: tower.ownerId,
+        index: tower.index,
+        x: tower.position.x,
+        y: tower.position.y,
+        kind: tower.kind.index,
+        level: tower.level,
+        hp: max(0, tower.hp),
+      ).toJson(),
+    );
+    if (tower.hp <= 0) {
+      _destroyTower(tower);
+    }
+  }
+
+  void _destroyTower(Tower tower) {
+    if (towers.remove(tower.id) == null) {
+      return;
+    }
+    world.add(Explosion(position: tower.position.clone(), color: tower.color));
+    addCrater(tower.position, 22);
+    shakeAt(tower.position, 8);
+    AudioService.play('explosion', distance: _distanceToView(tower.position));
+    if (tower.ownerId == myId) {
+      showNotice('${tower.kind.label} ZERSTÖRT');
+    }
+    if (nearTower.value == tower) {
+      nearTower.value = null;
+    }
+    tower.removeFromParent();
+  }
+
+  /// Host: a blast of the enemy at [at] wears down the guns and trenches
+  /// around it.
+  void _blastTowers(String ownerId, Vector2 at, double radius, double damage) {
+    if (!(round?.isEnemy(ownerId) ?? false)) {
+      return;
+    }
+    for (final tower in towers.values.toList()) {
+      final distance = tower.position.distanceTo(at);
+      if (distance <= radius + 26) {
+        damageTower(tower, damage * (1 - 0.5 * (distance / (radius + 26))));
+      }
+    }
+  }
+
+  /// The closest gun or trench of the defenders within [range] of [from],
+  /// for the enemy to shoot at when no tank is near.
+  Tower? nearestTower(Vector2 from, double range) => _nearestOf(from, range, [
+    for (final tower in towers.values)
+      if (!tower.isHq && tower.hp > 0) tower,
+  ]);
+
   /// Whether a tank at [at] stands in a trench, any player's.
   bool inTrench(Vector2 at) => towers.values.any(
     (t) =>
@@ -1821,7 +1928,9 @@ class SpaceGame extends FlameGame
   /// One of the local player's guns within reach of [at].
   Tower? _ownTowerAt(Vector2 at) {
     for (final tower in towers.values) {
-      if (tower.ownerId == myId && tower.position.distanceTo(at) < 48) {
+      if (tower.ownerId == myId &&
+          !tower.isHq &&
+          tower.position.distanceTo(at) < 48) {
         return tower;
       }
     }
@@ -1869,8 +1978,20 @@ class SpaceGame extends FlameGame
 
   void _addTower(TowerPayload payload) {
     final known = towers['${payload.id}#${payload.index}'];
+    final hp = payload.hp;
     if (known != null) {
       known.upgradeTo(payload.level.clamp(1, TowerKind.maxLevel));
+      if (hp != null && hp < known.hp) {
+        known
+          ..hp = hp
+          ..hit();
+        if (hp <= 0) {
+          _destroyTower(known);
+        }
+      }
+      return;
+    }
+    if (hp != null && hp <= 0) {
       return;
     }
     final tower = Tower(
@@ -1984,6 +2105,24 @@ class SpaceGame extends FlameGame
                 if (outside(soldier)) soldier,
             ]);
     }
+  }
+
+  /// Touch aim assist: what the turret of [ship] should go for. In a defense
+  /// round the same as a comrade would, otherwise the nearest tank of
+  /// another side the player can see.
+  PositionComponent? assistTarget(PlayerShip ship) {
+    const range = GameConfig.assistRange;
+    if (round?.defense ?? false) {
+      return allyTarget(ship, range);
+    }
+    return _nearestOf(ship.position, range, [
+      for (final other in _allTanks)
+        if (other != ship &&
+            other.hp > 0 &&
+            !sameTeam(ship.playerId, other.playerId) &&
+            canSee(other.position))
+          other,
+    ]);
   }
 
   /// What a CPU comrade in [ship] fires at: a Gepard goes for aircraft and
@@ -2593,6 +2732,12 @@ class SpaceGame extends FlameGame
               GameConfig.artilleryRadius + DefenseMap.baseRadius) {
         damageBase(GameConfig.artilleryDamage);
       }
+      _blastTowers(
+        strike.ownerId,
+        strike.position,
+        GameConfig.artilleryRadius,
+        GameConfig.artilleryDamage,
+      );
       _blastSoldiers(
         strike.ownerId,
         strike.position,
@@ -2936,6 +3081,7 @@ class SpaceGame extends FlameGame
         );
       }
     }
+    _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
     _blastSoldiers(ownerId, at, weapon.radius);
   }
 

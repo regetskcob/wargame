@@ -4,14 +4,14 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
 import '../components/player_ship.dart';
-import '../components/ship_base.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
 import '../touch_input.dart';
 import 'defense_map.dart';
 
 /// Drives an enemy tank of a defense round along the road to the base. It
-/// shoots at whatever is near on the way and rams the base at the end.
+/// shoots at the defenders' tanks and guns near the way and rams the base at
+/// the end.
 class DefenseBrain extends Component with HasGameRef<SpaceGame> {
   DefenseBrain({required this.ship, required this.controls, required this.map});
 
@@ -24,7 +24,7 @@ class DefenseBrain extends Component with HasGameRef<SpaceGame> {
   double _think = 0;
   double _fireGate = 0;
   double _aimError = 0;
-  ShipBase? _target;
+  PositionComponent? _target;
 
   @override
   void update(double dt) {
@@ -45,7 +45,10 @@ class DefenseBrain extends Component with HasGameRef<SpaceGame> {
     if (_think <= 0) {
       _think = 0.25;
       _aimError = (_random.nextDouble() * 2 - 1) * 0.15;
-      _target = gameRef.nearestDefender(ship.position, 360);
+      // Tanks first, else the guns and trenches along the way.
+      _target =
+          gameRef.nearestDefender(ship.position, 360) ??
+          gameRef.nearestTower(ship.position, 320);
     }
     _drive();
     _shoot(dt);

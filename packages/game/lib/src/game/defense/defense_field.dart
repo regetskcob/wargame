@@ -48,7 +48,10 @@ class DefenseField extends Component {
   void onLoad() {
     add(_River(map: map, theme: theme));
     add(_Road(map: map, theme: theme));
-    headquarters = Headquarters(position: map.base.clone());
+    headquarters = Headquarters(
+      position: map.base.clone(),
+      approach: (map.road[map.road.length - 2] - map.base).normalized(),
+    );
     add(headquarters);
     final random = Random(seed);
     _plantWoods(random);
@@ -318,14 +321,22 @@ class _Road extends PositionComponent {
 /// The base the players defend. Enemy shells and enemies that reach it wear
 /// it down. Its hit points come from the player who runs the enemies.
 class Headquarters extends PositionComponent {
-  Headquarters({required super.position})
-    : super(
+  Headquarters({required super.position, Vector2? approach})
+    : approach = approach ?? Vector2(-1, 0),
+      super(
         size: Vector2.all(DefenseMap.baseRadius * 2),
         anchor: Anchor.center,
         priority: 4,
       );
 
+  /// Direction from the base to where the road comes in, kept free for the
+  /// gate.
+  final Vector2 approach;
+
   double hp = GameConfig.baseHp;
+
+  /// Watchtower, barracks or fortress, see [GameConfig.hqNames].
+  int level = 1;
   double _flash = 0;
 
   void flash() => _flash = 0.15;
@@ -340,10 +351,100 @@ class Headquarters extends PositionComponent {
     _flash = max(0, _flash - dt);
   }
 
+  /// The grounds around the bunker: a fence with barracks once the base has
+  /// grown, a wall with corner towers for the fortress. The gate faces the
+  /// road.
+  void _renderGrounds(Canvas canvas, Offset c) {
+    if (level < 2) {
+      return;
+    }
+    final fortress = level >= 3;
+    final reach = fortress ? 200.0 : 150.0;
+    final gate = atan2(approach.y, approach.x);
+    canvas.drawCircle(
+      c,
+      reach,
+      Paint()
+        ..color = fortress ? const Color(0x33C8B68A) : const Color(0x22C8B68A),
+    );
+    // Fence posts or wall, open where the road comes in.
+    final wall = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = fortress ? 12 : 4
+      ..color = fortress ? const Color(0xFF8D8678) : const Color(0xFF6E5A3A);
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: reach),
+      gate + 0.35,
+      2 * pi - 0.7,
+      false,
+      wall,
+    );
+    if (!fortress) {
+      for (var i = 0; i < 28; i++) {
+        final a = gate + 0.35 + (2 * pi - 0.7) * i / 27;
+        canvas.drawCircle(
+          c + Offset(cos(a), sin(a)) * reach,
+          3,
+          Paint()..color = const Color(0xFF4A3B26),
+        );
+      }
+    }
+    // Barracks: long huts on both sides, away from the gate.
+    final huts = fortress
+        ? [pi * 0.5, pi, pi * 1.5, pi * 0.75, pi * 1.25]
+        : [pi * 0.6, pi * 1.4];
+    for (final offset in huts) {
+      final a = gate + offset;
+      final at = c + Offset(cos(a), sin(a)) * (reach * 0.62);
+      canvas.save();
+      canvas.translate(at.dx, at.dy);
+      canvas.rotate(a + pi / 2);
+      final hut = Rect.fromCenter(center: Offset.zero, width: 58, height: 26);
+      canvas.drawRect(
+        hut.shift(const Offset(3, 4)),
+        Paint()..color = const Color(0x55000000),
+      );
+      canvas.drawRect(hut, Paint()..color = const Color(0xFF6B7457));
+      canvas.drawLine(
+        Offset(hut.left, 0),
+        Offset(hut.right, 0),
+        Paint()
+          ..strokeWidth = 2
+          ..color = const Color(0xFF3E4532),
+      );
+      canvas.drawRect(
+        hut,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = const Color(0xFF2B3320),
+      );
+      canvas.restore();
+    }
+    if (fortress) {
+      // Towers where the wall meets the gate and around the back.
+      for (final offset in [0.35, -0.35, pi * 0.66, -pi * 0.66, pi]) {
+        final a = gate + offset;
+        final at = c + Offset(cos(a), sin(a)) * reach;
+        final tower = Rect.fromCenter(center: at, width: 28, height: 28);
+        canvas.drawRect(tower, Paint()..color = const Color(0xFF6F6A5E));
+        canvas.drawRect(
+          tower,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3
+            ..color = const Color(0xFF2E2B25),
+        );
+        canvas.drawCircle(at, 5, Paint()..color = GameConfig.teamColors[1]);
+      }
+    }
+  }
+
   @override
   void render(Canvas canvas) {
     final c = Offset(size.x / 2, size.y / 2);
     const r = DefenseMap.baseRadius;
+    _renderGrounds(canvas, c);
     canvas.drawCircle(c, r, Paint()..color = const Color(0x55000000));
     // Sandbag ring.
     canvas.drawCircle(
@@ -393,7 +494,7 @@ class Headquarters extends PositionComponent {
       Paint()..color = GameConfig.teamColors[1],
     );
 
-    final ratio = (hp / GameConfig.baseHp).clamp(0.0, 1.0);
+    final ratio = (hp / GameConfig.baseMaxHp(level)).clamp(0.0, 1.0);
     final bar = Rect.fromLTWH(c.dx - r, c.dy + r + 8, r * 2, 7);
     canvas.drawRect(bar, Paint()..color = const Color(0x88000000));
     canvas.drawRect(

@@ -7,6 +7,7 @@ class DefensePayload {
     required this.wave,
     this.nextWaveAt = 0,
     this.result = DefenseResult.running,
+    this.hq = 1,
   });
 
   factory DefensePayload.fromJson(Map<String, dynamic> json) {
@@ -16,6 +17,7 @@ class DefensePayload {
       wave: json['wave'] as int,
       nextWaveAt: json['next'] as int? ?? 0,
       result: DefenseResult.values[json['result'] as int? ?? 0],
+      hq: json['hq'] as int? ?? 1,
     );
   }
 
@@ -31,11 +33,16 @@ class DefensePayload {
   final int nextWaveAt;
   final DefenseResult result;
 
+  /// How far the base has grown, from 1 (watchtower) to 3 (fortress). It
+  /// grows with waves beaten off without heavy losses.
+  final int hq;
+
   DefensePayload copyWith({
     double? hp,
     int? wave,
     int? nextWaveAt,
     DefenseResult? result,
+    int? hq,
   }) {
     return DefensePayload(
       id: id,
@@ -43,6 +50,7 @@ class DefensePayload {
       wave: wave ?? this.wave,
       nextWaveAt: nextWaveAt ?? this.nextWaveAt,
       result: result ?? this.result,
+      hq: hq ?? this.hq,
     );
   }
 
@@ -53,6 +61,7 @@ class DefensePayload {
       'wave': wave,
       'next': nextWaveAt,
       'result': result.index,
+      if (hq != 1) 'hq': hq,
     };
   }
 }
@@ -68,6 +77,7 @@ class TowerPayload {
     required this.y,
     this.kind = 0,
     this.level = 1,
+    this.hp,
   });
 
   factory TowerPayload.fromJson(Map<String, dynamic> json) {
@@ -78,6 +88,7 @@ class TowerPayload {
       y: (json['y'] as num).toDouble(),
       kind: json['kind'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
+      hp: (json['hp'] as num?)?.toDouble(),
     );
   }
 
@@ -96,6 +107,10 @@ class TowerPayload {
   /// message with a higher level upgrades a gun that is already there.
   final int level;
 
+  /// Hit points left, sent by the player who runs the enemies after they hit
+  /// it; 0 or less destroys it. Null when it is built or upgraded.
+  final double? hp;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -104,6 +119,7 @@ class TowerPayload {
       'y': y,
       if (kind != 0) 'kind': kind,
       if (level != 1) 'level': level,
+      if (hp != null) 'hp': hp,
     };
   }
 }

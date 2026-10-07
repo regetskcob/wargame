@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
@@ -111,6 +112,17 @@ enum TowerKind {
   double rangeAt(int level) => range * (1 + 0.12 * (level - 1));
   double cooldownAt(int level) => cooldown * (1 - 0.15 * (level - 1));
 
+  /// How much fire it takes before it is destroyed, more with every level.
+  double maxHpAt(int level) =>
+      switch (this) {
+        TowerKind.cannon => 240.0,
+        TowerKind.flak => 200.0,
+        TowerKind.mortar => 200.0,
+        TowerKind.howitzer => 300.0,
+        TowerKind.trench => 360.0,
+      } *
+      (1 + 0.3 * (level - 1));
+
   String get hint => switch (this) {
     TowerKind.cannon => 'gegen Panzer',
     TowerKind.flak => 'gegen Luftziele',
@@ -120,9 +132,13 @@ enum TowerKind {
   };
 }
 
-/// A gun emplacement a player put down. It never moves and can not be
-/// destroyed. Only the client of its builder aims and fires it, everybody
-/// else sees the shots as they come in.
+/// A gun emplacement a player put down. It never moves. Enemy shells, bombs
+/// and blasts wear it down until it is destroyed; the player who runs the
+/// enemies keeps its hit points. Only the client of its builder aims and
+/// fires it, everybody else sees the shots as they come in.
+///
+/// The guns of the base itself ([isHq]) come with the base as it grows. They
+/// stand on it, cannot be hit and cannot be bought or upgraded.
 class Tower extends PositionComponent with HasGameRef<SpaceGame> {
   Tower({
     required this.ownerId,
@@ -146,6 +162,18 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
 
   String get id => '$ownerId#$index';
 
+  /// Index from which the guns belong to the base, not to a player.
+  static const hqIndex = 1000;
+
+  bool get isHq => index >= hqIndex;
+
+  late double hp = kind.maxHpAt(level);
+  double get maxHp => kind.maxHpAt(level);
+  double _flash = 0;
+
+  /// Shows a hit.
+  void hit() => _flash = 0.12;
+
   double get range => kind.rangeAt(level);
 
   double turretAngle = 0;
@@ -164,8 +192,25 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
 
   void upgradeTo(int value) {
     if (value > level) {
+      final before = maxHp;
       level = value;
+      hp += maxHp - before;
       _upgraded = 1;
+    }
+  }
+
+  @override
+  void onLoad() {
+    // Shells only stop at what stands up from the ground.
+    if (kind.isGun && !isHq) {
+      add(
+        CircleHitbox(
+          radius: 26,
+          position: size / 2,
+          anchor: Anchor.center,
+          collisionType: CollisionType.passive,
+        ),
+      );
     }
   }
 
@@ -173,6 +218,7 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
   void update(double dt) {
     _recoil = max(0, _recoil - dt * 6);
     _upgraded = max(0, _upgraded - dt);
+    _flash = max(0, _flash - dt);
     if (!_mine || !kind.isGun) {
       return;
     }
@@ -212,9 +258,14 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
   void render(Canvas canvas) {
     if (kind == TowerKind.trench) {
       _renderTrench(canvas);
+      _renderHp(canvas);
       return;
     }
     final c = Offset(size.x / 2, size.y / 2);
+    if (isHq) {
+      _renderTurret(canvas, c);
+      return;
+    }
     // Faint ring of how far the gun reaches, so the field shows at a glance
     // which stretch of the road is covered.
     canvas.drawCircle(c, range, Paint()..color = color.withValues(alpha: 0.05));
@@ -270,6 +321,30 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
           ..color = const Color(0xFF1E1E1C),
       );
     }
+    _renderTurret(canvas, c);
+    // One chevron per level above the first, under the pit.
+    final pip = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3
+      ..color = Color.lerp(
+        const Color(0xFFFFD54F),
+        const Color(0xFFFFFFFF),
+        _upgraded,
+      )!;
+    for (var i = 1; i < level; i++) {
+      final y = c.dy + 36 + i * 7.0;
+      canvas.drawPath(
+        Path()
+          ..moveTo(c.dx - 10, y)
+          ..lineTo(c.dx, y - 6)
+          ..lineTo(c.dx + 10, y),
+        pip,
+      );
+    }
+    _renderHp(canvas);
+  }
+
+  void _renderTurret(Canvas canvas, Offset c) {
     canvas.save();
     canvas.translate(c.dx, c.dy);
     canvas.rotate(turretAngle);
@@ -339,25 +414,25 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
         ..color = const Color(0xFF101010),
     );
     canvas.restore();
-    // One chevron per level above the first, under the pit.
-    final pip = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 3
-      ..color = Color.lerp(
-        const Color(0xFFFFD54F),
-        const Color(0xFFFFFFFF),
-        _upgraded,
-      )!;
-    for (var i = 1; i < level; i++) {
-      final y = c.dy + 36 + i * 7.0;
-      canvas.drawPath(
-        Path()
-          ..moveTo(c.dx - 10, y)
-          ..lineTo(c.dx, y - 6)
-          ..lineTo(c.dx + 10, y),
-        pip,
-      );
+  }
+
+  /// A bar under it once it took fire, white for a moment on every hit.
+  void _renderHp(Canvas canvas) {
+    if (isHq || hp >= maxHp) {
+      return;
     }
+    final ratio = (hp / maxHp).clamp(0.0, 1.0);
+    final bar = Rect.fromLTWH(size.x / 2 - 24, -6, 48, 5);
+    canvas.drawRect(bar, Paint()..color = const Color(0xAA000000));
+    canvas.drawRect(
+      Rect.fromLTWH(bar.left, bar.top, bar.width * ratio, bar.height),
+      Paint()
+        ..color = _flash > 0
+            ? const Color(0xFFFFFFFF)
+            : ratio > 0.35
+            ? const Color(0xFF9CCC65)
+            : const Color(0xFFD1492E),
+    );
   }
 
   /// A zigzag of dug earth with sandbags on the rim, open towards the road,
