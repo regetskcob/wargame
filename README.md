@@ -19,6 +19,24 @@ to pub.dev:
 Everything resolves from pub.dev. There are no git dependencies and no
 `dependency_overrides` anywhere in the workspace.
 
+## What is in the game
+
+- Five vehicles (Leopard 2, Puma, Gepard, Boxer, Wiesel) with their own
+  armour, speed and gun, in four free paint schemes and four more that come
+  with higher ranks.
+- Four grounds, each with weather and a time of day from the round seed:
+  clear, rain, snow, a sandstorm or fog, by day or at night. Night, fog and
+  sand limit the view to a circle around the tank.
+- Buildings, barriers and trees that can be shot down, soldiers to run over,
+  and crates with repair, smoke, rapid fire, a shield, mines and artillery.
+- Free for all or red against blue, alone against CPU tanks or with other
+  people, with CPU tanks on three levels that can fill up a room.
+- A rematch button on the end screen, and a replay of the last round.
+- Ranks from experience, an Elo rating, ten badges, an all time and a weekly
+  leaderboard and statistics per vehicle.
+- Guest accounts that can be secured by e-mail or with a GitHub or Google
+  login, private rooms by link or code and a list of public rooms.
+
 ## Packages
 
 | Package | Description |
@@ -114,6 +132,11 @@ dart run supabase_typegen \
   < ../../supabase/schema.json
 ```
 
+Columns that were added to a table after it was created (the statistics,
+`rating` and `xp` on `scores`, `style` on `players`) read with their default
+in `supabase_schema.g.dart`, so the game survives a database that has not
+been migrated yet. Put these fallbacks back after regenerating.
+
 The types can also be generated straight from a database, without the
 snapshot. A recent Supabase CLI (2.120 has it) supports Dart directly. Use
 `--local` for the running local stack, or `--project-id your-project-ref` for a
@@ -145,6 +168,17 @@ is no server of our own.
    supabase db push
    ```
 
+   The game keeps working against a database that lacks the newer
+   migrations, but rating, experience, badges and the saved call sign only
+   work once they are applied. Push the migrations before the game.
+
+   For lasting accounts also turn on "Allow manual linking" and keep e-mail
+   sign-in enabled. To show the code in the sign-in and change mails, add
+   `{{ .Token }}` to the "Magic Link" and "Change Email Address" templates.
+   GitHub and Google logins need the providers set up under Sign In /
+   Providers, and the URL of the game in the redirect URLs under URL
+   Configuration.
+
 2. In the GitHub repository, set Pages to the "GitHub Actions" source and add
    the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable
    key) under Settings, Secrets and variables, Actions, Variables.
@@ -164,11 +198,17 @@ flutter build web --base-href /your-repo/ \
 ## How the netcode works
 
 - One Realtime channel per room carries the broadcast events `state`,
-  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`, and
-  `soldier`.
+  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
+  `soldier`, `mine`, and `artillery`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.
+- Every client checks what the others broadcast against what their tank can
+  do (`plausibility.dart`): shots faster than the gun reloads or far from the
+  tank are dropped, tanks faster than their top speed are held back, health
+  only rises after a repair crate, a tank at high health cannot die from one
+  message, and mines and barrages need a crate first. This is a plausibility
+  check, not an anti-cheat.
 - A round is defined by `{seed, startedAt}`: every client generates an
   identical world from the seed and derives the round clock from the start
   time. The world costs zero bandwidth.
@@ -176,5 +216,13 @@ flutter build web --base-href /your-repo/ \
   over the gaps with dead reckoning.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate.
-- The winner records the round through the typed `scores` table, and the lobby
-  leaderboard is a typed Postgres Changes stream.
+- Every player records their round through the `record_round` database
+  function. It clamps the numbers, grants experience and moves the Elo rating
+  against the human opponents the player outlasted, and keeps the round in
+  `round_results` for the weekly leaderboard and the numbers per vehicle. The
+  all time leaderboard is a typed Postgres Changes stream on `scores`.
+- Replays need no extra traffic: the client keeps every message of the round
+  with its time, and since the world follows from the seed, playing them back
+  into a round that starts now shows the round again.
+- Public rooms announce themselves through Presence on a separate
+  `game-rooms` channel and vanish when their host leaves.
