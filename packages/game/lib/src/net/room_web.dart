@@ -61,6 +61,26 @@ void rememberGuest() {
   }
 }
 
+const _tutorialKey = 'panzergefecht.tutorial';
+
+/// Whether this browser has been through the tutorial, or skipped it.
+bool tutorialSeen() {
+  try {
+    return web.window.localStorage.getItem(_tutorialKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that the tutorial was seen, so it does not open by itself again.
+void rememberTutorialSeen() {
+  try {
+    web.window.localStorage.setItem(_tutorialKey, '1');
+  } on Object {
+    // Without storage the tutorial simply opens again next time.
+  }
+}
+
 /// Back from a sign-in mail: drops its one time code and any room from the
 /// address, so a reload does not try the code again and the game opens a
 /// fresh room on the start page.

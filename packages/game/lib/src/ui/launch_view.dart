@@ -41,9 +41,20 @@ class LaunchView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Wähle, wie du spielen willst.',
-          style: TextStyle(color: BwColors.textDim),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          children: [
+            const Text(
+              'Wähle, wie du spielen willst.',
+              style: TextStyle(color: BwColors.textDim),
+            ),
+            TextButton.icon(
+              onPressed: game.showTutorial,
+              icon: const Icon(Icons.school, size: 18),
+              label: const Text('EINWEISUNG ANSEHEN'),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         PilotCard(progress: game.progress),

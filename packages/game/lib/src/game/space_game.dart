@@ -493,6 +493,40 @@ class SpaceGame extends FlameGame
       notifier.addListener(_updateListing);
     }
     overlays.add(OverlayIds.lobby);
+    _offerTutorial();
+  }
+
+  /// New players get the tutorial once they are past the welcome page.
+  void _offerTutorial() {
+    if (tutorialSeen()) {
+      return;
+    }
+    if (welcomed.value) {
+      showTutorial();
+      return;
+    }
+    void onWelcomed() {
+      if (welcomed.value) {
+        welcomed.removeListener(onWelcomed);
+        showTutorial();
+      }
+    }
+
+    welcomed.addListener(onWelcomed);
+  }
+
+  /// Opens the tutorial over everything else. The start page and the
+  /// waiting room offer it again at any time.
+  void showTutorial() {
+    if (!overlays.isActive(OverlayIds.tutorial)) {
+      overlays.add(OverlayIds.tutorial);
+    }
+  }
+
+  /// Closes the tutorial for good: it no longer opens by itself.
+  void closeTutorial() {
+    rememberTutorialSeen();
+    overlays.remove(OverlayIds.tutorial);
   }
 
   /// Escape leaves a replay.
