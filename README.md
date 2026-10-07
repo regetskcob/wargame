@@ -131,18 +131,32 @@ dart run supabase_typegen --local --output lib/src/db/supabase_schema.g.dart
 
 ## Deploying
 
-```sh
-supabase link --project-ref your-project-ref
-supabase db push
+The game runs on GitHub Pages and talks to a hosted Supabase project, there
+is no server of our own.
 
+1. Create a Supabase project, then apply the migrations and allow anonymous
+   sign-ins (Authentication, Sign In / Providers):
+
+   ```sh
+   supabase link --project-ref your-project-ref
+   supabase db push
+   ```
+
+2. In the GitHub repository, set Pages to the "GitHub Actions" source and add
+   the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable
+   key) under Settings, Secrets and variables, Actions, Variables.
+3. Push to `main`. The `pages` workflow builds `packages/game` with the
+   repository name as base path and publishes it. Without the variables the
+   build falls back to the project configured in `lib/src/env.dart`.
+
+To build by hand:
+
+```sh
 cd packages/game
-flutter build web \
+flutter build web --base-href /your-repo/ \
   --dart-define=SUPABASE_URL=https://your-project-ref.supabase.co \
   --dart-define=SUPABASE_KEY=sb_publishable_...
 ```
-
-Enable anonymous sign-ins for the hosted project under Authentication
-settings, then serve `build/web` from any static host.
 
 ## How the netcode works
 
