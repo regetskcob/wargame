@@ -12,6 +12,7 @@ import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
 import '../defense/defense_map.dart';
 import '../game_phase.dart';
+import '../inventory.dart';
 import '../special_weapon.dart';
 import '../tank_damage.dart';
 import '../touch_input.dart';
@@ -79,6 +80,10 @@ class PlayerShip extends ShipBase
 
   /// Rounds left in the magazine. Gems put more back.
   late int ammo = magazine;
+
+  /// Crates and gems a CPU tank picked up and keeps for later. The player's
+  /// own sit in the game's inventory.
+  final items = Inventory();
 
   /// Special weapon from a gem and the charges it has left.
   SpecialWeapon? special;

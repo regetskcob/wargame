@@ -2249,6 +2249,10 @@ class SpaceGame extends FlameGame
       }
       return;
     }
+    // A CPU tank with a full inventory leaves the crate for others.
+    if (!mine && !ship.items.canTake(slot.type)) {
+      return;
+    }
     _gone.add(slot.id);
     powerUps.remove(slot.id);
     crate.removeFromParent();
@@ -2262,7 +2266,32 @@ class SpaceGame extends FlameGame
       final key = inventory.value.indexWhere((s) => s.type == slot.type) + 1;
       showNotice('${slot.type.label}  [$key]');
     } else {
-      _applyItem(ship, slot.type);
+      ship.items.add(slot.type);
+    }
+  }
+
+  /// A CPU tank sets off item [index] of its own inventory.
+  void useBotItem(PlayerShip ship, int index) {
+    if (ship.hp <= 0) {
+      return;
+    }
+    final type = ship.items.take(index);
+    if (type != null) {
+      _applyItem(ship, type);
+    }
+  }
+
+  /// The tanks people drive: the local one and those of other players.
+  Iterable<ShipBase> get humanTanks sync* {
+    final activeRound = round;
+    final mine = myShip;
+    if (mine != null && mine.isMounted && mine.hp > 0) {
+      yield mine;
+    }
+    for (final ship in remoteShips.values) {
+      if (ship.hp > 0 && !(activeRound?.isBot(ship.playerId) ?? false)) {
+        yield ship;
+      }
     }
   }
 
@@ -2423,6 +2452,10 @@ class SpaceGame extends FlameGame
   /// Where the local player points: the mouse, or ahead of the turret at
   /// [reach] for touch controls and CPU tanks. Never further than [reach].
   Vector2 _aimPoint(PlayerShip ship, double reach) {
+    // A CPU tank aims as far as its target is.
+    if (ship.isBot) {
+      reach = min(reach, ship.input.lobDistance ?? reach);
+    }
     var target = ship.isBot || touch.aim != null
         ? ship.position + ship.turretDirection * reach
         : pointerWorld() ?? ship.position + ship.turretDirection * reach;
