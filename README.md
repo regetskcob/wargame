@@ -264,7 +264,13 @@ melos run build:game:ios     # iOS, set your signing team in Xcode first
 ```
 
 Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
-for the web build. To play a local stack from an Android emulator use
+for the web build. CI builds the iOS app without signing on every push
+(`flutter build ios --release --no-codesign`). To sign, add your Apple ID in
+Xcode (Settings > Accounts), open `ios/Runner.xcworkspace` and pick your team
+under Signing & Capabilities. The app declares that it uses no non-exempt
+encryption, so App Store Connect skips the export compliance question. On
+iOS and Android sign-in mails are confirmed with the code from the mail, the
+link in it opens the web game. To play a local stack from an Android emulator use
 `http://10.0.2.2:54621`, from a real phone the LAN address of your Mac. Before
 publishing, change the app id and add your own launcher icon and signing
 configuration.
