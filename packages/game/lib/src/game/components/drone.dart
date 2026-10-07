@@ -30,6 +30,7 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
     required double angle,
     this.remote = false,
     this.life = GameConfig.droneSeconds,
+    this.preyId,
   }) : _target = position.clone(),
        _targetAngle = angle,
        super(position: position, angle: angle, priority: 22);
@@ -41,6 +42,10 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
 
   /// Seconds until the battery runs out and it goes off where it is.
   final double life;
+
+  /// The one enemy a hunter drone goes after. Without it, or once that one
+  /// is gone, it takes the nearest.
+  final String? preyId;
 
   Vector2 get velocity => _heading * GameConfig.droneSpeed;
 
@@ -117,6 +122,11 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
     var best = double.infinity;
     for (final enemy in gameRef.enemiesOf(ownerId)) {
       final distance = enemy.position.distanceTo(position);
+      if (enemy.playerId == preyId) {
+        prey = enemy;
+        best = distance;
+        break;
+      }
       if (distance < best) {
         best = distance;
         prey = enemy;

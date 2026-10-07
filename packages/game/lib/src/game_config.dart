@@ -210,6 +210,21 @@ class GameConfig {
   static const upgradeBaseCost = 80;
   static const upgradeMaxLevel = 3;
 
+  /// Fuel, from the middle difficulty on. A full tank lasts about this many
+  /// seconds at full throttle, standing still burns a little. Empty, the
+  /// engine only crawls.
+  static const fuelSeconds = 95.0;
+  static const fuelIdleShare = 0.15;
+  static const fuelLowShare = 0.25;
+  static const emptyTankSpeed = 0.3;
+
+  /// Share of the tank a canister puts back.
+  static const canisterShare = 0.65;
+
+  /// The bomber from a gem on the hard level.
+  static const airstrikeBombs = 4;
+  static const airstrikeReach = 700.0;
+
   static const countdownSeconds = 3;
 
   /// How many CPU tanks a single player round rolls, both ends included.
@@ -251,18 +266,19 @@ class GameConfig {
   /// paint schemes plus the scheme, so the wire format stays a single int.
   static final styleCount = TankType.values.length * shipColors.length;
 
-  /// Multiplayer rounds paint every tank in its own loud colour instead of
-  /// camouflage, so players tell each other apart at a glance. Red and blue
-  /// are left out, they belong to the teams.
+  /// Multiplayer rounds paint every tank in its own colour instead of the
+  /// camouflage, so players tell each other apart at a glance. The colours
+  /// come from the Bundeswehr's paints, the most different ones first. Red
+  /// and blue are left out, they belong to the teams.
   static const playerColors = [
-    Color(0xFFF2C230),
-    Color(0xFF2EC4B6),
-    Color(0xFFD94BC0),
-    Color(0xFFF08A24),
-    Color(0xFF9BD93B),
-    Color(0xFF8E6CEF),
-    Color(0xFFF2F2F2),
-    Color(0xFFFF8FA3),
+    Color(0xFFCDB57E), // Sandgelb
+    Color(0xFFA9603A), // Lederbraun
+    Color(0xFFE4DECB), // Wintertarn
+    Color(0xFF8E9DA6), // Feldgrau
+    Color(0xFF8E9B4E), // Gelboliv
+    Color(0xFF8A6B4A), // Erdbraun
+    Color(0xFF55703C), // Bronzegrün
+    Color(0xFF5D6A70), // Basaltgrau
   ];
 
   /// Colour of the player at [index] in a multiplayer round.

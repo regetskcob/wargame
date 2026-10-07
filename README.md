@@ -78,7 +78,14 @@ Everything resolves from pub.dev. There are no git dependencies and no
   paratroopers with rocket launchers.
 - Crates with repair, smoke, rapid fire, a shield, mines and artillery.
 - Crates and gems go into an inventory at the left edge and are set off
-  later with the keys 1 to 6 or a tap.
+  later with the keys 1 to 6 or a tap. Every gem carries a symbol of what
+  it holds.
+- Three levels that change more than the CPU tanks: on easy the ground is
+  flat and fuel and shells never run out. On normal the land gets hilly
+  (slower uphill, faster downhill) and fuel and shells must be found, fuel
+  in canister gems. On hard the hills are steeper and an air strike gem
+  sends a bomber over an enemy. A hunter drone gem launches a drone after a
+  random enemy.
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
@@ -116,8 +123,8 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - GitHub and Google logins: create the OAuth apps and switch the providers
   on in Supabase. The game shows their buttons on its own.
 - Mobile releases: own app id, launcher icon, signing, store entries.
-- A fuel system with filling stations, and ammunition depots on the map in
-  the battle modes (the defense mode has its base already).
+- Filling stations and ammunition depots on the map in the battle modes
+  (the defense mode has its base already, fuel comes in canisters).
 - Replays for defense rounds, and replays to share through Supabase
   Storage.
 

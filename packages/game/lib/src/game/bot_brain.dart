@@ -231,7 +231,11 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
         PowerUpType.grenades ||
         PowerUpType.drone ||
         PowerUpType.mortar => ship.special == null && distance < 350,
-        PowerUpType.infantry || PowerUpType.paratroopers => distance < 250,
+        PowerUpType.infantry ||
+        PowerUpType.paratroopers ||
+        PowerUpType.hunterDrone ||
+        PowerUpType.airstrike => distance < 250,
+        PowerUpType.fuel => ship.usesFuel && ship.fuel < 0.4,
         _ => false,
       };
       if (wanted && distance < bestDistance) {

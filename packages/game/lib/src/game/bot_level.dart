@@ -30,6 +30,13 @@ enum BotLevel {
   /// How much of the target's movement the aim leads, 0 to 1.
   final double lead;
 
+  /// Rating a CPU tank of this level counts with.
+  int get rating => switch (this) {
+    BotLevel.easy => 800,
+    BotLevel.normal => 1000,
+    BotLevel.hard => 1200,
+  };
+
   /// Hard bots dodge barrages and keep their distance smarter.
   bool get evasive => this == hard;
 

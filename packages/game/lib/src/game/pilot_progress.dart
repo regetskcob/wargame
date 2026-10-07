@@ -66,6 +66,9 @@ class PilotProgress {
     required bool night,
     required List<String> beaten,
     required List<String> beatenBy,
+    int cpuBeaten = 0,
+    int cpuBeatenBy = 0,
+    int cpuRating = 1000,
   }) async {
     final record = await scores.recordRound(
       name: name,
@@ -74,6 +77,9 @@ class PilotProgress {
       tankType: tankType.index,
       beaten: beaten,
       beatenBy: beatenBy,
+      cpuBeaten: cpuBeaten,
+      cpuBeatenBy: cpuBeatenBy,
+      cpuRating: cpuRating,
     );
     _rounds++;
     if (record != null) {

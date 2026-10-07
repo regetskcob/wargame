@@ -17,12 +17,10 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
-import 'widgets/leaderboard.dart';
 import 'widgets/account_panel.dart';
 import 'widgets/panel.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
-import 'widgets/room_list.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 
@@ -87,10 +85,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     widget.game.setPilot(name: _nameController.text, colorIndex: _colorIndex);
   }
 
-  Widget _pilotColumn(BuildContext context) {
+  /// Title, what the round is about and the sound switch.
+  Widget _header(BuildContext context) {
     final game = widget.game;
     return Column(
-      mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
@@ -100,7 +98,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'PANZERGEFECHT',
+                  'WARTERAUM',
                   maxLines: 1,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
@@ -112,118 +110,217 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 4),
         ValueListenableBuilder<GameMode>(
           valueListenable: game.mode,
-          builder: (context, mode, _) => Text(
-            mode == GameMode.defense
-                ? 'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.'
-                : 'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
-            style: const TextStyle(color: BwColors.textDim),
-          ),
+          builder: (context, mode, _) => Text(switch (mode) {
+            GameMode.solo => 'Einzelspieler: Du gegen CPU-Panzer.',
+            GameMode.multi => 'Mehrspieler: Der letzte Panzer im Feld gewinnt.',
+            GameMode.defense =>
+              'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
+          }, style: const TextStyle(color: BwColors.textDim)),
         ),
-        const SizedBox(height: 16),
-        PilotCard(progress: game.progress),
-        if (Env.accounts) ...[
-          const SizedBox(height: 8),
-          AccountPanel(accounts: game.accounts),
-        ],
-        const SizedBox(height: 16),
-        TextField(
-          controller: _nameController,
-          maxLength: 16,
-          decoration: const InputDecoration(labelText: 'RUFNAME'),
-          onChanged: (_) => _apply(),
-        ),
-        const SizedBox(height: 8),
-        Text('FAHRZEUG', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ListenableBuilder(
-          listenable: Listenable.merge([
-            game.roster,
-            game.mode,
-            game.progress.rank,
-          ]),
-          builder: (context, _) => LayoutBuilder(
-            builder: (context, box) {
-              // Two or more cards per row that share the width evenly, all
-              // vehicles in one row when there is room.
-              final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
-                2,
-                TankType.values.length,
-              );
-              final width = (box.maxWidth - 8 * (columns - 1)) / columns;
-              return Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final type in TankType.values)
-                    TankChoice(
-                      type: type,
-                      width: width.floorToDouble(),
-                      color: game.lobbyColorOf(game.myId, _colorIndex),
-                      selected: type == GameConfig.typeOf(_colorIndex),
-                      locked: !game.progress.vehicleUnlocked(type),
-                      onTap: () => _pick(type: type.index),
-                    ),
-                ],
-              );
-            },
-          ),
-        ),
-        const SizedBox(height: 12),
-        StatBars(type: GameConfig.typeOf(_colorIndex)),
-        const SizedBox(height: 16),
-        ValueListenableBuilder<GameMode>(
-          valueListenable: game.mode,
-          builder: (context, mode, _) => mode.withOthers
-              ? const Text(
-                  'Mit anderen fährt jeder Panzer in einer eigenen, '
-                  'gut sichtbaren Farbe statt in Tarnung.',
-                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'TARNUNG',
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    const SizedBox(height: 8),
-                    ValueListenableBuilder(
-                      valueListenable: game.progress.rank,
-                      builder: (context, rank, _) => Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (var i = 0; i < GameConfig.shipColors.length; i++)
-                            Tooltip(
-                              message: game.progress.unlocked(i)
-                                  ? GameConfig.colorNames[i]
-                                  : '${GameConfig.colorNames[i]}: ab Stufe '
-                                        '${GameConfig.colorLevels[i]}',
-                              child: ColorSwatchButton(
-                                color: GameConfig.shipColors[i],
-                                selected:
-                                    i ==
-                                    _colorIndex % GameConfig.shipColors.length,
-                                locked: !game.progress.unlocked(i),
-                                onTap: () => _pick(color: i),
-                              ),
-                            ),
-                        ],
-                      ),
+      ],
+    );
+  }
+
+  /// Way to play, who may join and the link to share. Host only.
+  Widget _roundSection(BuildContext context) {
+    final game = widget.game;
+    return _Section(
+      icon: Icons.flag_outlined,
+      title: 'RUNDE',
+      child: ValueListenableBuilder<GameMode>(
+        valueListenable: game.mode,
+        builder: (context, mode, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                ChoiceRow<GameMode>(
+                  options: [
+                    (
+                      mode,
+                      switch (mode) {
+                        GameMode.solo => 'EINZELSPIELER',
+                        GameMode.multi => 'MEHRSPIELER',
+                        GameMode.defense => 'VERTEIDIGUNG',
+                      },
+                      null,
                     ),
                   ],
+                  selected: mode,
+                  onSelected: (_) => game.changeMode(),
                 ),
+                TextButton.icon(
+                  onPressed: game.changeMode,
+                  icon: const Icon(Icons.swap_horiz),
+                  label: const Text('ÄNDERN'),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            _hint(switch (mode) {
+              GameMode.solo =>
+                'Du spielst allein gegen ${GameConfig.minBots} bis '
+                    '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
+                    'ausgewürfelt.',
+              GameMode.multi =>
+                'Schick den Link weiter. Ein öffentlicher Raum steht '
+                    'außerdem in der Raumliste der Startseite.',
+              GameMode.defense =>
+                'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
+                    'zweiten Welle auch aus der Luft. Abschüsse bringen '
+                    'Mittel für Geschütze (B) und Upgrades.',
+            }),
+            if (mode == GameMode.multi &&
+                roomLink(game.net.room).isNotEmpty) ...[
+              const SizedBox(height: 12),
+              _label(context, 'SICHTBARKEIT'),
+              ValueListenableBuilder<bool>(
+                valueListenable: game.publicRoom,
+                builder: (context, public, _) => ChoiceRow<bool>(
+                  options: const [
+                    (false, 'PRIVAT', null),
+                    (true, 'ÖFFENTLICH', null),
+                  ],
+                  selected: public,
+                  onSelected: (v) => game.publicRoom.value = v ?? false,
+                ),
+              ),
+            ],
+            if (mode.withOthers) ...[
+              const SizedBox(height: 12),
+              RoomInvite(game: game),
+            ],
+          ],
         ),
-        if (game.isHost.value) ...[
-          ValueListenableBuilder<GameMode>(
-            valueListenable: game.mode,
-            builder: (context, mode, _) => mode == GameMode.defense
-                ? const SizedBox()
-                : _teamChoice(context),
+      ),
+    );
+  }
+
+  /// Difficulty, CPU tanks and teams. Host only.
+  Widget _battleSection(BuildContext context) {
+    final game = widget.game;
+    return _Section(
+      icon: Icons.tune,
+      title: 'EINSATZ',
+      child: ValueListenableBuilder<GameMode>(
+        valueListenable: game.mode,
+        builder: (context, mode, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _label(context, 'SCHWIERIGKEIT'),
+            ValueListenableBuilder<BotLevel>(
+              valueListenable: game.botLevel,
+              builder: (context, level, _) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ChoiceRow<BotLevel>(
+                    options: [
+                      for (final option in BotLevel.values)
+                        (option, option.label, null),
+                    ],
+                    selected: level,
+                    onSelected: (v) => game.botLevel.value = v ?? level,
+                  ),
+                  const SizedBox(height: 6),
+                  _hint(switch (level) {
+                    BotLevel.easy =>
+                      'Flaches Gelände, voller Tank und Munition ohne Ende. '
+                          'CPU-Panzer zielen ungenau.',
+                    BotLevel.normal =>
+                      'Hügel bremsen bergauf. Munition und Treibstoff gehen '
+                          'aus: Sammle Munitions-Gems und Kanister.',
+                    BotLevel.hard =>
+                      'Steile Hügel, knapper Nachschub und treffsichere '
+                          'CPU-Panzer. Dazu gibt es Luftschläge als Gem.',
+                  }),
+                ],
+              ),
+            ),
+            if (mode == GameMode.multi) ...[
+              const SizedBox(height: 14),
+              _label(context, 'CPU-PANZER'),
+              ValueListenableBuilder<bool>(
+                valueListenable: game.fillWithBots,
+                builder: (context, fill, _) => ChoiceRow<bool>(
+                  options: const [
+                    (false, 'NUR MENSCHEN', null),
+                    (true, 'MIT CPU AUFFÜLLEN', null),
+                  ],
+                  selected: fill,
+                  onSelected: (v) => game.fillWithBots.value = v ?? false,
+                ),
+              ),
+              const SizedBox(height: 6),
+              _hint(
+                'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
+                'und gleicht bei Teams die Seiten aus.',
+              ),
+            ],
+            if (mode != GameMode.defense) ...[
+              const SizedBox(height: 14),
+              _label(context, 'MODUS'),
+              _teamChoice(),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Free for all or red against blue, and the side the host takes.
+  Widget _teamChoice() {
+    final game = widget.game;
+    return ValueListenableBuilder<bool>(
+      valueListenable: game.teamMode,
+      builder: (context, teams, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ChoiceRow<bool>(
+            options: const [
+              (false, 'ALLE GEGEN ALLE', null),
+              (true, 'TEAMS', null),
+            ],
+            selected: teams,
+            onSelected: (v) => game.teamMode.value = v ?? false,
           ),
-          const SizedBox(height: 16),
-          Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
+          if (teams) ...[
+            const SizedBox(height: 10),
+            ChoiceRow<int>(
+              options: [
+                (0, 'AUTO', null),
+                (1, 'ROT', GameConfig.teamColors[1]),
+                (2, 'BLAU', GameConfig.teamColors[2]),
+              ],
+              selected: _teamPick,
+              onSelected: (v) {
+                setState(() => _teamPick = v ?? 0);
+                game.setTeamPick(_teamPick);
+              },
+            ),
+            const SizedBox(height: 6),
+            _hint(
+              'AUTO füllt das kleinere Team. Eigene Teammitglieder und '
+              'Trupps triffst du nicht.',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  /// Ground, weather and time of day. Host only.
+  Widget _fieldSection(BuildContext context) {
+    final game = widget.game;
+    return _Section(
+      icon: Icons.landscape_outlined,
+      title: 'GELÄNDE & WETTER',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _label(context, 'GELÄNDE'),
           ValueListenableBuilder<int?>(
             valueListenable: game.mapChoice,
             builder: (context, choice, _) => ChoiceRow<int>(
@@ -236,9 +333,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               onSelected: (v) => game.mapChoice.value = v,
             ),
           ),
-          const SizedBox(height: 16),
-          Text('WETTER', style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: 8),
+          const SizedBox(height: 14),
+          _label(context, 'WETTER'),
           ValueListenableBuilder<Sky?>(
             valueListenable: game.skyChoice,
             builder: (context, choice, _) => ChoiceRow<Sky>(
@@ -252,7 +348,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               onSelected: (v) => game.skyChoice.value = v,
             ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 14),
+          _label(context, 'TAGESZEIT'),
           ValueListenableBuilder<bool?>(
             valueListenable: game.nightChoice,
             builder: (context, choice, _) => ChoiceRow<bool>(
@@ -263,300 +360,264 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text(
-            'Ohne Auswahl werden Gelände, Wetter und Tageszeit zufällig '
-            'bestimmt. Nachts, im Nebel und im Sandsturm siehst du nur, was '
-            'nah ist.',
-            style: TextStyle(color: BwColors.textDim, fontSize: 12),
-          ),
-        ] else ...[
-          const SizedBox(height: 16),
-          const Text(
-            'Modus und Gelände legt der Gastgeber fest. '
-            'Du suchst dir hier nur Namen und Fahrzeug aus.',
-            style: TextStyle(color: BwColors.textDim, fontSize: 12),
+          _hint(
+            'Ohne Auswahl wird zufällig bestimmt. Nachts, im Nebel und im '
+            'Sandsturm siehst du nur, was nah ist.',
           ),
         ],
-        const SizedBox(height: 24),
-        ValueListenableBuilder<List<LobbyPresence>>(
-          valueListenable: game.roster,
-          builder: (context, roster, _) {
-            final live = game.liveMatch;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: [
-                FilledButton.icon(
-                  onPressed: live == null && game.canStart
-                      ? () {
-                          _apply();
-                          game.startRound();
-                        }
-                      : null,
-                  icon: const Icon(Icons.flag),
-                  label: Text(
-                    game.canStart ? 'ÜBUNG STARTEN' : 'WARTE AUF GASTGEBER',
-                  ),
-                ),
-                if (live != null)
-                  OutlinedButton.icon(
-                    onPressed: game.spectateLiveMatch,
-                    icon: const Icon(Icons.visibility),
-                    label: const Text('LAUFENDE ÜBUNG BEOBACHTEN'),
-                  ),
-                ValueListenableBuilder(
-                  valueListenable: game.lastReplay,
-                  builder: (context, replay, _) => replay == null
-                      ? const SizedBox.shrink()
-                      : OutlinedButton.icon(
-                          onPressed: game.watchReplay,
-                          icon: const Icon(Icons.movie_outlined),
-                          label: const Text('LETZTE RUNDE ANSEHEN'),
-                        ),
-                ),
-                OutlinedButton.icon(
-                  onPressed: _confirmClose,
-                  style: _closeArmed
-                      ? OutlinedButton.styleFrom(
-                          foregroundColor: BwColors.danger,
-                          side: const BorderSide(color: BwColors.danger),
-                        )
-                      : null,
-                  icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
-                  label: Text(switch ((_closeArmed, game.isHost.value)) {
-                    (true, true) => 'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                    (true, false) => 'WIRKLICH VERLASSEN?',
-                    (false, true) => 'WARTERAUM SCHLIESSEN',
-                    (false, false) => 'WARTERAUM VERLASSEN',
-                  }),
-                ),
-              ],
-            );
-          },
-        ),
-        const SizedBox(height: 12),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.touchMode,
-          builder: (context, touch, _) => Text(
-            touch
-                ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
-                      'Rechter Stick richtet den Turm aus, unabhängig von der '
-                      'Wanne, und feuert, sobald du über den Ring schiebst. '
-                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt. '
-                      'Kisten und Gems landen im Inventar am linken Rand, ein '
-                      'Tipp setzt sie ein. Waffen wie Granatwerfer, Mörser '
-                      'und Drohne löst du danach mit dem runden Knopf über '
-                      'dem rechten Stick aus.'
-                : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
-                      'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
-                      'Kisten und Gems wandern ins Inventar am linken Rand, '
-                      'du setzt sie mit 1 bis 6 oder einem Tipp ein: Munition, '
-                      'Nebelgranaten, Granatwerfer, Mörser, Drohne, Trupps und '
-                      'Fallschirmjäger. Waffen löst du danach mit F aus. Auf '
-                      'Touchgeräten steuerst du mit zwei Sticks am Bildschirm.',
-            style: const TextStyle(color: BwColors.textDim, fontSize: 12),
-          ),
-        ),
-      ],
+      ),
     );
   }
 
-  /// Free for all or red against blue, for the host.
-  Widget _teamChoice(BuildContext context) {
+  /// Call sign, account, vehicle and paint: what every player sets.
+  Widget _tankSection(BuildContext context) {
     final game = widget.game;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const SizedBox(height: 16),
-        Text('MODUS', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.teamMode,
-          builder: (context, teams, _) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ChoiceRow<bool>(
-                options: const [
-                  (false, 'ALLE GEGEN ALLE', null),
-                  (true, 'TEAMS', null),
-                ],
-                selected: teams,
-                onSelected: (v) => game.teamMode.value = v ?? false,
-              ),
-              if (teams) ...[
-                const SizedBox(height: 10),
-                ChoiceRow<int>(
-                  options: [
-                    (0, 'AUTO', null),
-                    (1, 'ROT', GameConfig.teamColors[1]),
-                    (2, 'BLAU', GameConfig.teamColors[2]),
+    return _Section(
+      icon: Icons.shield_outlined,
+      title: 'DEIN PANZER',
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          PilotCard(progress: game.progress),
+          if (Env.accounts) ...[
+            const SizedBox(height: 8),
+            AccountPanel(
+              accounts: game.accounts,
+              onCallSign: (name) {
+                game.claimCallSign(name);
+                setState(() => _nameController.text = name);
+              },
+              callSign: game.myName,
+            ),
+          ],
+          const SizedBox(height: 12),
+          TextField(
+            controller: _nameController,
+            maxLength: 16,
+            decoration: const InputDecoration(labelText: 'RUFNAME'),
+            onChanged: (_) => _apply(),
+          ),
+          _label(context, 'FAHRZEUG'),
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              game.roster,
+              game.mode,
+              game.progress.rank,
+            ]),
+            builder: (context, _) => LayoutBuilder(
+              builder: (context, box) {
+                final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
+                  2,
+                  TankType.values.length,
+                );
+                final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final type in TankType.values)
+                      TankChoice(
+                        type: type,
+                        width: width.floorToDouble(),
+                        color: game.lobbyColorOf(game.myId, _colorIndex),
+                        selected: type == GameConfig.typeOf(_colorIndex),
+                        locked: !game.progress.vehicleUnlocked(type),
+                        onTap: () => _pick(type: type.index),
+                      ),
                   ],
-                  selected: _teamPick,
-                  onSelected: (v) {
-                    setState(() => _teamPick = v ?? 0);
-                    game.setTeamPick(_teamPick);
-                  },
-                ),
-                const SizedBox(height: 6),
-                const Text(
-                  'AUTO füllt das kleinere Team. Eigene Teammitglieder '
-                  'triffst du nicht.',
-                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                ),
-              ],
-            ],
+                );
+              },
+            ),
           ),
-        ),
-      ],
-    );
-  }
-
-  /// The way to play the host took on the start page, and its settings.
-  Widget _modeChoice(BuildContext context) {
-    final game = widget.game;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('SPIELART', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        ValueListenableBuilder<GameMode>(
-          valueListenable: game.mode,
-          builder: (context, mode, _) => Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                crossAxisAlignment: WrapCrossAlignment.center,
-                children: [
-                  ChoiceRow<GameMode>(
-                    options: [
-                      (
-                        mode,
-                        switch (mode) {
-                          GameMode.solo => 'EINZELSPIELER',
-                          GameMode.multi => 'MEHRSPIELER',
-                          GameMode.defense => 'VERTEIDIGUNG',
-                        },
-                        null,
+          const SizedBox(height: 12),
+          StatBars(type: GameConfig.typeOf(_colorIndex)),
+          const SizedBox(height: 14),
+          ValueListenableBuilder<GameMode>(
+            valueListenable: game.mode,
+            builder: (context, mode, _) => mode.withOthers
+                ? _hint(
+                    'Mit anderen fährt jeder Panzer in einer eigenen Farbe '
+                    'statt in Tarnung.',
+                  )
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label(context, 'TARNUNG'),
+                      ValueListenableBuilder(
+                        valueListenable: game.progress.rank,
+                        builder: (context, rank, _) => Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (
+                              var i = 0;
+                              i < GameConfig.shipColors.length;
+                              i++
+                            )
+                              Tooltip(
+                                message: game.progress.unlocked(i)
+                                    ? GameConfig.colorNames[i]
+                                    : '${GameConfig.colorNames[i]}: ab Stufe '
+                                          '${GameConfig.colorLevels[i]}',
+                                child: ColorSwatchButton(
+                                  color: GameConfig.shipColors[i],
+                                  selected:
+                                      i ==
+                                      _colorIndex %
+                                          GameConfig.shipColors.length,
+                                  locked: !game.progress.unlocked(i),
+                                  onTap: () => _pick(color: i),
+                                ),
+                              ),
+                          ],
+                        ),
                       ),
                     ],
-                    selected: mode,
-                    onSelected: (_) => game.changeMode(),
                   ),
-                  TextButton.icon(
-                    onPressed: game.changeMode,
-                    icon: const Icon(Icons.swap_horiz),
-                    label: const Text('ÄNDERN'),
-                  ),
-                ],
-              ),
-              if (mode == GameMode.multi &&
-                  roomLink(game.net.room).isNotEmpty) ...[
-                const SizedBox(height: 10),
-                ValueListenableBuilder<bool>(
-                  valueListenable: game.publicRoom,
-                  builder: (context, public, _) => ChoiceRow<bool>(
-                    options: const [
-                      (false, 'PRIVAT', null),
-                      (true, 'ÖFFENTLICH', null),
-                    ],
-                    selected: public,
-                    onSelected: (v) => game.publicRoom.value = v ?? false,
-                  ),
-                ),
-              ],
-              const SizedBox(height: 6),
-              Text(switch (mode) {
-                GameMode.solo =>
-                  'Du spielst allein gegen ${GameConfig.minBots} bis '
-                      '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
-                      'ausgewürfelt.',
-                GameMode.multi =>
-                  'Spiele mit anderen: Schick den Link weiter. Ein '
-                      'öffentlicher Raum steht außerdem in der Raumliste.',
-                GameMode.defense =>
-                  'Gemeinsam gegen ${GameConfig.defenseWaves} Wellen, '
-                      'allein oder mit anderen. Die Feinde rollen über die '
-                      'Straße zum Stützpunkt. Für Abschüsse gibt es Mittel, '
-                      'davon baust du Geschütze (Taste B). Munition gibt es am '
-                      'Stützpunkt, zerstörte Panzer kehren nach kurzer Zeit '
-                      'zurück.',
-              }, style: const TextStyle(color: BwColors.textDim, fontSize: 12)),
-              if (mode != GameMode.defense) ...[
-                const SizedBox(height: 16),
-                Text(
-                  'CPU-GEGNER',
-                  style: Theme.of(context).textTheme.titleMedium,
-                ),
-                const SizedBox(height: 8),
-                if (mode == GameMode.multi) ...[
-                  ValueListenableBuilder<bool>(
-                    valueListenable: game.fillWithBots,
-                    builder: (context, fill, _) => ChoiceRow<bool>(
-                      options: const [
-                        (false, 'NUR MENSCHEN', null),
-                        (true, 'MIT CPU AUFFÜLLEN', null),
-                      ],
-                      selected: fill,
-                      onSelected: (v) => game.fillWithBots.value = v ?? false,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-                ValueListenableBuilder<BotLevel>(
-                  valueListenable: game.botLevel,
-                  builder: (context, level, _) => ChoiceRow<BotLevel>(
-                    options: [
-                      for (final option in BotLevel.values)
-                        (option, option.label, null),
-                    ],
-                    selected: level,
-                    onSelected: (v) => game.botLevel.value = v ?? level,
-                  ),
-                ),
-                if (mode == GameMode.multi) ...[
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
-                    'und gleicht bei Teams die Seiten aus.',
-                    style: TextStyle(color: BwColors.textDim, fontSize: 12),
-                  ),
-                ],
-              ],
-            ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
-  Widget _rosterColumn() {
+  /// Who is in the room, when playing with others.
+  Widget _crewSection() {
     final game = widget.game;
     return ValueListenableBuilder<GameMode>(
       valueListenable: game.mode,
-      builder: (context, mode, _) =>
-          mode.withOthers ? _roster(game) : const SizedBox.shrink(),
+      builder: (context, mode, _) => !mode.withOthers
+          ? const SizedBox.shrink()
+          : _Section(
+              icon: Icons.groups_outlined,
+              title: 'BESATZUNGEN',
+              child: ValueListenableBuilder<List<LobbyPresence>>(
+                valueListenable: game.roster,
+                builder: (context, roster, _) => PlayerList(
+                  members: roster,
+                  myId: game.myId,
+                  colorOf: (member) =>
+                      game.lobbyColorOf(member.id, member.colorIndex),
+                ),
+              ),
+            ),
     );
   }
 
-  Widget _roster(SpaceGame game) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ValueListenableBuilder<List<LobbyPresence>>(
-          valueListenable: game.roster,
-          builder: (context, roster, _) => PlayerList(
-            members: roster,
-            myId: game.myId,
-            colorOf: (member) =>
-                game.lobbyColorOf(member.id, member.colorIndex),
-          ),
-        ),
-      ],
+  /// Start, watch, replay and leave.
+  Widget _actions() {
+    final game = widget.game;
+    return ValueListenableBuilder<List<LobbyPresence>>(
+      valueListenable: game.roster,
+      builder: (context, roster, _) {
+        final live = game.liveMatch;
+        return Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            FilledButton.icon(
+              onPressed: live == null && game.canStart
+                  ? () {
+                      _apply();
+                      game.startRound();
+                    }
+                  : null,
+              icon: const Icon(Icons.flag),
+              label: Text(
+                game.canStart ? 'ÜBUNG STARTEN' : 'WARTE AUF GASTGEBER',
+              ),
+            ),
+            if (live != null)
+              OutlinedButton.icon(
+                onPressed: game.spectateLiveMatch,
+                icon: const Icon(Icons.visibility),
+                label: const Text('LAUFENDE ÜBUNG BEOBACHTEN'),
+              ),
+            ValueListenableBuilder(
+              valueListenable: game.lastReplay,
+              builder: (context, replay, _) => replay == null
+                  ? const SizedBox.shrink()
+                  : OutlinedButton.icon(
+                      onPressed: game.watchReplay,
+                      icon: const Icon(Icons.movie_outlined),
+                      label: const Text('LETZTE RUNDE ANSEHEN'),
+                    ),
+            ),
+            OutlinedButton.icon(
+              onPressed: _confirmClose,
+              style: _closeArmed
+                  ? OutlinedButton.styleFrom(
+                      foregroundColor: BwColors.danger,
+                      side: const BorderSide(color: BwColors.danger),
+                    )
+                  : null,
+              icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+              label: Text(switch ((_closeArmed, game.isHost.value)) {
+                (true, true) => 'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                (true, false) => 'WIRKLICH VERLASSEN?',
+                (false, true) => 'WARTERAUM SCHLIESSEN',
+                (false, false) => 'WARTERAUM VERLASSEN',
+              }),
+            ),
+          ],
+        );
+      },
     );
   }
+
+  /// How to steer, folded away until asked for.
+  Widget _controls() {
+    final game = widget.game;
+    return ValueListenableBuilder<bool>(
+      valueListenable: game.touchMode,
+      builder: (context, touch, _) => Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          tilePadding: EdgeInsets.zero,
+          leading: const Icon(Icons.sports_esports, color: BwColors.amber),
+          title: const Text(
+            'STEUERUNG',
+            style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.5),
+          ),
+          childrenPadding: const EdgeInsets.only(bottom: 8),
+          expandedCrossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _hint(
+              touch
+                  ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
+                        'Rechter Stick richtet den Turm aus und feuert, sobald '
+                        'du über den Ring schiebst. Kisten und Gems landen im '
+                        'Inventar am linken Rand, ein Tipp setzt sie ein. '
+                        'Waffen wie Granatwerfer, Mörser und Drohne löst du '
+                        'danach mit dem runden Knopf über dem rechten Stick aus.'
+                  : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
+                        'Maus (oder Q und E), Feuer mit Leertaste oder '
+                        'Linksklick. Kisten und Gems wandern ins Inventar am '
+                        'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
+                        'ein. Waffen löst du danach mit F aus. In der '
+                        'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _label(BuildContext context, String text) => Padding(
+    padding: const EdgeInsets.only(top: 4, bottom: 8),
+    child: Text(
+      text,
+      style: const TextStyle(
+        fontSize: 12,
+        fontWeight: FontWeight.w800,
+        letterSpacing: 1.5,
+        color: BwColors.sand,
+      ),
+    ),
+  );
+
+  Widget _hint(String text) =>
+      Text(text, style: const TextStyle(color: BwColors.textDim, fontSize: 12));
 
   /// Closing takes two clicks: the first one asks, the second one closes.
   void _confirmClose() {
@@ -583,6 +644,53 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// The waiting room: the round on the left, the player's own tank on the
+  /// right, the buttons at the bottom. On a narrow screen one after the
+  /// other.
+  Widget _room(BuildContext context, {required bool narrow}) {
+    final host = widget.game.isHost.value;
+    final settings = <Widget>[
+      if (host) ...[
+        _roundSection(context),
+        _battleSection(context),
+        _fieldSection(context),
+      ] else
+        const _JoinedBanner(),
+    ];
+    final mine = <Widget>[_tankSection(context), _crewSection()];
+    Widget column(List<Widget> parts) => Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final (i, part) in parts.indexed) ...[
+          if (i > 0) const SizedBox(height: 14),
+          part,
+        ],
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _header(context),
+        const SizedBox(height: 18),
+        if (narrow)
+          column([...settings, ...mine])
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: column(settings)),
+              const SizedBox(width: 16),
+              Expanded(child: column(mine)),
+            ],
+          ),
+        const SizedBox(height: 18),
+        _actions(),
+        const SizedBox(height: 8),
+        _controls(),
+      ],
+    );
+  }
+
   Widget _build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -593,12 +701,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         color: const Color(0xAA000000),
         child: LayoutBuilder(
           builder: (context, constraints) {
-            final narrow = constraints.maxWidth < 720;
+            final narrow = constraints.maxWidth < 820;
             return Center(
               child: SingleChildScrollView(
                 padding: EdgeInsets.all(narrow ? 8 : 16),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 860),
+                  constraints: const BoxConstraints(maxWidth: 1040),
                   child: Panel(
                     padding: EdgeInsets.all(narrow ? 14 : 24),
                     child: !widget.game.welcomed.value
@@ -606,53 +714,59 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         : widget.game.choosingMode.value &&
                               widget.game.isHost.value
                         ? LaunchView(game: widget.game)
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              if (!widget.game.isHost.value)
-                                const _JoinedBanner()
-                              else ...[
-                                _modeChoice(context),
-                                ValueListenableBuilder<GameMode>(
-                                  valueListenable: widget.game.mode,
-                                  builder: (context, mode, _) => mode.withOthers
-                                      ? Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 16,
-                                          ),
-                                          child: RoomInvite(game: widget.game),
-                                        )
-                                      : const SizedBox(),
-                                ),
-                              ],
-                              const SizedBox(height: 24),
-                              if (narrow) ...[
-                                _pilotColumn(context),
-                                const SizedBox(height: 24),
-                                _rosterColumn(),
-                              ] else
-                                Row(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Expanded(child: _pilotColumn(context)),
-                                    const SizedBox(width: 40),
-                                    _rosterColumn(),
-                                  ],
-                                ),
-                              if (roomLink(widget.game.net.room)
-                                  .isNotEmpty) ...[
-                                const SizedBox(height: 28),
-                                RoomList(game: widget.game),
-                              ],
-                              const SizedBox(height: 28),
-                              Leaderboard(game: widget.game),
-                            ],
-                          ),
+                        : _room(context, narrow: narrow),
                   ),
                 ),
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+/// A group of settings under a heading, set off by a thin frame.
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.icon,
+    required this.title,
+    required this.child,
+  });
+
+  final IconData icon;
+  final String title;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: const Color(0x33000000),
+        shape: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+          side: const BorderSide(color: Color(0x888A9A5B)),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: BwColors.amber),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(letterSpacing: 2),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            child,
+          ],
         ),
       ),
     );

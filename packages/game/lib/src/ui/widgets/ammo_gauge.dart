@@ -11,20 +11,30 @@ class AmmoGauge extends StatelessWidget {
     required this.ammo,
     required this.maxAmmo,
     this.compact = false,
+    this.endless = false,
     super.key,
   });
 
   final int ammo;
   final int maxAmmo;
 
+  /// The easy level: shells never run out.
+  final bool endless;
+
   /// Smaller plate for phones held sideways.
   final bool compact;
 
   @override
   Widget build(BuildContext context) {
-    final ratio = maxAmmo == 0 ? 0.0 : (ammo / maxAmmo).clamp(0.0, 1.0);
+    final ratio = endless
+        ? 1.0
+        : maxAmmo == 0
+        ? 0.0
+        : (ammo / maxAmmo).clamp(0.0, 1.0);
     final low = ratio <= GameConfig.ammoLowShare;
-    final color = ammo == 0
+    final color = endless
+        ? const Color(0xFF4FC3F7)
+        : ammo == 0
         ? BwColors.danger
         : low
         ? BwColors.amber
@@ -40,16 +50,80 @@ class AmmoGauge extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              ammo == 0 ? 'MUNITION LEER' : 'MUNITION $ammo/$maxAmmo',
+              endless
+                  ? 'MUNITION ∞'
+                  : ammo == 0
+                  ? 'MUNITION LEER'
+                  : 'MUNITION $ammo/$maxAmmo',
               style: TextStyle(
                 fontWeight: FontWeight.w800,
                 fontSize: compact ? 11 : null,
-                color: ammo == 0 ? BwColors.danger : null,
+                color: ammo == 0 && !endless ? BwColors.danger : null,
               ),
             ),
             SizedBox(height: compact ? 3 : 6),
             LinearProgressIndicator(
               value: ratio,
+              minHeight: compact ? 5 : 7,
+              backgroundColor: Colors.black38,
+              color: color,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Fuel left in the tank, warning once it runs low.
+class FuelGauge extends StatelessWidget {
+  const FuelGauge({required this.fuel, this.compact = false, super.key});
+
+  /// Share of a full tank, 0 to 1.
+  final double fuel;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    final low = fuel <= GameConfig.fuelLowShare;
+    final color = fuel <= 0
+        ? BwColors.danger
+        : low
+        ? BwColors.amber
+        : const Color(0xFFFF9100);
+    return SizedBox(
+      width: compact ? 150 : 220,
+      child: Panel(
+        padding: compact
+            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.local_gas_station,
+                  size: compact ? 12 : 16,
+                  color: color,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  fuel <= 0
+                      ? 'TANK LEER'
+                      : 'TREIBSTOFF ${(fuel * 100).ceil()} %',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: compact ? 11 : null,
+                    color: fuel <= 0 ? BwColors.danger : null,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: compact ? 3 : 6),
+            LinearProgressIndicator(
+              value: fuel.clamp(0.0, 1.0),
               minHeight: compact ? 5 : 7,
               backgroundColor: Colors.black38,
               color: color,

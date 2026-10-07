@@ -72,9 +72,14 @@ class AccountService {
 
   /// Gives the guest account an e-mail address. It lasts once the player
   /// confirms with the link or the code from the mail.
-  Future<void> secureWithEmail(String email) async {
+  /// [name] is the call sign, kept with the account so it is there on
+  /// every device. The e-mail address itself is never shown to others.
+  Future<void> secureWithEmail(String email, {String? name}) async {
     await _client.auth.updateUser(
-      UserAttributes(email: email.trim()),
+      UserAttributes(
+        email: email.trim(),
+        data: name == null || name.isEmpty ? null : {'call_sign': name},
+      ),
       emailRedirectTo: authRedirect(),
     );
     user.value = _client.auth.currentUser;

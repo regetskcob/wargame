@@ -19,7 +19,12 @@ class WelcomeView extends StatelessWidget {
       icon: Icons.verified_user,
       title: 'MIT KONTO',
       kicker: 'FORTSCHRITT AUF JEDEM GERÄT',
-      child: AccountPanel(accounts: game.accounts, embedded: true),
+      child: AccountPanel(
+        accounts: game.accounts,
+        embedded: true,
+        onCallSign: game.claimCallSign,
+        callSign: game.myName,
+      ),
     );
     final guest = _Box(
       icon: Icons.person_outline,

@@ -101,6 +101,36 @@ class RoundState {
     return true;
   }
 
+  /// CPU tanks [me] outlasted and those that outlasted [me], counted the
+  /// same way as [placementsOf] counts people. They move the rating with a
+  /// fixed rating for their level.
+  ({int beaten, int beatenBy}) cpuPlacementsOf(String me) {
+    var beaten = 0;
+    var beatenBy = 0;
+    final cpus = participants.where((id) => id != me && bots.containsKey(id));
+    if (teamMode) {
+      final mine = teamOf(me);
+      final team = winnerTeam;
+      if (team == null) {
+        return (beaten: 0, beatenBy: 0);
+      }
+      for (final id in cpus) {
+        if (teamOf(id) == mine) {
+          continue;
+        }
+        team == mine ? beaten++ : beatenBy++;
+      }
+      return (beaten: beaten, beatenBy: beatenBy);
+    }
+    final myFall = fallen.indexOf(me);
+    for (final id in cpus) {
+      final theirFall = fallen.indexOf(id);
+      final outlasted = myFall < 0 || (theirFall >= 0 && theirFall < myFall);
+      outlasted ? beaten++ : beatenBy++;
+    }
+    return (beaten: beaten, beatenBy: beatenBy);
+  }
+
   /// Human opponents [me] outlasted and those who outlasted [me], for the
   /// rating. In a team round the whole other team counts, won or lost
   /// together, and teammates do not count. CPU tanks never count.

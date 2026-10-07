@@ -13,10 +13,19 @@ class AccountPanel extends StatefulWidget {
   const AccountPanel({
     required this.accounts,
     this.embedded = false,
+    this.onCallSign,
+    this.callSign,
     super.key,
   });
 
   final AccountService accounts;
+
+  /// Takes the call sign given when registering. Others only ever see this
+  /// name, never the e-mail address.
+  final ValueChanged<String>? onCallSign;
+
+  /// The current call sign, to start the field with.
+  final String? callSign;
 
   /// On the welcome page: always open, without the status line, and signing
   /// in comes first. Securing the fresh guest account there means creating
@@ -31,6 +40,12 @@ enum _Step { idle, codeSent }
 
 class _AccountPanelState extends State<AccountPanel> {
   final _email = TextEditingController();
+  late final _name = TextEditingController(
+    text: _generated.hasMatch(widget.callSign ?? '') ? '' : widget.callSign,
+  );
+
+  /// The names the game hands out to fresh guests, not worth keeping.
+  static final _generated = RegExp(r'^Panzer-\d{4}$');
   final _code = TextEditingController();
   var _open = false;
   late var _signIn = widget.embedded;
@@ -84,6 +99,7 @@ class _AccountPanelState extends State<AccountPanel> {
     _watch?.cancel();
     widget.accounts.providers.removeListener(_refresh);
     _email.dispose();
+    _name.dispose();
     _code.dispose();
     super.dispose();
   }
@@ -111,12 +127,25 @@ class _AccountPanelState extends State<AccountPanel> {
 
   void _sendMail() {
     final email = _email.text.trim();
+    final name = _name.text.trim();
+    if (!_signIn && (name.length < 2 || name.length > 16)) {
+      setState(() {
+        _message =
+            'Bitte einen Rufnamen mit 2 bis 16 Zeichen wählen. Andere sehen '
+            'nur ihn, nie deine E-Mail-Adresse.';
+        _error = true;
+      });
+      return;
+    }
     if (!email.contains('@')) {
       setState(() {
         _message = 'Bitte eine E-Mail-Adresse eingeben.';
         _error = true;
       });
       return;
+    }
+    if (!_signIn) {
+      widget.onCallSign?.call(name);
     }
     _run(
       () async {
@@ -129,12 +158,12 @@ class _AccountPanelState extends State<AccountPanel> {
             if (error.errorCode != _noAccount) {
               rethrow;
             }
-            await widget.accounts.secureWithEmail(email);
+            await widget.accounts.secureWithEmail(email, name: name);
             _signIn = false;
           }
         } else {
           try {
-            await widget.accounts.secureWithEmail(email);
+            await widget.accounts.secureWithEmail(email, name: name);
           } on AuthException catch (error) {
             // The address has an account already. On the welcome page the
             // guest has nothing to lose yet, so sign into that account.
@@ -315,6 +344,19 @@ class _AccountPanelState extends State<AccountPanel> {
       }, style: dim),
       const SizedBox(height: 10),
       if (_step == _Step.idle) ...[
+        if (!_signIn) ...[
+          TextField(
+            controller: _name,
+            maxLength: 16,
+            autofillHints: const [AutofillHints.username],
+            decoration: const InputDecoration(
+              labelText: 'RUFNAME',
+              helperText:
+                  'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+            ),
+          ),
+          const SizedBox(height: 4),
+        ],
         TextField(
           controller: _email,
           keyboardType: TextInputType.emailAddress,
