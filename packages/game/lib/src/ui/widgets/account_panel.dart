@@ -247,44 +247,58 @@ class _AccountPanelState extends State<AccountPanel> {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Row(
-                  children: [
-                    Icon(
-                      guest ? Icons.person_outline : Icons.verified_user,
-                      size: 18,
-                      color: guest ? BwColors.textDim : BwColors.amber,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        guest
-                            ? 'KONTO: GAST'
-                            : 'KONTO: ${widget.accounts.email ?? 'VERKNÜPFT'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (guest)
-                      TextButton(
-                        onPressed: () => setState(() => _open = !_open),
-                        child: Text(
-                          _open ? 'SCHLIESSEN' : 'SICHERN / ANMELDEN',
-                        ),
-                      )
-                    else
-                      TextButton(
-                        onPressed: _busy
-                            ? null
-                            : () => _run(
-                                widget.accounts.signOut,
-                                'Abgemeldet, du spielst jetzt als Gast.',
+                // The status and its button share a line when they fit,
+                // narrow screens put the button below instead of cutting
+                // the status short.
+                SizedBox(
+                  width: double.infinity,
+                  child: Wrap(
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.spaceBetween,
+                    spacing: 8,
+                    children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            guest ? Icons.person_outline : Icons.verified_user,
+                            size: 18,
+                            color: guest ? BwColors.textDim : BwColors.amber,
+                          ),
+                          const SizedBox(width: 8),
+                          Flexible(
+                            child: Text(
+                              guest
+                                  ? 'KONTO: GAST'
+                                  : 'KONTO: ${widget.accounts.email ?? 'VERKNÜPFT'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: 1,
                               ),
-                        child: const Text('ABMELDEN'),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
+                      if (guest)
+                        TextButton(
+                          onPressed: () => setState(() => _open = !_open),
+                          child: Text(
+                            _open ? 'SCHLIESSEN' : 'SICHERN / ANMELDEN',
+                          ),
+                        )
+                      else
+                        TextButton(
+                          onPressed: _busy
+                              ? null
+                              : () => _run(
+                                  widget.accounts.signOut,
+                                  'Abgemeldet, du spielst jetzt als Gast.',
+                                ),
+                          child: const Text('ABMELDEN'),
+                        ),
+                    ],
+                  ),
                 ),
                 if (guest && _open) ..._guest(context),
                 ..._status(),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../game/components/storm_zone.dart';
@@ -19,6 +20,7 @@ import 'widgets/mini_map.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
 import 'widgets/touch_controls.dart';
+import 'widgets/vitals_plate.dart';
 
 class HudOverlay extends StatefulWidget {
   const HudOverlay({required this.game, super.key});
@@ -28,6 +30,10 @@ class HudOverlay extends StatefulWidget {
   @override
   State<HudOverlay> createState() => _HudOverlayState();
 }
+
+/// Narrower than this the phone is held upright and the HUD stacks down the
+/// left side instead of spreading along the top.
+const _uprightWidth = 560.0;
 
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
@@ -88,6 +94,15 @@ class _HudOverlayState extends State<HudOverlay> {
     return compact ? 'Welle läuft' : 'Welle läuft: Haltet die Straße';
   }
 
+  /// Wave, enemies and comrades in one short line, for the phone panel.
+  String _waveCounts() {
+    final game = widget.game;
+    final round = game.round;
+    final allies = round == null ? 0 : round.alive.where(round.isAlly).length;
+    return 'WELLE ${game.defense.value?.wave ?? 0}/${GameConfig.defenseWaves}'
+        ' · FEINDE ${game.enemiesOnField} · KAM. $allies';
+  }
+
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
@@ -125,7 +140,12 @@ class _HudOverlayState extends State<HudOverlay> {
             ),
           ),
           if (game.round?.defense ?? false)
-            _DefensePanel(game: game, touch: touch),
+            _DefensePanel(
+              game: game,
+              touch: touch,
+              counts: touch ? _waveCounts() : '',
+              waveLabel: touch ? _waveLabel(compact: true) : '',
+            ),
         ],
       ),
     );
@@ -177,72 +197,94 @@ class _HudOverlayState extends State<HudOverlay> {
   Widget _compact(SpaceGame game) {
     return SafeArea(
       minimum: const EdgeInsets.all(8),
-      child: Stack(
-        children: [
-          Align(
-            alignment: Alignment.topLeft,
-            child: IgnorePointer(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: game.hpNotifier,
-                    builder: (context, hp, _) =>
-                        HealthBar(hp: hp, maxHp: game.myMaxHp, compact: true),
-                  ),
-                  const SizedBox(height: 4),
-                  _ammo(game, compact: true),
-                  KillFeedView(feed: game.killFeed, compact: true),
-                ],
-              ),
-            ),
-          ),
-          Align(
-            alignment: Alignment.topCenter,
-            child: MiniMap(game: game, size: 88),
-          ),
-          Align(
-            alignment: Alignment.topRight,
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                IgnorePointer(
-                  child: Panel(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 5,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // Upright phones lack the width for three plates in a row, so the
+          // map moves under the gauges on the left.
+          final upright = constraints.maxWidth < _uprightWidth;
+          final map = MiniMap(game: game, size: upright ? 104 : 112);
+          return Stack(
+            children: [
+              Align(
+                alignment: Alignment.topLeft,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IgnorePointer(
+                      child: ListenableBuilder(
+                        listenable: Listenable.merge([
+                          game.hpNotifier,
+                          game.ammoNotifier,
+                          game.fuelNotifier,
+                        ]),
+                        builder: (context, _) => VitalsPlate(
+                          hp: game.hpNotifier.value,
+                          maxHp: game.myMaxHp,
+                          ammo: game.ammoNotifier.value,
+                          maxAmmo: game.myMagazine,
+                          endless: game.endlessAmmo,
+                          fuel: game.usesFuel ? game.fuelNotifier.value : null,
+                        ),
+                      ),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _alive(game, 11),
-                        const SizedBox(height: 2),
-                        Text(
-                          _zoneLabel(compact: true),
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: BwColors.amber,
+                    if (upright) ...[
+                      const SizedBox(height: 6),
+                      IgnorePointer(child: map),
+                      const MuteButton(),
+                    ],
+                    IgnorePointer(
+                      child: KillFeedView(feed: game.killFeed, compact: true),
+                    ),
+                  ],
+                ),
+              ),
+              if (!upright) Align(alignment: Alignment.topCenter, child: map),
+              Align(
+                alignment: Alignment.topRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // A defense round shows the waves in its own panel.
+                    if (!(game.round?.defense ?? false))
+                      IgnorePointer(
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _alive(game, 11),
+                              const SizedBox(height: 2),
+                              Text(
+                                _zoneLabel(compact: true),
+                                style: const TextStyle(
+                                  fontSize: 10,
+                                  color: BwColors.amber,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      ),
+                    if (!upright) const MuteButton(),
+                  ],
                 ),
-                const MuteButton(),
-              ],
-            ),
-          ),
-        ],
+              ),
+            ],
+          );
+        },
       ),
     );
   }
 
   /// Shells, and below them the fuel from the middle level on. The easy
   /// level hides the fuel and never runs out of shells.
-  Widget _ammo(SpaceGame game, {bool compact = false}) {
+  Widget _ammo(SpaceGame game) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -252,16 +294,14 @@ class _HudOverlayState extends State<HudOverlay> {
           builder: (context, ammo, _) => AmmoGauge(
             ammo: ammo,
             maxAmmo: game.myMagazine,
-            compact: compact,
             endless: game.endlessAmmo,
           ),
         ),
         if (game.usesFuel) ...[
-          SizedBox(height: compact ? 3 : 6),
+          const SizedBox(height: 6),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
-            builder: (context, fuel, _) =>
-                FuelGauge(fuel: fuel, compact: compact),
+            builder: (context, fuel, _) => FuelGauge(fuel: fuel),
           ),
         ],
       ],
@@ -439,10 +479,20 @@ class _HudOverlayState extends State<HudOverlay> {
 /// gun where the tank stands or upgrade the one next to it, and the
 /// upgrades for the tank.
 class _DefensePanel extends StatefulWidget {
-  const _DefensePanel({required this.game, required this.touch});
+  const _DefensePanel({
+    required this.game,
+    required this.touch,
+    required this.counts,
+    required this.waveLabel,
+  });
 
   final SpaceGame game;
   final bool touch;
+
+  /// Phones only: the wave line and the countdown, which there have no plate
+  /// of their own.
+  final String counts;
+  final String waveLabel;
 
   @override
   State<_DefensePanel> createState() => _DefensePanelState();
@@ -640,7 +690,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         final hp = state?.hp ?? GameConfig.baseHp;
         final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
         final bar = SizedBox(
-          width: touch ? 90 : 200,
+          width: touch ? 70 : 200,
           height: touch ? 6 : 8,
           child: LinearProgressIndicator(
             value: ratio,
@@ -650,7 +700,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         );
         final label = Text(
           touch
-              ? 'STÜTZPUNKT ${hp.ceil()}'
+              ? '${hp.ceil()}'
               : 'STÜTZPUNKT · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
           style: TextStyle(
             fontSize: touch ? 10 : 12,
@@ -660,7 +710,21 @@ class _DefensePanelState extends State<_DefensePanel> {
         if (touch) {
           return Row(
             mainAxisSize: MainAxisSize.min,
-            children: [label, const SizedBox(width: 8), bar],
+            children: [
+              Tooltip(
+                message: 'Stützpunkt · ${GameConfig.hqName(hq)}',
+                child: const Icon(Icons.flag, size: 12, color: BwColors.sand),
+              ),
+              const SizedBox(width: 4),
+              bar,
+              const SizedBox(width: 6),
+              label,
+              const SizedBox(width: 10),
+              Text(
+                widget.waveLabel,
+                style: const TextStyle(fontSize: 10, color: BwColors.amber),
+              ),
+            ],
           );
         }
         return Column(
@@ -684,8 +748,15 @@ class _DefensePanelState extends State<_DefensePanel> {
             ? CrossAxisAlignment.end
             : CrossAxisAlignment.start,
         children: [
+          if (touch) ...[
+            Text(
+              widget.counts,
+              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 3),
+          ],
           _base(),
-          SizedBox(height: touch ? 6 : 8),
+          SizedBox(height: touch ? 5 : 8),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.credits,
@@ -704,11 +775,19 @@ class _DefensePanelState extends State<_DefensePanel> {
     return SafeArea(
       minimum: const EdgeInsets.all(8),
       child: Align(
-        // Phones: below the plate with the waves, clear of both thumbs.
         alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
         child: Padding(
+          // Phones: in the top right corner.
+          // Room for the mute button, which only the browser shows and
+          // upright under the gauges.
           padding: touch
-              ? const EdgeInsets.only(top: 50)
+              ? EdgeInsets.only(
+                  right:
+                      kIsWeb &&
+                          MediaQuery.sizeOf(context).width >= _uprightWidth
+                      ? 44
+                      : 0,
+                )
               : const EdgeInsets.all(8),
           child: _HudButtons(game: game, child: panel),
         ),

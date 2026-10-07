@@ -16,8 +16,10 @@ Future<void> main() async {
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
-    // The arena is 16:9, so phones play in landscape without system bars.
+    // Phones play upright or sideways, without system bars. The camera
+    // shows the same stretch of the world along the shorter side either way.
     await SystemChrome.setPreferredOrientations(const [
+      DeviceOrientation.portraitUp,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);

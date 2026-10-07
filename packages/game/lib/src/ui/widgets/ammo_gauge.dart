@@ -10,7 +10,6 @@ class AmmoGauge extends StatelessWidget {
   const AmmoGauge({
     required this.ammo,
     required this.maxAmmo,
-    this.compact = false,
     this.endless = false,
     super.key,
   });
@@ -20,9 +19,6 @@ class AmmoGauge extends StatelessWidget {
 
   /// The easy level: shells never run out.
   final bool endless;
-
-  /// Smaller plate for phones held sideways.
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -40,18 +36,16 @@ class AmmoGauge extends StatelessWidget {
         ? BwColors.amber
         : const Color(0xFF4FC3F7);
     return SizedBox(
-      width: compact ? 130 : 220,
+      width: 220,
       child: Panel(
-        padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(Icons.inventory_2, size: compact ? 11 : 16, color: color),
+                Icon(Icons.inventory_2, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   endless
@@ -61,16 +55,16 @@ class AmmoGauge extends StatelessWidget {
                       : 'MUNITION $ammo/$maxAmmo',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: compact ? 10 : null,
+
                     color: ammo == 0 && !endless ? BwColors.danger : null,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 2 : 6),
+            const SizedBox(height: 6),
             LinearProgressIndicator(
               value: ratio,
-              minHeight: compact ? 4 : 7,
+              minHeight: 7,
               backgroundColor: Colors.black38,
               color: color,
             ),
@@ -83,11 +77,10 @@ class AmmoGauge extends StatelessWidget {
 
 /// Fuel left in the tank, warning once it runs low.
 class FuelGauge extends StatelessWidget {
-  const FuelGauge({required this.fuel, this.compact = false, super.key});
+  const FuelGauge({required this.fuel, super.key});
 
   /// Share of a full tank, 0 to 1.
   final double fuel;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -98,22 +91,16 @@ class FuelGauge extends StatelessWidget {
         ? BwColors.amber
         : const Color(0xFFFF9100);
     return SizedBox(
-      width: compact ? 130 : 220,
+      width: 220,
       child: Panel(
-        padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.local_gas_station,
-                  size: compact ? 11 : 16,
-                  color: color,
-                ),
+                Icon(Icons.local_gas_station, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   fuel <= 0
@@ -121,16 +108,16 @@ class FuelGauge extends StatelessWidget {
                       : 'TREIBSTOFF ${(fuel * 100).ceil()} %',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: compact ? 10 : null,
+
                     color: fuel <= 0 ? BwColors.danger : null,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 2 : 6),
+            const SizedBox(height: 6),
             LinearProgressIndicator(
               value: fuel.clamp(0.0, 1.0),
-              minHeight: compact ? 4 : 7,
+              minHeight: 7,
               backgroundColor: Colors.black38,
               color: color,
             ),

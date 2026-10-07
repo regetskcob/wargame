@@ -54,8 +54,8 @@ class _KillFeedViewState extends State<KillFeedView> {
             for (final e in entries)
               if (now.difference(e.at) < _lifetime) e,
           ];
-          if (widget.compact && live.length > 3) {
-            live = live.sublist(live.length - 3);
+          if (widget.compact && live.length > 2) {
+            live = live.sublist(live.length - 2);
           }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

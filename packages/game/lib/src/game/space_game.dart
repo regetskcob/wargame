@@ -3690,11 +3690,23 @@ class SpaceGame extends FlameGame
   /// same stretch of the world, the longer side simply shows more, so the map
   /// fills the whole window without black bars. A defense round looks from
   /// further up, to keep the road and the guns in view.
-  double get viewScale =>
-      min(canvasSize.x, canvasSize.y) /
-      (defenseMap != null
-          ? GameConfig.defenseViewShortSide
-          : GameConfig.viewShortSide);
+  ///
+  /// The defense field is wider than tall. On an upright phone the short
+  /// side alone would show the whole field small with empty space above and
+  /// below, so there the field's height fills the screen instead and the
+  /// camera follows the tank sideways.
+  double get viewScale {
+    final short = min(canvasSize.x, canvasSize.y);
+    if (defenseMap == null) {
+      return short / GameConfig.viewShortSide;
+    }
+    return max(
+      short / GameConfig.defenseViewShortSide,
+      canvasSize.y / (DefenseMap.halfHeight * 2 + _defenseMargin * 2),
+    );
+  }
+
+  static const _defenseMargin = 60.0;
 
   @override
   void onGameResize(Vector2 size) {
@@ -3712,7 +3724,7 @@ class SpaceGame extends FlameGame
       camera.setBounds(null);
       return;
     }
-    const margin = 60.0;
+    const margin = _defenseMargin;
     final dx = max(
       1.0,
       DefenseMap.halfWidth + margin - canvasSize.x / 2 / scale,

@@ -14,6 +14,26 @@ class _NativeAudioBackend implements AudioBackend {
 
   @override
   Future<void> load(Map<String, Uint8List> files) async {
+    try {
+      // The app has no mute button of its own: the sounds follow the silent
+      // switch of the phone and play along with music from other apps.
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          // Ambient: silenced by the switch, mixes with other apps.
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.ambient,
+            options: const {},
+          ),
+          android: const AudioContextAndroid(
+            contentType: AndroidContentType.sonification,
+            usageType: AndroidUsageType.game,
+            audioFocus: AndroidAudioFocus.none,
+          ),
+        ),
+      );
+    } on Object catch (error) {
+      debugPrint('Audio context failed: $error');
+    }
     files.forEach((name, bytes) {
       _sources[name] = BytesSource(bytes, mimeType: 'audio/wav');
     });

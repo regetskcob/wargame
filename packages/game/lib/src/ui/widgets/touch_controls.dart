@@ -36,7 +36,13 @@ class TouchControls extends StatelessWidget {
           final height = constraints.maxHeight;
           final stick = (min(width, height) * 0.36).clamp(112.0, 160.0);
           // The top third stays free for the HUD, the middle for the view.
-          final zoneTop = height * 0.3;
+          // Upright phones have the height to spare and keep more of it.
+          final upright = height > width;
+          final zoneTop = height * (upright ? 0.4 : 0.3);
+          // The buttons sit just above the aim stick, in reach of the right
+          // thumb and clear of the plates along the top, which in a defense
+          // round fold out over the upper right corner.
+          final buttonTop = max(zoneTop, height - stick - 84);
           final zoneWidth = width * 0.44;
           return Stack(
             children: [
@@ -78,12 +84,12 @@ class TouchControls extends StatelessWidget {
               ),
               Positioned(
                 right: 84,
-                top: max(0, zoneTop - 76),
+                top: buttonTop,
                 child: _AssistToggle(input: input),
               ),
               Positioned(
                 right: 8,
-                top: max(0, zoneTop - 76),
+                top: buttonTop,
                 child: ValueListenableBuilder<(SpecialWeapon, int)?>(
                   valueListenable: special,
                   builder: (context, loadout, _) => loadout == null

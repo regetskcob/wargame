@@ -254,8 +254,12 @@ separate rooms to stay under the Realtime message limits.
 
 `packages/game` carries `ios/` and `android/` next to `macos/` and `web/`. The
 app id is `de.regetskcob.game`, the display name is Panzergefecht. On phones
-and tablets the game locks to landscape (the arena is 16:9), hides the system
-bars, and shows the on-screen touch controls. Android has the `INTERNET`
+and tablets the game plays upright or sideways, hides the system bars, and
+shows the on-screen touch controls. The camera shows the same stretch of the
+world along the shorter side, so upright shows more of the field above and
+below; in a defense round the field's height fills an upright screen. The
+apps have no mute button: the sounds follow the silent switch and the volume
+keys, and mix with music from other apps. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see

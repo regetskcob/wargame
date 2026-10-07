@@ -4,54 +4,37 @@ import '../../theme.dart';
 import 'panel.dart';
 
 class HealthBar extends StatelessWidget {
-  const HealthBar({
-    required this.hp,
-    required this.maxHp,
-    this.compact = false,
-    super.key,
-  });
+  const HealthBar({required this.hp, required this.maxHp, super.key});
 
   final double hp;
   final double maxHp;
-
-  /// Smaller plate for phones held sideways.
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final ratio = (hp / maxHp).clamp(0.0, 1.0);
     final color = ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger;
     return SizedBox(
-      width: compact ? 130 : 220,
+      width: 220,
       child: Panel(
-        padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
-            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(
-                  Icons.health_and_safety,
-                  size: compact ? 11 : 16,
-                  color: color,
-                ),
+                Icon(Icons.health_and_safety, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: compact ? 10 : null,
-                  ),
+                  style: TextStyle(fontWeight: FontWeight.w800),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 2 : 6),
+            const SizedBox(height: 6),
             LinearProgressIndicator(
               value: ratio,
-              minHeight: compact ? 5 : 10,
+              minHeight: 10,
               backgroundColor: Colors.black38,
               color: color,
             ),

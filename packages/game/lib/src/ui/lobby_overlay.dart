@@ -170,7 +170,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               GameMode.defense =>
                 'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
                     'zweiten Welle auch aus der Luft. Abschüsse bringen '
-                    'Mittel für Geschütze (B) und Upgrades.',
+                    'Mittel für Geschütze${game.touchMode.value ? '' : ' (B)'} '
+                    'und Upgrades.',
             }),
             if (mode == GameMode.multi &&
                 roomLink(game.net.room).isNotEmpty) ...[
@@ -697,8 +698,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           child: LayoutBuilder(
             builder: (context, constraints) {
               final narrow = constraints.maxWidth < 820;
+              final page = !widget.game.welcomed.value
+                  ? 0
+                  : widget.game.choosingMode.value && widget.game.isHost.value
+                  ? 1
+                  : 2;
               return Center(
                 child: SingleChildScrollView(
+                  // A fresh scroll position per page, so the waiting room
+                  // opens at its top and not where the start page was left.
+                  key: ValueKey(page),
                   padding: EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1040),

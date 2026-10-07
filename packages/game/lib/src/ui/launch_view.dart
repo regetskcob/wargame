@@ -23,9 +23,9 @@ class LaunchView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
+        LayoutBuilder(
+          builder: (context, box) {
+            final title = Expanded(
               child: FittedBox(
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
@@ -35,11 +35,28 @@ class LaunchView extends StatelessWidget {
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
               ),
-            ),
-            const SizedBox(width: 12),
-            _CallSign(game: game),
-            const MuteButton(),
-          ],
+            );
+            // Upright phones: the call sign gets a line of its own instead
+            // of squeezing the title.
+            if (box.maxWidth < 480) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(children: [title, const MuteButton()]),
+                  const SizedBox(height: 8),
+                  _CallSign(game: game),
+                ],
+              );
+            }
+            return Row(
+              children: [
+                title,
+                const SizedBox(width: 12),
+                _CallSign(game: game),
+                const MuteButton(),
+              ],
+            );
+          },
         ),
         const SizedBox(height: 4),
         Wrap(
