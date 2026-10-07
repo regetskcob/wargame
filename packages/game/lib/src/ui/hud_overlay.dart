@@ -568,14 +568,15 @@ class _DefensePanel extends StatelessWidget {
           ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
             builder: (context, state, _) {
+              final hq = state?.hq ?? 1;
               final hp = state?.hp ?? GameConfig.baseHp;
-              final ratio = (hp / GameConfig.baseHp).clamp(0.0, 1.0);
+              final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'STÜTZPUNKT  ${hp.ceil()}',
+                    'STÜTZPUNKT · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
                     style: const TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,

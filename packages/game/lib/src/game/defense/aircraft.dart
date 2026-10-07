@@ -201,7 +201,9 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     _think -= dt;
     if (_think <= 0) {
       _think = 0.4;
-      _prey = gameRef.nearestDefender(position, 480);
+      _prey =
+          gameRef.nearestDefender(position, 480) ??
+          gameRef.nearestTower(position, 480);
       if (gameRef.random.nextDouble() < 0.1) {
         _strafe = -_strafe;
       }
@@ -341,13 +343,16 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     final shadow = kind == AirKind.jet
         ? const Offset(34, 46)
         : const Offset(16, 24);
+    // The component itself is already turned to its heading, so the nose
+    // of the shape points where it flies. The shadow falls the same way on
+    // the ground whatever the heading, so it is offset in screen terms.
     canvas.save();
+    canvas.rotate(-angle);
     canvas.translate(shadow.dx, shadow.dy);
     canvas.rotate(angle);
     canvas.scale(kind == AirKind.helicopter ? 1.05 : 0.8);
     _shape(canvas, Paint()..color = const Color(0x3A000000), shadow: true);
     canvas.restore();
-    canvas.rotate(angle);
     if (kind == AirKind.helicopter) {
       canvas.scale(1.3);
     }
@@ -361,12 +366,17 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     canvas.restore();
     final ratio = (hp / kind.maxHp).clamp(0.0, 1.0);
     if (ratio < 1) {
-      final bar = Rect.fromLTWH(c.dx - 18, size.y + 4, 36, 4);
+      // Hit points under it, whichever way it flies.
+      canvas.save();
+      canvas.translate(c.dx, c.dy);
+      canvas.rotate(-angle);
+      final bar = Rect.fromLTWH(-18, size.y / 2 + 4, 36, 4);
       canvas.drawRect(bar, Paint()..color = const Color(0x88000000));
       canvas.drawRect(
         Rect.fromLTWH(bar.left, bar.top, bar.width * ratio, bar.height),
         Paint()..color = GameConfig.teamColors[side],
       );
+      canvas.restore();
     }
   }
 

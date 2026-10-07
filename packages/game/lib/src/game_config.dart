@@ -89,6 +89,29 @@ class GameConfig {
   /// Defense: the base, the waves and the guns the players put down.
   static const defenseWaves = 8;
   static const baseHp = 1500.0;
+
+  /// The base grows from a watchtower to barracks to a fortress after waves
+  /// beaten off while losing at most [hqCleanLoss] of its hit points. Each
+  /// step adds hit points, a comrade, room for two more guns and a gun on
+  /// the base itself.
+  static const hqNames = ['WACHTURM', 'KASERNE', 'FESTUNG'];
+  static const hqCleanWaves = [0, 2, 4];
+  static const hqCleanLoss = 0.15;
+  static const hqHpStep = 500.0;
+  static const hqTowerStep = 2;
+
+  static int hqLevelFor(int cleanWaves) {
+    var level = 1;
+    for (var i = 1; i < hqCleanWaves.length; i++) {
+      if (cleanWaves >= hqCleanWaves[i]) {
+        level = i + 1;
+      }
+    }
+    return level;
+  }
+
+  static double baseMaxHp(int hq) => baseHp + hqHpStep * (hq - 1);
+  static String hqName(int hq) => hqNames[(hq - 1).clamp(0, 2)];
   static const raidDamage = 120.0;
   static const firstWaveSeconds = 8;
   static const waveBreakSeconds = 12;
@@ -105,6 +128,9 @@ class GameConfig {
   static const defenseSquad = 4;
   static const allyRespawnSeconds = 10.0;
   static const allyRange = 440.0;
+
+  /// How far the touch aim assist looks for a target.
+  static const assistRange = 420.0;
 
   /// The base's own aircraft: a helicopter every wave from [supportFromWave]
   /// on, a bombing jet as well from [supportJetFromWave], some seconds into

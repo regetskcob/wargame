@@ -208,15 +208,26 @@ class PlayerShip extends ShipBase
   /// Tracks drive along the hull, so the tank never slides sideways: the
   /// velocity vector is always derived from the heading and [_speed].
   void _integrate(double dt) {
-    final thrusting = _thrust || input.thrust;
-    final braking = _brake || input.brake;
+    var thrusting = _thrust || input.thrust;
+    var braking = _brake || input.brake;
     var turn =
-        ((_right || input.right) ? 1 : 0) - ((_left || input.left) ? 1 : 0);
+        (((_right || input.right) ? 1 : 0) - ((_left || input.left) ? 1 : 0))
+            .toDouble();
     // Steering follows the direction of travel: in reverse, left swings the
     // rear to the left like a car would. Bots steer by heading, so not them.
     final reversing = _speed < 0 || (_speed == 0 && braking && !thrusting);
     if (reversing && !isBot) {
       turn = -turn;
+    }
+    // The touch drive stick points where to go: turn that way, and roll once
+    // the hull roughly faces it.
+    final drive = isBot ? null : input.drive;
+    if (drive != null) {
+      final (dx, dy) = drive;
+      final diff = (atan2(dx, -dy) - angle).toNormalizedAngle();
+      turn = (diff * 2.5).clamp(-1.0, 1.0);
+      thrusting = sqrt(dx * dx + dy * dy) > 0.3 && diff.abs() < 1.0;
+      braking = false;
     }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
@@ -394,9 +405,19 @@ class PlayerShip extends ShipBase
     final keys = (_turretRight ? 1 : 0) - (_turretLeft ? 1 : 0);
     double? target;
     final stick = input.aim;
-    if (stick != null) {
+    var assisted = false;
+    if (!isBot && input.assist && !input.aimHeld) {
+      final prey = gameRef.assistTarget(this);
+      if (prey != null) {
+        final flight = prey.position.distanceTo(position) / stats.bulletSpeed;
+        final lead = prey.position + gameRef.velocityOfTarget(prey) * flight;
+        target = atan2(lead.x - position.x, -(lead.y - position.y));
+        assisted = true;
+      }
+    }
+    if (!assisted && stick != null) {
       target = stick;
-    } else if (!isBot) {
+    } else if (!assisted && !isBot) {
       final point = gameRef.pointerWorld();
       // Inside the hull the angle to the cursor flips wildly: hold still.
       if (point != null && point.distanceTo(position) > 30) {
@@ -414,6 +435,12 @@ class PlayerShip extends ShipBase
           : diff.clamp(-turretSpeed * dt, turretSpeed * dt);
     } else if (!_aimed) {
       turretAngle = angle;
+    }
+    if (!isBot) {
+      input.assistFire =
+          assisted &&
+          target != null &&
+          (target - turretAngle).toNormalizedAngle().abs() < 0.1;
     }
   }
 
@@ -439,7 +466,8 @@ class PlayerShip extends ShipBase
         gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
       }
     }
-    if ((_fire || input.fire || input.aimFire) && _fireCooldown <= 0) {
+    if ((_fire || input.fire || input.aimFire || input.assistFire) &&
+        _fireCooldown <= 0) {
       if (ammo <= 0 && !endlessAmmo) {
         // Dry click, and a reminder that the magazine is empty.
         _fireCooldown = 0.5;

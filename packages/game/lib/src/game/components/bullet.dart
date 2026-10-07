@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../../game_config.dart';
 import '../defense/aircraft.dart';
+import '../defense/tower.dart';
 import '../defense/defense_field.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
@@ -81,6 +82,15 @@ class Bullet extends PositionComponent
         gameRef.runOver(other, ownerId);
       }
       removeFromParent();
+    } else if (other is Tower) {
+      // Enemy shells wear the guns down, the defenders shoot over them.
+      if (gameRef.round?.isEnemy(ownerId) ?? false) {
+        _impact(const Color(0xFF8A8A80));
+        if (gameRef.runsShooter(ownerId)) {
+          gameRef.damageTower(other, damage);
+        }
+        removeFromParent();
+      }
     } else if (other is Aircraft) {
       // Aircraft only stop the shells of the other side.
       if (other.damageFrom(this) > 0 && other.takeHit(this)) {
