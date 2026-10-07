@@ -12,11 +12,11 @@ class Starfield extends PositionComponent {
   Starfield([this.theme = MapTheme.forest]) : super(priority: -20) {
     final random = Random(7);
     _patches = [
-      for (var i = 0; i < 160; i++)
+      for (var i = 0; i < 480; i++)
         (
           Offset(
-            (random.nextDouble() * 2 - 1) * GameConfig.worldRadius * 1.6,
-            (random.nextDouble() * 2 - 1) * GameConfig.worldRadius * 1.6,
+            (random.nextDouble() * 2 - 1) * GameConfig.groundReach,
+            (random.nextDouble() * 2 - 1) * GameConfig.groundReach,
           ),
           30 + random.nextDouble() * 90,
           theme.patches[random.nextInt(theme.patches.length)].withValues(
@@ -31,7 +31,7 @@ class Starfield extends PositionComponent {
 
   @override
   void render(Canvas canvas) {
-    const reach = GameConfig.worldRadius * 1.6;
+    const reach = GameConfig.groundReach;
     canvas.drawRect(
       Rect.fromCircle(center: Offset.zero, radius: reach),
       Paint()..color = theme.ground,

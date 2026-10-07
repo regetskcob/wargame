@@ -51,13 +51,8 @@ class _IndicatorPainter extends CustomPainter {
     if (game.phase.value != GamePhase.playing || me == null) {
       return;
     }
-    // The game always shows 960 x 540 world units, scaled to fit.
-    final scale = min(size.width / 960, size.height / 540);
-    final view = Rect.fromCenter(
-      center: size.center(Offset.zero),
-      width: 960 * scale,
-      height: 540 * scale,
-    );
+    final scale = game.viewScale;
+    final view = Offset.zero & size;
     final centre = view.center;
     final inner = view.deflate(30);
     final camera = game.camera.viewfinder.position;

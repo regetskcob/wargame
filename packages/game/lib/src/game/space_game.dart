@@ -51,9 +51,7 @@ import 'round_state.dart';
 class SpaceGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
   SpaceGame({required this.net, required this.myId, required this.scoreService})
-    : super(
-        camera: CameraComponent.withFixedResolution(width: 960, height: 540),
-      );
+    : super(camera: CameraComponent());
 
   final NetService net;
   final String myId;
@@ -733,15 +731,26 @@ class SpaceGame extends FlameGame
     _checkRoundEnd();
   }
 
-  /// World position the mouse points at, from the fixed 960 x 540 viewport.
+  /// Pixels per world unit. The shorter side of the window always shows the
+  /// same stretch of the world, the longer side simply shows more, so the map
+  /// fills the whole window without black bars.
+  double get viewScale =>
+      min(canvasSize.x, canvasSize.y) / GameConfig.viewShortSide;
+
+  @override
+  void onGameResize(Vector2 size) {
+    super.onGameResize(size);
+    camera.viewfinder.zoom = viewScale;
+  }
+
+  /// World position the mouse points at.
   Vector2? pointerWorld() {
     final screen = pointer;
     final canvas = canvasSize;
     if (screen == null || canvas.x <= 0 || canvas.y <= 0) {
       return null;
     }
-    final scale = min(canvas.x / 960, canvas.y / 540);
-    return camera.viewfinder.position + (screen - canvas / 2) / scale;
+    return camera.viewfinder.position + (screen - canvas / 2) / viewScale;
   }
 
   /// Applies a shell hit to a building or barrier and tells the other players.

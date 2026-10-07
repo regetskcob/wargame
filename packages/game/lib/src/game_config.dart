@@ -5,6 +5,13 @@ import 'game/components/tank_painter.dart';
 class GameConfig {
   static const worldRadius = 900.0;
 
+  /// World units that fit along the shorter side of the window.
+  static const viewShortSide = 720.0;
+
+  /// How far the ground and the danger zone are drawn from the middle, far
+  /// enough that a wide window never shows the void.
+  static const groundReach = worldRadius * 2.8;
+
   static const shipMaxSpeed = 240.0;
   static const shipAcceleration = 1000.0;
   static const shipBrake = 2000.0;

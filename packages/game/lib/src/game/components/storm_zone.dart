@@ -27,7 +27,7 @@ class StormZone extends PositionComponent {
   @override
   void render(Canvas canvas) {
     final safeRadius = radius;
-    final outer = GameConfig.worldRadius * 1.6;
+    final outer = GameConfig.groundReach;
     final storm = Path()
       ..fillType = PathFillType.evenOdd
       ..addRect(Rect.fromCircle(center: Offset.zero, radius: outer))
