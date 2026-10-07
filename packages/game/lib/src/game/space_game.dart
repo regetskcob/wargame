@@ -509,22 +509,35 @@ class SpaceGame extends FlameGame
   }
 
   /// New players get the tutorial once they are past the welcome page.
+  /// The welcome page may sign into an account, so the account is asked
+  /// only once the player is past it.
   void _offerTutorial() {
-    if (tutorialSeen()) {
-      return;
-    }
     if (welcomed.value) {
-      showTutorial();
+      if (!_tutorialSeen()) {
+        showTutorial();
+      }
       return;
     }
     void onWelcomed() {
       if (welcomed.value) {
         welcomed.removeListener(onWelcomed);
-        showTutorial();
+        if (!_tutorialSeen()) {
+          showTutorial();
+        }
       }
     }
 
     welcomed.addListener(onWelcomed);
+  }
+
+  /// Seen in this browser, or on the account for the current controls. A
+  /// browser that saw it before accounts kept the marker hands it on.
+  bool _tutorialSeen() {
+    if (tutorialSeen()) {
+      unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
+      return true;
+    }
+    return accounts.tutorialSeen(touch: touchMode.value);
   }
 
   /// Opens the tutorial over everything else. The start page and the
@@ -538,6 +551,7 @@ class SpaceGame extends FlameGame
   /// Closes the tutorial for good: it no longer opens by itself.
   void closeTutorial() {
     rememberTutorialSeen();
+    unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
     overlays.remove(OverlayIds.tutorial);
   }
 

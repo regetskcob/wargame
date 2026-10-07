@@ -54,8 +54,13 @@ class _LeaderboardState extends State<Leaderboard> {
     _vehicles = widget.game.scoreService.myTankScores();
   }
 
-  /// Rating first, then wins, kills and damage break ties.
+  /// Pilots with a rated round first, then rating, then wins, kills and
+  /// damage break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
+    final byRated = _rated(b).compareTo(_rated(a));
+    if (byRated != 0) {
+      return byRated;
+    }
     final byRating = b.rating.compareTo(a.rating);
     if (byRating != 0) {
       return byRating;
@@ -67,6 +72,9 @@ class _LeaderboardState extends State<Leaderboard> {
     final byKills = b.kills.compareTo(a.kills);
     return byKills != 0 ? byKills : b.damage.compareTo(a.damage);
   }
+
+  /// Without a rated opponent yet the rating is only the starting value.
+  static int _rated(ScoresRow row) => row.ratedRounds > 0 ? 1 : 0;
 
   static String _time(int seconds) =>
       '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
@@ -358,7 +366,7 @@ class _LeaderboardState extends State<Leaderboard> {
           ),
         ),
         _cell(row.name, style: base, align: TextAlign.left),
-        _cell('${row.rating}', style: base),
+        _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.rounds}', style: base),
         _cell('${row.kills}', style: base),

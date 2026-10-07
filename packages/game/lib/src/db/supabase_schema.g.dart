@@ -304,6 +304,9 @@ extension type const ScoresRow(Map<String, dynamic> _json) implements Object {
   int get rating => _json['rating'] as int? ?? 1000;
   int get xp => _json['xp'] as int? ?? 0;
 
+  /// Rounds with at least one rated opponent
+  int get ratedRounds => _json['rated_rounds'] as int? ?? 0;
+
   /// The row as decoded from the response.
   Map<String, dynamic> toJson() => _json;
 }
@@ -328,6 +331,7 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
     int? survivalSeconds,
     int? rating,
     int? xp,
+    int? ratedRounds,
   }) : this._({
          'id': id,
          'name': name,
@@ -341,6 +345,7 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
          'survival_seconds': ?survivalSeconds,
          'rating': ?rating,
          'xp': ?xp,
+         'rated_rounds': ?ratedRounds,
        });
 }
 
@@ -362,6 +367,7 @@ extension type const ScoresUpdate._(Map<String, dynamic> _json)
     int? survivalSeconds,
     int? rating,
     int? xp,
+    int? ratedRounds,
   }) : this._({
          'id': ?id,
          'name': ?name,
@@ -375,6 +381,7 @@ extension type const ScoresUpdate._(Map<String, dynamic> _json)
          'survival_seconds': ?survivalSeconds,
          'rating': ?rating,
          'xp': ?xp,
+         'rated_rounds': ?ratedRounds,
        });
 }
 
@@ -407,6 +414,7 @@ class Scores {
   );
   static const rating = PostgrestColumn<ScoresRow, int>('rating');
   static const xp = PostgrestColumn<ScoresRow, int>('xp');
+  static const ratedRounds = PostgrestColumn<ScoresRow, int>('rated_rounds');
 }
 
 /// A row of the `tank_scores` table, as `select()` reads it with every column.
