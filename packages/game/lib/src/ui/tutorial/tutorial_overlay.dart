@@ -235,7 +235,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       children: [
         const Icon(Icons.school, color: BwColors.amber, size: 20),
         const SizedBox(width: 8),
-        const Flexible(
+        const Expanded(
           child: Text(
             'EINWEISUNG',
             overflow: TextOverflow.ellipsis,
@@ -246,7 +246,6 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ),
           ),
         ),
-        const Spacer(),
         TextButton.icon(
           onPressed: widget.onClose,
           icon: const Icon(Icons.close, size: 18),
