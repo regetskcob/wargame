@@ -305,6 +305,12 @@ class DefenseMap {
   /// The enemy for slot [n] of wave [wave]: more and heavier tanks later on.
   static TankType enemyType(int wave, int n) {
     final roll = (wave * 7 + n * 13) % 10;
+    if (wave >= 7 && roll < 2) {
+      return TankType.panther;
+    }
+    if (wave >= 4 && roll == 9) {
+      return TankType.lynx;
+    }
     if (wave >= 5 && roll < 3) {
       return TankType.leopard;
     }

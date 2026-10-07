@@ -515,9 +515,11 @@ class SpaceGame extends FlameGame
       if (profile != null) {
         myName = profile.name;
         final color = profile.style % GameConfig.shipColors.length;
-        myColorIndex = progress.unlocked(color)
-            ? profile.style % GameConfig.styleCount
-            : GameConfig.styleOf(GameConfig.typeOf(profile.style).index, 0);
+        final type = GameConfig.typeOf(profile.style);
+        myColorIndex = GameConfig.styleOf(
+          progress.vehicleUnlocked(type) ? type.index : TankType.puma.index,
+          progress.unlocked(color) ? color : 0,
+        );
       }
     } on Object {
       return;
@@ -575,7 +577,8 @@ class SpaceGame extends FlameGame
   void setPilot({required String name, required int colorIndex}) {
     myName = name.trim().isEmpty ? myName : name.trim();
     final color = colorIndex % GameConfig.shipColors.length;
-    if (progress.unlocked(color)) {
+    if (progress.unlocked(color) &&
+        progress.vehicleUnlocked(GameConfig.typeOf(colorIndex))) {
       myColorIndex = colorIndex;
     }
     unawaited(pushPresence());

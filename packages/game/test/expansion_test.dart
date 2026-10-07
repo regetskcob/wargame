@@ -1,6 +1,11 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import 'dart:ui';
+
 import 'package:game/src/game/components/power_up.dart';
+import 'package:game/src/game/components/tank_painter.dart';
+import 'package:game/src/game/tank_stats.dart';
 import 'package:game/src/game/defense/defense_map.dart';
 import 'package:game/src/game/defense/tower.dart';
 import 'package:game/src/game/inventory.dart';
@@ -294,5 +299,38 @@ void main() {
     expect(bridge.carries(Vector2(40, 10)), isTrue);
     expect(bridge.carries(Vector2(40, 30)), isFalse);
     expect(bridge.carries(Vector2(60, 0)), isFalse);
+  });
+
+  test('two Rheinmetall vehicles join, unlocked by rank', () {
+    expect(TankType.values, containsAll([TankType.lynx, TankType.panther]));
+    final free = TankType.values.where((t) => t.level == 1);
+    expect(free.length, greaterThanOrEqualTo(3));
+    expect(TankType.panther.level, greaterThan(TankType.lynx.level));
+    expect(TankType.lynx.level, greaterThan(1));
+    final panther = TankStats.of(TankType.panther);
+    final leopard = TankStats.of(TankType.leopard);
+    expect(panther.damage, greaterThan(leopard.damage));
+    expect(panther.maxHp, greaterThan(leopard.maxHp));
+    expect(TankStats.of(TankType.lynx).ammo, greaterThan(0));
+    // Old looks keep their vehicle: the new ones only add styles at the end.
+    expect(GameConfig.typeOf(GameConfig.styleOf(4, 2)), TankType.wiesel);
+    expect(GameConfig.typeOf(GameConfig.styleOf(6, 1)), TankType.panther);
+  });
+
+  test('every vehicle can be drawn, also battered and burning', () {
+    for (final type in TankType.values) {
+      final recorder = PictureRecorder();
+      paintTank(
+        Canvas(recorder),
+        48,
+        type,
+        const Color(0xFF6B7F3A),
+        turretAngle: 0.4,
+        flash: 1,
+        wear: 0.9,
+        flame: 1.5,
+      );
+      recorder.endRecording().dispose();
+    }
   });
 }

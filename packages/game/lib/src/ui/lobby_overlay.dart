@@ -65,7 +65,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   void _pick({int? type, int? color}) {
-    if (color != null && !widget.game.progress.unlocked(color)) {
+    final progress = widget.game.progress;
+    if (color != null && !progress.unlocked(color)) {
+      return;
+    }
+    if (type != null && !progress.vehicleUnlocked(TankType.values[type])) {
       return;
     }
     setState(() {
@@ -130,7 +134,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         Text('FAHRZEUG', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
         ListenableBuilder(
-          listenable: Listenable.merge([game.roster, game.mode]),
+          listenable: Listenable.merge([
+            game.roster,
+            game.mode,
+            game.progress.rank,
+          ]),
           builder: (context, _) => LayoutBuilder(
             builder: (context, box) {
               // Two or more cards per row that share the width evenly, all
@@ -150,6 +158,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       width: width.floorToDouble(),
                       color: game.lobbyColorOf(game.myId, _colorIndex),
                       selected: type == GameConfig.typeOf(_colorIndex),
+                      locked: !game.progress.vehicleUnlocked(type),
                       onTap: () => _pick(type: type.index),
                     ),
                 ],

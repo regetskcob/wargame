@@ -21,9 +21,11 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 ## What is in the game
 
-- Five vehicles (Leopard 2, Puma, Gepard, Boxer, Wiesel) with their own
-  armour, speed and gun, in four free paint schemes and four more that come
-  with higher ranks.
+- Seven vehicles (Puma, Boxer, Wiesel, Gepard, Leopard 2 and Rheinmetall's
+  Lynx KF41 and Panther KF51) with their own armour, speed and gun. Puma,
+  Boxer and Wiesel are there from the start, the others come with ranks 2,
+  3, 5 and 8. Four free paint schemes and four more that come with higher
+  ranks.
 - Four grounds, each with weather and a time of day from the round seed:
   clear, rain, snow, a sandstorm or fog, by day or at night. Night, fog and
   sand limit the view to a circle around the tank.
