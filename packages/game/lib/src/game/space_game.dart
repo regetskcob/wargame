@@ -29,6 +29,7 @@ import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/obstacle.dart';
 import 'map_theme.dart';
+import 'plausibility.dart';
 import 'components/bullet.dart';
 import 'components/explosion.dart';
 import 'components/player_ship.dart';
@@ -113,6 +114,9 @@ class SpaceGame extends FlameGame
   int myColorIndex = Random().nextInt(GameConfig.styleCount);
 
   RoundState? round;
+
+  /// Throws out what other players broadcast if their tank cannot do it.
+  late final guard = PlausibilityGuard(statsOf: _statsOf);
 
   TankStats get myStats => TankStats.of(GameConfig.typeOf(myColorIndex));
   double get myMaxHp => myStats.maxHp;
@@ -451,6 +455,7 @@ class SpaceGame extends FlameGame
       botHost: payload.botHost,
     );
     myTeam = payload.teams[myId] ?? 0;
+    guard.reset();
     killFeed.value = const [];
     roundStats = RoundStats();
     round = activeRound;
@@ -626,8 +631,27 @@ class SpaceGame extends FlameGame
   }
 
   void _onPickup(PickupPayload payload) {
+    if (_gone.contains(payload.powerUpId)) {
+      return;
+    }
+    switch (_slotOf(payload.powerUpId)?.type) {
+      case PowerUpType.repair:
+        guard.allowRepair(payload.id);
+      case PowerUpType.rapidFire:
+        guard.allowRapidFire(payload.id);
+      case _:
+    }
     _gone.add(payload.powerUpId);
     powerUps.remove(payload.powerUpId)?.removeFromParent();
+  }
+
+  PowerUpSlot? _slotOf(int id) {
+    for (final slot in _powerUpSlots) {
+      if (slot.id == id) {
+        return slot;
+      }
+    }
+    return null;
   }
 
   void _onSmoke(SmokePayload payload) {
@@ -693,6 +717,9 @@ class SpaceGame extends FlameGame
     if (activeRound == null || !activeRound.alive.contains(payload.id)) {
       return;
     }
+    if (!guard.allowShot(payload.id, x: payload.x, y: payload.y)) {
+      return;
+    }
     final owner = remoteShips[payload.id];
     owner?.fireEffects();
     AudioService.play(
@@ -733,7 +760,21 @@ class SpaceGame extends FlameGame
     bullets[bulletId]?.removeFromParent();
   }
 
-  void _onShipState(ShipStatePayload payload) {
+  void _onShipState(ShipStatePayload raw) {
+    if (round?.alive.contains(raw.id) != true) {
+      return;
+    }
+    final checked = guard.checkState(raw.id, x: raw.x, y: raw.y, hp: raw.hp);
+    final payload = ShipStatePayload(
+      id: raw.id,
+      x: checked.x,
+      y: checked.y,
+      vx: raw.vx,
+      vy: raw.vy,
+      rotation: raw.rotation,
+      hp: checked.hp,
+      turret: raw.turret,
+    );
     final ship = remoteShips[payload.id];
     if (ship != null) {
       ship.applyState(payload);
@@ -760,7 +801,8 @@ class SpaceGame extends FlameGame
     _removeBullet(payload.bulletId);
     final ship = remoteShips[payload.id];
     if (ship != null) {
-      final damage = ship.hp - payload.hp;
+      final hp = guard.checkHit(payload.id, payload.shooterId, hp: payload.hp);
+      final damage = ship.hp - hp;
       if (damage > 0) {
         final mine = payload.shooterId == myId;
         showHit(ship.position, damage, mine: mine);
@@ -769,10 +811,10 @@ class SpaceGame extends FlameGame
         }
       }
       if (payload.shooterId == myId) {
-        registerHit(ship.hp - payload.hp);
+        registerHit(damage);
       }
       ship
-        ..hp = payload.hp
+        ..hp = hp
         ..flash();
       AudioService.play(
         'hit',
@@ -796,6 +838,10 @@ class SpaceGame extends FlameGame
   }
 
   void _onDeath(DeathPayload payload) {
+    if (round?.alive.contains(payload.id) != true ||
+        !guard.allowDeath(payload.id)) {
+      return;
+    }
     _recordKill(payload.id, payload.killerId);
     _handleRemoteDeath(payload.id, explode: true);
   }
