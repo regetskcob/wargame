@@ -12,6 +12,7 @@ import '../game/space_game.dart';
 import '../net/net_service.dart';
 import '../net/room.dart';
 import '../theme.dart';
+import '../ui/closed_overlay.dart';
 import '../ui/countdown_overlay.dart';
 import '../ui/hud_overlay.dart';
 import '../ui/lobby_overlay.dart';
@@ -126,6 +127,7 @@ class _GameAppState extends State<GameApp> {
                     SpectatorOverlay(game: game),
                 OverlayIds.roundOver: (context, game) =>
                     RoundOverOverlay(game: game),
+                OverlayIds.closed: (context, game) => ClosedOverlay(game: game),
               },
             ),
           ),

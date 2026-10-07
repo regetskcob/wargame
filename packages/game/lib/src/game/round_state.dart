@@ -20,6 +20,9 @@ class RoundState {
   final Map<String, int> bots;
   final String? botHost;
 
+  /// Real people play against each other, so every tank gets its own colour.
+  bool get distinctColors => bots.isEmpty;
+
   bool isBot(String id) => bots.containsKey(id);
 
   /// "CPU-3" for the bot called `cpu-3`.

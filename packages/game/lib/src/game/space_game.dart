@@ -24,6 +24,7 @@ import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
 import '../net/payloads/special_payload.dart';
+import '../net/room.dart';
 import 'components/aim_overlay.dart';
 import 'components/asteroid_field.dart';
 import 'components/drone.dart';
@@ -116,6 +117,19 @@ class SpaceGame extends FlameGame
   final multiplayer = ValueNotifier<bool>(true);
 
   void setMultiplayer(bool value) => multiplayer.value = value;
+
+  /// Whether this player runs the room: picks mode and map and starts the
+  /// round. The one who opened the room keeps the role for good. Only when
+  /// they are gone does somebody else stand in, until they are back.
+  late final isHost = ValueNotifier<bool>(net.isHost);
+  double _hostlessFor = 0;
+  double _hostClashFor = 0;
+
+  /// Last time anything happened in the room, to close it when it idles.
+  DateTime _lastActivity = DateTime.now();
+
+  /// Why the room was closed, shown on the closed screen.
+  final closedReason = ValueNotifier<String?>(null);
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
@@ -248,7 +262,8 @@ class SpaceGame extends FlameGame
       ..onBlast = _onBlast
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
-      ..onPeerLeft = _onPeerLeft;
+      ..onPeerLeft = _onPeerLeft
+      ..onClose = _onClose;
     await net.connect(_presencePayload());
     overlays.add(OverlayIds.lobby);
   }
@@ -276,8 +291,10 @@ class SpaceGame extends FlameGame
     _updatePowerUps();
     _staleTimer += dt;
     if (_staleTimer >= 1) {
+      _settleHost(_staleTimer);
       _staleTimer = 0;
       _dropSilentTanks();
+      _closeWhenIdle();
     }
     _engineTimer += dt;
     if (_engineTimer >= 0.1) {
@@ -298,7 +315,8 @@ class SpaceGame extends FlameGame
       colorIndex: myColorIndex,
       phase: phase.value.name,
       team: phase.value == GamePhase.lobby ? teamPick : myTeam,
-      host: net.isHost,
+      host: isHost.value,
+      owner: net.isHost,
       seed: round?.seed,
       startedAt: round?.startedAt,
     );
@@ -362,11 +380,76 @@ class SpaceGame extends FlameGame
     mapName.value = theme.name;
   }
 
-  /// Whether the host of the room is in the waiting room right now.
-  bool get hostPresent => roster.value.any((m) => m.host);
+  /// Only the host starts a round. When the host leaves, the role moves on.
+  bool get canStart => isHost.value;
 
-  /// The host decides when it starts. When the host has left, anybody may.
-  bool get canStart => net.isHost || !hostPresent;
+  void _setHost(bool value) {
+    if (isHost.value == value) {
+      return;
+    }
+    isHost.value = value;
+    if (!value) {
+      // Guests always play together, the settings belong to the host.
+      multiplayer.value = true;
+    }
+    unawaited(pushPresence());
+  }
+
+  /// Makes sure the room has exactly one host. Presence takes a moment to
+  /// travel, so a missing or doubled host is only fixed once it lasts: then
+  /// the player with the smallest id stands in, and a stand-in hands back as
+  /// soon as the owner of the room returns.
+  void _settleHost(double dt) {
+    final members = roster.value;
+    if (phase.value == GamePhase.closed || !members.any((m) => m.id == myId)) {
+      _hostlessFor = _hostClashFor = 0;
+      return;
+    }
+    final hosts = [
+      for (final member in members)
+        if (member.host) member.id,
+    ];
+    _hostlessFor = hosts.isEmpty && !isHost.value ? _hostlessFor + dt : 0;
+    _hostClashFor = hosts.length > 1 ? _hostClashFor + dt : 0;
+    final first = (members.map((m) => m.id).toList()..sort()).first;
+    if (_hostlessFor >= GameConfig.hostSettleSeconds && first == myId) {
+      _hostlessFor = 0;
+      _setHost(true);
+    }
+    final outranked = members.any(
+      (m) => m.host && m.id != myId && (m.owner || m.id.compareTo(myId) < 0),
+    );
+    // The owner never steps down.
+    if (_hostClashFor >= GameConfig.hostSettleSeconds &&
+        isHost.value &&
+        !net.isHost &&
+        outranked) {
+      _hostClashFor = 0;
+      _setHost(false);
+    }
+  }
+
+  /// Colour of a player's tank as the lobby previews it: camouflage alone,
+  /// one colour per seat when playing with others.
+  Color lobbyColorOf(String id, int style) {
+    if (!multiplayer.value) {
+      return GameConfig.colorOf(style);
+    }
+    final seats = {myId, for (final member in roster.value) member.id}.toList()
+      ..sort();
+    return GameConfig.playerColor(max(0, seats.indexOf(id)));
+  }
+
+  Color _colorFor(String id) {
+    final activeRound = round;
+    if (activeRound != null && activeRound.distinctColors) {
+      final seat = activeRound.participants.indexOf(id);
+      if (seat >= 0) {
+        return GameConfig.playerColor(seat);
+      }
+    }
+    return GameConfig.colorOf(_styleFor(id));
+  }
 
   void startRound() {
     if (phase.value != GamePhase.lobby || !canStart) {
@@ -461,6 +544,7 @@ class SpaceGame extends FlameGame
 
   void _applyRoundStart(RoundStartPayload payload) {
     _clearWorld();
+    _lastActivity = DateTime.now();
     final activeRound = RoundState(
       seed: payload.seed,
       startedAt: payload.startedAt,
@@ -495,9 +579,8 @@ class SpaceGame extends FlameGame
         ..scale(GameConfig.spawnRadius);
       final facing = atan2(-spawn.x, spawn.y);
       final name = _nameFor(id);
-      final colorIndex = _styleFor(id);
-      final color = GameConfig.colorOf(colorIndex);
-      final tankType = GameConfig.typeOf(colorIndex);
+      final color = _colorFor(id);
+      final tankType = GameConfig.typeOf(_styleFor(id));
       if (id == myId) {
         final ship = PlayerShip(
           playerId: id,
@@ -853,7 +936,7 @@ class SpaceGame extends FlameGame
     final drone = Drone(
       droneId: payload.droneId,
       ownerId: payload.id,
-      color: GameConfig.colorOf(_styleFor(payload.id)),
+      color: _colorFor(payload.id),
       position: Vector2(payload.x, payload.y),
       angle: payload.angle,
       remote: true,
@@ -1032,7 +1115,7 @@ class SpaceGame extends FlameGame
     final newShip = RemoteShip(
       playerId: payload.id,
       playerName: _nameFor(payload.id),
-      shipColor: GameConfig.colorOf(_styleFor(payload.id)),
+      shipColor: _colorFor(payload.id),
       tankType: GameConfig.typeOf(_styleFor(payload.id)),
       position: Vector2(payload.x, payload.y),
       angle: payload.rotation,
@@ -1466,8 +1549,72 @@ class SpaceGame extends FlameGame
     _clearWorld();
     round = null;
     myTeam = 0;
+    _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
+  }
+
+  /// Closes the waiting room: as host for everybody, as guest just for you.
+  Future<void> closeRoom() async {
+    if (phase.value == GamePhase.closed) {
+      return;
+    }
+    final host = isHost.value;
+    _enterClosed(
+      host
+          ? 'Du hast den Warteraum geschlossen.'
+          : 'Du hast den Warteraum verlassen.',
+    );
+    await (host ? net.closeRoom() : net.dispose());
+  }
+
+  void _onClose(String id) {
+    final sender = _rosterMember(id);
+    if (sender == null || !sender.host || phase.value == GamePhase.closed) {
+      return;
+    }
+    _enterClosed('Der Gastgeber hat den Warteraum geschlossen.');
+    unawaited(net.dispose());
+  }
+
+  /// Nobody started a round or came and went for a long time: leave the
+  /// room, so forgotten tabs do not keep it open forever.
+  void _closeWhenIdle() {
+    if (phase.value != GamePhase.lobby) {
+      return;
+    }
+    final idle = DateTime.now().difference(_lastActivity);
+    if (idle < GameConfig.lobbyIdleTimeout) {
+      return;
+    }
+    _enterClosed(
+      'Der Warteraum wurde nach '
+      '${GameConfig.lobbyIdleTimeout.inMinutes} Minuten ohne Aktivität '
+      'geschlossen.',
+    );
+    unawaited(net.dispose());
+  }
+
+  void _enterClosed(String reason) {
+    _clearWorld();
+    round = null;
+    myTeam = 0;
+    roster.value = const [];
+    closedReason.value = reason;
+    _setPhase(GamePhase.closed);
+  }
+
+  /// Leaves the closed screen for a new room, hosted by this player.
+  Future<void> openNewRoom() async {
+    if (phase.value != GamePhase.closed || openFreshRoom()) {
+      return;
+    }
+    // No address bar to start over from: meet in the same room again.
+    _setHost(true);
+    _lastActivity = DateTime.now();
+    closedReason.value = null;
+    _setPhase(GamePhase.lobby);
+    await net.connect(_presencePayload());
   }
 
   /// One based position of the watched tank, for the button label.
@@ -1497,6 +1644,11 @@ class SpaceGame extends FlameGame
   }
 
   void _onRosterChanged(List<LobbyPresence> members) {
+    final before = {for (final member in roster.value) member.id};
+    final after = {for (final member in members) member.id};
+    if (before.length != after.length || !before.containsAll(after)) {
+      _lastActivity = DateTime.now();
+    }
     roster.value = members;
   }
 
@@ -1555,6 +1707,7 @@ class SpaceGame extends FlameGame
         OverlayIds.hud,
         OverlayIds.spectator,
         OverlayIds.roundOver,
+        OverlayIds.closed,
       ])
       ..add(switch (next) {
         GamePhase.lobby => OverlayIds.lobby,
@@ -1562,6 +1715,7 @@ class SpaceGame extends FlameGame
         GamePhase.playing => OverlayIds.hud,
         GamePhase.spectating => OverlayIds.spectator,
         GamePhase.roundOver => OverlayIds.roundOver,
+        GamePhase.closed => OverlayIds.closed,
       });
   }
 }

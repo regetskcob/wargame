@@ -4,4 +4,5 @@ class OverlayIds {
   static const hud = 'hud';
   static const spectator = 'spectator';
   static const roundOver = 'roundOver';
+  static const closed = 'closed';
 }

@@ -22,7 +22,8 @@ class NetService {
   /// Code of the room whose channel this connects to.
   final String room;
 
-  /// Whether this player opened the room. Others only join and play.
+  /// Whether this player opened the room. Others only join and play. The
+  /// game hands the role on from there.
   final bool isHost;
 
   void Function(ShipStatePayload payload)? onShipState;
@@ -40,6 +41,9 @@ class NetService {
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
 
+  /// The host closed the room. Carries the id of who sent it.
+  void Function(String id)? onClose;
+
   RealtimeChannel? _channel;
   LobbyPresence? _me;
   bool _disposed = false;
@@ -48,6 +52,7 @@ class NetService {
   SupabaseClient get _client => Supabase.instance.client;
 
   Future<void> connect(LobbyPresence me) async {
+    _disposed = false;
     _me = me;
     final channel = _client.channel(
       'game-arena-$room',
@@ -97,6 +102,10 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.smoke.name),
       (json) => onSmoke?.call(SmokePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.close.name),
+      (json) => onClose?.call(json['id'] as String),
     );
     _subscriptions.add(
       channel
@@ -217,6 +226,22 @@ class NetService {
     if (channel != null) {
       await _client.removeChannel(channel);
     }
+  }
+
+  /// Tells everybody in the room that it is closed, then leaves it.
+  Future<void> closeRoom() async {
+    final channel = _channel;
+    if (channel != null) {
+      try {
+        await channel.sendBroadcastMessage(
+          event: NetEvent.close.name,
+          payload: {'id': myId},
+        );
+      } on Object {
+        // Leaving matters more than the goodbye.
+      }
+    }
+    await dispose();
   }
 
   Future<void> dispose() async {
