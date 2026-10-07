@@ -1,6 +1,8 @@
-# Building a Real-Time Multiplayer ~~Space~~ Game with Flame and Supabase
+# Building a Real-Time Multiplayer Tank Game with Flame and Supabase
 
 Workshop monorepo for building a last-player-standing multiplayer game. The
+reference game, Panzergefecht, is a Bundeswehr themed tank battle that you can
+play at <https://www.regetskcob.de/wargame/>. The
 game runs entirely on Flutter and serverless primitives: the
 [Flame](https://flame-engine.org) engine drives the 2D canvas, and
 [Supabase Realtime](https://supabase.com/docs/guides/realtime) powers the
@@ -23,8 +25,8 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 | Package | Description |
 | --- | --- |
-| `packages/skeleton` | The starting point for the exercises: dependencies wired up, no game |
-| `packages/game` | The finished multiplayer game (Flutter web and macOS) |
+| `packages/skeleton` | The starting point for the exercises: dependencies wired up, the tanks, theme and sounds drawn in, no game |
+| `packages/game` | Panzergefecht, the finished multiplayer game (Flutter web and macOS) |
 | `packages/slides` | The workshop slide deck, built with [flutter_deck](https://pub.dev/packages/flutter_deck) |
 
 ## Prerequisites
@@ -41,8 +43,9 @@ supabase start
 ```
 
 `supabase start` boots the local stack (API on port 54621) and applies the
-`scores` table migration. The game defaults to the local URL and the standard
-local publishable key, so no configuration is needed for local play.
+migrations. The game defaults to the hosted Supabase project (see
+`lib/src/env.dart`), so to play against the local stack pass the local URL and
+the standard local publishable key as dart-defines, as shown below.
 
 ## Start the exercises
 
@@ -160,8 +163,9 @@ flutter build web --base-href /your-repo/ \
 
 ## How the netcode works
 
-- One Realtime channel per room carries five broadcast events: `state`,
-  `shoot`, `hit`, `death`, and `roundStart`.
+- One Realtime channel per room carries the broadcast events `state`,
+  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`, and
+  `soldier`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.

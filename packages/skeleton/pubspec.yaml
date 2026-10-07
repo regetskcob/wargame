@@ -1,5 +1,5 @@
 name: skeleton
-description: "Starting point for the Flame and Supabase workshop exercises."
+description: "Starting point for the tank battle workshop: Flame, Supabase and the art and sound already in place."
 publish_to: none
 version: 0.1.0+1
 resolution: workspace
@@ -9,10 +9,12 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
+  audioplayers: ^6.8.1
   flame: ^2.0.0-dev.1
   flutter:
     sdk: flutter
   supabase_flutter: ^3.0.0-dev.9
+  web: ^1.1.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0
@@ -23,3 +25,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/audio/

@@ -11,8 +11,9 @@ class MigrationSlide extends FlutterDeckSlideWidget {
           route: '/migration',
           title: 'What a migration looks like',
           speakerNotes:
-              '- This is the one migration the repository ships with, the '
-              'scores table behind the leaderboard\n'
+              '- This is the first of the migrations the repository ships with, the '
+              'scores table behind the leaderboard, later files add the '
+              'players table and the round statistics\n'
               '- A migration is plain SQL, anything Postgres accepts works\n'
               '- The id is the auth user id, so each player owns exactly '
               'one row\n'

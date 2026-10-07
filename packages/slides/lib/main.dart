@@ -10,8 +10,10 @@ import 'slides/s01_title.dart';
 import 'slides/s02_speakers.dart';
 import 'slides/s03_agenda.dart';
 import 'slides/s04_why_serverless.dart';
+import 'slides/s04a_the_game.dart';
 import 'slides/s05_architecture.dart';
 import 'slides/s06_realtime.dart';
+import 'slides/s06a_game_netcode.dart';
 import 'slides/s07_credits.dart';
 import 'slides/s08_typed_v3.dart';
 import 'slides/s09_v2_vs_v3.dart';
@@ -25,6 +27,7 @@ import 'slides/s16_exercise_setup.dart';
 import 'slides/s17_game_idea.dart';
 import 'slides/s18_initial_schema.dart';
 import 'slides/s19_schema.dart';
+import 'slides/s19a_ship_it.dart';
 import 'slides/s20_questions.dart';
 import 'slides/s21_thanks.dart';
 
@@ -64,8 +67,10 @@ class WorkshopSlides extends StatelessWidget {
         SpeakersSlide(),
         AgendaSlide(),
         WhyServerlessSlide(),
+        TheGameSlide(),
         ArchitectureSlide(),
         RealtimeSlide(),
+        GameNetcodeSlide(),
         CreditsSlide(),
         TypedV3Slide(),
         V2VersusV3Slide(),
@@ -79,6 +84,7 @@ class WorkshopSlides extends StatelessWidget {
         GameIdeaSlide(),
         InitialSchemaSlide(),
         SchemaSlide(),
+        ShipItSlide(),
         QuestionsSlide(),
         ThanksSlide(),
       ],

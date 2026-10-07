@@ -17,7 +17,7 @@ class SetupSlide extends FlutterDeckSlideWidget {
               'the game signs everyone in anonymously\n'
               '- Point at the QR code, that is the repository to fork, we '
               'connect your fork to Supabase right after installing the CLI\n'
-              '- The repository carries the migration and all the reference '
+              '- The repository carries the migrations and all the reference '
               'code, so nothing is copied by hand',
         ),
       );
@@ -42,7 +42,7 @@ class SetupSlide extends FlutterDeckSlideWidget {
             const SizedBox(height: 40),
             const RepoQrCard(
               label: 'Fork it from here',
-              url: 'https://github.com/spydon/supabase_flame_workshop',
+              url: 'https://github.com/regetskcob/wargame',
             ),
           ],
         ),
@@ -51,14 +51,15 @@ class SetupSlide extends FlutterDeckSlideWidget {
         fileName: 'setup.sh',
         code: '''
 git clone \\
-    https://github.com/your-name/supabase_flame_workshop
-cd supabase_flame_workshop
+    https://github.com/your-name/wargame
+cd wargame
 dart pub get
 
 # What the repository already holds:
-#   supabase/migrations/  the scores table
-#   packages/skeleton/    where you build
-#   packages/game/        the finished reference''',
+#   supabase/migrations/  scores and players tables
+#   packages/skeleton/    where you build: tanks, theme
+#                         and sounds are already in
+#   packages/game/        the finished Panzergefecht''',
       ),
     );
   }

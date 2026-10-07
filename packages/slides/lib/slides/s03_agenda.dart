@@ -14,7 +14,9 @@ class AgendaSlide extends FlutterDeckSlideWidget {
               '- Walk through the plan for the session\n'
               '- This is a workshop: nine build-time exercises, marked by '
               'the green slides\n'
-              '- Everyone leaves with a running multiplayer game',
+              '- Everyone leaves with a running multiplayer game\n'
+              '- The reference is Panzergefecht, a tank battle, but your game '
+              'can be anything',
         ),
       );
 

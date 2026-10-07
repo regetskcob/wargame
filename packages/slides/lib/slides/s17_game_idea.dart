@@ -35,7 +35,7 @@ class GameIdeaSlide extends FlutterDeckSlideWidget {
           'Who are the players, and what does each one control?',
           'What do they compete over, and how does a round end?',
           'Keep it small: one world, one way to win',
-          'No idea yet? Build along with the reference in packages/game',
+          'No idea yet? Build along with Panzergefecht in packages/game',
         ],
       ),
     );

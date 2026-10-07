@@ -34,7 +34,7 @@ class ThanksSlide extends FlutterDeckSlideWidget {
                 Text('Thank you!', style: theme.titleTextStyle),
                 const SizedBox(height: 8),
                 Text(
-                  'github.com/spydon/supabase_flame_workshop\n'
+                  'github.com/regetskcob/wargame\n'
                   'flame-engine.org\n'
                   'supabase.com',
                   style: theme.subtitleTextStyle,

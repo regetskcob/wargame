@@ -1,6 +1,6 @@
 # Workshop slides
 
-The deck for "Building a Real-Time Multiplayer ~~Space~~ Game with Flame and
+The deck for "Building a Real-Time Multiplayer Tank Game with Flame and
 Supabase", built with [flutter_deck](https://pub.dev/packages/flutter_deck).
 
 ```sh

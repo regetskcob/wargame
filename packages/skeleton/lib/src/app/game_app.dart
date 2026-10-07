@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../theme.dart';
 import 'status_screen.dart';
 
 class GameApp extends StatelessWidget {
@@ -8,11 +9,11 @@ class GameApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Multiplayer Game',
+      title: 'Panzergefecht skeleton',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData.dark(useMaterial3: true),
+      theme: buildBundeswehrTheme(),
       home: const Scaffold(
-        backgroundColor: Color(0xFF07070F),
+        backgroundColor: BwColors.background,
         // Swap this for a GameWidget with your game.
         body: StatusScreen(),
       ),
