@@ -8,7 +8,8 @@ import '../space_game.dart';
 import '../special_weapon.dart';
 import 'effects.dart';
 
-/// A shell from the grenade launcher. It arcs over everything in its way and
+/// A lobbed shell: from the grenade launcher, a mortar or a mortar
+/// emplacement, or a smoke grenade. It arcs over everything in its way and
 /// goes off where it lands. Every client flies it from the launch message
 /// alone, so all of them see it land on the same spot.
 class Grenade extends PositionComponent with HasGameRef<SpaceGame> {
@@ -17,30 +18,50 @@ class Grenade extends PositionComponent with HasGameRef<SpaceGame> {
     required this.ownerId,
     required Vector2 from,
     required Vector2 to,
+    this.weapon = SpecialWeapon.grenades,
+    this.power = 1,
+    this.onLand,
   }) : _from = from.clone(),
        _to = to.clone(),
        super(position: from.clone(), priority: 21);
 
   final String grenadeId;
   final String ownerId;
+  final SpecialWeapon weapon;
+
+  /// Damage factor of an upgraded emplacement.
+  final double power;
+
+  /// Set for a smoke grenade, which lets out its cloud instead of blowing
+  /// up.
+  final void Function(Vector2 at)? onLand;
   final Vector2 _from;
   final Vector2 _to;
   double _t = 0;
   double _smokeTimer = 0;
 
+  double get _flight =>
+      onLand != null ? GameConfig.smokeFlightSeconds : weapon.flight;
+
   /// Height above the ground, peaking halfway.
-  double get _height => sin(pi * _t) * 70;
+  double get _height => sin(pi * _t) * (onLand != null ? 60 : weapon.arc);
 
   @override
   void update(double dt) {
-    _t += dt / GameConfig.grenadeFlightSeconds;
+    _t += dt / _flight;
     if (_t >= 1) {
-      gameRef.detonate(
-        ownerId: ownerId,
-        blastId: grenadeId,
-        at: _to,
-        weapon: SpecialWeapon.grenades,
-      );
+      final land = onLand;
+      if (land != null) {
+        land(_to.clone());
+      } else {
+        gameRef.detonate(
+          ownerId: ownerId,
+          blastId: grenadeId,
+          at: _to,
+          weapon: weapon,
+          power: power,
+        );
+      }
       removeFromParent();
       return;
     }
@@ -90,24 +111,26 @@ class Grenade extends PositionComponent with HasGameRef<SpaceGame> {
 
 /// Where a grenade is about to come down: a ring that tightens until impact.
 class GrenadeMarker extends PositionComponent {
-  GrenadeMarker({required super.position}) : super(priority: -5);
+  GrenadeMarker({required super.position, this.weapon = SpecialWeapon.grenades})
+    : super(priority: -5);
 
+  final SpecialWeapon weapon;
   double _age = 0;
 
   @override
   void update(double dt) {
     _age += dt;
-    if (_age >= GameConfig.grenadeFlightSeconds) {
+    if (_age >= weapon.flight) {
       removeFromParent();
     }
   }
 
   @override
   void render(Canvas canvas) {
-    final t = (_age / GameConfig.grenadeFlightSeconds).clamp(0.0, 1.0);
+    final t = (_age / weapon.flight).clamp(0.0, 1.0);
     canvas.drawCircle(
       Offset.zero,
-      GameConfig.grenadeRadius * (1.15 - 0.15 * t),
+      weapon.radius * (1.15 - 0.15 * t),
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2

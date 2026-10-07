@@ -66,6 +66,8 @@ class TowerPayload {
     required this.index,
     required this.x,
     required this.y,
+    this.kind = 0,
+    this.level = 1,
   });
 
   factory TowerPayload.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,8 @@ class TowerPayload {
       index: json['index'] as int,
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
+      kind: json['kind'] as int? ?? 0,
+      level: json['level'] as int? ?? 1,
     );
   }
 
@@ -85,7 +89,21 @@ class TowerPayload {
   final double x;
   final double y;
 
+  /// Index of the `TowerKind`: cannon, flak or mortar.
+  final int kind;
+
+  /// Raised by upgrades, from 1 up to `TowerKind.maxLevel`. The same
+  /// message with a higher level upgrades a gun that is already there.
+  final int level;
+
   Map<String, dynamic> toJson() {
-    return {'id': id, 'index': index, 'x': x, 'y': y};
+    return {
+      'id': id,
+      'index': index,
+      'x': x,
+      'y': y,
+      if (kind != 0) 'kind': kind,
+      if (level != 1) 'level': level,
+    };
   }
 }

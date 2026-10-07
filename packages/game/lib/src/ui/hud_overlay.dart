@@ -4,13 +4,16 @@ import 'package:flutter/material.dart';
 
 import '../game/components/storm_zone.dart';
 import '../net/payloads/defense_payload.dart';
+import '../game/defense/tower.dart';
 import '../game/special_weapon.dart';
+import '../game/upgrades.dart';
 import '../game/space_game.dart';
 import '../game_config.dart';
 import '../theme.dart';
 import 'widgets/ammo_gauge.dart';
 import 'widgets/enemy_indicators.dart';
 import 'widgets/health_bar.dart';
+import 'widgets/inventory_bar.dart';
 import 'widgets/kill_feed_view.dart';
 import 'widgets/mini_map.dart';
 import 'widgets/mute_button.dart';
@@ -105,6 +108,22 @@ class _HudOverlayState extends State<HudOverlay> {
           EnemyIndicators(game: game),
           if (touch)
             TouchControls(input: game.touch, special: game.specialNotifier),
+          SafeArea(
+            minimum: const EdgeInsets.all(8),
+            child: Align(
+              alignment: touch
+                  ? const Alignment(-1, 0.15)
+                  : const Alignment(-1, 0.1),
+              child: _HudButtons(
+                game: game,
+                child: InventoryBar(
+                  inventory: game.inventory,
+                  onUse: game.useItem,
+                  compact: touch,
+                ),
+              ),
+            ),
+          ),
           if (game.round?.defense ?? false)
             _DefensePanel(game: game, touch: touch),
         ],
@@ -119,7 +138,7 @@ class _HudOverlayState extends State<HudOverlay> {
       builder: (context, alive, _) {
         final round = game.round;
         if (round != null && round.defense) {
-          final enemies = round.alive.where(round.isEnemy).length;
+          final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
@@ -225,7 +244,7 @@ class _HudOverlayState extends State<HudOverlay> {
     return ValueListenableBuilder<int>(
       valueListenable: game.ammoNotifier,
       builder: (context, ammo, _) =>
-          AmmoGauge(ammo: ammo, maxAmmo: game.myStats.ammo, compact: compact),
+          AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, compact: compact),
     );
   }
 
@@ -396,13 +415,115 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 }
 
-/// Defense round: how the base stands, the money and the button that puts a
-/// gun where the tank stands.
+/// Defense round: how the base stands, the money, the buttons that put a
+/// gun where the tank stands or upgrade the one next to it, and the
+/// upgrades for the tank.
 class _DefensePanel extends StatelessWidget {
   const _DefensePanel({required this.game, required this.touch});
 
   final SpaceGame game;
   final bool touch;
+
+  Widget _shop(int credits) {
+    final near = game.nearTower.value;
+    final small = TextStyle(fontSize: touch ? 10 : 11, letterSpacing: 0.5);
+    final buttonStyle = ButtonStyle(
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: touch ? 6 : 10, vertical: 4),
+      ),
+      minimumSize: const WidgetStatePropertyAll(Size(0, 30)),
+      visualDensity: VisualDensity.compact,
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          touch
+              ? 'MITTEL $credits'
+              : 'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
+          style: const TextStyle(
+            color: BwColors.amber,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        const SizedBox(height: 6),
+        if (near != null)
+          FilledButton.icon(
+            style: buttonStyle,
+            onPressed:
+                near.level < TowerKind.maxLevel &&
+                    credits >= near.kind.upgradeCost(near.level)
+                ? () => game.upgradeTower(near)
+                : null,
+            icon: const Icon(Icons.upgrade, size: 16),
+            label: Text(
+              near.level >= TowerKind.maxLevel
+                  ? '${near.kind.label} HÖCHSTE STUFE'
+                  : '${near.kind.label} AUFRÜSTEN  '
+                        '${near.kind.upgradeCost(near.level)}',
+              style: small,
+            ),
+          )
+        else
+          Wrap(
+            spacing: 6,
+            runSpacing: 4,
+            children: [
+              for (final kind in TowerKind.values)
+                Tooltip(
+                  message: kind.hint,
+                  child:
+                      (kind == game.towerChoice.value
+                      ? FilledButton.new
+                      : OutlinedButton.new)(
+                        style: buttonStyle,
+                        onPressed: credits >= kind.cost
+                            ? () => game.buildTower(kind)
+                            : null,
+                        child: Text('${kind.label} ${kind.cost}', style: small),
+                      ),
+                ),
+            ],
+          ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: [
+            for (final kind in UpgradeKind.values) _upgrade(kind, credits),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _upgrade(UpgradeKind kind, int credits) {
+    final level = game.upgrades.value[kind] ?? 0;
+    final maxed = level >= GameConfig.upgradeMaxLevel;
+    final cost = kind.costFrom(level);
+    return Tooltip(
+      message: '${kind.label}: ${kind.effect} je Stufe',
+      child: OutlinedButton(
+        style: ButtonStyle(
+          padding: WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: touch ? 5 : 8, vertical: 2),
+          ),
+          minimumSize: const WidgetStatePropertyAll(Size(0, 28)),
+          visualDensity: VisualDensity.compact,
+          side: WidgetStatePropertyAll(BorderSide(color: kind.color)),
+        ),
+        onPressed: !maxed && credits >= cost
+            ? () => game.buyUpgrade(kind)
+            : null,
+        child: Text(
+          '${kind.label} ${'●' * level}${'○' * (GameConfig.upgradeMaxLevel - level)}'
+          '${maxed ? '' : ' $cost'}',
+          style: TextStyle(fontSize: touch ? 9 : 10, color: kind.color),
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -445,32 +566,14 @@ class _DefensePanel extends StatelessWidget {
             },
           ),
           const SizedBox(height: 8),
-          ValueListenableBuilder<int>(
-            valueListenable: game.credits,
-            builder: (context, credits, _) => Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'MITTEL $credits',
-                  style: const TextStyle(
-                    color: BwColors.amber,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                FilledButton.icon(
-                  onPressed: credits >= GameConfig.towerCost
-                      ? game.buildTower
-                      : null,
-                  icon: const Icon(Icons.add_location_alt, size: 18),
-                  label: Text(
-                    touch
-                        ? 'GESCHÜTZ ${GameConfig.towerCost}'
-                        : 'GESCHÜTZ (B)  ${GameConfig.towerCost}',
-                  ),
-                ),
-              ],
-            ),
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              game.credits,
+              game.towerChoice,
+              game.nearTower,
+              game.upgrades,
+            ]),
+            builder: (context, _) => _shop(game.credits.value),
           ),
         ],
       ),
@@ -484,9 +587,27 @@ class _DefensePanel extends StatelessWidget {
           padding: touch
               ? const EdgeInsets.only(top: 58)
               : const EdgeInsets.all(8),
-          child: panel,
+          child: _HudButtons(game: game, child: panel),
         ),
       ),
+    );
+  }
+}
+
+/// Marks the mouse as over HUD buttons while it is, so clicking them does not
+/// also fire the gun.
+class _HudButtons extends StatelessWidget {
+  const _HudButtons({required this.game, required this.child});
+
+  final SpaceGame game;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => game.pointerOnHud = true,
+      onExit: (_) => game.pointerOnHud = false,
+      child: child,
     );
   }
 }

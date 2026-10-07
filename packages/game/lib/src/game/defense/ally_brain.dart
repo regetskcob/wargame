@@ -5,7 +5,6 @@ import 'package:flame/extensions.dart';
 
 import '../../game_config.dart';
 import '../components/player_ship.dart';
-import '../components/ship_base.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
 import '../touch_input.dart';
@@ -13,7 +12,8 @@ import 'defense_map.dart';
 
 /// Drives a CPU comrade of a defense round: it rolls from the base up the
 /// road to its post on the shoulder, holds it and fires at every enemy that
-/// comes into range, also on the way there.
+/// comes into range, also on the way there: tanks, soldiers and, from a
+/// Gepard, aircraft and drones.
 class AllyBrain extends Component with HasGameRef<SpaceGame> {
   AllyBrain({
     required this.ship,
@@ -32,7 +32,7 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
   double _think = 0;
   double _fireGate = 0;
   double _aimError = 0;
-  ShipBase? _target;
+  PositionComponent? _target;
 
   @override
   void update(double dt) {
@@ -49,7 +49,7 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
     if (_think <= 0) {
       _think = 0.25;
       _aimError = (_random.nextDouble() * 2 - 1) * 0.08;
-      _target = gameRef.nearestEnemy(ship.position, GameConfig.allyRange);
+      _target = gameRef.allyTarget(ship, GameConfig.allyRange);
     }
     _drive();
     _shoot(dt);
@@ -87,7 +87,7 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
 
   void _shoot(double dt) {
     final target = _target;
-    if (target == null || !target.isMounted || target.hp <= 0) {
+    if (target == null || !target.isMounted) {
       controls
         ..aim = null
         ..fire = false;
@@ -96,7 +96,7 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
     }
     final flight =
         target.position.distanceTo(ship.position) / ship.stats.bulletSpeed;
-    final lead = target.position + gameRef.velocityOf(target) * flight;
+    final lead = target.position + gameRef.velocityOfTarget(target) * flight;
     controls.aim = _headingTo(lead) + _aimError;
     final onTarget =
         (controls.aim! - ship.turretAngle).toNormalizedAngle().abs() < 0.12;

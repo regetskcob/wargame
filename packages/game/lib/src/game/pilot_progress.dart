@@ -29,6 +29,9 @@ class PilotProgress {
 
   int _rounds = 0;
 
+  /// Whether the pilot's rank allows driving [type].
+  bool vehicleUnlocked(TankType type) => rank.value.level >= type.level;
+
   /// Whether the pilot's rank allows paint scheme [color].
   bool unlocked(int color) =>
       rank.value.level >=

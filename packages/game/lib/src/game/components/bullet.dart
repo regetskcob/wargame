@@ -4,11 +4,14 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import '../../game_config.dart';
+import '../defense/aircraft.dart';
 import '../defense/defense_field.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
+import 'drone.dart';
 import 'effects.dart';
 import 'obstacle.dart';
+import 'soldier.dart';
 
 class Bullet extends PositionComponent
     with HasGameRef<SpaceGame>, CollisionCallbacks {
@@ -19,6 +22,8 @@ class Bullet extends PositionComponent
     required this.velocity,
     required this.color,
     required this.damage,
+    this.antiAir = false,
+    this.small = false,
   }) : super(size: Vector2.all(6), anchor: Anchor.center, priority: 5);
 
   final String bulletId;
@@ -26,6 +31,12 @@ class Bullet extends PositionComponent
   final Vector2 velocity;
   final Color color;
   final double damage;
+
+  /// Fired by flak or the Gepard: brings down aircraft and drones.
+  final bool antiAir;
+
+  /// A rifle bullet, drawn thinner than a shell.
+  final bool small;
 
   double _ttl = GameConfig.bulletTtl;
 
@@ -46,6 +57,10 @@ class Bullet extends PositionComponent
   @override
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
+    if (small) {
+      canvas.drawCircle(center, 1.4, Paint()..color = color);
+      return;
+    }
     canvas.drawCircle(center, 5, Paint()..color = color.withValues(alpha: 0.3));
     canvas.drawCircle(center, 2.5, Paint()..color = color);
   }
@@ -56,7 +71,27 @@ class Bullet extends PositionComponent
     PositionComponent other,
   ) {
     super.onCollisionStart(intersectionPoints, other);
-    if (other is Asteroid) {
+    if (other is Soldier) {
+      if (other.dead ||
+          other.airborne ||
+          gameRef.allied(other.ownerId, ownerId)) {
+        return;
+      }
+      if (gameRef.runsShooter(ownerId)) {
+        gameRef.runOver(other, ownerId);
+      }
+      removeFromParent();
+    } else if (other is Aircraft) {
+      if (!(gameRef.round?.isEnemy(ownerId) ?? true) && other.takeHit(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+      }
+    } else if (other is Drone) {
+      if (antiAir && other.shootDown(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+      }
+    } else if (other is Asteroid) {
       if (other.felled) {
         return;
       }

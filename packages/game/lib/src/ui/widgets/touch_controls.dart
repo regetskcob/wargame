@@ -158,10 +158,11 @@ class _SpecialButtonState extends State<_SpecialButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.diamond, size: 20, color: color),
-            Text(
-              widget.weapon == SpecialWeapon.drone ? 'DROHNE' : 'GRANATE',
-              style: const TextStyle(fontSize: 8, letterSpacing: 1),
-            ),
+            Text(switch (widget.weapon) {
+              SpecialWeapon.drone => 'DROHNE',
+              SpecialWeapon.mortar => 'MÖRSER',
+              _ => 'GRANATE',
+            }, style: const TextStyle(fontSize: 8, letterSpacing: 1)),
             Text(
               '×${widget.charges}',
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),

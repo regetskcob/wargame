@@ -7,6 +7,9 @@ class ShootPayload {
     required this.dx,
     required this.dy,
     this.tower,
+    this.air = false,
+    this.soldier,
+    this.damage,
   });
 
   factory ShootPayload.fromJson(Map<String, dynamic> json) {
@@ -18,6 +21,9 @@ class ShootPayload {
       dx: (json['dx'] as num).toDouble(),
       dy: (json['dy'] as num).toDouble(),
       tower: json['tower'] as int?,
+      air: json['air'] as bool? ?? false,
+      soldier: json['sol'] as String?,
+      damage: (json['dmg'] as num?)?.toDouble(),
     );
   }
 
@@ -31,6 +37,15 @@ class ShootPayload {
   /// Set when one of the player's gun emplacements fired, not the tank.
   final int? tower;
 
+  /// Set when an enemy aircraft of a defense round fired.
+  final bool air;
+
+  /// Key of the soldier that fired, for rifles and rocket launchers.
+  final String? soldier;
+
+  /// Damage of the shell when the tank's gun was upgraded.
+  final double? damage;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -40,6 +55,9 @@ class ShootPayload {
       'dx': dx,
       'dy': dy,
       if (tower != null) 'tower': tower,
+      if (air) 'air': true,
+      if (soldier != null) 'sol': soldier,
+      if (damage != null) 'dmg': damage,
     };
   }
 }

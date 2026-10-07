@@ -62,17 +62,28 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 ### On the battlefield
 
-- Five vehicles (Leopard 2, Puma, Gepard, Boxer, Wiesel) with their own
-  armour, speed and gun, in four free paint schemes and four more that come
-  with higher ranks.
+- Seven vehicles (Puma, Boxer, Wiesel, Gepard, Leopard 2 and Rheinmetall's
+  Lynx KF41 and Panther KF51) with their own armour, speed and gun. Puma,
+  Boxer and Wiesel are there from the start, the others come with ranks 2,
+  3, 5 and 8. Four free paint schemes and four more that come with higher
+  ranks.
 - Four grounds (Übungsplatz, Wüste, Winter, Stadt), each with weather and a
   time of day: clear, rain, snow, a sandstorm or fog, by day or at night.
   Night, fog and sand limit the view to a circle around the tank.
-- Buildings, barriers and trees that can be shot down, soldiers to run over
-  and paratroopers that drop in waves.
-- Limited ammunition with blue gems to refill it, and rare gems for a
-  grenade launcher or a kamikaze drone.
+- Buildings, barriers and trees that can be shot down, and soldiers on foot
+  that fight: in a team round the squads are red or blue and shoot at tanks
+  and at each other. They can be shot or run over.
+- Limited ammunition with blue gems to refill it, and gems for a grenade
+  launcher, a mortar, a kamikaze drone, a squad on foot and a drop of
+  paratroopers with rocket launchers.
 - Crates with repair, smoke, rapid fire, a shield, mines and artillery.
+- Crates and gems go into an inventory at the left edge and are set off
+  later with the keys 1 to 6 or a tap.
+- Defense on four maps with a river, bridges, woods and farm houses. The
+  waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
+  the base and kamikaze drones. Cannons, flak (the only thing besides the
+  Gepard that hits aircraft properly) and mortars, three levels each, and
+  armour, gun, engine and magazine upgrades for the tank.
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
   and markers for enemies off screen.
 - Keyboard and mouse, or two touch sticks on phones and tablets.
@@ -92,6 +103,10 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - Five vehicles, weather and night, destructible terrain, crates, limited
   ammunition, special weapon gems, paratroopers and battle damage.
 - CPU tanks on three levels, the defense mode and the rematch button.
+- Defense: four maps with river and bridges, helicopters, jets and drones,
+  gun types (cannon, flak, mortar), gun and tank upgrades.
+- Fighting infantry, the inventory, new gems and the Lynx and Panther with
+  vehicles unlocked by rank.
 - Ranks, rating, badges and the leaderboards.
 - The start page, the welcome page and accounts by e-mail, live since
   October 2026.
@@ -108,9 +123,7 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 ### Ideas
 
-- Defense: more maps, gun types (anti air against drones, mortars),
-  upgrades, difficulty levels and an endless mode with its own leaderboard.
-- Helicopters and air strikes as new enemies.
+- Defense: difficulty levels and an endless mode with its own leaderboard.
 - Single player missions: escort, hold the position, take the flag.
 - Capture the flag and king of the hill for multiplayer.
 - Loadouts that unlock with experience, for example ammunition types or

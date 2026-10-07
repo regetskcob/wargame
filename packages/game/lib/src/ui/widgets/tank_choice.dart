@@ -13,6 +13,7 @@ class TankChoice extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.width = 112,
+    this.locked = false,
     super.key,
   });
 
@@ -22,10 +23,13 @@ class TankChoice extends StatelessWidget {
   final VoidCallback onTap;
   final double width;
 
+  /// The pilot's rank is too low for it yet.
+  final bool locked;
+
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
+    final card = InkWell(
+      onTap: locked ? null : onTap,
       child: Container(
         width: width,
         padding: const EdgeInsets.symmetric(vertical: 8),
@@ -57,11 +61,30 @@ class TankChoice extends StatelessWidget {
               ),
             ),
             Text(
-              type.role,
-              style: const TextStyle(fontSize: 10, color: BwColors.textDim),
+              locked ? 'ab Stufe ${type.level}' : type.role,
+              style: TextStyle(
+                fontSize: 10,
+                color: locked ? BwColors.amber : BwColors.textDim,
+              ),
             ),
           ],
         ),
+      ),
+    );
+    if (!locked) {
+      return card;
+    }
+    return Tooltip(
+      message: '${type.label}: freigeschaltet ab Stufe ${type.level}',
+      child: Stack(
+        children: [
+          Opacity(opacity: 0.45, child: card),
+          const Positioned(
+            right: 8,
+            top: 8,
+            child: Icon(Icons.lock, size: 18, color: BwColors.amber),
+          ),
+        ],
       ),
     );
   }

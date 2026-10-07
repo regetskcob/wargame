@@ -6,11 +6,13 @@ import 'package:flame/components.dart';
 
 import '../../game_config.dart';
 import '../components/asteroid.dart';
+import '../components/obstacle.dart';
 import '../map_theme.dart';
 import 'defense_map.dart';
 
-/// Terrain of a defense round: the road the enemy follows, the base at its
-/// end, a border around the field and some woods off the road.
+/// Terrain of a defense round: the road the enemy follows, the river with
+/// its bridges, the base at the end of the road, woods in copses and a few
+/// farm houses, and a border around the field.
 class DefenseField extends Component {
   DefenseField({required this.seed, required this.map})
     : theme = MapTheme.forSeed(seed);
@@ -24,27 +26,64 @@ class DefenseField extends Component {
   /// that cut them down travel the same way.
   final trees = <Asteroid>[];
 
+  /// Farm houses that give cover, numbered like the open field's buildings.
+  final obstacles = <Obstacle>[];
+
   Asteroid? treeAt(int index) =>
       index >= 0 && index < trees.length ? trees[index] : null;
 
+  Obstacle? obstacleAt(int index) =>
+      index >= 0 && index < obstacles.length ? obstacles[index] : null;
+
+  bool _clear(Vector2 position, double radius) =>
+      DefenseMap.bounds.deflate(50).contains(position.toOffset()) &&
+      map.distanceToRoad(position) > DefenseMap.roadHalfWidth + radius + 40 &&
+      map.distanceToRiver(position) > DefenseMap.riverHalfWidth + radius + 16 &&
+      position.distanceTo(map.base) > 260 &&
+      !map.bridges.any(
+        (b) => b.centre.distanceTo(position) < b.halfLength + radius + 30,
+      );
+
   @override
   void onLoad() {
+    add(_River(map: map, theme: theme));
     add(_Road(map: map, theme: theme));
     headquarters = Headquarters(position: map.base.clone());
     add(headquarters);
     final random = Random(seed);
-    var placed = 0;
+    _plantWoods(random);
+    _buildHouses(random);
+  }
+
+  /// Most trees grow in copses around a few centres, some stand alone.
+  void _plantWoods(Random random) {
+    final copses = [
+      for (var i = 0; i < 7; i++)
+        Vector2(
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfWidth - 120),
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfHeight - 120),
+        ),
+    ];
     var attempts = 0;
-    while (placed < theme.treeCount ~/ 2 && attempts < 3000) {
+    while (trees.length < theme.treeCount && attempts < 4000) {
       attempts++;
-      final position = Vector2(
-        (random.nextDouble() * 2 - 1) * (DefenseMap.halfWidth - 60),
-        (random.nextDouble() * 2 - 1) * (DefenseMap.halfHeight - 60),
-      );
+      final Vector2 position;
+      if (random.nextDouble() < 0.7) {
+        final centre = copses[random.nextInt(copses.length)];
+        final a = random.nextDouble() * 2 * pi;
+        position =
+            centre + Vector2(cos(a), sin(a)) * (random.nextDouble() * 140);
+      } else {
+        position = Vector2(
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfWidth - 60),
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfHeight - 60),
+        );
+      }
       final radius = 16 + random.nextDouble() * 26;
-      if (map.distanceToRoad(position) <
-              DefenseMap.roadHalfWidth + radius + 40 ||
-          position.distanceTo(map.base) < 260) {
+      if (!_clear(position, radius) ||
+          trees.any(
+            (t) => t.position.distanceTo(position) < t.radius + radius,
+          )) {
         continue;
       }
       final vertexCount = 8 + random.nextInt(4);
@@ -64,9 +103,144 @@ class DefenseField extends Component {
       );
       trees.add(tree);
       add(tree);
-      placed++;
     }
   }
+
+  void _buildHouses(Random random) {
+    var attempts = 0;
+    while (obstacles.length < 5 && attempts < 600) {
+      attempts++;
+      final position = Vector2(
+        (random.nextDouble() * 2 - 1) * (DefenseMap.halfWidth - 100),
+        (random.nextDouble() * 2 - 1) * (DefenseMap.halfHeight - 100),
+      );
+      final size = Vector2(
+        60 + random.nextDouble() * 40,
+        50 + random.nextDouble() * 30,
+      );
+      final reach = size.length / 2;
+      if (!_clear(position, reach) ||
+          trees.any(
+            (t) => t.position.distanceTo(position) < t.radius + reach,
+          ) ||
+          obstacles.any((o) => o.position.distanceTo(position) < 200)) {
+        continue;
+      }
+      final house = Building(
+        index: obstacles.length,
+        position: position,
+        size: size,
+        theme: theme,
+      );
+      obstacles.add(house);
+      add(house);
+    }
+  }
+}
+
+/// The river with its banks, below the road so the bridges lie on top.
+class _River extends PositionComponent {
+  _River({required this.map, required this.theme}) : super(priority: -16);
+
+  final DefenseMap map;
+  final MapTheme theme;
+  double _time = 0;
+
+  @override
+  void update(double dt) {
+    _time += dt;
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final line = Path()..moveTo(map.river.first.x, map.river.first.y);
+    for (final point in map.river.skip(1)) {
+      line.lineTo(point.x, point.y);
+    }
+    final ice = theme == MapTheme.winter;
+    Paint stroke(double width, Color color) => Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeJoin = StrokeJoin.round
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = width
+      ..color = color;
+    canvas.drawPath(
+      line,
+      stroke(DefenseMap.riverHalfWidth * 2 + 18, const Color(0x664A3B22)),
+    );
+    canvas.drawPath(
+      line,
+      stroke(
+        DefenseMap.riverHalfWidth * 2,
+        ice ? const Color(0xFF6E8FA6) : const Color(0xFF2F5D7C),
+      ),
+    );
+    canvas.drawPath(
+      line,
+      stroke(
+        DefenseMap.riverHalfWidth * 1.1,
+        ice ? const Color(0xFF8DB0C4) : const Color(0xFF3B7194),
+      ),
+    );
+    // Ripples that drift downstream.
+    final ripple = stroke(2, const Color(0x55FFFFFF));
+    final shift = (_time * 30) % 90;
+    for (var i = 0; i < map.river.length - 1; i++) {
+      final a = map.river[i];
+      final b = map.river[i + 1];
+      final along = b - a;
+      final length = along.length;
+      if (length == 0) {
+        continue;
+      }
+      final dir = along / length;
+      final side = Vector2(-dir.y, dir.x);
+      for (var d = shift; d < length; d += 90) {
+        for (final lane in const [-0.45, 0.1, 0.55]) {
+          final at = a + dir * (d + lane * 40) + side * (lane * 50);
+          canvas.drawLine(
+            (at - dir * 9).toOffset(),
+            (at + dir * 9).toOffset(),
+            ripple,
+          );
+        }
+      }
+    }
+  }
+}
+
+/// Planks across the water with a rail on either side.
+void _drawBridge(Canvas canvas, Bridge bridge) {
+  canvas.save();
+  canvas.translate(bridge.centre.x, bridge.centre.y);
+  canvas.rotate(bridge.angle);
+  final deck = Rect.fromCenter(
+    center: Offset.zero,
+    width: bridge.halfLength * 2,
+    height: bridge.halfWidth * 2,
+  );
+  canvas.drawRect(
+    deck.shift(const Offset(3, 5)),
+    Paint()..color = const Color(0x66000000),
+  );
+  canvas.drawRect(deck, Paint()..color = const Color(0xFF7A5C3A));
+  final plank = Paint()
+    ..strokeWidth = 1.5
+    ..color = const Color(0xFF4E3A24);
+  for (var x = deck.left + 8; x < deck.right; x += 9) {
+    canvas.drawLine(Offset(x, deck.top), Offset(x, deck.bottom), plank);
+  }
+  final rail = Paint()
+    ..strokeWidth = 5
+    ..color = const Color(0xFF3B2B1A);
+  canvas.drawLine(deck.topLeft, deck.topRight, rail);
+  canvas.drawLine(deck.bottomLeft, deck.bottomRight, rail);
+  final post = Paint()..color = rail.color;
+  for (var x = deck.left; x <= deck.right + 0.1; x += bridge.halfLength / 2) {
+    canvas.drawCircle(Offset(x, deck.top), 3.5, post);
+    canvas.drawCircle(Offset(x, deck.bottom), 3.5, post);
+  }
+  canvas.restore();
 }
 
 class _Road extends PositionComponent {
@@ -134,6 +308,9 @@ class _Road extends PositionComponent {
         canvas.drawLine((back + side * 14).toOffset(), tip.toOffset(), arrow);
         canvas.drawLine((back - side * 14).toOffset(), tip.toOffset(), arrow);
       }
+    }
+    for (final bridge in map.bridges) {
+      _drawBridge(canvas, bridge);
     }
   }
 }

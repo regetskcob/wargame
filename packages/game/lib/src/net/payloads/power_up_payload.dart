@@ -15,13 +15,21 @@ class PickupPayload {
 }
 
 class SmokePayload {
-  const SmokePayload({required this.id, required this.x, required this.y});
+  const SmokePayload({
+    required this.id,
+    required this.x,
+    required this.y,
+    this.fromX,
+    this.fromY,
+  });
 
   factory SmokePayload.fromJson(Map<String, dynamic> json) {
     return SmokePayload(
       id: json['id'] as String,
       x: (json['x'] as num).toDouble(),
       y: (json['y'] as num).toDouble(),
+      fromX: (json['fx'] as num?)?.toDouble(),
+      fromY: (json['fy'] as num?)?.toDouble(),
     );
   }
 
@@ -29,5 +37,16 @@ class SmokePayload {
   final double x;
   final double y;
 
-  Map<String, dynamic> toJson() => {'id': id, 'x': x, 'y': y};
+  /// Where a smoke grenade was thrown from. Without it the cloud rises on
+  /// the spot right away.
+  final double? fromX;
+  final double? fromY;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'x': x,
+    'y': y,
+    if (fromX != null) 'fx': fromX,
+    if (fromY != null) 'fy': fromY,
+  };
 }

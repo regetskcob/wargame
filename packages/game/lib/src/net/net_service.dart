@@ -44,6 +44,9 @@ class NetService {
   void Function(GrenadePayload payload)? onGrenade;
   void Function(DronePayload payload)? onDrone;
   void Function(BlastPayload payload)? onBlast;
+  void Function(AirPayload payload)? onAir;
+  void Function(SquadPayload payload)? onSquad;
+  void Function(UsePayload payload)? onUse;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
@@ -112,6 +115,21 @@ class NetService {
       channel,
       NetEvent.blast,
       (json) => onBlast?.call(BlastPayload.fromJson(json)),
+    );
+    _listen(
+      channel,
+      NetEvent.air,
+      (json) => onAir?.call(AirPayload.fromJson(json)),
+    );
+    _listen(
+      channel,
+      NetEvent.squad,
+      (json) => onSquad?.call(SquadPayload.fromJson(json)),
+    );
+    _listen(
+      channel,
+      NetEvent.use,
+      (json) => onUse?.call(UsePayload.fromJson(json)),
     );
     _listen(
       channel,

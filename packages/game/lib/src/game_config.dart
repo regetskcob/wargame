@@ -54,6 +54,9 @@ class GameConfig {
   static const powerUpSlots = 18;
   static const powerUpFirstAt = 5.0;
   static const powerUpEvery = 6.0;
+  static const defensePowerUpSlots = 80;
+  static const defensePowerUpFirstAt = 10.0;
+  static const defensePowerUpEvery = 9.0;
   static const repairAmount = 40.0;
   static const rapidFireSeconds = 8.0;
   static const rapidFireFactor = 0.45;
@@ -141,6 +144,82 @@ class GameConfig {
   static const droneRadius = 75.0;
   static const droneDamage = 60.0;
   static const droneSyncInterval = 0.08;
+
+  /// A portable mortar from a gem: further and harder than the grenade
+  /// launcher, but slow to land.
+  static const mortarCharges = 4;
+  static const mortarCooldown = 1.8;
+  static const mortarRange = 560.0;
+  static const mortarMinRange = 140.0;
+  static const mortarFlightSeconds = 1.6;
+  static const mortarRadius = 95.0;
+  static const mortarDamage = 55.0;
+
+  /// Shells of a mortar emplacement in a defense round.
+  static const shellRadius = 75.0;
+  static const shellDamage = 50.0;
+  static const shellFlightSeconds = 1.3;
+
+  /// Inventory at the side of the screen: how many kinds it holds and how
+  /// many of one kind stack in a slot.
+  static const inventorySlots = 6;
+  static const inventoryStack = 5;
+
+  /// Smoke grenades from the inventory are thrown this far at most.
+  static const smokeThrowRange = 300.0;
+  static const smokeFlightSeconds = 0.8;
+
+  /// Soldiers on foot. Riflemen are quick to fire and deadly to soldiers,
+  /// the rocket launchers of paratroopers hurt tanks.
+  static const rifleRange = 220.0;
+  static const rifleCooldown = 1.3;
+  static const rifleDamage = 1.0;
+  static const rifleSpeed = 480.0;
+  static const rocketRange = 300.0;
+  static const rocketCooldown = 4.0;
+  static const rocketDamage = 18.0;
+  static const rocketSpeed = 300.0;
+
+  /// A squad from a gem, deployed next to the tank: riflemen and one rocket.
+  static const squadRifles = 4;
+  static const squadRockets = 1;
+
+  /// A drop of paratroopers from a gem, all with rocket launchers.
+  static const paraDropRockets = 4;
+  static const paraDropRange = 420.0;
+
+  /// Enemy soldiers march down the road of a defense round at this pace and
+  /// hurt the base when they reach it.
+  static const marchSpeed = 70.0;
+  static const soldierRaidDamage = 25.0;
+  static const creditsPerSoldier = 5;
+
+  /// Enemy aircraft of a defense round.
+  static const helicopterHp = 120.0;
+  static const helicopterSpeed = 110.0;
+  static const helicopterHover = 260.0;
+  static const helicopterCooldown = 1.8;
+  static const helicopterDamage = 10.0;
+  static const helicopterRange = 420.0;
+  static const helicopterShotSpeed = 380.0;
+  static const jetHp = 80.0;
+  static const jetSpeed = 420.0;
+  static const jetBombs = 3;
+  static const airSyncInterval = 0.1;
+  static const creditsPerAircraft = 40;
+
+  /// Shells that are not built to hit aircraft only scratch a helicopter
+  /// and never touch a jet. Flak and the Gepard hit them hard.
+  static const groundGunVsHelicopter = 0.25;
+  static const antiAirFactor = 2.0;
+
+  /// Enemy kamikaze drones fly longer than the ones from gems, the road is
+  /// long.
+  static const enemyDroneSeconds = 18.0;
+
+  /// Upgrades of the tank in a defense round.
+  static const upgradeBaseCost = 80;
+  static const upgradeMaxLevel = 3;
 
   static const countdownSeconds = 3;
 

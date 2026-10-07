@@ -7,6 +7,7 @@ import '../../game/components/asteroid.dart';
 import '../../game/components/obstacle.dart';
 import '../../game/components/storm_zone.dart';
 import '../../game/defense/defense_map.dart';
+import '../../game/components/soldier.dart';
 import '../../game/space_game.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
@@ -113,7 +114,7 @@ class _MiniMapPainter extends CustomPainter {
     }
 
     final soldierPaint = Paint()..color = const Color(0xFFD9C97A);
-    for (final soldier in game.soldierField?.soldiers ?? const []) {
+    for (final soldier in game.soldierField?.all ?? const <Soldier>[]) {
       if (!soldier.dead && soldier.isMounted) {
         canvas.drawCircle(
           toMap(soldier.position.x, soldier.position.y),
@@ -217,6 +218,25 @@ class _MiniMapPainter extends CustomPainter {
     Offset toMap(double x, double y) => frame.center + Offset(x, y) * scale;
 
     canvas.drawRect(frame, Paint()..color = BwColors.panel);
+    final river = Path()
+      ..moveTo(
+        toMap(map.river.first.x, map.river.first.y).dx,
+        toMap(map.river.first.x, map.river.first.y).dy,
+      );
+    for (final point in map.river.skip(1)) {
+      final p = toMap(point.x, point.y);
+      river.lineTo(p.dx, p.dy);
+    }
+    canvas.save();
+    canvas.clipRect(frame);
+    canvas.drawPath(
+      river,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = max(2.0, DefenseMap.riverHalfWidth * 2 * scale)
+        ..color = const Color(0xAA3B7194),
+    );
+    canvas.restore();
     final road = Path()
       ..moveTo(
         toMap(map.road.first.x, map.road.first.y).dx,
@@ -238,6 +258,51 @@ class _MiniMapPainter extends CustomPainter {
       max(3.0, DefenseMap.baseRadius * scale),
       Paint()..color = GameConfig.teamColors[1],
     );
+    for (final bridge in map.bridges) {
+      canvas.drawCircle(
+        toMap(bridge.centre.x, bridge.centre.y),
+        2.5,
+        Paint()..color = const Color(0xFF7A5C3A),
+      );
+    }
+    final soldierPaint = Paint()..color = GameConfig.teamColors[2];
+    for (final soldier in game.soldierField?.all ?? const <Soldier>[]) {
+      if (!soldier.dead && soldier.isMounted) {
+        canvas.drawCircle(
+          toMap(soldier.position.x, soldier.position.y),
+          1.3,
+          soldier.ownerId != null &&
+                  game.round?.isEnemy(soldier.ownerId!) == true
+              ? soldierPaint
+              : (Paint()..color = const Color(0xFFD9C97A)),
+        );
+      }
+    }
+    for (final plane in game.aircraft.values) {
+      final p = toMap(plane.position.x, plane.position.y);
+      canvas.drawPath(
+        Path()
+          ..moveTo(p.dx, p.dy - 4)
+          ..lineTo(p.dx + 3.5, p.dy + 3)
+          ..lineTo(p.dx - 3.5, p.dy + 3)
+          ..close(),
+        Paint()..color = const Color(0xFFFF5252),
+      );
+    }
+    for (final drone in game.drones.values) {
+      canvas.drawCircle(
+        toMap(drone.position.x, drone.position.y),
+        1.6,
+        Paint()..color = const Color(0xFFFF3D00),
+      );
+    }
+    for (final crate in game.powerUps.values) {
+      canvas.drawCircle(
+        toMap(crate.position.x, crate.position.y),
+        1.8,
+        Paint()..color = crate.type.color,
+      );
+    }
     for (final tower in game.towers.values) {
       final at = Rect.fromCenter(
         center: toMap(tower.position.x, tower.position.y),

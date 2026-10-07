@@ -3,16 +3,25 @@ import 'dart:ui';
 
 /// The vehicles a player can pick, all drawn in code from above.
 enum TankType {
-  leopard('LEOPARD 2', 'Kampfpanzer'),
+  leopard('LEOPARD 2', 'Kampfpanzer', level: 3),
   puma('PUMA', 'Schützenpanzer'),
-  gepard('GEPARD', 'Flugabwehr'),
+  gepard('GEPARD', 'Flugabwehr', level: 2),
   boxer('BOXER', 'Radpanzer'),
-  wiesel('WIESEL', 'Waffenträger');
+  wiesel('WIESEL', 'Waffenträger'),
 
-  const TankType(this.label, this.role);
+  /// Rheinmetall's tracked infantry fighting vehicle with the 35 mm gun.
+  lynx('LYNX KF41', 'Schützenpanzer', level: 5),
+
+  /// Rheinmetall's main battle tank with the 130 mm gun.
+  panther('PANTHER KF51', 'Kampfpanzer', level: 8);
+
+  const TankType(this.label, this.role, {this.level = 1});
 
   final String label;
   final String role;
+
+  /// Rank a pilot needs to drive it. New vehicles come with promotions.
+  final int level;
 }
 
 const _steel = Color(0xFF262626);
@@ -27,6 +36,8 @@ const _muzzles = {
   TankType.gepard: [Offset(18.5, -11), Offset(29.6, -11)],
   TankType.boxer: [Offset(24, -5)],
   TankType.wiesel: [Offset(27.5, 0)],
+  TankType.lynx: [Offset(26, -9)],
+  TankType.panther: [Offset(24, -22)],
 };
 
 /// Where the turret ring sits on the hull.
@@ -36,6 +47,8 @@ const _pivots = {
   TankType.gepard: Offset(24, 24),
   TankType.boxer: Offset(24, 24),
   TankType.wiesel: Offset(24, 27),
+  TankType.lynx: Offset(24, 22),
+  TankType.panther: Offset(24, 25),
 };
 
 typedef _TurretPass = void Function(void Function() draw);
@@ -115,6 +128,10 @@ void paintTank(
       _boxer(canvas, hull, dark, light, turret);
     case TankType.wiesel:
       _wiesel(canvas, hull, dark, light, turret);
+    case TankType.lynx:
+      _lynx(canvas, hull, dark, light, turret);
+    case TankType.panther:
+      _panther(canvas, hull, dark, light, turret);
   }
   canvas.restore();
 }
@@ -537,5 +554,144 @@ void _wiesel(
     canvas.drawCircle(const Offset(24, 27), 3.4, _fill(light));
     // Sight box next to the tube
     canvas.drawRect(const Rect.fromLTWH(21, 22, 3.6, 4.4), _fill(dark));
+  });
+}
+
+void _lynx(
+  Canvas canvas,
+  Color hull,
+  Color dark,
+  Color light,
+  _TurretPass turret,
+) {
+  _tracks(canvas, 5, 47, 10);
+  _skirts(canvas, dark, 9, 44);
+
+  // Long hull with a steep glacis and the power pack up front on the left.
+  final body = Path()
+    ..moveTo(15, 46)
+    ..lineTo(15, 13)
+    ..lineTo(18, 5)
+    ..lineTo(30, 5)
+    ..lineTo(33, 13)
+    ..lineTo(33, 46)
+    ..close();
+  canvas.drawPath(body, _fill(hull));
+  canvas.drawPath(body, _line(dark));
+  canvas.drawRect(const Rect.fromLTWH(17, 8, 6, 5), _fill(dark));
+  for (var x = 17.5; x < 23; x += 1.5) {
+    canvas.drawLine(Offset(x, 8.5), Offset(x, 12.5), _line(light, 0.5));
+  }
+  // Rear door and roof hatches of the troop compartment.
+  canvas.drawRect(const Rect.fromLTWH(18, 39, 12, 6), _fill(dark));
+  canvas.drawLine(const Offset(24, 39), const Offset(24, 45), _line(light));
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      const Rect.fromLTWH(18.5, 32, 4.5, 4.5),
+      const Radius.circular(1),
+    ),
+    _line(dark),
+  );
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      const Rect.fromLTWH(25, 32, 4.5, 4.5),
+      const Radius.circular(1),
+    ),
+    _line(dark),
+  );
+  _balkenkreuz(canvas, 24, 42, 4.5);
+
+  turret(() {
+    // 35 mm Wotan gun, set off to the right of the turret.
+    canvas.drawRect(const Rect.fromLTWH(25.1, -8, 1.8, 24), _fill(_steel));
+    canvas.drawRect(
+      const Rect.fromLTWH(24.7, -8.5, 2.6, 1.8),
+      _fill(_barrelTip),
+    );
+    canvas.drawRect(const Rect.fromLTWH(24.6, 4, 2.8, 3), _fill(_steel));
+
+    // Faceted Lance turret.
+    final turret = Path()
+      ..moveTo(18, 14)
+      ..lineTo(30, 14)
+      ..lineTo(33, 19)
+      ..lineTo(33, 29)
+      ..lineTo(30, 31)
+      ..lineTo(18, 31)
+      ..lineTo(15, 29)
+      ..lineTo(15, 19)
+      ..close();
+    canvas.drawPath(turret, _fill(light));
+    canvas.drawPath(turret, _line(dark));
+    // Spike launcher on the left cheek, commander's sight at the back.
+    canvas.drawRect(const Rect.fromLTWH(12.4, 17, 3, 9), _fill(dark));
+    canvas.drawRect(const Rect.fromLTWH(12.9, 17.5, 2, 2.4), _fill(_steel));
+    canvas.drawCircle(const Offset(20, 26), 2.5, _fill(dark));
+    canvas.drawCircle(const Offset(20, 26), 1.2, _fill(light));
+    canvas.drawRect(const Rect.fromLTWH(26, 24, 4, 3.5), _fill(dark));
+  });
+}
+
+void _panther(
+  Canvas canvas,
+  Color hull,
+  Color dark,
+  Color light,
+  _TurretPass turret,
+) {
+  _tracks(canvas, 3, 47, 9);
+  _skirts(canvas, dark, 7, 45);
+
+  // Broad hull, wider than the Leopard's.
+  final body = Path()
+    ..moveTo(15, 46)
+    ..lineTo(15, 13)
+    ..lineTo(18.5, 4.5)
+    ..lineTo(29.5, 4.5)
+    ..lineTo(33, 13)
+    ..lineTo(33, 46)
+    ..close();
+  canvas.drawPath(body, _fill(hull));
+  canvas.drawPath(body, _line(dark));
+  canvas.drawLine(const Offset(16, 13), const Offset(32, 13), _line(dark));
+  canvas.drawRect(const Rect.fromLTWH(17.5, 38, 13, 7.5), _fill(dark));
+  for (var y = 39.0; y < 45; y += 1.8) {
+    canvas.drawLine(Offset(18, y), Offset(30, y), _line(light, 0.6));
+  }
+  _balkenkreuz(canvas, 24, 41.8, 6);
+
+  turret(() {
+    // 130 mm smooth bore gun, long and thick, with a fume extractor.
+    canvas.drawRect(const Rect.fromLTWH(22.6, -21, 2.8, 35), _fill(_steel));
+    canvas.drawRect(const Rect.fromLTWH(21.9, -9, 4.2, 6), _fill(_steel));
+    canvas.drawRect(
+      const Rect.fromLTWH(22.1, -21.6, 3.8, 1.9),
+      _fill(_barrelTip),
+    );
+    canvas.drawRect(const Rect.fromLTWH(19.5, 11, 9, 4), _fill(_steel));
+
+    // Low, angular turret with a bustle at the back.
+    final turret = Path()
+      ..moveTo(20, 12)
+      ..lineTo(28, 12)
+      ..lineTo(33, 17)
+      ..lineTo(34, 30)
+      ..lineTo(32, 37)
+      ..lineTo(16, 37)
+      ..lineTo(14, 30)
+      ..lineTo(15, 17)
+      ..close();
+    canvas.drawPath(turret, _fill(light));
+    canvas.drawPath(turret, _line(dark));
+    canvas.drawLine(const Offset(15, 30), const Offset(34, 30), _line(dark));
+    // Launcher for loitering munitions on the bustle.
+    canvas.drawRect(const Rect.fromLTWH(17.5, 31, 13, 5), _fill(dark));
+    for (var x = 19.0; x < 30; x += 3.2) {
+      canvas.drawCircle(Offset(x, 33.5), 1.1, _fill(_steel));
+    }
+    // Commander's and gunner's sights.
+    canvas.drawCircle(const Offset(29, 22), 2.6, _fill(dark));
+    canvas.drawCircle(const Offset(29, 22), 1.3, _fill(light));
+    canvas.drawRect(const Rect.fromLTWH(17.5, 19, 3.6, 4), _fill(dark));
   });
 }

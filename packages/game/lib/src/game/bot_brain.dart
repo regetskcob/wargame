@@ -229,7 +229,9 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
       final wanted = switch (crate.type) {
         PowerUpType.ammo => lowAmmo,
         PowerUpType.grenades ||
-        PowerUpType.drone => ship.special == null && distance < 350,
+        PowerUpType.drone ||
+        PowerUpType.mortar => ship.special == null && distance < 350,
+        PowerUpType.infantry || PowerUpType.paratroopers => distance < 250,
         _ => false,
       };
       if (wanted && distance < bestDistance) {
@@ -313,8 +315,11 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
         onTarget &&
             distance > GameConfig.grenadeMinRange + 40 &&
             distance < GameConfig.grenadeRange,
+      SpecialWeapon.mortar =>
+        distance > GameConfig.mortarMinRange + 40 &&
+            distance < GameConfig.mortarRange,
       SpecialWeapon.drone => distance < 700,
-      null => false,
+      SpecialWeapon.shell || null => false,
     };
     _specialGate = ready ? _specialGate + dt : 0;
     controls
