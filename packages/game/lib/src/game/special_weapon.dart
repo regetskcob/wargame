@@ -13,6 +13,10 @@ enum SpecialWeapon {
     cooldown: GameConfig.grenadeCooldown,
     radius: GameConfig.grenadeRadius,
     damage: GameConfig.grenadeDamage,
+    range: GameConfig.grenadeRange,
+    minRange: GameConfig.grenadeMinRange,
+    flight: GameConfig.grenadeFlightSeconds,
+    arc: 70,
   ),
 
   /// Launches a kamikaze drone that hunts the nearest enemy on its own.
@@ -23,6 +27,34 @@ enum SpecialWeapon {
     cooldown: GameConfig.droneCooldown,
     radius: GameConfig.droneRadius,
     damage: GameConfig.droneDamage,
+  ),
+
+  /// A light mortar: a long, high arc onto the spot under the cursor. It
+  /// hits tanks harder than the grenade launcher.
+  mortar(
+    'MÖRSER',
+    Color(0xFFFF8A65),
+    charges: GameConfig.mortarCharges,
+    cooldown: GameConfig.mortarCooldown,
+    radius: GameConfig.mortarRadius,
+    damage: GameConfig.mortarDamage,
+    range: GameConfig.mortarRange,
+    minRange: GameConfig.mortarMinRange,
+    flight: GameConfig.mortarFlightSeconds,
+    arc: 150,
+  ),
+
+  /// The shell of a mortar emplacement in a defense round. No tank carries
+  /// it.
+  shell(
+    'MÖRSERSTELLUNG',
+    Color(0xFFFFAB40),
+    charges: 0,
+    cooldown: 0,
+    radius: GameConfig.shellRadius,
+    damage: GameConfig.shellDamage,
+    flight: GameConfig.shellFlightSeconds,
+    arc: 130,
   );
 
   const SpecialWeapon(
@@ -32,6 +64,10 @@ enum SpecialWeapon {
     required this.cooldown,
     required this.radius,
     required this.damage,
+    this.range = 0,
+    this.minRange = 0,
+    this.flight = 0,
+    this.arc = 0,
   });
 
   final String label;
@@ -43,6 +79,15 @@ enum SpecialWeapon {
   /// still takes half of it.
   final double radius;
   final double damage;
+
+  /// For the weapons that lob a shell: how far it flies at most and at
+  /// least, how long it is in the air and how high it climbs.
+  final double range;
+  final double minRange;
+  final double flight;
+  final double arc;
+
+  bool get lobbed => flight > 0;
 
   double damageAt(double distance) {
     final share = (distance / radius).clamp(0.0, 1.0);

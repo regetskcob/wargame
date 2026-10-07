@@ -59,8 +59,18 @@ class PlayerShip extends ShipBase
   double rapidFireLeft = 0;
   double shieldLeft = 0;
 
+  /// Upgrades bought in a defense round: share of the damage the armour
+  /// lets through, and factors on the gun, the engine and the magazine.
+  double armorFactor = 1;
+  double gunFactor = 1;
+  double engineFactor = 1;
+  double magazineFactor = 1;
+
+  /// Rounds a full magazine holds.
+  int get magazine => (stats.ammo * magazineFactor).round();
+
   /// Rounds left in the magazine. Gems put more back.
-  late int ammo = stats.ammo;
+  late int ammo = magazine;
 
   /// Special weapon from a gem and the charges it has left.
   SpecialWeapon? special;
@@ -92,6 +102,16 @@ class PlayerShip extends ShipBase
   /// Worst stage the driver has been warned about, to warn only once.
   DamageStage _announced = DamageStage.intact;
   static final _random = Random();
+
+  /// Keys 1 to 6 set off the items in the inventory.
+  static final _itemKeys = [
+    LogicalKeyboardKey.digit1,
+    LogicalKeyboardKey.digit2,
+    LogicalKeyboardKey.digit3,
+    LogicalKeyboardKey.digit4,
+    LogicalKeyboardKey.digit5,
+    LogicalKeyboardKey.digit6,
+  ];
 
   double _fireCooldown = 0;
   double _sinceSync = 0;
@@ -127,8 +147,18 @@ class PlayerShip extends ShipBase
     _special = keysPressed.contains(LogicalKeyboardKey.keyF);
     _turretLeft = keysPressed.contains(LogicalKeyboardKey.keyQ);
     _turretRight = keysPressed.contains(LogicalKeyboardKey.keyE);
-    if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyB) {
-      gameRef.buildTower();
+    if (event is KeyDownEvent) {
+      final key = event.logicalKey;
+      if (key == LogicalKeyboardKey.keyB) {
+        gameRef.buildTower();
+      } else if (key == LogicalKeyboardKey.keyV) {
+        gameRef.cycleTowerKind();
+      } else {
+        final slot = _itemKeys.indexOf(key);
+        if (slot >= 0) {
+          gameRef.useItem(slot);
+        }
+      }
     }
     return true;
   }
@@ -183,6 +213,7 @@ class PlayerShip extends ShipBase
         GameConfig.shipMaxSpeed *
         stats.speed *
         speedFactor *
+        engineFactor *
         damage.speedFactor *
         min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration =
@@ -235,8 +266,11 @@ class PlayerShip extends ShipBase
     velocity
       ..setFrom(direction)
       ..scale(_speed);
+    final before = position.clone();
     position.add(velocity * dt);
-    if (gameRef.defenseMap != null) {
+    final map = gameRef.defenseMap;
+    if (map != null) {
+      _keepOutOfWater(map, before);
       final bounds = DefenseMap.bounds;
       final x = position.x.clamp(bounds.left, bounds.right);
       final y = position.y.clamp(bounds.top, bounds.bottom);
@@ -248,6 +282,25 @@ class PlayerShip extends ShipBase
       position.scaleTo(GameConfig.worldRadius);
       _speed *= 0.4;
     }
+  }
+
+  /// The river can only be crossed on a bridge. A tank that drives into the
+  /// bank slides along it instead.
+  void _keepOutOfWater(DefenseMap map, Vector2 before) {
+    const margin = GameConfig.shipRadius * 0.6;
+    if (!map.inWater(position, margin: margin)) {
+      return;
+    }
+    final slideX = Vector2(position.x, before.y);
+    final slideY = Vector2(before.x, position.y);
+    if (!map.inWater(slideX, margin: margin)) {
+      position.setFrom(slideX);
+    } else if (!map.inWater(slideY, margin: margin)) {
+      position.setFrom(slideY);
+    } else {
+      position.setFrom(before);
+    }
+    _speed *= 0.6;
   }
 
   /// A damaged running gear makes the ride rough: the heading drifts, broken
@@ -356,7 +409,7 @@ class PlayerShip extends ShipBase
   }
 
   void setAmmo(int value) {
-    ammo = value.clamp(0, stats.ammo);
+    ammo = value.clamp(0, magazine);
     if (!isBot) {
       gameRef.ammoNotifier.value = ammo;
     }
@@ -437,6 +490,9 @@ class PlayerShip extends ShipBase
     // The shield holds off shells, mines and barrages, not the zone.
     if (shielded && killerId != null) {
       amount *= GameConfig.shieldFactor;
+    }
+    if (killerId != null) {
+      amount *= armorFactor;
     }
     hp -= amount;
     takeHitEffects(amount);
@@ -522,8 +578,10 @@ class PlayerShip extends ShipBase
     } else if (other is PowerUp) {
       gameRef.collectPowerUp(other, this);
     } else if (other is Soldier) {
-      if (load.abs() > 0.08 && !other.airborne) {
-        gameRef.runOver(other, playerId);
+      if (load.abs() > 0.08 &&
+          !other.airborne &&
+          !gameRef.allied(other.ownerId, playerId)) {
+        gameRef.runOver(other, playerId, crushed: true);
       }
     } else if (other is Asteroid) {
       _trees.add(other);

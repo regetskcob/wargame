@@ -29,8 +29,19 @@ Everything resolves from pub.dev. There are no git dependencies and no
   sand limit the view to a circle around the tank.
 - Buildings, barriers and trees that can be shot down, soldiers to run over,
   and crates with repair, smoke, rapid fire, a shield, mines and artillery.
+- Gems for a mortar, a squad on foot and a drop of paratroopers with rocket
+  launchers. Crates and gems go into an inventory at the left edge and are
+  set off later with the keys 1 to 6 or a tap.
+- Soldiers on foot that fight: in a team round the squads are red or blue,
+  and the squads from gems fight for whoever called them in. They shoot at
+  tanks and at each other and can be shot or run over.
 - Free for all or red against blue, alone against CPU tanks or with other
   people, with CPU tanks on three levels that can fill up a room.
+- A defense mode on four maps with a river, bridges, woods and farm houses.
+  The waves bring tanks, soldiers on foot, attack helicopters, jets that
+  bomb the base and kamikaze drones. Players build cannons, flak (the only
+  thing besides the Gepard that hits aircraft properly) and mortars, upgrade
+  them and buy armour, gun, engine and magazine upgrades for their tank.
 - A rematch button on the end screen, and a replay of the last round.
 - Ranks from experience, an Elo rating, ten badges, an all time and a weekly
   leaderboard and statistics per vehicle.

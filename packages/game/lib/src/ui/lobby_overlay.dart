@@ -332,15 +332,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       'Rechter Stick richtet den Turm aus, unabhängig von der '
                       'Wanne, und feuert, sobald du über den Ring schiebst. '
                       'Die Sticks erscheinen dort, wo dein Daumen aufsetzt. '
-                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
-                      'und violette bringen Granatwerfer oder Drohne, die du '
-                      'mit dem runden Knopf über dem rechten Stick auslöst.'
+                      'Kisten und Gems landen im Inventar am linken Rand, ein '
+                      'Tipp setzt sie ein. Waffen wie Granatwerfer, Mörser '
+                      'und Drohne löst du danach mit dem runden Knopf über '
+                      'dem rechten Stick aus.'
                 : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
                       'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
-                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
-                      'und violette bringen Granatwerfer oder Drohne, die du '
-                      'mit F auslöst. Auf Touchgeräten steuerst du mit zwei '
-                      'Sticks am Bildschirm.',
+                      'Kisten und Gems wandern ins Inventar am linken Rand, '
+                      'du setzt sie mit 1 bis 6 oder einem Tipp ein: Munition, '
+                      'Nebelgranaten, Granatwerfer, Mörser, Drohne, Trupps und '
+                      'Fallschirmjäger. Waffen löst du danach mit F aus. Auf '
+                      'Touchgeräten steuerst du mit zwei Sticks am Bildschirm.',
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ),

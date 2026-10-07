@@ -15,5 +15,8 @@ enum NetEvent {
   grenade,
   drone,
   blast,
+  air,
+  squad,
+  use,
   close,
 }

@@ -35,6 +35,10 @@ class PlausibilityGuard {
   /// A tank whose last known health was above this cannot have died.
   static const deathCeiling = 75.0;
 
+  /// How far from the middle a tank may be: the round open field, or the
+  /// corner of the larger defense map.
+  double worldReach = GameConfig.worldRadius;
+
   void reset() {
     _tanks.clear();
     strikes.clear();
@@ -119,11 +123,11 @@ class PlausibilityGuard {
       }
     }
     if (acceptedX * acceptedX + acceptedY * acceptedY >
-        pow(GameConfig.worldRadius + jumpSlack, 2)) {
+        pow(worldReach + jumpSlack, 2)) {
       _strike(id);
       final length = sqrt(acceptedX * acceptedX + acceptedY * acceptedY);
-      acceptedX = acceptedX / length * GameConfig.worldRadius;
-      acceptedY = acceptedY / length * GameConfig.worldRadius;
+      acceptedX = acceptedX / length * worldReach;
+      acceptedY = acceptedY / length * worldReach;
     }
     track
       ..x = acceptedX

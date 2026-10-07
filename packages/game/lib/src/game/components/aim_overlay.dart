@@ -39,8 +39,16 @@ class AimOverlay extends Component with HasGameRef<SpaceGame> {
     }
 
     final point = game.pointerWorld();
-    if (ship.special == SpecialWeapon.grenades) {
-      _grenadeRing(canvas, ship.position, direction, point, game.touch.aim);
+    final special = ship.special;
+    if (special != null && special.lobbed) {
+      _grenadeRing(
+        canvas,
+        special,
+        ship.position,
+        direction,
+        point,
+        game.touch.aim,
+      );
     }
     if (point == null || game.touch.aim != null) {
       return;
@@ -65,31 +73,26 @@ class AimOverlay extends Component with HasGameRef<SpaceGame> {
   /// Where a grenade would land right now, with its blast radius.
   void _grenadeRing(
     Canvas canvas,
+    SpecialWeapon weapon,
     Vector2 from,
     Vector2 direction,
     Vector2? pointer,
     double? stick,
   ) {
     final wanted = stick != null
-        ? GameConfig.grenadeRange * 0.75
-        : pointer?.distanceTo(from) ?? GameConfig.grenadeRange;
-    final distance = wanted.clamp(
-      GameConfig.grenadeMinRange,
-      GameConfig.grenadeRange,
-    );
+        ? weapon.range * 0.75
+        : pointer?.distanceTo(from) ?? weapon.range;
+    final distance = wanted.clamp(weapon.minRange, weapon.range);
     final at = from + direction * distance;
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.6
-      ..color = const Color(0x99EF5350);
+      ..color = weapon.color.withValues(alpha: 0.6);
     const dashes = 24;
     for (var i = 0; i < dashes; i++) {
       final a = 2 * pi * i / dashes;
       canvas.drawArc(
-        Rect.fromCircle(
-          center: Offset(at.x, at.y),
-          radius: GameConfig.grenadeRadius,
-        ),
+        Rect.fromCircle(center: Offset(at.x, at.y), radius: weapon.radius),
         a,
         pi / dashes,
         false,

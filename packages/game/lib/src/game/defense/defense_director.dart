@@ -4,6 +4,7 @@ import '../../game_config.dart';
 import '../../net/payloads/defense_payload.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
+import 'aircraft.dart';
 import 'defense_map.dart';
 
 /// Runs the waves of a defense round. Only the player who simulates the
@@ -14,7 +15,7 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
 
   final int startedAt;
 
-  int _queued = 0;
+  final _queue = <_Spawn>[];
   int _spawned = 0;
   double _spawnTimer = 0;
   double _keepalive = 0;
@@ -50,23 +51,29 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     }
     if (state.nextWaveAt > 0 && _now >= state.nextWaveAt) {
       next = state.copyWith(wave: state.wave + 1, nextWaveAt: 0);
-      _queued = DefenseMap.waveSize(next.wave);
+      _queue
+        ..clear()
+        ..addAll(_order(DefenseMap.planFor(next.wave)));
       _spawned = 0;
       _spawnTimer = 0;
     }
     _spawnTimer -= dt;
-    if (_queued > 0 &&
-        _spawnTimer <= 0 &&
-        gameRef.botShips.length < GameConfig.maxEnemiesAlive) {
-      gameRef.spawnEnemy('td-${next.wave}-$_spawned');
-      _spawned++;
-      _queued--;
-      _spawnTimer = GameConfig.enemySpawnEvery;
+    if (_queue.isNotEmpty && _spawnTimer <= 0) {
+      final spawn = _queue.first;
+      final room =
+          spawn != _Spawn.tank ||
+          gameRef.botShips.length < GameConfig.maxEnemiesAlive;
+      if (room) {
+        _queue.removeAt(0);
+        _launch(spawn, next.wave);
+        _spawned++;
+        _spawnTimer = GameConfig.enemySpawnEvery;
+      }
     }
     if (next.wave > 0 &&
         next.nextWaveAt == 0 &&
-        _queued == 0 &&
-        gameRef.botShips.isEmpty) {
+        _queue.isEmpty &&
+        !gameRef.enemyForcesLeft) {
       next = next.wave >= GameConfig.defenseWaves
           ? next.copyWith(result: DefenseResult.won)
           : next.copyWith(
@@ -77,6 +84,46 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     if (!identical(next, state) || _keepalive >= 1) {
       _keepalive = 0;
       gameRef.publishDefense(next);
+    }
+  }
+}
+
+enum _Spawn { tank, squad, helicopter, jet, drone }
+
+extension on DefenseDirector {
+  /// A squad leads the way, the aircraft come in between the tanks, the
+  /// drones last.
+  List<_Spawn> _order(WavePlan plan) {
+    final order = <_Spawn>[for (var i = 0; i < plan.squads; i++) _Spawn.squad];
+    final air = [
+      for (var i = 0; i < plan.helicopters; i++) _Spawn.helicopter,
+      for (var i = 0; i < plan.jets; i++) _Spawn.jet,
+    ];
+    for (var i = 0; i < plan.tanks; i++) {
+      order.add(_Spawn.tank);
+      if (i.isOdd && air.isNotEmpty) {
+        order.add(air.removeAt(0));
+      }
+    }
+    order
+      ..addAll(air)
+      ..addAll([for (var i = 0; i < plan.drones; i++) _Spawn.drone]);
+    return order;
+  }
+
+  void _launch(_Spawn spawn, int wave) {
+    final n = _spawned;
+    switch (spawn) {
+      case _Spawn.tank:
+        gameRef.spawnEnemy('td-$wave-$n');
+      case _Spawn.squad:
+        gameRef.spawnEnemySquad('td-i-$wave-$n', wave);
+      case _Spawn.helicopter:
+        gameRef.spawnAircraft('td-h-$wave-$n', AirKind.helicopter);
+      case _Spawn.jet:
+        gameRef.spawnAircraft('td-j-$wave-$n', AirKind.jet);
+      case _Spawn.drone:
+        gameRef.spawnEnemyDrone('td-d-$wave-$n');
     }
   }
 }

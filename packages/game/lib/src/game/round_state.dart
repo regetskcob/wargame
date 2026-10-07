@@ -43,9 +43,21 @@ class RoundState {
 
   bool isBot(String id) => bots.containsKey(id) || isEnemy(id);
 
-  /// "CPU-3" for the bot called `cpu-3`, "FEIND" for enemies of the defense.
-  String botName(String id) =>
-      isEnemy(id) ? 'FEIND' : 'CPU-${id.split('-').last}';
+  /// "CPU-3" for the bot called `cpu-3`. Enemies of the defense are named
+  /// after what they are: `td-h-…` a helicopter, `td-j-…` a jet, `td-d-…` a
+  /// drone, `td-i-…` a squad on foot and every other one a tank.
+  String botName(String id) {
+    if (!isEnemy(id)) {
+      return 'CPU-${id.split('-').last}';
+    }
+    return switch (id.split('-')[1]) {
+      'h' => 'HUBSCHRAUBER',
+      'j' => 'KAMPFJET',
+      'd' => 'FEINDDROHNE',
+      'i' => 'INFANTERIE',
+      _ => 'FEIND',
+    };
+  }
 
   /// Look of an enemy, which follows from its wave and number.
   int enemyStyle(String id) {
@@ -57,6 +69,10 @@ class RoundState {
 
   /// In a defense round every player is on team 1 and every enemy on 2.
   int teamOf(String id) {
+    // The red and blue squads of a team round, `inf-1` and `inf-2`.
+    if (!defense && id.startsWith('inf-')) {
+      return int.tryParse(id.substring(4)) ?? 0;
+    }
     if (defense) {
       return participants.contains(id) ? 1 : 2;
     }

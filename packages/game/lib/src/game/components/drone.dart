@@ -1,14 +1,17 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
 import '../../game_config.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/special_payload.dart';
+import '../defense/defense_map.dart';
 import '../space_game.dart';
 import '../special_weapon.dart';
+import 'bullet.dart';
 import 'ship_base.dart';
 
 /// A kamikaze quadcopter. It flies over walls and trees, homes in on the
@@ -26,6 +29,7 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
     required Vector2 position,
     required double angle,
     this.remote = false,
+    this.life = GameConfig.droneSeconds,
   }) : _target = position.clone(),
        _targetAngle = angle,
        super(position: position, angle: angle, priority: 22);
@@ -34,6 +38,41 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
   final String ownerId;
   final Color color;
   final bool remote;
+
+  /// Seconds until the battery runs out and it goes off where it is.
+  final double life;
+
+  Vector2 get velocity => _heading * GameConfig.droneSpeed;
+
+  @override
+  void onLoad() {
+    add(
+      CircleHitbox(
+        radius: 12,
+        anchor: Anchor.center,
+        collisionType: CollisionType.passive,
+      ),
+    );
+  }
+
+  /// An anti-aircraft round of an enemy hit it on the client that flies it:
+  /// it goes off on the spot, far from its prey. Returns whether it counted.
+  bool shootDown(Bullet bullet) {
+    if (remote ||
+        bullet.ownerId == ownerId ||
+        gameRef.sameTeam(bullet.ownerId, ownerId)) {
+      return false;
+    }
+    gameRef.detonate(
+      ownerId: ownerId,
+      blastId: droneId,
+      at: position.clone(),
+      weapon: SpecialWeapon.drone,
+      announce: true,
+    );
+    removeFromParent();
+    return true;
+  }
 
   final Vector2 _target;
   double _targetAngle;
@@ -93,10 +132,16 @@ class Drone extends PositionComponent with HasGameRef<SpaceGame> {
       angle += diff.clamp(-step, step);
     }
     position.add(_heading * GameConfig.droneSpeed * dt);
-    if (position.length > GameConfig.worldRadius) {
+    if (gameRef.defenseMap != null) {
+      final bounds = DefenseMap.bounds;
+      position.setValues(
+        position.x.clamp(bounds.left, bounds.right),
+        position.y.clamp(bounds.top, bounds.bottom),
+      );
+    } else if (position.length > GameConfig.worldRadius) {
       position.scaleTo(GameConfig.worldRadius);
     }
-    if (best <= GameConfig.droneTrigger || _age >= GameConfig.droneSeconds) {
+    if (best <= GameConfig.droneTrigger || _age >= life) {
       gameRef.detonate(
         ownerId: ownerId,
         blastId: droneId,

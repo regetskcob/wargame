@@ -92,7 +92,8 @@ class _GameAppState extends State<GameApp> {
               game.touchMode.value = true;
             } else if (event.kind == PointerDeviceKind.mouse) {
               _aimWithMouse(event.localPosition);
-              if (event.buttons & kPrimaryMouseButton != 0) {
+              if (event.buttons & kPrimaryMouseButton != 0 &&
+                  !game.pointerOnHud) {
                 game.touch.fire = true;
               }
             }

@@ -5,6 +5,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
 import '../../game_config.dart';
+import '../defense/defense_map.dart';
 import '../special_weapon.dart';
 import 'storm_zone.dart';
 
@@ -19,7 +20,14 @@ enum PowerUpType {
   /// Gems: refill the magazine or hand out a special weapon.
   ammo('MUNITION', Color(0xFF4FC3F7), gem: true),
   grenades('GRANATWERFER', Color(0xFFEF5350), gem: true),
-  drone('DROHNE', Color(0xFFB388FF), gem: true);
+  drone('DROHNE', Color(0xFFB388FF), gem: true),
+  mortar('MÖRSER', Color(0xFFFF8A65), gem: true),
+
+  /// A squad on foot that fights next to the tank.
+  infantry('INFANTERIE', Color(0xFF9CCC65), gem: true),
+
+  /// A drop of paratroopers with rocket launchers onto the cursor.
+  paratroopers('FALLSCHIRMJÄGER', Color(0xFFFFD54F), gem: true);
 
   const PowerUpType(this.label, this.color, {this.gem = false});
 
@@ -33,7 +41,24 @@ enum PowerUpType {
   SpecialWeapon? get weapon => switch (this) {
     PowerUpType.grenades => SpecialWeapon.grenades,
     PowerUpType.drone => SpecialWeapon.drone,
+    PowerUpType.mortar => SpecialWeapon.mortar,
     _ => null,
+  };
+
+  /// Short name for the inventory slot.
+  String get short => switch (this) {
+    PowerUpType.repair => 'REPARATUR',
+    PowerUpType.smoke => 'NEBEL',
+    PowerUpType.rapidFire => 'SCHNELLF.',
+    PowerUpType.shield => 'SCHILD',
+    PowerUpType.mines => 'MINEN',
+    PowerUpType.artillery => 'ARTILLERIE',
+    PowerUpType.ammo => 'MUNITION',
+    PowerUpType.grenades => 'GRANATEN',
+    PowerUpType.drone => 'DROHNE',
+    PowerUpType.mortar => 'MÖRSER',
+    PowerUpType.infantry => 'TRUPP',
+    PowerUpType.paratroopers => 'FALLSCH.',
   };
 
   /// Picks a type from a roll between 0 and 1. Ammo gems are the most common
@@ -66,6 +91,39 @@ class PowerUpSlot {
   final Vector2 position;
   final PowerUpType type;
 
+  /// Crates of a defense round: one every few seconds for as long as a
+  /// round can last, scattered over the field away from the road, the river
+  /// and the base.
+  static List<PowerUpSlot> scheduleDefense(int seed, DefenseMap map) {
+    final random = Random(seed ^ 0x2d1fe5);
+    final slots = <PowerUpSlot>[];
+    for (var i = 0; i < GameConfig.defensePowerUpSlots; i++) {
+      var position = Vector2.zero();
+      for (var attempt = 0; attempt < 30; attempt++) {
+        position = Vector2(
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfWidth - 80),
+          (random.nextDouble() * 2 - 1) * (DefenseMap.halfHeight - 80),
+        );
+        if (map.distanceToRoad(position) > DefenseMap.roadHalfWidth + 40 &&
+            !map.inWater(position, margin: 30) &&
+            position.distanceTo(map.base) > DefenseMap.baseRadius + 60) {
+          break;
+        }
+      }
+      slots.add(
+        PowerUpSlot(
+          id: i,
+          appearsAt:
+              GameConfig.defensePowerUpFirstAt +
+              i * GameConfig.defensePowerUpEvery,
+          position: position,
+          type: PowerUpType.fromRoll(random.nextDouble()),
+        ),
+      );
+    }
+    return slots;
+  }
+
   static List<PowerUpSlot> schedule(int seed) {
     final random = Random(seed ^ 0x5bd1e995);
     return [
@@ -95,15 +153,18 @@ class PowerUpSlot {
 
 /// How often each crate and gem turns up, the shares add up to 1.
 const _odds = [
-  (PowerUpType.repair, 0.17),
-  (PowerUpType.rapidFire, 0.1),
-  (PowerUpType.smoke, 0.09),
-  (PowerUpType.shield, 0.1),
-  (PowerUpType.mines, 0.08),
-  (PowerUpType.artillery, 0.08),
-  (PowerUpType.ammo, 0.24),
-  (PowerUpType.grenades, 0.08),
-  (PowerUpType.drone, 0.06),
+  (PowerUpType.repair, 0.14),
+  (PowerUpType.rapidFire, 0.08),
+  (PowerUpType.smoke, 0.08),
+  (PowerUpType.shield, 0.08),
+  (PowerUpType.mines, 0.07),
+  (PowerUpType.artillery, 0.07),
+  (PowerUpType.ammo, 0.22),
+  (PowerUpType.grenades, 0.06),
+  (PowerUpType.drone, 0.05),
+  (PowerUpType.mortar, 0.05),
+  (PowerUpType.infantry, 0.05),
+  (PowerUpType.paratroopers, 0.05),
 ];
 
 /// A crate lying on the field, picked up by driving over it.
@@ -214,7 +275,12 @@ class PowerUp extends PositionComponent {
           center.translate(0, 10),
           paint,
         );
-      case PowerUpType.ammo || PowerUpType.grenades || PowerUpType.drone:
+      case PowerUpType.ammo ||
+          PowerUpType.grenades ||
+          PowerUpType.drone ||
+          PowerUpType.mortar ||
+          PowerUpType.infantry ||
+          PowerUpType.paratroopers:
         break;
     }
   }
