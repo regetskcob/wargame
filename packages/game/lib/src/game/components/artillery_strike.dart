@@ -22,6 +22,14 @@ class ArtilleryStrike extends PositionComponent with HasGameRef<SpaceGame> {
   final String strikeId;
   final String ownerId;
 
+  /// Bombs of a jet (`-b0`) or of the bomber from a gem (`-j3`), not shells
+  /// of an artillery crate (`-a3`).
+  bool get fromJet => _bomb.hasMatch(strikeId);
+  static final _bomb = RegExp(r'-[bj]\d+$');
+
+  double get damage =>
+      fromJet ? GameConfig.bombDamage : GameConfig.artilleryDamage;
+
   /// Impact time, milliseconds since the epoch.
   final int at;
 

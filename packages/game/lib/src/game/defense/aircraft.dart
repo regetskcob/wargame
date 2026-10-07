@@ -9,6 +9,7 @@ import '../../game_config.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/special_payload.dart';
 import '../components/bullet.dart';
+import '../components/ship_base.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
 import 'defense_map.dart';
@@ -198,36 +199,26 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     if (map == null) {
       return;
     }
-    _think -= dt;
-    if (_think <= 0) {
-      _think = 0.4;
-      _prey =
-          gameRef.nearestDefender(position, 480) ??
-          gameRef.nearestTower(position, 480);
-      if (gameRef.random.nextDouble() < 0.1) {
-        _strafe = -_strafe;
-      }
-    }
+    _turnStrafe(dt);
     if (friendly) {
       _support(dt, map);
       return;
     }
+    _think -= dt;
+    if (_think <= 0) {
+      _think = 0.4;
+      // Stays on its prey while it is there, instead of swinging round
+      // whenever another tank comes a little closer.
+      if (!_holds(_prey, 560)) {
+        _prey =
+            gameRef.nearestDefender(position, 480) ??
+            gameRef.nearestTower(position, 480);
+      }
+    }
     final prey = _prey;
     final aimAt = prey != null && prey.isMounted ? prey.position : map.base;
-    final wanted = _headingTo(aimAt);
-    final diff = (wanted - angle).toNormalizedAngle();
-    angle += diff.clamp(-2.2 * dt, 2.2 * dt);
+    final diff = _fly(dt, aimAt, GameConfig.helicopterHover, face: aimAt);
     final distance = position.distanceTo(aimAt);
-    final toward = (aimAt - position).normalized();
-    final side = Vector2(-toward.y, toward.x) * _strafe;
-    final move = distance > GameConfig.helicopterHover
-        ? toward
-        : distance < GameConfig.helicopterHover - 60
-        ? -toward * 0.5 + side * 0.6
-        : side * 0.6;
-    velocity.setFrom(move * GameConfig.helicopterSpeed);
-    position.add(velocity * dt);
-    _keepInside();
     _cooldown -= dt;
     if (_cooldown <= 0 &&
         diff.abs() < 0.2 &&
@@ -235,6 +226,50 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
       _cooldown = GameConfig.helicopterCooldown;
       gameRef.fireAircraft(this, (aimAt - position).normalized());
     }
+  }
+
+  double _strafeTimer = 0;
+
+  /// Swaps the side it slides to every few seconds, not on a whim.
+  void _turnStrafe(double dt) {
+    _strafeTimer -= dt;
+    if (_strafeTimer <= 0) {
+      _strafeTimer = 4 + gameRef.random.nextDouble() * 3;
+      _strafe = -_strafe;
+    }
+  }
+
+  bool _holds(PositionComponent? prey, double range) =>
+      prey != null &&
+      prey.isMounted &&
+      prey.position.distanceTo(position) < range &&
+      !(prey is ShipBase && prey.hp <= 0);
+
+  /// Flies a helicopter round [aimAt]: closes in from afar, keeps [hover]
+  /// away and slides sideways there, drifting smoothly from one to the
+  /// other. Speed and heading change with some weight to them, so it never
+  /// jerks about. Turns its nose towards [face], or along its course when
+  /// null. Returns how far the nose is off [face].
+  double _fly(double dt, Vector2 aimAt, double hover, {Vector2? face}) {
+    final offset = aimAt - position;
+    final distance = offset.length;
+    final toward = distance < 1 ? Vector2.zero() : offset / distance;
+    final side = Vector2(-toward.y, toward.x) * _strafe;
+    // 1 far out, 0 at the right distance, below 0 too close.
+    final radial = ((distance - hover) / 120).clamp(-0.6, 1.0);
+    final desired =
+        (toward * radial + side * (0.6 * (1 - radial.abs()))) *
+        GameConfig.helicopterSpeed;
+    velocity.add((desired - velocity) * min(1.0, dt * 1.6));
+    position.add(velocity * dt);
+    _keepInside();
+    final look = face ?? (velocity.length2 > 100 ? position + velocity : null);
+    if (look == null) {
+      return 0;
+    }
+    final diff = (_headingTo(look) - angle).toNormalizedAngle();
+    angle += diff.clamp(-1.6 * dt, 1.6 * dt);
+    return diff;
   }
 
   /// Straight in over [goal], the bombs go as it passes, then out the other
@@ -278,36 +313,30 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     _think -= dt;
     if (_think <= 0) {
       _think = 0.4;
-      _prey = gameRef.supportTarget(
-        position,
-        GameConfig.supportHelicopterReach,
-      );
-      if (gameRef.random.nextDouble() < 0.1) {
-        _strafe = -_strafe;
+      if (!_holds(_prey, GameConfig.supportHelicopterReach * 1.2)) {
+        _prey = gameRef.supportTarget(
+          position,
+          GameConfig.supportHelicopterReach,
+        );
       }
     }
     final prey = _prey;
     final hunting = prey != null && prey.isMounted;
+    // Without prey it circles wide over the middle of the road, nose along
+    // its course, instead of spinning over one spot.
     final aimAt = hunting
         ? prey.position
         : map.pointAlong(map.roadLength * 0.45).$1;
-    final wanted = _headingTo(aimAt);
-    final diff = (wanted - angle).toNormalizedAngle();
-    angle += diff.clamp(-2.2 * dt, 2.2 * dt);
+    final diff = _fly(
+      dt,
+      aimAt,
+      hunting ? GameConfig.helicopterHover : 160,
+      face: hunting ? aimAt : null,
+    );
     final distance = position.distanceTo(aimAt);
     final toward = distance < 1
         ? Vector2.zero()
         : (aimAt - position) / distance;
-    final side = Vector2(-toward.y, toward.x) * _strafe;
-    final hover = hunting ? GameConfig.helicopterHover : 30;
-    final move = distance > hover
-        ? toward
-        : distance < hover - 60
-        ? -toward * 0.5 + side * 0.6
-        : side * 0.6;
-    velocity.setFrom(move * GameConfig.helicopterSpeed);
-    position.add(velocity * dt);
-    _keepInside();
     _cooldown -= dt;
     if (hunting &&
         _cooldown <= 0 &&

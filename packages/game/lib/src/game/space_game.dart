@@ -3085,7 +3085,7 @@ class SpaceGame extends FlameGame
           1 - 0.5 * (distance / GameConfig.artilleryRadius).clamp(0.0, 1.0);
       _damageLocal(
         ship,
-        GameConfig.artilleryDamage * falloff,
+        strike.damage * falloff,
         strike.ownerId,
         strike.strikeId,
       );
@@ -3096,13 +3096,13 @@ class SpaceGame extends FlameGame
           (round?.isEnemy(strike.ownerId) ?? false) &&
           base.position.distanceTo(strike.position) <
               GameConfig.artilleryRadius + DefenseMap.baseRadius) {
-        damageBase(GameConfig.artilleryDamage);
+        damageBase(strike.damage);
       }
       _blastTowers(
         strike.ownerId,
         strike.position,
         GameConfig.artilleryRadius,
-        GameConfig.artilleryDamage,
+        strike.damage,
       );
       _blastSoldiers(
         strike.ownerId,
@@ -3116,7 +3116,7 @@ class SpaceGame extends FlameGame
         if (obstacle.hp > 0 &&
             obstacle.position.distanceTo(strike.position) <
                 GameConfig.artilleryRadius) {
-          damageObstacle(obstacle, GameConfig.artilleryDamage);
+          damageObstacle(obstacle, strike.damage);
         }
       }
       for (final tree in [

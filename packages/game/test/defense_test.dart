@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game/src/game/components/artillery_strike.dart';
 import 'package:game/src/game_config.dart';
 import 'package:game/src/game/defense/defense_map.dart';
 import 'package:game/src/game/defense/tower.dart';
@@ -286,6 +287,24 @@ void main() {
       expect(map.distanceToRoad(map.outpost), greaterThan(80));
       expect(map.outpost.distanceTo(map.entry), lessThan(250));
     }
+  });
+
+  test('jet bombs hit a tenth harder than artillery shells', () {
+    ArtilleryStrike strike(String id) => ArtilleryStrike(
+      strikeId: id,
+      ownerId: 'a',
+      at: 0,
+      position: Vector2.zero(),
+    );
+    expect(strike('td-j-3-2-b0').fromJet, isTrue);
+    expect(strike('air-j-5-b2').fromJet, isTrue);
+    expect(strike('a-j7').fromJet, isTrue);
+    expect(strike('a-a7').fromJet, isFalse);
+    expect(strike('a-a7').damage, GameConfig.artilleryDamage);
+    expect(
+      strike('td-j-3-2-b0').damage,
+      closeTo(GameConfig.artilleryDamage * 1.1, 0.001),
+    );
   });
 
   test('later waves are bigger', () {
