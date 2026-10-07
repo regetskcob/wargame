@@ -12,6 +12,7 @@ import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
 import '../defense/defense_map.dart';
 import '../game_phase.dart';
+import '../inventory.dart';
 import '../special_weapon.dart';
 import '../tank_damage.dart';
 import '../touch_input.dart';
@@ -55,7 +56,15 @@ class PlayerShip extends ShipBase
   double syncInterval = GameConfig.stateSyncInterval;
 
   /// Enemies of a defense round never run dry, there are no gems for them.
+  /// On the easy level nobody does.
   bool endlessAmmo = false;
+
+  /// From the middle level on the tank burns fuel and needs canisters.
+  bool usesFuel = false;
+
+  /// Share of a full tank, 0 to 1.
+  double fuel = 1;
+  bool _warnedFuel = false;
   double rapidFireLeft = 0;
   double shieldLeft = 0;
 
@@ -71,6 +80,10 @@ class PlayerShip extends ShipBase
 
   /// Rounds left in the magazine. Gems put more back.
   late int ammo = magazine;
+
+  /// Crates and gems a CPU tank picked up and keeps for later. The player's
+  /// own sit in the game's inventory.
+  final items = Inventory();
 
   /// Special weapon from a gem and the charges it has left.
   SpecialWeapon? special;
@@ -220,12 +233,19 @@ class PlayerShip extends ShipBase
     final soft = gameRef.mudField?.softAt(position) ?? false;
     // Hits cost top speed, pulling power and steering.
     final damage = this.damage;
+    // Uphill slower, downhill faster, along the way the tank rolls.
+    final slope = gameRef.terrain.speedFactor(
+      position,
+      _speed < 0 ? -direction : direction,
+    );
     final maxSpeed =
         GameConfig.shipMaxSpeed *
         stats.speed *
         speedFactor *
         engineFactor *
         damage.speedFactor *
+        slope *
+        (usesFuel && fuel <= 0 ? GameConfig.emptyTankSpeed : 1) *
         min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration =
         GameConfig.shipAcceleration *
@@ -274,6 +294,7 @@ class PlayerShip extends ShipBase
       maxSpeed,
     );
 
+    _burnFuel(dt);
     velocity
       ..setFrom(direction)
       ..scale(_speed);
@@ -292,6 +313,37 @@ class PlayerShip extends ShipBase
     } else if (position.length > GameConfig.worldRadius) {
       position.scaleTo(GameConfig.worldRadius);
       _speed *= 0.4;
+    }
+  }
+
+  /// The engine drinks more the harder it works, a little even standing.
+  void _burnFuel(double dt) {
+    if (!usesFuel || fuel <= 0) {
+      return;
+    }
+    final work =
+        GameConfig.fuelIdleShare +
+        (1 - GameConfig.fuelIdleShare) * load.abs().clamp(0.0, 1.0);
+    setFuel(fuel - dt * work / GameConfig.fuelSeconds);
+  }
+
+  void setFuel(double value) {
+    final before = fuel;
+    fuel = value.clamp(0.0, 1.0);
+    if (fuel > GameConfig.fuelLowShare) {
+      _warnedFuel = false;
+    }
+    if (isBot) {
+      return;
+    }
+    if ((gameRef.fuelNotifier.value - fuel).abs() > 0.004 || fuel == 0) {
+      gameRef.fuelNotifier.value = fuel;
+    }
+    if (fuel <= 0 && before > 0) {
+      gameRef.showNotice('TANK LEER');
+    } else if (fuel <= GameConfig.fuelLowShare && !_warnedFuel) {
+      _warnedFuel = true;
+      gameRef.showNotice('TREIBSTOFF KNAPP');
     }
   }
 

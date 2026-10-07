@@ -4,7 +4,11 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
+import 'package:flutter/material.dart' show IconData, Icons, TextPainter;
+import 'package:flutter/painting.dart' show TextSpan, TextStyle;
+
 import '../../game_config.dart';
+import '../bot_level.dart';
 import '../defense/defense_map.dart';
 import '../special_weapon.dart';
 import 'storm_zone.dart';
@@ -27,7 +31,17 @@ enum PowerUpType {
   infantry('INFANTERIE', Color(0xFF9CCC65), gem: true),
 
   /// A drop of paratroopers with rocket launchers onto the cursor.
-  paratroopers('FALLSCHIRMJÄGER', Color(0xFFFFD54F), gem: true);
+  paratroopers('FALLSCHIRMJÄGER', Color(0xFFFFD54F), gem: true),
+
+  /// A jerrycan that fills the tank up again, from the middle level on.
+  fuel('KANISTER', Color(0xFFFF9100), gem: true),
+
+  /// A drone that takes off from the inventory and hunts an enemy picked at
+  /// random.
+  hunterDrone('JAGDDROHNE', Color(0xFF26C6DA), gem: true),
+
+  /// A bomber that crosses the field and bombs an enemy, on the hard level.
+  airstrike('LUFTSCHLAG', Color(0xFF90CAF9), gem: true);
 
   const PowerUpType(this.label, this.color, {this.gem = false});
 
@@ -59,19 +73,55 @@ enum PowerUpType {
     PowerUpType.mortar => 'MÖRSER',
     PowerUpType.infantry => 'TRUPP',
     PowerUpType.paratroopers => 'FALLSCH.',
+    PowerUpType.fuel => 'KANISTER',
+    PowerUpType.hunterDrone => 'JAGDDR.',
+    PowerUpType.airstrike => 'LUFTSCHL.',
   };
 
-  /// Picks a type from a roll between 0 and 1. Ammo gems are the most common
-  /// drop, since every shot costs a round.
-  static PowerUpType fromRoll(double roll) {
+  /// The symbol on the gem, in the inventory and on the crate list.
+  IconData get icon => switch (this) {
+    PowerUpType.repair => Icons.build,
+    PowerUpType.smoke => Icons.cloud,
+    PowerUpType.rapidFire => Icons.fast_forward,
+    PowerUpType.shield => Icons.shield,
+    PowerUpType.mines => Icons.brightness_7,
+    PowerUpType.artillery => Icons.gps_fixed,
+    PowerUpType.ammo => Icons.inventory_2,
+    PowerUpType.grenades => Icons.sports_baseball,
+    PowerUpType.drone => Icons.toys,
+    PowerUpType.mortar => Icons.vertical_align_top,
+    PowerUpType.infantry => Icons.groups,
+    PowerUpType.paratroopers => Icons.paragliding,
+    PowerUpType.fuel => Icons.local_gas_station,
+    PowerUpType.hunterDrone => Icons.track_changes,
+    PowerUpType.airstrike => Icons.flight,
+  };
+
+  /// Whether this turns up at all on [level]: on the easy level the tank
+  /// never runs dry of shells or fuel, the bomber is for the hard level.
+  bool comesOn(BotLevel level) => switch (this) {
+    PowerUpType.ammo || PowerUpType.fuel => level != BotLevel.easy,
+    PowerUpType.airstrike => level == BotLevel.hard,
+    _ => true,
+  };
+
+  /// Picks a type from a roll between 0 and 1, among those that come on
+  /// [level]. Ammo gems are the most common drop, since every shot costs a
+  /// round.
+  static PowerUpType fromRoll(double roll, [BotLevel level = BotLevel.hard]) {
+    final odds = [
+      for (final entry in _odds)
+        if (entry.$1.comesOn(level)) entry,
+    ];
+    final total = odds.fold(0.0, (sum, entry) => sum + entry.$2);
     var sum = 0.0;
-    for (final (type, share) in _odds) {
-      sum += share;
+    for (final (type, share) in odds) {
+      sum += share / total;
       if (roll < sum) {
         return type;
       }
     }
-    return _odds.last.$1;
+    return odds.last.$1;
   }
 }
 
@@ -94,7 +144,11 @@ class PowerUpSlot {
   /// Crates of a defense round: one every few seconds for as long as a
   /// round can last, scattered over the field away from the road, the river
   /// and the base.
-  static List<PowerUpSlot> scheduleDefense(int seed, DefenseMap map) {
+  static List<PowerUpSlot> scheduleDefense(
+    int seed,
+    DefenseMap map, [
+    BotLevel level = BotLevel.hard,
+  ]) {
     final random = Random(seed ^ 0x2d1fe5);
     final slots = <PowerUpSlot>[];
     for (var i = 0; i < GameConfig.defensePowerUpSlots; i++) {
@@ -117,14 +171,17 @@ class PowerUpSlot {
               GameConfig.defensePowerUpFirstAt +
               i * GameConfig.defensePowerUpEvery,
           position: position,
-          type: PowerUpType.fromRoll(random.nextDouble()),
+          type: PowerUpType.fromRoll(random.nextDouble(), level),
         ),
       );
     }
     return slots;
   }
 
-  static List<PowerUpSlot> schedule(int seed) {
+  static List<PowerUpSlot> schedule(
+    int seed, [
+    BotLevel level = BotLevel.hard,
+  ]) {
     final random = Random(seed ^ 0x5bd1e995);
     return [
       for (var i = 0; i < GameConfig.powerUpSlots; i++)
@@ -144,7 +201,7 @@ class PowerUpSlot {
             id: i,
             appearsAt: appearsAt,
             position: Vector2(cos(direction), sin(direction))..scale(distance),
-            type: PowerUpType.fromRoll(roll),
+            type: PowerUpType.fromRoll(roll, level),
           );
         }(),
     ];
@@ -159,7 +216,10 @@ const _odds = [
   (PowerUpType.shield, 0.08),
   (PowerUpType.mines, 0.07),
   (PowerUpType.artillery, 0.07),
-  (PowerUpType.ammo, 0.22),
+  (PowerUpType.ammo, 0.2),
+  (PowerUpType.fuel, 0.12),
+  (PowerUpType.hunterDrone, 0.05),
+  (PowerUpType.airstrike, 0.04),
   (PowerUpType.grenades, 0.06),
   (PowerUpType.drone, 0.05),
   (PowerUpType.mortar, 0.05),
@@ -280,9 +340,43 @@ class PowerUp extends PositionComponent {
           PowerUpType.drone ||
           PowerUpType.mortar ||
           PowerUpType.infantry ||
-          PowerUpType.paratroopers:
+          PowerUpType.paratroopers ||
+          PowerUpType.fuel ||
+          PowerUpType.hunterDrone ||
+          PowerUpType.airstrike:
         break;
     }
+  }
+
+  static final _glyphs = <PowerUpType, TextPainter>{};
+
+  /// A round plate above the gem with the symbol of what it holds.
+  void _badge(Canvas canvas, Offset at, Color color) {
+    canvas.drawCircle(at, 9.5, Paint()..color = const Color(0xDD1E2614));
+    canvas.drawCircle(
+      at,
+      9.5,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1.5
+        ..color = color,
+    );
+    final glyph = _glyphs.putIfAbsent(type, () {
+      final icon = type.icon;
+      return TextPainter(
+        text: TextSpan(
+          text: String.fromCharCode(icon.codePoint),
+          style: TextStyle(
+            fontSize: 13,
+            fontFamily: icon.fontFamily,
+            package: icon.fontPackage,
+            color: const Color(0xFFF2EEE2),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout();
+    });
+    glyph.paint(canvas, at - Offset(glyph.width / 2, glyph.height / 2));
   }
 
   /// A cut stone floating above its shadow, with a glow and a glint running
@@ -332,6 +426,7 @@ class PowerUp extends PositionComponent {
     canvas.drawPath(pavilion, edge);
     canvas.drawLine(c.translate(-w * 0.5, -top), c.translate(0, bottom), edge);
     canvas.drawLine(c.translate(w * 0.5, -top), c.translate(0, bottom), edge);
+    _badge(canvas, center.translate(0, bob - 22), color);
     // A glint that sweeps across every two seconds.
     final glint = (_time % 2) / 2;
     if (glint < 0.35) {

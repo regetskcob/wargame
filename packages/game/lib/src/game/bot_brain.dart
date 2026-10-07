@@ -4,11 +4,11 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
 import '../game_config.dart';
+import 'bot_items.dart';
 import 'bot_level.dart';
 import 'components/artillery_strike.dart';
 import 'components/obstacle.dart';
 import 'components/player_ship.dart';
-import 'components/power_up.dart';
 import 'components/remote_ship.dart';
 import 'components/ship_base.dart';
 import 'components/storm_zone.dart';
@@ -26,11 +26,12 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     required this.ship,
     required this.controls,
     this.level = BotLevel.normal,
-  });
+  }) : items = BotItems(level);
 
   final PlayerShip ship;
   final TouchInput controls;
   final BotLevel level;
+  final BotItems items;
 
   final _random = Random();
   double _think = 0;
@@ -78,6 +79,7 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     }
     _steer(dt);
     _gunnery(dt);
+    items.think(gameRef, ship, _target, dt);
   }
 
   /// Nearest tank that is not on this bot's team.
@@ -143,7 +145,13 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     _wantBrake = false;
 
     final barrage = level.evasive ? _barrageOverhead() : null;
-    final pickup = _wantedPickup(safeRadius);
+    final pickup = items.wanted(
+      gameRef,
+      ship,
+      engaged:
+          target != null && target.position.distanceTo(ship.position) < 320,
+      safeRadius: safeRadius,
+    );
     if (ship.position.length > safeRadius - 70) {
       // Back into the safe circle first.
       _desiredHeading = _headingTo(Vector2.zero());
@@ -213,33 +221,6 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
       }
     }
     return null;
-  }
-
-  /// A gem worth a detour: any ammo gem once the magazine runs low, and a
-  /// nearby special weapon gem while the bot has none.
-  PowerUp? _wantedPickup(double safeRadius) {
-    final lowAmmo = ship.ammo <= ship.stats.ammo * GameConfig.ammoLowShare;
-    PowerUp? best;
-    var bestDistance = double.infinity;
-    for (final crate in gameRef.powerUps.values) {
-      if (crate.position.length > safeRadius - 40) {
-        continue;
-      }
-      final distance = crate.position.distanceTo(ship.position);
-      final wanted = switch (crate.type) {
-        PowerUpType.ammo => lowAmmo,
-        PowerUpType.grenades ||
-        PowerUpType.drone ||
-        PowerUpType.mortar => ship.special == null && distance < 350,
-        PowerUpType.infantry || PowerUpType.paratroopers => distance < 250,
-        _ => false,
-      };
-      if (wanted && distance < bestDistance) {
-        bestDistance = distance;
-        best = crate;
-      }
-    }
-    return best;
   }
 
   bool _clearShot(Vector2 to) {

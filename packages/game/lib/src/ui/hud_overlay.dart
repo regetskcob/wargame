@@ -240,11 +240,31 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Shells, and below them the fuel from the middle level on. The easy
+  /// level hides the fuel and never runs out of shells.
   Widget _ammo(SpaceGame game, {bool compact = false}) {
-    return ValueListenableBuilder<int>(
-      valueListenable: game.ammoNotifier,
-      builder: (context, ammo, _) =>
-          AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, compact: compact),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        ValueListenableBuilder<int>(
+          valueListenable: game.ammoNotifier,
+          builder: (context, ammo, _) => AmmoGauge(
+            ammo: ammo,
+            maxAmmo: game.myMagazine,
+            compact: compact,
+            endless: game.endlessAmmo,
+          ),
+        ),
+        if (game.usesFuel) ...[
+          SizedBox(height: compact ? 4 : 6),
+          ValueListenableBuilder<double>(
+            valueListenable: game.fuelNotifier,
+            builder: (context, fuel, _) =>
+                FuelGauge(fuel: fuel, compact: compact),
+          ),
+        ],
+      ],
     );
   }
 

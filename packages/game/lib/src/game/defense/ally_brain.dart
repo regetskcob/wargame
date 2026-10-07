@@ -4,6 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
 import '../../game_config.dart';
+import '../bot_items.dart';
+import '../bot_level.dart';
 import '../components/player_ship.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
@@ -28,6 +30,7 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
   final List<Vector2> _route;
 
   final _random = Random();
+  final _items = BotItems(BotLevel.normal);
   int _next = 0;
   double _think = 0;
   double _fireGate = 0;
@@ -53,6 +56,13 @@ class AllyBrain extends Component with HasGameRef<SpaceGame> {
     }
     _drive();
     _shoot(dt);
+    // Comrades hold their post: they use what they ran over, but never
+    // leave the road for a crate.
+    final target = _target;
+    controls.lobDistance = target == null || !target.isMounted
+        ? null
+        : target.position.distanceTo(ship.position);
+    _items.think(gameRef, ship, target, dt);
   }
 
   double _headingTo(Vector2 point) =>

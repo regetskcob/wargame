@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../../game/components/power_up.dart';
 import '../../game/inventory.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
@@ -84,7 +83,7 @@ class _Slot extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(_icon(type), size: compact ? 16 : 20, color: type.color),
+                  Icon(type.icon, size: compact ? 16 : 20, color: type.color),
                   const SizedBox(height: 2),
                   Text(
                     type.short,
@@ -130,21 +129,6 @@ class _Slot extends StatelessWidget {
       ),
     );
   }
-
-  static IconData _icon(PowerUpType type) => switch (type) {
-    PowerUpType.repair => Icons.build,
-    PowerUpType.smoke => Icons.cloud,
-    PowerUpType.rapidFire => Icons.fast_forward,
-    PowerUpType.shield => Icons.shield,
-    PowerUpType.mines => Icons.brightness_7,
-    PowerUpType.artillery => Icons.gps_fixed,
-    PowerUpType.ammo => Icons.inventory_2,
-    PowerUpType.grenades => Icons.sports_baseball,
-    PowerUpType.drone => Icons.toys,
-    PowerUpType.mortar => Icons.vertical_align_top,
-    PowerUpType.infantry => Icons.groups,
-    PowerUpType.paratroopers => Icons.paragliding,
-  };
 }
 
 class _Empty extends StatelessWidget {

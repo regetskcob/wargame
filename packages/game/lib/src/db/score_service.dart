@@ -88,6 +88,26 @@ class ScoreService {
   /// outlasted ([beaten], by account id) or fell before ([beatenBy]). On a
   /// database without that function the round is added up directly and
   /// null comes back.
+  /// Calls `record_round`. A database without migration 0007 does not know
+  /// the CPU parameters: then the round goes in without them.
+  Future<List<dynamic>> _call(Map<String, dynamic> params) async {
+    try {
+      return await _client.rpc<List<dynamic>>('record_round', params: params);
+    } on PostgrestApiException catch (error) {
+      if (error.errorCode != 'PGRST202' ||
+          !params.containsKey('p_cpu_beaten')) {
+        rethrow;
+      }
+      return _client.rpc<List<dynamic>>(
+        'record_round',
+        params: {
+          for (final entry in params.entries)
+            if (!entry.key.startsWith('p_cpu_')) entry.key: entry.value,
+        },
+      );
+    }
+  }
+
   Future<RoundRecord?> recordRound({
     required String name,
     required RoundStats stats,
@@ -95,23 +115,29 @@ class ScoreService {
     required int tankType,
     List<String> beaten = const [],
     List<String> beatenBy = const [],
+    int cpuBeaten = 0,
+    int cpuBeatenBy = 0,
+    int cpuRating = 1000,
   }) async {
+    final cpu = cpuBeaten + cpuBeatenBy > 0;
     try {
-      final rows = await _client.rpc<List<dynamic>>(
-        'record_round',
-        params: {
-          'p_name': name,
-          'p_tank': tankType,
-          'p_won': won,
-          'p_kills': stats.kills,
-          'p_damage': stats.damage.round(),
-          'p_shots': stats.shots,
-          'p_hits': stats.hits,
-          'p_survival': (stats.survived ?? 0).round(),
-          'p_beaten': beaten,
-          'p_beaten_by': beatenBy,
+      final rows = await _call({
+        if (cpu) ...{
+          'p_cpu_beaten': cpuBeaten,
+          'p_cpu_beaten_by': cpuBeatenBy,
+          'p_cpu_rating': cpuRating,
         },
-      );
+        'p_name': name,
+        'p_tank': tankType,
+        'p_won': won,
+        'p_kills': stats.kills,
+        'p_damage': stats.damage.round(),
+        'p_shots': stats.shots,
+        'p_hits': stats.hits,
+        'p_survival': (stats.survived ?? 0).round(),
+        'p_beaten': beaten,
+        'p_beaten_by': beatenBy,
+      });
       final row = rows.single as Map<String, dynamic>;
       return RoundRecord(
         rating: row['rating'] as int,

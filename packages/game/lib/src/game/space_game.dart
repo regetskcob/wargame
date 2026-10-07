@@ -1,13 +1,15 @@
 import 'dart:async';
 import 'dart:async' as async;
 import 'dart:math';
-import 'dart:ui' show Canvas, Color, Gradient, Offset, Paint, Size;
+import 'dart:ui' show Canvas, Color, Gradient, Offset, Paint, Rect, Size;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart' show Rectangle;
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart' show KeyEventResult;
 
 import '../app/overlay_ids.dart';
 import '../audio_service.dart';
@@ -76,6 +78,7 @@ import 'components/wreck.dart';
 import 'round_stats.dart';
 import 'special_weapon.dart';
 import 'tank_stats.dart';
+import 'terrain.dart';
 import 'touch_input.dart';
 import 'upgrades.dart';
 import 'round_state.dart';
@@ -163,6 +166,20 @@ class SpaceGame extends FlameGame
 
   final random = Random();
   int _squadCounter = 0;
+
+  /// Hills of the current round, flat on the easy level.
+  Terrain terrain = Terrain.flat;
+  TerrainLayer? _terrainLayer;
+
+  /// Share of fuel left in the local tank.
+  final fuelNotifier = ValueNotifier<double>(1);
+
+  /// The level of the round: CPU tanks fight better, and from the middle
+  /// level on fuel and shells run out and the land gets hilly.
+  BotLevel get difficulty => round?.botLevel ?? botLevel.value;
+
+  bool get usesFuel => difficulty != BotLevel.easy;
+  bool get endlessAmmo => difficulty == BotLevel.easy;
 
   /// Blasts already applied, since a drone's blast also arrives by message.
   final _blasts = <String>{};
@@ -478,6 +495,21 @@ class SpaceGame extends FlameGame
     overlays.add(OverlayIds.lobby);
   }
 
+  /// Escape leaves a replay.
+  @override
+  KeyEventResult onKeyEvent(
+    KeyEvent event,
+    Set<LogicalKeyboardKey> keysPressed,
+  ) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape &&
+        replaying.value) {
+      stopReplay();
+      return KeyEventResult.handled;
+    }
+    return super.onKeyEvent(event, keysPressed);
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
@@ -554,6 +586,10 @@ class SpaceGame extends FlameGame
           progress.vehicleUnlocked(type) ? type.index : TankType.puma.index,
           progress.unlocked(color) ? color : 0,
         );
+      } else if (accounts.user.value?.userMetadata['call_sign']
+          case final String name when name.isNotEmpty) {
+        // Registered elsewhere, first time on this device.
+        myName = name;
       }
     } on Object {
       return;
@@ -606,6 +642,13 @@ class SpaceGame extends FlameGame
       teams[id] = red <= blue ? 1 : 2;
     }
     return teams;
+  }
+
+  /// The call sign given when registering: shown everywhere instead of the
+  /// e-mail address.
+  void claimCallSign(String name) {
+    setPilot(name: name, colorIndex: myColorIndex);
+    pilotVersion.value++;
   }
 
   void setPilot({required String name, required int colorIndex}) {
@@ -762,7 +805,8 @@ class SpaceGame extends FlameGame
       bots: bots,
       botHost: bots.isEmpty && !defending ? null : myId,
       defense: defending,
-      botLevel: bots.isEmpty ? null : botLevel.value.index,
+      // Also without CPU tanks: the level sets fuel, ammo and terrain.
+      botLevel: botLevel.value.index,
     );
     if (!solo) {
       net.send(NetEvent.roundStart, payload.toJson());
@@ -869,8 +913,16 @@ class SpaceGame extends FlameGame
     conditionsLabel.value = conditions!.label;
     _weather = WeatherLayer(conditions!);
     _stormZone = StormZone(startedAt: payload.startedAt);
-    _powerUpSlots = PowerUpSlot.schedule(payload.seed);
+    _powerUpSlots = PowerUpSlot.schedule(payload.seed, activeRound.botLevel);
     world.add(_asteroidField!);
+    _raiseTerrain(
+      activeRound,
+      _asteroidField!.theme,
+      area: Rect.fromCircle(
+        center: Offset.zero,
+        radius: GameConfig.worldRadius,
+      ),
+    );
     soldierField = SoldierField(
       seed: payload.seed,
       startedAt: payload.startedAt,
@@ -907,7 +959,10 @@ class SpaceGame extends FlameGame
           angle: facing,
           controls: controls,
         );
-        ship.team = activeRound.teamOf(id);
+        ship
+          ..team = activeRound.teamOf(id)
+          ..usesFuel = usesFuel
+          ..endlessAmmo = endlessAmmo;
         botShips[id] = ship;
         world.add(ship);
         final brain = BotBrain(
@@ -1080,7 +1135,11 @@ class SpaceGame extends FlameGame
       angle: facing,
     );
     myShip = ship;
-    ship.team = round?.teamOf(myId) ?? 0;
+    ship
+      ..team = round?.teamOf(myId) ?? 0
+      ..usesFuel = usesFuel
+      ..endlessAmmo = endlessAmmo;
+    fuelNotifier.value = 1;
     _applyUpgrades(ship);
     world.add(ship);
     camera.follow(ship, snap: true);
@@ -1116,7 +1175,17 @@ class SpaceGame extends FlameGame
     credits.value = GameConfig.startCredits;
     _towerCounter = 0;
     guard.worldReach = DefenseMap.bounds.bottomRight.distance;
-    _powerUpSlots = PowerUpSlot.scheduleDefense(activeRound.seed, map);
+    _powerUpSlots = PowerUpSlot.scheduleDefense(
+      activeRound.seed,
+      map,
+      activeRound.botLevel,
+    );
+    _raiseTerrain(
+      activeRound,
+      field.theme,
+      area: DefenseMap.bounds,
+      keepClear: [map.base],
+    );
     soldierField = SoldierField(
       seed: activeRound.seed,
       startedAt: activeRound.startedAt,
@@ -1155,6 +1224,30 @@ class SpaceGame extends FlameGame
 
   static double _headingFrom(Vector2 from, Vector2 to) =>
       atan2(to.x - from.x, -(to.y - from.y));
+
+  /// Hills and hollows for the level of [activeRound], none on easy.
+  void _raiseTerrain(
+    RoundState activeRound,
+    MapTheme theme, {
+    required Rect area,
+    Iterable<Vector2> keepClear = const [],
+  }) {
+    terrain = Terrain.forSeed(
+      activeRound.seed,
+      activeRound.botLevel,
+      area: area,
+      keepClear: keepClear,
+    );
+    if (terrain.isFlat) {
+      return;
+    }
+    _terrainLayer = TerrainLayer(
+      terrain: terrain,
+      theme: theme,
+      seed: activeRound.seed,
+    );
+    world.add(_terrainLayer!);
+  }
 
   /// Host of a defense round: an enemy rolls in at the start of the road.
   void spawnEnemy(String id) {
@@ -2302,6 +2395,9 @@ class SpaceGame extends FlameGame
     final near =
         ship.position.distanceTo(map.base) <
         DefenseMap.baseRadius + GameConfig.resupplyReach;
+    if (near && ship.usesFuel && ship.fuel < 1) {
+      ship.setFuel(ship.fuel + dt / GameConfig.resupplySeconds);
+    }
     if (!near || ship.ammo >= ship.magazine) {
       _resupplied = 0;
       return;
@@ -2375,6 +2471,10 @@ class SpaceGame extends FlameGame
       }
       return;
     }
+    // A CPU tank with a full inventory leaves the crate for others.
+    if (!mine && !ship.items.canTake(slot.type)) {
+      return;
+    }
     _gone.add(slot.id);
     powerUps.remove(slot.id);
     crate.removeFromParent();
@@ -2388,7 +2488,32 @@ class SpaceGame extends FlameGame
       final key = inventory.value.indexWhere((s) => s.type == slot.type) + 1;
       showNotice('${slot.type.label}  [$key]');
     } else {
-      _applyItem(ship, slot.type);
+      ship.items.add(slot.type);
+    }
+  }
+
+  /// A CPU tank sets off item [index] of its own inventory.
+  void useBotItem(PlayerShip ship, int index) {
+    if (ship.hp <= 0) {
+      return;
+    }
+    final type = ship.items.take(index);
+    if (type != null) {
+      _applyItem(ship, type);
+    }
+  }
+
+  /// The tanks people drive: the local one and those of other players.
+  Iterable<ShipBase> get humanTanks sync* {
+    final activeRound = round;
+    final mine = myShip;
+    if (mine != null && mine.isMounted && mine.hp > 0) {
+      yield mine;
+    }
+    for (final ship in remoteShips.values) {
+      if (ship.hp > 0 && !(activeRound?.isBot(ship.playerId) ?? false)) {
+        yield ship;
+      }
     }
   }
 
@@ -2449,6 +2574,81 @@ class SpaceGame extends FlameGame
         _deploySquad(ship, para: false);
       case PowerUpType.paratroopers:
         _deploySquad(ship, para: true);
+      case PowerUpType.fuel:
+        ship.setFuel(ship.fuel + GameConfig.canisterShare);
+      case PowerUpType.hunterDrone:
+        _launchHunter(ship);
+      case PowerUpType.airstrike:
+        _callAirstrike(ship);
+    }
+  }
+
+  /// A drone from the inventory: off it goes after an enemy picked at
+  /// random, wherever that one is.
+  void _launchHunter(PlayerShip ship) {
+    final enemies = enemiesOf(ship.playerId).toList();
+    final prey = enemies.isEmpty
+        ? null
+        : enemies[random.nextInt(enemies.length)].playerId;
+    final droneId = '${ship.playerId}-d${_bulletCounter++}';
+    final drone = Drone(
+      droneId: droneId,
+      ownerId: ship.playerId,
+      color: ship.shipColor,
+      position: ship.position + ship.turretDirection * 30,
+      angle: ship.turretAngle,
+      preyId: prey,
+      life: GameConfig.enemyDroneSeconds,
+    );
+    drones[droneId] = drone;
+    _extras.add(drone);
+    world.add(drone);
+    if (ship == myShip && prey != null) {
+      showNotice('JAGDDROHNE AUF ${_nameOf(prey).toUpperCase()}');
+    }
+  }
+
+  /// A bomber crosses the field and drops a string of bombs on the enemy
+  /// closest to where the player aims, leading it a little.
+  void _callAirstrike(PlayerShip ship) {
+    final aim = _aimPoint(ship, GameConfig.airstrikeReach);
+    ShipBase? prey;
+    var best = double.infinity;
+    for (final enemy in enemiesOf(ship.playerId)) {
+      final distance = enemy.position.distanceTo(aim);
+      if (distance < best) {
+        best = distance;
+        prey = enemy;
+      }
+    }
+    final target = prey == null ? aim : prey.position + velocityOf(prey) * 1.4;
+    final heading = Vector2(
+      cos(random.nextDouble() * 2 * pi),
+      sin(random.nextDouble() * 2 * pi),
+    );
+    final from = target - heading * 1400;
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (var i = 0; i < GameConfig.airstrikeBombs; i++) {
+      final at =
+          target + heading * ((i - (GameConfig.airstrikeBombs - 1) / 2) * 60);
+      final payload = ArtilleryPayload(
+        id: ship.playerId,
+        strikeId: '${ship.playerId}-j${_specialCounter++}',
+        x: at.x,
+        y: at.y,
+        at: now + 1400 + i * 140,
+        jetX: i == 0 ? from.x : null,
+        jetY: i == 0 ? from.y : null,
+      );
+      _addArtillery(payload);
+      net.send(NetEvent.artillery, payload.toJson());
+    }
+    if (ship == myShip) {
+      showNotice(
+        prey == null
+            ? 'LUFTSCHLAG'
+            : 'LUFTSCHLAG AUF ${_nameOf(prey.playerId).toUpperCase()}',
+      );
     }
   }
 
@@ -2474,6 +2674,10 @@ class SpaceGame extends FlameGame
   /// Where the local player points: the mouse, or ahead of the turret at
   /// [reach] for touch controls and CPU tanks. Never further than [reach].
   Vector2 _aimPoint(PlayerShip ship, double reach) {
+    // A CPU tank aims as far as its target is.
+    if (ship.isBot) {
+      reach = min(reach, ship.input.lobDistance ?? reach);
+    }
     var target = ship.isBot || touch.aim != null
         ? ship.position + ship.turretDirection * reach
         : pointerWorld() ?? ship.position + ship.turretDirection * reach;
@@ -2547,6 +2751,10 @@ class SpaceGame extends FlameGame
           PowerUpType.infantry ||
           PowerUpType.paratroopers:
         guard.allowSpecial(payload.id);
+      case PowerUpType.airstrike:
+        for (var i = 0; i < GameConfig.airstrikeBombs; i++) {
+          guard.allowSpecial(payload.id);
+        }
       case _:
     }
     _gone.add(payload.powerUpId);
@@ -2673,6 +2881,18 @@ class SpaceGame extends FlameGame
   }
 
   void _addArtillery(ArtilleryPayload payload) {
+    final jetX = payload.jetX;
+    final jetY = payload.jetY;
+    if (jetX != null && jetY != null) {
+      final jet = StrikeJet(
+        from: Vector2(jetX, jetY),
+        over: Vector2(payload.x, payload.y),
+        at: payload.at,
+      );
+      _extras.add(jet);
+      world.add(jet);
+      AudioService.play('go', volume: 0.4);
+    }
     final strike = ArtilleryStrike(
       strikeId: payload.strikeId,
       ownerId: payload.id,
@@ -3923,6 +4143,7 @@ class SpaceGame extends FlameGame
     final won = teamWin ? myTeamWon : winnerId != null && winnerId == myId;
     if (activeRound.participants.contains(myId)) {
       final placements = activeRound.placementsOf(myId);
+      final cpu = activeRound.cpuPlacementsOf(myId);
       List<String> accounts(List<String> ids) => [
         for (final id in ids) ?_uids[id],
       ];
@@ -3937,6 +4158,9 @@ class SpaceGame extends FlameGame
           night: conditions?.night ?? false,
           beaten: accounts(placements.beaten),
           beatenBy: accounts(placements.beatenBy),
+          cpuBeaten: cpu.beaten,
+          cpuBeatenBy: cpu.beatenBy,
+          cpuRating: activeRound.botLevel.rating,
         ),
       );
     }
@@ -4197,6 +4421,10 @@ class SpaceGame extends FlameGame
     shieldSeconds.value = 0;
     drones.clear();
     aircraft.clear();
+    _terrainLayer?.removeFromParent();
+    _terrainLayer = null;
+    terrain = Terrain.flat;
+    fuelNotifier.value = 1;
     inventory.clear();
     upgrades.value = const {};
     nearTower.value = null;

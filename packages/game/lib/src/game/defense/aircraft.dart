@@ -386,40 +386,7 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
   void _shape(Canvas canvas, Paint body, {required bool shadow}) {
     final mark = Paint()..color = GameConfig.teamColors[side];
     if (kind == AirKind.jet) {
-      final wing = Path()
-        ..moveTo(0, -24)
-        ..lineTo(6, -6)
-        ..lineTo(22, 10)
-        ..lineTo(22, 14)
-        ..lineTo(5, 10)
-        ..lineTo(4, 18)
-        ..lineTo(10, 22)
-        ..lineTo(-10, 22)
-        ..lineTo(-4, 18)
-        ..lineTo(-5, 10)
-        ..lineTo(-22, 14)
-        ..lineTo(-22, 10)
-        ..lineTo(-6, -6)
-        ..close();
-      canvas.drawPath(wing, body);
-      if (shadow) {
-        return;
-      }
-      canvas.drawCircle(
-        const Offset(0, -10),
-        2.6,
-        Paint()..color = const Color(0xFF9FD3F0),
-      );
-      canvas.drawCircle(const Offset(15, 11), 2.2, mark);
-      canvas.drawCircle(const Offset(-15, 11), 2.2, mark);
-      // Afterburner.
-      if ((_age * 20).floor().isEven) {
-        canvas.drawCircle(
-          const Offset(0, 25),
-          3,
-          Paint()..color = const Color(0xFFFFB74D),
-        );
-      }
+      _paintJet(canvas, body, mark, _age, shadow: shadow);
       return;
     }
     canvas.drawOval(
@@ -475,5 +442,109 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
         blade,
       );
     }
+  }
+}
+
+/// A jet seen from above, nose up: delta wings, the canopy, roundels and a
+/// flickering afterburner.
+void _paintJet(
+  Canvas canvas,
+  Paint body,
+  Paint mark,
+  double age, {
+  required bool shadow,
+}) {
+  final wing = Path()
+    ..moveTo(0, -24)
+    ..lineTo(6, -6)
+    ..lineTo(22, 10)
+    ..lineTo(22, 14)
+    ..lineTo(5, 10)
+    ..lineTo(4, 18)
+    ..lineTo(10, 22)
+    ..lineTo(-10, 22)
+    ..lineTo(-4, 18)
+    ..lineTo(-5, 10)
+    ..lineTo(-22, 14)
+    ..lineTo(-22, 10)
+    ..lineTo(-6, -6)
+    ..close();
+  canvas.drawPath(wing, body);
+  if (shadow) {
+    return;
+  }
+  canvas.drawCircle(
+    const Offset(0, -10),
+    2.6,
+    Paint()..color = const Color(0xFF9FD3F0),
+  );
+  canvas.drawCircle(const Offset(15, 11), 2.2, mark);
+  canvas.drawCircle(const Offset(-15, 11), 2.2, mark);
+  if ((age * 20).floor().isEven) {
+    canvas.drawCircle(
+      const Offset(0, 25),
+      3,
+      Paint()..color = const Color(0xFFFFB74D),
+    );
+  }
+}
+
+/// The bomber of an air strike from a gem. It only shows the run: the bombs
+/// are artillery strikes that every client already knows. It passes over
+/// [over] at [at], milliseconds since the epoch, coming from [from].
+class StrikeJet extends PositionComponent {
+  StrikeJet({required Vector2 from, required this.over, required this.at})
+    : _heading = (over - from).normalized(),
+      super(priority: 27, anchor: Anchor.center, size: Vector2.all(48)) {
+    angle = atan2(_heading.x, -_heading.y);
+    _place();
+  }
+
+  final Vector2 over;
+  final int at;
+  final Vector2 _heading;
+  double _age = 0;
+
+  static const _speed = 520.0;
+
+  double get _seconds => (DateTime.now().millisecondsSinceEpoch - at) / 1000;
+
+  void _place() => position.setFrom(over + _heading * (_seconds * _speed));
+
+  @override
+  void update(double dt) {
+    _age += dt;
+    _place();
+    if (_seconds > 4) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final c = Offset(size.x / 2, size.y / 2);
+    final mark = Paint()..color = const Color(0xFFE6E2D3);
+    canvas.save();
+    canvas.translate(c.dx + 30, c.dy + 42);
+    canvas.scale(0.8);
+    _paintJet(
+      canvas,
+      Paint()..color = const Color(0x3A000000),
+      mark,
+      _age,
+      shadow: true,
+    );
+    canvas.restore();
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.scale(1.2);
+    _paintJet(
+      canvas,
+      Paint()..color = const Color(0xFF6E7B5E),
+      mark,
+      _age,
+      shadow: false,
+    );
+    canvas.restore();
   }
 }

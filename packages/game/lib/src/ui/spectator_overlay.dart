@@ -27,78 +27,96 @@ class SpectatorOverlay extends StatelessWidget {
           alignment: Alignment.topCenter,
           child: Padding(
             padding: const EdgeInsets.all(16),
-            child: Panel(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (game.replaying.value) ...[
-                    const Icon(
-                      Icons.movie_outlined,
-                      size: 18,
-                      color: BwColors.amber,
-                    ),
-                    const SizedBox(width: 6),
-                    const Text(
-                      'WIEDERHOLUNG',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Panel(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (game.replaying.value) ...[
+                      const Icon(
+                        Icons.movie_outlined,
+                        size: 18,
                         color: BwColors.amber,
+                      ),
+                      const SizedBox(width: 6),
+                      const Text(
+                        'WIEDERHOLUNG',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                          color: BwColors.amber,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                    ] else ...[
+                      const Icon(Icons.visibility, size: 18),
+                      const SizedBox(width: 8),
+                    ],
+                    ValueListenableBuilder<String?>(
+                      valueListenable: game.spectatingName,
+                      builder: (context, name, _) =>
+                          Text(name == null ? 'Beobachte' : 'Beobachte $name'),
+                    ),
+                    const SizedBox(width: 12),
+                    ValueListenableBuilder<int>(
+                      valueListenable: game.aliveCount,
+                      builder: (context, alive, _) => Text(
+                        'noch $alive',
+                        style: const TextStyle(color: BwColors.textDim),
                       ),
                     ),
                     const SizedBox(width: 12),
-                  ] else ...[
-                    const Icon(Icons.visibility, size: 18),
-                    const SizedBox(width: 8),
-                  ],
-                  ValueListenableBuilder<String?>(
-                    valueListenable: game.spectatingName,
-                    builder: (context, name, _) =>
-                        Text(name == null ? 'Beobachte' : 'Beobachte $name'),
-                  ),
-                  const SizedBox(width: 12),
-                  ValueListenableBuilder<int>(
-                    valueListenable: game.aliveCount,
-                    builder: (context, alive, _) => Text(
-                      'noch $alive',
-                      style: const TextStyle(color: BwColors.textDim),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  ValueListenableBuilder<String?>(
-                    valueListenable: game.spectatingName,
-                    builder: (context, name, _) => ValueListenableBuilder<int>(
-                      valueListenable: game.aliveCount,
-                      builder: (context, alive, _) {
-                        final count =
-                            game.remoteShips.length + game.botShips.length;
-                        return Tooltip(
-                          message: count > 1
-                              ? 'Zum nächsten Panzer wechseln'
-                              : 'Es ist nur ein Panzer im Feld',
-                          child: TextButton(
-                            onPressed: count > 1 ? game.spectateNext : null,
-                            child: Text(
-                              count > 1
-                                  ? 'NÄCHSTER PANZER (${game.spectateNumber}/$count)'
-                                  : 'NÄCHSTER PANZER',
+                    ValueListenableBuilder<String?>(
+                      valueListenable: game.spectatingName,
+                      builder: (context, name, _) => ValueListenableBuilder<int>(
+                        valueListenable: game.aliveCount,
+                        builder: (context, alive, _) {
+                          final count =
+                              game.remoteShips.length + game.botShips.length;
+                          return Tooltip(
+                            message: count > 1
+                                ? 'Zum nächsten Panzer wechseln'
+                                : 'Es ist nur ein Panzer im Feld',
+                            child: TextButton(
+                              onPressed: count > 1 ? game.spectateNext : null,
+                              child: Text(
+                                count > 1
+                                    ? 'NÄCHSTER PANZER (${game.spectateNumber}/$count)'
+                                    : 'NÄCHSTER PANZER',
+                              ),
                             ),
-                          ),
-                        );
-                      },
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                  if (game.replaying.value)
-                    TextButton(
-                      onPressed: game.stopReplay,
-                      child: const Text('BEENDEN'),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         ),
+        // Always in reach, also on a phone where the bar above is cramped.
+        if (game.replaying.value)
+          Align(
+            alignment: Alignment.bottomCenter,
+            child: SafeArea(
+              minimum: const EdgeInsets.all(20),
+              child: FilledButton.icon(
+                onPressed: game.stopReplay,
+                icon: const Icon(Icons.stop_circle_outlined),
+                label: Text(
+                  game.touchMode.value
+                      ? 'WIEDERHOLUNG BEENDEN'
+                      : 'WIEDERHOLUNG BEENDEN (ESC)',
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
