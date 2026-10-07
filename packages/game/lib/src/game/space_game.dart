@@ -158,6 +158,19 @@ class SpaceGame extends FlameGame
 
   void setMode(GameMode value) => mode.value = value;
 
+  /// Whether the host still looks at the start page with the three ways to
+  /// play. Players who joined by a link go straight to the waiting room.
+  late final choosingMode = ValueNotifier<bool>(net.isHost);
+
+  /// Start page: take [value] and move on to the waiting room.
+  void chooseMode(GameMode value) {
+    mode.value = value;
+    choosingMode.value = false;
+  }
+
+  /// Back from the waiting room to the start page.
+  void changeMode() => choosingMode.value = true;
+
   /// Whether this player runs the room: picks mode and map and starts the
   /// round. The one who opened the room keeps the role for good. Only when
   /// they are gone does somebody else stand in, until they are back.

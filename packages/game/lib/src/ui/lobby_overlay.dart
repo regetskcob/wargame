@@ -13,6 +13,7 @@ import '../net/payloads/lobby_presence.dart';
 import '../net/room.dart';
 import '../game/components/tank_painter.dart';
 import '../theme.dart';
+import 'launch_view.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/leaderboard.dart';
@@ -398,7 +399,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// First step for the host: alone against CPU tanks or with other people.
+  /// The way to play the host took on the start page, and its settings.
   Widget _modeChoice(BuildContext context) {
     final game = widget.game;
     return Column(
@@ -411,14 +412,32 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           builder: (context, mode, _) => Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ChoiceRow<GameMode>(
-                options: const [
-                  (GameMode.solo, 'EINZELSPIELER', null),
-                  (GameMode.multi, 'MEHRSPIELER', null),
-                  (GameMode.defense, 'VERTEIDIGUNG', null),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ChoiceRow<GameMode>(
+                    options: [
+                      (
+                        mode,
+                        switch (mode) {
+                          GameMode.solo => 'EINZELSPIELER',
+                          GameMode.multi => 'MEHRSPIELER',
+                          GameMode.defense => 'VERTEIDIGUNG',
+                        },
+                        null,
+                      ),
+                    ],
+                    selected: mode,
+                    onSelected: (_) => game.changeMode(),
+                  ),
+                  TextButton.icon(
+                    onPressed: game.changeMode,
+                    icon: const Icon(Icons.swap_horiz),
+                    label: const Text('ÄNDERN'),
+                  ),
                 ],
-                selected: mode,
-                onSelected: (v) => game.setMode(v ?? GameMode.multi),
               ),
               if (mode == GameMode.multi &&
                   roomLink(game.net.room).isNotEmpty) ...[
@@ -553,62 +572,70 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   Widget _build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xAA000000),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final narrow = constraints.maxWidth < 720;
-          return Center(
-            child: SingleChildScrollView(
-              padding: EdgeInsets.all(narrow ? 8 : 16),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 860),
-                child: Panel(
-                  padding: EdgeInsets.all(narrow ? 14 : 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (!widget.game.isHost.value)
-                        const _JoinedBanner()
-                      else ...[
-                        _modeChoice(context),
-                        ValueListenableBuilder<GameMode>(
-                          valueListenable: widget.game.mode,
-                          builder: (context, mode, _) => mode.withOthers
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 16),
-                                  child: RoomInvite(game: widget.game),
-                                )
-                              : const SizedBox(),
-                        ),
-                      ],
-                      const SizedBox(height: 24),
-                      if (narrow) ...[
-                        _pilotColumn(context),
-                        const SizedBox(height: 24),
-                        _rosterColumn(),
-                      ] else
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(child: _pilotColumn(context)),
-                            const SizedBox(width: 40),
-                            _rosterColumn(),
-                          ],
-                        ),
-                      if (roomLink(widget.game.net.room).isNotEmpty) ...[
-                        const SizedBox(height: 28),
-                        RoomList(game: widget.game),
-                      ],
-                      const SizedBox(height: 28),
-                      Leaderboard(game: widget.game),
-                    ],
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.game.choosingMode,
+      builder: (context, choosing, _) => ColoredBox(
+        color: const Color(0xAA000000),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final narrow = constraints.maxWidth < 720;
+            return Center(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.all(narrow ? 8 : 16),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 860),
+                  child: Panel(
+                    padding: EdgeInsets.all(narrow ? 14 : 24),
+                    child: choosing && widget.game.isHost.value
+                        ? LaunchView(game: widget.game)
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              if (!widget.game.isHost.value)
+                                const _JoinedBanner()
+                              else ...[
+                                _modeChoice(context),
+                                ValueListenableBuilder<GameMode>(
+                                  valueListenable: widget.game.mode,
+                                  builder: (context, mode, _) => mode.withOthers
+                                      ? Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 16,
+                                          ),
+                                          child: RoomInvite(game: widget.game),
+                                        )
+                                      : const SizedBox(),
+                                ),
+                              ],
+                              const SizedBox(height: 24),
+                              if (narrow) ...[
+                                _pilotColumn(context),
+                                const SizedBox(height: 24),
+                                _rosterColumn(),
+                              ] else
+                                Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(child: _pilotColumn(context)),
+                                    const SizedBox(width: 40),
+                                    _rosterColumn(),
+                                  ],
+                                ),
+                              if (roomLink(widget.game.net.room)
+                                  .isNotEmpty) ...[
+                                const SizedBox(height: 28),
+                                RoomList(game: widget.game),
+                              ],
+                              const SizedBox(height: 28),
+                              Leaderboard(game: widget.game),
+                            ],
+                          ),
                   ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
