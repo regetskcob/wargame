@@ -45,7 +45,12 @@ class RoundState {
   /// life after every respawn, and run by the [botHost] as well.
   bool isAlly(String id) => defense && id.startsWith('ally-');
 
-  bool isBot(String id) => bots.containsKey(id) || isEnemy(id) || isAlly(id);
+  /// Aircraft the base sends to help the defenders are called `air-h-…`
+  /// for a helicopter and `air-j-…` for a jet, flown by the [botHost].
+  bool isFriendlyAir(String id) => defense && id.startsWith('air-');
+
+  bool isBot(String id) =>
+      bots.containsKey(id) || isEnemy(id) || isAlly(id) || isFriendlyAir(id);
 
   /// "CPU-3" for the bot called `cpu-3` and "KAMERAD 2" for the comrade in
   /// slot 1. Enemies of the defense are named after what they are:
@@ -53,6 +58,9 @@ class RoundState {
   /// squad on foot and every other one a tank.
   String botName(String id) {
     final parts = id.split('-');
+    if (isFriendlyAir(id)) {
+      return parts[1] == 'j' ? 'EIGENER JET' : 'EIGENER HUBSCHRAUBER';
+    }
     if (isAlly(id)) {
       return 'KAMERAD ${(int.tryParse(parts[1]) ?? 0) + 1}';
     }
@@ -90,7 +98,9 @@ class RoundState {
       return int.tryParse(id.substring(4)) ?? 0;
     }
     if (defense) {
-      return participants.contains(id) || isAlly(id) ? 1 : 2;
+      return participants.contains(id) || isAlly(id) || isFriendlyAir(id)
+          ? 1
+          : 2;
     }
     return teams[id] ?? 0;
   }

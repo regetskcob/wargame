@@ -1402,7 +1402,63 @@ class SpaceGame extends FlameGame
     _announceAircraft(kind);
   }
 
-  void _announceAircraft(AirKind kind) {
+  /// Host of a defense round: the base sends a helicopter of its own, or a
+  /// jet that bombs the enemies closest to the base.
+  void spawnSupport(String id, AirKind kind) {
+    final map = defenseMap;
+    if (map == null) {
+      return;
+    }
+    final Aircraft plane;
+    if (kind == AirKind.jet) {
+      final goal = supportTarget(map.base, double.infinity)?.position.clone();
+      if (goal == null) {
+        return;
+      }
+      // In from behind the base, over the enemies and out the far side.
+      final back = (map.base - goal);
+      final from =
+          goal +
+          (back.length2 < 1 ? Vector2(1, 0) : back.normalized()) *
+              (back.length + 900);
+      plane = Aircraft(
+        unitId: id,
+        kind: kind,
+        position: from,
+        angle: _headingFrom(from, goal),
+        goal: goal,
+      );
+    } else {
+      // Lifts off from the base.
+      final from = map.base + Vector2(0, -DefenseMap.baseRadius);
+      plane = Aircraft(
+        unitId: id,
+        kind: kind,
+        position: from,
+        angle: _headingFrom(from, map.road[map.road.length - 2]),
+      );
+    }
+    aircraft[id] = plane;
+    _extras.add(plane);
+    world.add(plane);
+    _announceAircraft(kind, friendly: true);
+  }
+
+  /// What the defenders' own aircraft go for: the enemy tank, else the
+  /// enemy soldier, nearest to [from].
+  PositionComponent? supportTarget(Vector2 from, double range) =>
+      nearestEnemy(from, range) ?? _nearestEnemySoldier(from, range);
+
+  void _announceAircraft(AirKind kind, {bool friendly = false}) {
+    if (friendly) {
+      showNotice(
+        kind == AirKind.jet
+            ? 'EIGENER LUFTSCHLAG IM ANFLUG'
+            : 'LUFTUNTERSTÜTZUNG IM ANFLUG',
+      );
+      AudioService.play('go', volume: 0.5);
+      return;
+    }
     showNotice(kind == AirKind.jet ? 'LUFTANGRIFF!' : 'HUBSCHRAUBER IM ANFLUG');
     AudioService.play('tick');
   }
@@ -1434,7 +1490,7 @@ class SpaceGame extends FlameGame
       return 0;
     }
     return activeRound.alive.where(activeRound.isEnemy).length +
-        aircraft.length +
+        aircraft.values.where((plane) => !plane.friendly).length +
         (soldierField?.all
                 .where(
                   (s) =>
@@ -1453,7 +1509,7 @@ class SpaceGame extends FlameGame
       return false;
     }
     return botShips.keys.any(activeRound.isEnemy) ||
-        aircraft.values.any((plane) => !plane.remote) ||
+        aircraft.values.any((plane) => !plane.remote && !plane.friendly) ||
         drones.values.any(
           (drone) => !drone.remote && activeRound.isEnemy(drone.ownerId),
         ) ||
@@ -1517,7 +1573,8 @@ class SpaceGame extends FlameGame
     final activeRound = round;
     if (activeRound == null ||
         !activeRound.defense ||
-        !activeRound.isEnemy(payload.unit) ||
+        !(activeRound.isEnemy(payload.unit) ||
+            activeRound.isFriendlyAir(payload.unit)) ||
         activeRound.destroyedEnemies.contains(payload.unit)) {
       return;
     }
@@ -1551,7 +1608,7 @@ class SpaceGame extends FlameGame
     aircraft[payload.unit] = plane;
     _extras.add(plane);
     world.add(plane);
-    _announceAircraft(kind);
+    _announceAircraft(kind, friendly: plane.friendly);
   }
 
   /// The host's helicopter fires a rocket along [direction].
@@ -1563,7 +1620,7 @@ class SpaceGame extends FlameGame
       ownerId: plane.unitId,
       position: start,
       direction: direction,
-      color: GameConfig.teamColors[2],
+      color: GameConfig.teamColors[plane.side],
       speed: GameConfig.helicopterShotSpeed,
       damage: GameConfig.helicopterDamage,
     );
@@ -1800,11 +1857,18 @@ class SpaceGame extends FlameGame
     }
     final build = kind ?? towerChoice.value;
     towerChoice.value = build;
-    final mine = towers.values.where((t) => t.ownerId == myId).length;
-    final reason = credits.value < build.cost
+    final mine = towers.values
+        .where((t) => t.ownerId == myId && t.kind.isGun == build.isGun)
+        .length;
+    final limit = build.isGun ? GameConfig.maxTowers : GameConfig.maxTrenches;
+    final reason = !build.unlockedIn(defense.value?.wave ?? 0)
+        ? '${build.label} ab Welle ${build.fromWave}'
+        : credits.value < build.cost
         ? 'Zu wenig Mittel'
-        : mine >= GameConfig.maxTowers
-        ? 'Höchstens ${GameConfig.maxTowers} Geschütze'
+        : mine >= limit
+        ? build.isGun
+              ? 'Höchstens $limit Geschütze'
+              : 'Höchstens $limit Gräben'
         : map.whyNotBuild(ship.position, towers.values.map((t) => t.position));
     if (reason != null) {
       showNotice(reason.toUpperCase());
@@ -1828,11 +1892,24 @@ class SpaceGame extends FlameGame
     if (defenseMap == null) {
       return;
     }
-    final next = TowerKind
-        .values[(towerChoice.value.index + 1) % TowerKind.values.length];
+    final wave = defense.value?.wave ?? 0;
+    var next = towerChoice.value;
+    for (var i = 0; i < TowerKind.values.length; i++) {
+      next = TowerKind.values[(next.index + 1) % TowerKind.values.length];
+      if (next.unlockedIn(wave)) {
+        break;
+      }
+    }
     towerChoice.value = next;
     showNotice('${next.label} ${next.cost}');
   }
+
+  /// Whether a tank at [at] stands in a trench, any player's.
+  bool inTrench(Vector2 at) => towers.values.any(
+    (t) =>
+        t.kind == TowerKind.trench &&
+        t.position.distanceTo(at) < GameConfig.trenchReach,
+  );
 
   /// One of the local player's guns within reach of [at].
   Tower? _ownTowerAt(Vector2 at) {
@@ -1845,6 +1922,10 @@ class SpaceGame extends FlameGame
   }
 
   void upgradeTower(Tower tower) {
+    if (!tower.kind.upgradable) {
+      showNotice('${tower.kind.label}: NICHTS AUSZUBAUEN');
+      return;
+    }
     if (tower.level >= TowerKind.maxLevel) {
       showNotice('HÖCHSTE STUFE');
       return;
@@ -1933,11 +2014,11 @@ class SpaceGame extends FlameGame
     );
   }
 
-  /// A mortar emplacement of the local player lobs a shell onto [at].
+  /// A mortar or howitzer of the local player lobs a shell onto [at].
   void fireMortarTower(Tower tower, Vector2 at) {
     final from = tower.position.clone();
     tower.fired((at - from).normalized());
-    final power = tower.kind.damageFactor(tower.level);
+    final power = tower.kind.blast * tower.kind.damageFactor(tower.level);
     final grenadeId = '$myId-t${_bulletCounter++}';
     _launchGrenade(
       grenadeId,
@@ -1974,14 +2055,16 @@ class SpaceGame extends FlameGame
       case TowerKind.flak:
         return _nearestOf(at, range, [
               for (final plane in aircraft.values)
-                if (plane.hp > 0) plane,
+                if (plane.hp > 0 && !plane.friendly) plane,
               for (final drone in drones.values)
                 if (round?.isEnemy(drone.ownerId) ?? false) drone,
             ]) ??
             nearestEnemy(at, range);
       case TowerKind.cannon:
         return nearestEnemy(at, range) ?? _nearestEnemySoldier(at, range);
-      case TowerKind.mortar:
+      case TowerKind.trench:
+        return null;
+      case TowerKind.mortar || TowerKind.howitzer:
         bool outside(PositionComponent c) =>
             c.position.distanceTo(at) >= tower.kind.minRange;
         final tank = _nearestOf(at, range, [
@@ -2003,7 +2086,7 @@ class SpaceGame extends FlameGame
     if (ship.tankType == TankType.gepard) {
       final air = _nearestOf(at, range, [
         for (final plane in aircraft.values)
-          if (plane.hp > 0) plane,
+          if (plane.hp > 0 && !plane.friendly) plane,
         for (final drone in drones.values)
           if (round?.isEnemy(drone.ownerId) ?? false) drone,
       ]);
@@ -2944,7 +3027,10 @@ class SpaceGame extends FlameGame
       from,
       to,
       weapon: weapon,
-      power: payload.power.clamp(1.0, TowerKind.mortar.damageFactor(3)),
+      power: payload.power.clamp(
+        1.0,
+        TowerKind.howitzer.blast * TowerKind.howitzer.damageFactor(3),
+      ),
     );
   }
 
@@ -3131,7 +3217,9 @@ class SpaceGame extends FlameGame
       return;
     }
     if (payload.air) {
-      if (!activeRound.defense || !activeRound.isEnemy(payload.id)) {
+      final friendly = activeRound.isFriendlyAir(payload.id);
+      if (!activeRound.defense ||
+          !(activeRound.isEnemy(payload.id) || friendly)) {
         return;
       }
       AudioService.play(
@@ -3144,7 +3232,7 @@ class SpaceGame extends FlameGame
         ownerId: payload.id,
         position: Vector2(payload.x, payload.y),
         direction: Vector2(payload.dx, payload.dy),
-        color: GameConfig.teamColors[2],
+        color: GameConfig.teamColors[friendly ? 1 : 2],
         speed: GameConfig.helicopterShotSpeed,
         damage: GameConfig.helicopterDamage,
       );

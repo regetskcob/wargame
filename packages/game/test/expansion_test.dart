@@ -157,7 +157,7 @@ void main() {
     expect(TowerKind.flak.antiAir, isTrue);
     expect(TowerKind.cannon.antiAir, isFalse);
     expect(TowerKind.mortar.minRange, greaterThan(0));
-    for (final kind in TowerKind.values) {
+    for (final kind in TowerKind.values.where((k) => k.upgradable)) {
       expect(kind.damageFactor(3), greaterThan(kind.damageFactor(1)));
       expect(kind.rangeAt(3), greaterThan(kind.rangeAt(1)));
       expect(kind.cooldownAt(3), lessThan(kind.cooldownAt(1)));

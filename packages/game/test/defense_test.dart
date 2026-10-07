@@ -1,6 +1,7 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:game/src/game/defense/defense_map.dart';
+import 'package:game/src/game/defense/tower.dart';
 import 'package:game/src/game/round_state.dart';
 import 'package:game/src/net/payloads/defense_payload.dart';
 import 'package:game/src/net/payloads/lobby_presence.dart';
@@ -177,6 +178,34 @@ void main() {
         }
       }
     }
+  });
+
+  test('the base sends aircraft of its own that fly for the defenders', () {
+    final round = RoundState(
+      seed: 1,
+      startedAt: 2,
+      participants: const ['a'],
+      botHost: 'a',
+      defense: true,
+    );
+    expect(round.isFriendlyAir('air-h-3'), isTrue);
+    expect(round.isEnemy('air-h-3'), isFalse);
+    expect(round.teamOf('air-j-5'), round.teamOf('a'));
+    expect(round.botName('air-h-3'), 'EIGENER HUBSCHRAUBER');
+    expect(round.botName('air-j-5'), 'EIGENER JET');
+    expect(round.botName('td-h-3-1'), 'HUBSCHRAUBER');
+  });
+
+  test('howitzer and trench come up later in the round', () {
+    expect(TowerKind.cannon.unlockedIn(0), isTrue);
+    expect(TowerKind.trench.unlockedIn(1), isFalse);
+    expect(TowerKind.trench.unlockedIn(2), isTrue);
+    expect(TowerKind.howitzer.unlockedIn(3), isFalse);
+    expect(TowerKind.howitzer.unlockedIn(4), isTrue);
+    expect(TowerKind.howitzer.range, greaterThan(TowerKind.mortar.range));
+    expect(TowerKind.howitzer.lobs, isTrue);
+    expect(TowerKind.trench.isGun, isFalse);
+    expect(TowerKind.trench.upgradable, isFalse);
   });
 
   test('later waves are bigger', () {

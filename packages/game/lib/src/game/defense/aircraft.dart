@@ -26,9 +26,10 @@ enum AirKind {
   final double maxHp;
 }
 
-/// An enemy aircraft of a defense round. It flies over the river, the trees
-/// and the houses. Shells meant for the ground barely touch it, flak and the
-/// twin guns of the Gepard bring it down.
+/// An aircraft of a defense round, mostly the enemy's. From the third wave
+/// the base sends its own as well, see [friendly]. It flies over the river,
+/// the trees and the houses. Shells meant for the ground barely touch it,
+/// flak and the twin guns of the Gepard bring it down.
 ///
 /// Only the player who runs the enemies flies it and tells the others where
 /// it is. On every other client the same component follows those messages.
@@ -58,7 +59,12 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
   /// Where a jet drops its bombs.
   final Vector2 goal;
 
+  /// One of the defenders' own, sent by the base: it hunts the enemy and
+  /// leaves again after a while.
+  bool get friendly => unitId.startsWith('air-');
+
   late double hp = kind.maxHp;
+  bool _leaving = false;
   final velocity = Vector2.zero();
 
   final Vector2 _target;
@@ -100,8 +106,13 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     hp = state.hp;
   }
 
-  /// How hard [bullet] hits, 0 when it flies right past.
+  /// How hard [bullet] hits, 0 when it flies right past. Nobody's shells
+  /// touch the aircraft of their own side.
   double damageFrom(Bullet bullet) {
+    final enemyShot = gameRef.round?.isEnemy(bullet.ownerId) ?? false;
+    if (enemyShot != friendly) {
+      return 0;
+    }
     if (bullet.antiAir) {
       return bullet.damage * GameConfig.antiAirFactor;
     }
@@ -195,6 +206,10 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
         _strafe = -_strafe;
       }
     }
+    if (friendly) {
+      _support(dt, map);
+      return;
+    }
     final prey = _prey;
     final aimAt = prey != null && prey.isMounted ? prey.position : map.base;
     final wanted = _headingTo(aimAt);
@@ -238,6 +253,69 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     }
   }
 
+  /// A helicopter of the defenders: it hangs back from the nearest enemy and
+  /// fires, waits over the middle of the road while there is none and turns
+  /// for home when its time is up.
+  void _support(double dt, DefenseMap map) {
+    if (_leaving || _age > GameConfig.supportHelicopterSeconds) {
+      _leaving = true;
+      final out = (position - map.base);
+      final away = out.length2 < 1 ? Vector2(0, -1) : out.normalized();
+      angle += (_headingTo(position + away) - angle).toNormalizedAngle().clamp(
+        -2.2 * dt,
+        2.2 * dt,
+      );
+      velocity.setFrom(heading * GameConfig.helicopterSpeed * 1.4);
+      position.add(velocity * dt);
+      if (!DefenseMap.bounds.inflate(80).contains(position.toOffset())) {
+        _gone = true;
+        gameRef.aircraftLeft(this);
+      }
+      return;
+    }
+    _think -= dt;
+    if (_think <= 0) {
+      _think = 0.4;
+      _prey = gameRef.supportTarget(
+        position,
+        GameConfig.supportHelicopterReach,
+      );
+      if (gameRef.random.nextDouble() < 0.1) {
+        _strafe = -_strafe;
+      }
+    }
+    final prey = _prey;
+    final hunting = prey != null && prey.isMounted;
+    final aimAt = hunting
+        ? prey.position
+        : map.pointAlong(map.roadLength * 0.45).$1;
+    final wanted = _headingTo(aimAt);
+    final diff = (wanted - angle).toNormalizedAngle();
+    angle += diff.clamp(-2.2 * dt, 2.2 * dt);
+    final distance = position.distanceTo(aimAt);
+    final toward = distance < 1
+        ? Vector2.zero()
+        : (aimAt - position) / distance;
+    final side = Vector2(-toward.y, toward.x) * _strafe;
+    final hover = hunting ? GameConfig.helicopterHover : 30;
+    final move = distance > hover
+        ? toward
+        : distance < hover - 60
+        ? -toward * 0.5 + side * 0.6
+        : side * 0.6;
+    velocity.setFrom(move * GameConfig.helicopterSpeed);
+    position.add(velocity * dt);
+    _keepInside();
+    _cooldown -= dt;
+    if (hunting &&
+        _cooldown <= 0 &&
+        diff.abs() < 0.2 &&
+        distance < GameConfig.helicopterRange) {
+      _cooldown = GameConfig.helicopterCooldown;
+      gameRef.fireAircraft(this, toward);
+    }
+  }
+
   void _keepInside() {
     final bounds = DefenseMap.bounds.deflate(20);
     position.setValues(
@@ -275,7 +353,7 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
     }
     final body = Paint()
       ..color = Color.lerp(
-        const Color(0xFF7D8A6A),
+        friendly ? const Color(0xFF8E9A78) : const Color(0xFF7D8A6A),
         const Color(0xFFFFFFFF),
         _flash > 0 ? 0.6 : 0,
       )!;
@@ -287,13 +365,16 @@ class Aircraft extends PositionComponent with HasGameRef<SpaceGame> {
       canvas.drawRect(bar, Paint()..color = const Color(0x88000000));
       canvas.drawRect(
         Rect.fromLTWH(bar.left, bar.top, bar.width * ratio, bar.height),
-        Paint()..color = GameConfig.teamColors[2],
+        Paint()..color = GameConfig.teamColors[side],
       );
     }
   }
 
+  /// Team colour of the side it flies for.
+  int get side => friendly ? 1 : 2;
+
   void _shape(Canvas canvas, Paint body, {required bool shadow}) {
-    final mark = Paint()..color = GameConfig.teamColors[2];
+    final mark = Paint()..color = GameConfig.teamColors[side];
     if (kind == AirKind.jet) {
       _paintJet(canvas, body, mark, _age, shadow: shadow);
       return;

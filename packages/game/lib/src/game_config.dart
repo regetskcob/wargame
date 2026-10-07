@@ -106,6 +106,15 @@ class GameConfig {
   static const allyRespawnSeconds = 10.0;
   static const allyRange = 440.0;
 
+  /// The base's own aircraft: a helicopter every wave from [supportFromWave]
+  /// on, a bombing jet as well from [supportJetFromWave], some seconds into
+  /// the wave so the enemy is on the road.
+  static const supportFromWave = 3;
+  static const supportJetFromWave = 5;
+  static const supportJetDelay = 14.0;
+  static const supportHelicopterSeconds = 40.0;
+  static const supportHelicopterReach = 520.0;
+
   /// How close to the base a tank refills, and how long a full magazine
   /// takes there.
   static const resupplyReach = 130.0;
@@ -115,6 +124,12 @@ class GameConfig {
   static const waveBonus = 50;
   static const towerCost = 100;
   static const maxTowers = 6;
+
+  /// Trenches: how many a player may dig, how close a tank has to be to
+  /// sit in one and what share of a hit still gets through.
+  static const maxTrenches = 4;
+  static const trenchReach = 34.0;
+  static const trenchCover = 0.5;
   static const towerSpacing = 60.0;
   static const towerRange = 420.0;
   static const towerCooldown = 0.45;

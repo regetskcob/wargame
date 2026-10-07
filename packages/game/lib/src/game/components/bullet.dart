@@ -82,7 +82,8 @@ class Bullet extends PositionComponent
       }
       removeFromParent();
     } else if (other is Aircraft) {
-      if (!(gameRef.round?.isEnemy(ownerId) ?? true) && other.takeHit(this)) {
+      // Aircraft only stop the shells of the other side.
+      if (other.damageFrom(this) > 0 && other.takeHit(this)) {
         _impact(const Color(0xFF555555));
         removeFromParent();
       }
