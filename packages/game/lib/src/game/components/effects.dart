@@ -194,6 +194,50 @@ class DamageNumber extends PositionComponent {
   }
 }
 
+/// The name of a crate or gem a CPU tank sets off, rising from it, so
+/// players see what the bots do with what they pick up.
+class ItemCallout extends PositionComponent {
+  ItemCallout({
+    required Vector2 position,
+    required this.text,
+    required Color color,
+  }) : _paint = TextPaint(
+         style: TextStyle(
+           color: color,
+           fontSize: 13,
+           fontWeight: FontWeight.w900,
+           letterSpacing: 1,
+           shadows: const [Shadow(blurRadius: 4, color: Color(0xFF000000))],
+         ),
+       ),
+       super(position: position, priority: 30, anchor: Anchor.center);
+
+  final String text;
+  final TextPaint _paint;
+  static const _lifetime = 1.6;
+  double _age = 0;
+
+  @override
+  void update(double dt) {
+    _age += dt;
+    position.y -= 22 * dt;
+    if (_age >= _lifetime) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final fade = (1 - _age / _lifetime).clamp(0.0, 1.0);
+    canvas.saveLayer(
+      null,
+      Paint()..color = Color.fromRGBO(255, 255, 255, fade),
+    );
+    _paint.render(canvas, text, Vector2.zero(), anchor: Anchor.center);
+    canvas.restore();
+  }
+}
+
 /// A red cross over a tank the local player just destroyed.
 class KillMarker extends PositionComponent {
   KillMarker({required Vector2 position})

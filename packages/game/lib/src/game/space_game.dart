@@ -2620,9 +2620,28 @@ class SpaceGame extends FlameGame
       return;
     }
     final type = ship.items.take(index);
-    if (type != null) {
-      _applyItem(ship, type);
+    if (type == null) {
+      return;
     }
+    _applyItem(ship, type);
+    _calloutItem(ship.position, type);
+    // Repair and rapid fire announce themselves already.
+    if (type != PowerUpType.repair && type != PowerUpType.rapidFire) {
+      net.send(
+        NetEvent.use,
+        UsePayload(id: ship.playerId, item: type.name).toJson(),
+      );
+    }
+  }
+
+  void _calloutItem(Vector2 at, PowerUpType type) {
+    world.add(
+      ItemCallout(
+        position: at + Vector2(0, -GameConfig.shipRadius - 16),
+        text: type.label,
+        color: type.color,
+      ),
+    );
   }
 
   /// The tanks people drive: the local one and those of other players.
@@ -2784,7 +2803,12 @@ class SpaceGame extends FlameGame
   }
 
   void _onUse(UsePayload payload) {
-    switch (PowerUpType.values.asNameMap()[payload.item]) {
+    final type = PowerUpType.values.asNameMap()[payload.item];
+    final bot = remoteShips[payload.id];
+    if (type != null && bot != null && (round?.isBot(payload.id) ?? false)) {
+      _calloutItem(bot.position, type);
+    }
+    switch (type) {
       case PowerUpType.repair:
         guard.allowRepair(payload.id);
       case PowerUpType.rapidFire:
