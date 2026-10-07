@@ -602,6 +602,7 @@ class SpaceGame extends FlameGame
     soldierField = SoldierField(
       seed: payload.seed,
       startedAt: payload.startedAt,
+      onWave: () => showNotice('FALLSCHIRMJÄGER IM ANFLUG'),
     );
     _extras.add(soldierField!);
     world.add(soldierField!);
@@ -1407,6 +1408,7 @@ class SpaceGame extends FlameGame
     for (final soldier in soldierField?.soldiers.toList() ?? <Soldier>[]) {
       if (!soldier.dead &&
           soldier.isMounted &&
+          !soldier.airborne &&
           soldier.position.distanceTo(at) <= weapon.radius) {
         runOver(soldier, ownerId);
       }

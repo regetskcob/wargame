@@ -111,7 +111,7 @@ class _MiniMapPainter extends CustomPainter {
 
     final soldierPaint = Paint()..color = const Color(0xFFD9C97A);
     for (final soldier in game.soldierField?.soldiers ?? const []) {
-      if (!soldier.dead) {
+      if (!soldier.dead && soldier.isMounted) {
         canvas.drawCircle(
           toMap(soldier.position.x, soldier.position.y),
           1.2,

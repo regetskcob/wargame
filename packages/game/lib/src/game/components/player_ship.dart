@@ -395,7 +395,7 @@ class PlayerShip extends ShipBase
     } else if (other is PowerUp) {
       gameRef.collectPowerUp(other, this);
     } else if (other is Soldier) {
-      if (load.abs() > 0.08) {
+      if (load.abs() > 0.08 && !other.airborne) {
         gameRef.runOver(other, playerId);
       }
     } else if (other is Asteroid) {

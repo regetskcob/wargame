@@ -51,6 +51,14 @@ class GameConfig {
   static const repairAmount = 40.0;
   static const rapidFireSeconds = 8.0;
   static const rapidFireFactor = 0.45;
+
+  /// Paratroopers drop in waves and walk like the other infantry once down.
+  static const paraFirstWave = 18.0;
+  static const paraWaveEvery = 22.0;
+  static const paraWaves = 5;
+  static const paraPerWave = 4;
+  static const paraFallSeconds = 4.0;
+
   static const smokeRadius = 130.0;
   static const smokeSeconds = 10.0;
 
