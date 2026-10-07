@@ -26,6 +26,9 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
 
   final _queue = <_Spawn>[];
   int _spawned = 0;
+
+  /// Seconds until the base's jet takes off in this wave, null for none.
+  double? _jetIn;
   double _spawnTimer = 0;
   double _keepalive = 0;
 
@@ -45,6 +48,17 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     for (var slot = 0; slot < allies; slot++) {
       _sendAlly(slot);
     }
+  }
+
+  /// The defenders do not hold out on the ground alone for long: from a few
+  /// waves in, the base sends aircraft of its own.
+  void _sendSupport(int wave) {
+    if (wave >= GameConfig.supportFromWave) {
+      gameRef.spawnSupport('air-h-$wave', AirKind.helicopter);
+    }
+    _jetIn = wave >= GameConfig.supportJetFromWave
+        ? GameConfig.supportJetDelay
+        : null;
   }
 
   void _sendAlly(int slot) {
@@ -93,6 +107,15 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
         ..addAll(_order(DefenseMap.planFor(next.wave)));
       _spawned = 0;
       _spawnTimer = 0;
+      _sendSupport(next.wave);
+    }
+    final jetIn = _jetIn;
+    if (jetIn != null) {
+      _jetIn = jetIn - dt;
+      if (_jetIn! <= 0) {
+        _jetIn = null;
+        gameRef.spawnSupport('air-j-${next.wave}', AirKind.jet);
+      }
     }
     _spawnTimer -= dt;
     if (_queue.isNotEmpty && _spawnTimer <= 0) {

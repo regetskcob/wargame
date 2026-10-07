@@ -286,7 +286,10 @@ class _MiniMapPainter extends CustomPainter {
           ..lineTo(p.dx + 3.5, p.dy + 3)
           ..lineTo(p.dx - 3.5, p.dy + 3)
           ..close(),
-        Paint()..color = const Color(0xFFFF5252),
+        Paint()
+          ..color = plane.friendly
+              ? const Color(0xFF9CCC65)
+              : const Color(0xFFFF5252),
       );
     }
     for (final drone in game.drones.values) {

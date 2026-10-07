@@ -452,13 +452,16 @@ class _DefensePanel extends StatelessWidget {
           FilledButton.icon(
             style: buttonStyle,
             onPressed:
-                near.level < TowerKind.maxLevel &&
+                near.kind.upgradable &&
+                    near.level < TowerKind.maxLevel &&
                     credits >= near.kind.upgradeCost(near.level)
                 ? () => game.upgradeTower(near)
                 : null,
             icon: const Icon(Icons.upgrade, size: 16),
             label: Text(
-              near.level >= TowerKind.maxLevel
+              !near.kind.upgradable
+                  ? '${near.kind.label} BESETZT'
+                  : near.level >= TowerKind.maxLevel
                   ? '${near.kind.label} HÖCHSTE STUFE'
                   : '${near.kind.label} AUFRÜSTEN  '
                         '${near.kind.upgradeCost(near.level)}',
@@ -472,16 +475,25 @@ class _DefensePanel extends StatelessWidget {
             children: [
               for (final kind in TowerKind.values)
                 Tooltip(
-                  message: kind.hint,
+                  message: kind.unlockedIn(game.defense.value?.wave ?? 0)
+                      ? kind.hint
+                      : '${kind.hint}, ab Welle ${kind.fromWave}',
                   child:
                       (kind == game.towerChoice.value
                       ? FilledButton.new
                       : OutlinedButton.new)(
                         style: buttonStyle,
-                        onPressed: credits >= kind.cost
+                        onPressed:
+                            credits >= kind.cost &&
+                                kind.unlockedIn(game.defense.value?.wave ?? 0)
                             ? () => game.buildTower(kind)
                             : null,
-                        child: Text('${kind.label} ${kind.cost}', style: small),
+                        child: Text(
+                          kind.unlockedIn(game.defense.value?.wave ?? 0)
+                              ? '${kind.label} ${kind.cost}'
+                              : '${kind.label} AB W${kind.fromWave}',
+                          style: small,
+                        ),
                       ),
                 ),
             ],
@@ -572,6 +584,7 @@ class _DefensePanel extends StatelessWidget {
               game.towerChoice,
               game.nearTower,
               game.upgrades,
+              game.defense,
             ]),
             builder: (context, _) => _shop(game.credits.value),
           ),

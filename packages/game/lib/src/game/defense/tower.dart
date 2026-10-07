@@ -7,9 +7,11 @@ import 'package:flame/extensions.dart';
 import '../game_phase.dart';
 import '../space_game.dart';
 
-/// The guns a player can put down in a defense round. Each has its job: the
+/// What a player can put down in a defense round. Each gun has its job: the
 /// cannon for tanks, flak for helicopters, jets and drones, the mortar for
-/// tanks and soldiers bunched up on the road.
+/// tanks and soldiers bunched up on the road and, later on, the howitzer for
+/// everything far out. The trench fires nothing, it covers a tank that
+/// stands in it. The heavier pieces only come up after a few waves.
 enum TowerKind {
   cannon(
     'KANONE',
@@ -36,6 +38,26 @@ enum TowerKind {
     damage: 0,
     shotSpeed: 0,
     minRange: 130,
+  ),
+  howitzer(
+    'HAUBITZE',
+    cost: 220,
+    range: 1050,
+    cooldown: 4.2,
+    damage: 0,
+    shotSpeed: 0,
+    minRange: 240,
+    blast: 2.2,
+    fromWave: 4,
+  ),
+  trench(
+    'GRABEN',
+    cost: 60,
+    range: 0,
+    cooldown: 0,
+    damage: 0,
+    shotSpeed: 0,
+    fromWave: 2,
   );
 
   const TowerKind(
@@ -47,6 +69,8 @@ enum TowerKind {
     required this.shotSpeed,
     this.antiAir = false,
     this.minRange = 0,
+    this.blast = 1,
+    this.fromWave = 0,
   });
 
   final String label;
@@ -61,8 +85,22 @@ enum TowerKind {
   /// Aims at aircraft and drones first, and hits them hard.
   final bool antiAir;
 
-  /// The mortar cannot fire at what is right next to it.
+  /// The mortar and the howitzer cannot fire at what is right next to them.
   final double minRange;
+
+  /// How hard a lobbed shell hits, against the mortar's.
+  final double blast;
+
+  /// Wave from which it can be built, 0 from the start.
+  final int fromWave;
+
+  /// Fires shells in a high arc that burst where they land.
+  bool get lobs => this == mortar || this == howitzer;
+
+  bool get isGun => this != trench;
+  bool get upgradable => isGun;
+
+  bool unlockedIn(int wave) => wave >= fromWave;
 
   static const maxLevel = 3;
 
@@ -77,6 +115,8 @@ enum TowerKind {
     TowerKind.cannon => 'gegen Panzer',
     TowerKind.flak => 'gegen Luftziele',
     TowerKind.mortar => 'Flächenfeuer',
+    TowerKind.howitzer => 'Flächenfeuer auf große Entfernung',
+    TowerKind.trench => 'halber Schaden für den Panzer darin',
   };
 }
 
@@ -91,7 +131,12 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
     required super.position,
     this.kind = TowerKind.cannon,
     this.level = 1,
-  }) : super(size: Vector2.all(72), anchor: Anchor.center, priority: 8);
+  }) : super(
+         size: Vector2.all(72),
+         anchor: Anchor.center,
+         // A trench lies in the ground, under the tank that sits in it.
+         priority: kind == TowerKind.trench ? -5 : 8,
+       );
 
   final String ownerId;
   final int index;
@@ -128,7 +173,7 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
   void update(double dt) {
     _recoil = max(0, _recoil - dt * 6);
     _upgraded = max(0, _upgraded - dt);
-    if (!_mine) {
+    if (!_mine || !kind.isGun) {
       return;
     }
     final phase = gameRef.phase.value;
@@ -145,7 +190,7 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
     if (target == null || !target.isMounted) {
       return;
     }
-    final aim = kind == TowerKind.mortar
+    final aim = kind.lobs
         ? target.position.clone()
         : target.position +
               gameRef.velocityOfTarget(target) *
@@ -155,7 +200,7 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
     turretAngle += diff.clamp(-6 * dt, 6 * dt);
     if (diff.abs() < 0.08 && _cooldown <= 0) {
       _cooldown = kind.cooldownAt(level);
-      if (kind == TowerKind.mortar) {
+      if (kind.lobs) {
         gameRef.fireMortarTower(this, aim);
       } else {
         gameRef.fireTower(this);
@@ -165,6 +210,10 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
 
   @override
   void render(Canvas canvas) {
+    if (kind == TowerKind.trench) {
+      _renderTrench(canvas);
+      return;
+    }
     final c = Offset(size.x / 2, size.y / 2);
     // Faint ring of how far the gun reaches, so the field shows at a glance
     // which stretch of the road is covered.
@@ -205,9 +254,11 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
       TowerKind.cannon => const Color(0xFF55574F),
       TowerKind.flak => const Color(0xFF4E5E6C),
       TowerKind.mortar => const Color(0xFF6B5E48),
+      TowerKind.howitzer => const Color(0xFF4A4F3A),
+      TowerKind.trench => const Color(0xFF3B2E20),
     };
     final pad = Rect.fromCenter(center: c, width: 34, height: 34);
-    if (kind == TowerKind.mortar) {
+    if (kind.lobs) {
       canvas.drawCircle(c, 18, Paint()..color = concrete);
     } else {
       canvas.drawRect(pad, Paint()..color = concrete);
@@ -249,8 +300,29 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
           Offset(0, -20 + recoil / 2),
           barrel..strokeWidth = 16,
         );
+      case TowerKind.howitzer:
+        // Split trail behind, a long barrel with a muzzle brake in front.
+        for (final x in const [-12.0, 12.0]) {
+          canvas.drawLine(
+            Offset(x * 0.5, 6),
+            Offset(x, 30),
+            barrel..strokeWidth = 5,
+          );
+        }
+        canvas.drawLine(
+          Offset(0, 4 + recoil),
+          Offset(0, -50 + recoil),
+          barrel..strokeWidth = 8,
+        );
+        canvas.drawLine(
+          Offset(-6, -48 + recoil),
+          Offset(6, -48 + recoil),
+          barrel..strokeWidth = 5,
+        );
+      case TowerKind.trench:
+        break;
     }
-    if (_recoil > 0.6 && kind != TowerKind.mortar) {
+    if (_recoil > 0.6 && !kind.lobs) {
       canvas.drawCircle(
         const Offset(0, -46),
         9,
@@ -286,5 +358,42 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
         pip,
       );
     }
+  }
+
+  /// A zigzag of dug earth with sandbags on the rim, open towards the road,
+  /// in the colour of who dug it.
+  void _renderTrench(Canvas canvas) {
+    final c = Offset(size.x / 2, size.y / 2);
+    canvas.drawCircle(c, 34, Paint()..color = color.withValues(alpha: 0.12));
+    final zigzag = Path()..moveTo(c.dx - 30, c.dy + 6);
+    for (var i = 1; i <= 6; i++) {
+      zigzag.lineTo(c.dx - 30 + i * 10, c.dy + (i.isEven ? 6 : -6));
+    }
+    canvas.drawPath(
+      zigzag,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 22
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFFB59B6B),
+    );
+    canvas.drawPath(
+      zigzag,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 12
+        ..strokeJoin = StrokeJoin.round
+        ..strokeCap = StrokeCap.round
+        ..color = const Color(0xFF3B2E20),
+    );
+    canvas.drawCircle(
+      c,
+      34,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = color,
+    );
   }
 }

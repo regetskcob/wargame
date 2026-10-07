@@ -493,6 +493,9 @@ class PlayerShip extends ShipBase
     }
     if (killerId != null) {
       amount *= armorFactor;
+      if (gameRef.inTrench(position)) {
+        amount *= GameConfig.trenchCover;
+      }
     }
     hp -= amount;
     takeHitEffects(amount);
