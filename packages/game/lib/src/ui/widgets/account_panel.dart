@@ -179,9 +179,8 @@ class _AccountPanelState extends State<AccountPanel> {
           _watchConfirmation();
         }
       },
-      'Mail ist unterwegs. Gib den Code aus der Mail hier ein, oder öffne '
-      'den Link darin. Bestätigst du in einem anderen Tab, geht es hier von '
-      'selbst weiter.',
+      'Mail ist unterwegs. Öffne den Link darin, das reicht. Steht in der '
+      'Mail auch ein Code, kannst du ihn stattdessen hier eingeben.',
     );
   }
 
@@ -396,7 +395,9 @@ class _AccountPanelState extends State<AccountPanel> {
           controller: _code,
           keyboardType: TextInputType.number,
           autofillHints: const [AutofillHints.oneTimeCode],
-          decoration: const InputDecoration(labelText: 'CODE AUS DER MAIL'),
+          decoration: const InputDecoration(
+            labelText: 'CODE AUS DER MAIL (FALLS VORHANDEN)',
+          ),
           onSubmitted: (_) => _verify(),
         ),
         const SizedBox(height: 8),
