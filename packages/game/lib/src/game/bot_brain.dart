@@ -4,6 +4,8 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
 import '../game_config.dart';
+import 'bot_level.dart';
+import 'components/artillery_strike.dart';
 import 'components/obstacle.dart';
 import 'components/player_ship.dart';
 import 'components/remote_ship.dart';
@@ -18,10 +20,15 @@ import 'touch_input.dart';
 /// bit of lead and error, stays inside the closing zone and backs out when it
 /// gets stuck.
 class BotBrain extends Component with HasGameRef<SpaceGame> {
-  BotBrain({required this.ship, required this.controls});
+  BotBrain({
+    required this.ship,
+    required this.controls,
+    this.level = BotLevel.normal,
+  });
 
   final PlayerShip ship;
   final TouchInput controls;
+  final BotLevel level;
 
   final _random = Random();
   double _think = 0;
@@ -54,7 +61,7 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     _errorTimer -= dt;
     if (_errorTimer <= 0) {
       _errorTimer = 0.6;
-      _aimError = (_random.nextDouble() * 2 - 1) * 0.12;
+      _aimError = (_random.nextDouble() * 2 - 1) * level.aimError;
     }
     _strafeTimer -= dt;
     if (_strafeTimer <= 0) {
@@ -63,7 +70,7 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     }
     _think -= dt;
     if (_think <= 0) {
-      _think = 0.15;
+      _think = level.think;
       _decide();
     }
     _steer(dt);
@@ -132,9 +139,14 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     _wantThrust = false;
     _wantBrake = false;
 
+    final barrage = level.evasive ? _barrageOverhead() : null;
     if (ship.position.length > safeRadius - 70) {
       // Back into the safe circle first.
       _desiredHeading = _headingTo(Vector2.zero());
+      _wantThrust = true;
+    } else if (barrage != null) {
+      // Get out from under the shells.
+      _desiredHeading = _headingTo(ship.position * 2 - barrage.position);
       _wantThrust = true;
     } else if (target == null) {
       _desiredHeading = _headingTo(Vector2.zero());
@@ -180,6 +192,19 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     }
   }
 
+  /// A barrage of an enemy that is about to land on this bot.
+  ArtilleryStrike? _barrageOverhead() {
+    for (final strike in gameRef.world.children.whereType<ArtilleryStrike>()) {
+      if (strike.ownerId != ship.playerId &&
+          !gameRef.sameTeam(strike.ownerId, ship.playerId) &&
+          strike.position.distanceTo(ship.position) <
+              GameConfig.artilleryRadius + GameConfig.shipRadius * 2) {
+        return strike;
+      }
+    }
+    return null;
+  }
+
   bool _clearShot(Vector2 to) {
     final from = ship.position;
     final steps = (from.distanceTo(to) / 24).ceil();
@@ -223,7 +248,8 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
     final distance = target.position.distanceTo(ship.position);
     final stats = ship.stats;
     final flight = distance / stats.bulletSpeed;
-    final aimPoint = target.position + _velocityOf(target) * flight;
+    final aimPoint =
+        target.position + _velocityOf(target) * (flight * level.lead);
     final error = _aimError * (0.5 + distance / 500);
     controls.aim = _headingTo(aimPoint) + error;
 
@@ -236,6 +262,6 @@ class BotBrain extends Component with HasGameRef<SpaceGame> {
       _fireGate = 0;
     }
     // A short reaction time before the first shot at a fresh target.
-    controls.fire = _fireGate > 0.4;
+    controls.fire = _fireGate > level.reaction;
   }
 }

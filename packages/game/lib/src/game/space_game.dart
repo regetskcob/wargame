@@ -45,6 +45,7 @@ import 'components/starfield.dart';
 import 'components/storm_zone.dart';
 import 'game_phase.dart';
 import 'bot_brain.dart';
+import 'bot_level.dart';
 import 'components/soldier.dart';
 import 'kill_feed.dart';
 import 'components/ship_base.dart';
@@ -114,12 +115,17 @@ class SpaceGame extends FlameGame
   int teamPick = 0;
   int myTeam = 0;
 
+  /// How well CPU tanks fight, and whether they fill up a room with few
+  /// people.
+  final botLevel = ValueNotifier<BotLevel>(BotLevel.normal);
+  final fillWithBots = ValueNotifier<bool>(false);
+
   /// Whether the next round starts with red against blue.
   final teamMode = ValueNotifier<bool>(false);
   final spectatingName = ValueNotifier<String?>(null);
 
   String myName = 'Panzer-${1000 + Random().nextInt(9000)}';
-  int myColorIndex = Random().nextInt(GameConfig.styleCount);
+  int myColorIndex = GameConfig.randomStyle(Random());
 
   RoundState? round;
 
@@ -404,14 +410,17 @@ class SpaceGame extends FlameGame
               member.phase == GamePhase.roundOver.name)
             member.id,
     }.toList();
-    // CPU tanks only exist when playing alone, and then there are always some.
-    final botCount = solo
-        ? GameConfig.minBots +
-              Random().nextInt(GameConfig.maxBots - GameConfig.minBots + 1)
-        : 0;
+    final random = Random();
+    final botCount = botsFor(
+      solo: solo,
+      humans: ids.length,
+      fill: fillWithBots.value,
+      teams: teamMode.value,
+      random: random,
+    );
     final bots = <String, int>{
       for (var i = 1; i <= botCount; i++)
-        'cpu-$i': Random().nextInt(GameConfig.styleCount),
+        'cpu-$i': GameConfig.randomStyle(random),
     };
     ids
       ..addAll(bots.keys)
@@ -432,6 +441,7 @@ class SpaceGame extends FlameGame
       teams: _assignTeams(ids),
       bots: bots,
       botHost: bots.isEmpty ? null : myId,
+      botLevel: bots.isEmpty ? null : botLevel.value.index,
     );
     if (!solo) {
       net.send(NetEvent.roundStart, payload.toJson());
@@ -513,6 +523,7 @@ class SpaceGame extends FlameGame
       teams: payload.teams,
       bots: payload.bots,
       botHost: payload.botHost,
+      botLevel: BotLevel.of(payload.botLevel),
     );
     myTeam = payload.teams[myId] ?? 0;
     guard.reset();
@@ -574,7 +585,11 @@ class SpaceGame extends FlameGame
         ship.team = activeRound.teamOf(id);
         botShips[id] = ship;
         world.add(ship);
-        final brain = BotBrain(ship: ship, controls: controls);
+        final brain = BotBrain(
+          ship: ship,
+          controls: controls,
+          level: activeRound.botLevel,
+        );
         _extras.add(brain);
         world.add(brain);
       } else {

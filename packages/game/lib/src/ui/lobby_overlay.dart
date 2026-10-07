@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../game_config.dart';
+import '../game/bot_level.dart';
 import '../game/map_theme.dart';
 import '../game/weather.dart';
 import '../game/space_game.dart';
@@ -95,8 +96,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 8),
         LayoutBuilder(
           builder: (context, box) {
-            // Two or more cards per row that share the width evenly.
-            final columns = (((box.maxWidth + 8) / 120).floor()).clamp(2, 4);
+            // Two or more cards per row that share the width evenly, all
+            // vehicles in one row when there is room.
+            final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
+              2,
+              TankType.values.length,
+            );
             final width = (box.maxWidth - 8 * (columns - 1)) / columns;
             return Wrap(
               spacing: 8,
@@ -306,13 +311,51 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               const SizedBox(height: 6),
               Text(
                 multi
-                    ? 'Spiele mit anderen: Schick den Link weiter. '
-                          'Es gibt keine CPU-Gegner.'
+                    ? 'Spiele mit anderen: Schick den Link weiter.'
                     : 'Du spielst allein gegen ${GameConfig.minBots} bis '
                           '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
                           'ausgewürfelt.',
                 style: const TextStyle(color: BwColors.textDim, fontSize: 12),
               ),
+              const SizedBox(height: 16),
+              Text(
+                'CPU-GEGNER',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: 8),
+              if (multi) ...[
+                ValueListenableBuilder<bool>(
+                  valueListenable: game.fillWithBots,
+                  builder: (context, fill, _) => ChoiceRow<bool>(
+                    options: const [
+                      (false, 'NUR MENSCHEN', null),
+                      (true, 'MIT CPU AUFFÜLLEN', null),
+                    ],
+                    selected: fill,
+                    onSelected: (v) => game.fillWithBots.value = v ?? false,
+                  ),
+                ),
+                const SizedBox(height: 10),
+              ],
+              ValueListenableBuilder<BotLevel>(
+                valueListenable: game.botLevel,
+                builder: (context, level, _) => ChoiceRow<BotLevel>(
+                  options: [
+                    for (final option in BotLevel.values)
+                      (option, option.label, null),
+                  ],
+                  selected: level,
+                  onSelected: (v) => game.botLevel.value = v ?? level,
+                ),
+              ),
+              if (multi) ...[
+                const SizedBox(height: 6),
+                const Text(
+                  'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
+                  'und gleicht bei Teams die Seiten aus.',
+                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                ),
+              ],
             ],
           ),
         ),

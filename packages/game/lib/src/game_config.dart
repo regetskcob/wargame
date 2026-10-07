@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import 'game/components/tank_painter.dart';
@@ -74,6 +76,9 @@ class GameConfig {
   /// How many CPU tanks a single player round rolls, both ends included.
   static const minBots = 1;
   static const maxBots = 4;
+
+  /// With other people, CPU tanks fill the field up to this many tanks.
+  static const fillTo = 4;
   static const roundOverSeconds = 10;
 
   /// Four paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white
@@ -106,6 +111,16 @@ class GameConfig {
 
   static int styleOf(int tankType, int color) =>
       tankType * shipColors.length + color;
+
+  /// Paint schemes everybody has from the start.
+  static const freeColors = 4;
+
+  /// A vehicle and one of the free paint schemes, for a fresh player or a
+  /// CPU tank.
+  static int randomStyle(Random random) => styleOf(
+    random.nextInt(TankType.values.length),
+    random.nextInt(freeColors),
+  );
 
   static Color colorOf(int style) => shipColors[style % shipColors.length];
 

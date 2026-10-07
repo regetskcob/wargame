@@ -1,3 +1,5 @@
+import 'bot_level.dart';
+
 class RoundState {
   RoundState({
     required this.seed,
@@ -6,6 +8,7 @@ class RoundState {
     this.teams = const {},
     this.bots = const {},
     this.botHost,
+    this.botLevel = BotLevel.normal,
   }) : alive = participants.toSet();
 
   final int seed;
@@ -19,6 +22,7 @@ class RoundState {
   /// Computer controlled tanks (id to look) and who runs them.
   final Map<String, int> bots;
   final String? botHost;
+  final BotLevel botLevel;
 
   bool isBot(String id) => bots.containsKey(id);
 
