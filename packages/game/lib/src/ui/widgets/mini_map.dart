@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -157,6 +159,14 @@ class _MiniMapPainter extends CustomPainter {
     final me = game.myShip;
     if (me != null && me.isMounted) {
       final p = toMap(me.position.x, me.position.y);
+      final forward = Offset(sin(me.turretAngle), -cos(me.turretAngle));
+      canvas.drawLine(
+        p,
+        p + forward * 13,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.85)
+          ..strokeWidth = 1.5,
+      );
       canvas.drawCircle(p, 5, Paint()..color = Colors.white);
       canvas.drawCircle(p, 3, Paint()..color = me.shipColor);
     }

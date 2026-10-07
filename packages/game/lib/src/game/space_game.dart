@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:async' as async;
 import 'dart:math';
-import 'dart:ui' show Color;
+import 'dart:ui' show Canvas, Color, Gradient, Offset, Paint, Size;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
@@ -142,6 +142,72 @@ class SpaceGame extends FlameGame
   double _staleTimer = 0;
   double _engineTimer = 0;
 
+  double _shake = 0;
+  double _damageFlash = 0;
+  final _shakeRandom = Random();
+
+  /// Rattles the screen. Strengths add up and fade out within a fraction of
+  /// a second.
+  void shake(double strength) {
+    _shake = min(14.0, _shake + strength);
+  }
+
+  /// Shakes by [strength], weaker the further [at] is from the middle of the
+  /// screen, so far away explosions barely register.
+  void shakeAt(Vector2 at, double strength) {
+    final distance = _distanceToView(at);
+    shake(strength * (1 - (distance / 700).clamp(0.0, 1.0)));
+  }
+
+  /// A tank at [at] took [amount] damage from a shell. [mine] marks hits the
+  /// local player dealt or took.
+  void showHit(Vector2 at, double amount, {required bool mine, Color? color}) {
+    world.add(
+      DamageNumber(
+        position: at + Vector2(0, -GameConfig.shipRadius),
+        amount: amount,
+        color: color ?? const Color(0xFFFFE08A),
+        mine: mine,
+      ),
+    );
+  }
+
+  /// The local tank was hit.
+  void onLocalDamage(Vector2 at, double amount) {
+    _damageFlash = min(1.0, _damageFlash + 0.35 + amount / 60);
+    shake(3 + amount / 4);
+    showHit(at, amount, mine: true, color: const Color(0xFFFF6B5A));
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final rattle = _shake > 0.2;
+    if (rattle) {
+      canvas.save();
+      canvas.translate(
+        (_shakeRandom.nextDouble() * 2 - 1) * _shake,
+        (_shakeRandom.nextDouble() * 2 - 1) * _shake,
+      );
+    }
+    super.render(canvas);
+    if (rattle) {
+      canvas.restore();
+    }
+    if (_damageFlash > 0.01) {
+      final size = canvasSize;
+      final edge = Paint()
+        ..shader = Gradient.radial(
+          Offset(size.x / 2, size.y / 2),
+          size.length / 1.6,
+          [
+            const Color(0x00D32F2F),
+            Color.fromRGBO(211, 47, 47, 0.55 * _damageFlash),
+          ],
+        );
+      canvas.drawRect(Offset.zero & Size(size.x, size.y), edge);
+    }
+  }
+
   @override
   Future<void> onLoad() async {
     _setGround(MapTheme.forest);
@@ -167,6 +233,8 @@ class SpaceGame extends FlameGame
   @override
   void update(double dt) {
     super.update(dt);
+    _shake = max(0, _shake - dt * 28);
+    _damageFlash = max(0, _damageFlash - dt * 2.5);
     final activeRound = round;
     if (phase.value == GamePhase.countdown && activeRound != null) {
       final remainingMs =
@@ -672,6 +740,14 @@ class SpaceGame extends FlameGame
     _removeBullet(payload.bulletId);
     final ship = remoteShips[payload.id];
     if (ship != null) {
+      final damage = ship.hp - payload.hp;
+      if (damage > 0) {
+        final mine = payload.shooterId == myId;
+        showHit(ship.position, damage, mine: mine);
+        if (mine) {
+          shake(1.5);
+        }
+      }
       if (payload.shooterId == myId) {
         registerHit(ship.hp - payload.hp);
       }
@@ -719,6 +795,7 @@ class SpaceGame extends FlameGame
     world.add(
       Explosion(position: ship.position.clone(), color: ship.shipColor),
     );
+    shake(12);
     _addWreck(ship);
     AudioService.play('explosion');
     outcome.value = RoundOutcome.lost;
@@ -930,6 +1007,7 @@ class SpaceGame extends FlameGame
     activeRound.alive.remove(bot.playerId);
     aliveCount.value = activeRound.alive.length;
     world.add(Explosion(position: bot.position.clone(), color: bot.shipColor));
+    shakeAt(bot.position, 8);
     _addWreck(bot);
     AudioService.play('explosion', distance: _distanceToView(bot.position));
     botShips.remove(bot.playerId);
@@ -970,6 +1048,7 @@ class SpaceGame extends FlameGame
         world.add(
           Explosion(position: ship.position.clone(), color: ship.shipColor),
         );
+        shakeAt(ship.position, 8);
         _addWreck(ship);
         AudioService.play(
           'explosion',

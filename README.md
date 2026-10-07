@@ -79,6 +79,31 @@ Open two instances (run the command twice) to play against yourself. Players
 sharing the same `ROOM` value meet in the same arena; split large groups into
 separate rooms to stay under the Realtime message limits.
 
+## Mobile apps (iOS and Android)
+
+`packages/game` carries `ios/` and `android/` next to `macos/` and `web/`. The
+app id is `de.regetskcob.game`, the display name is Panzergefecht. On phones
+and tablets the game locks to landscape (the arena is 16:9), hides the system
+bars, and shows the on-screen touch controls. Android has the `INTERNET`
+permission in the main manifest, so release builds can reach Supabase.
+
+You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
+`flutter doctor`. Then:
+
+```sh
+cd packages/game
+flutter run -d <device-id>   # a simulator, an emulator, or a plugged in phone
+melos run build:game:apk     # Android APK
+melos run build:game:appbundle  # Android App Bundle for Google Play
+melos run build:game:ios     # iOS, set your signing team in Xcode first
+```
+
+Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
+for the web build. To play a local stack from an Android emulator use
+`http://10.0.2.2:54621`, from a real phone the LAN address of your Mac. Before
+publishing, change the app id and add your own launcher icon and signing
+configuration.
+
 ## Run the slides
 
 ```sh
