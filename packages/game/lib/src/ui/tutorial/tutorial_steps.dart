@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../game/components/power_up.dart';
+import '../../game/components/tank_painter.dart';
 import '../../game/defense/tower.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
@@ -195,8 +196,8 @@ final _tour = [
       TutorialChip(Icons.shield, 'VERTEIDIGUNG'),
     ],
   ),
-  const TutorialStep(
-    title: 'SIEBEN FAHRZEUGE',
+  TutorialStep(
+    title: '${_count(TankType.values.length)} FAHRZEUGE',
     icon: Icons.directions_car,
     scene: DemoScene.vehicles,
     text:
@@ -297,4 +298,13 @@ IconData _towerIcon(TowerKind kind) => switch (kind) {
   TowerKind.mortar => Icons.vertical_align_top,
   TowerKind.howitzer => Icons.gps_fixed,
   TowerKind.trench => Icons.horizontal_rule,
+};
+
+/// Small numbers spelled out, as on the cards.
+String _count(int n) => switch (n) {
+  7 => 'SIEBEN',
+  8 => 'ACHT',
+  9 => 'NEUN',
+  10 => 'ZEHN',
+  _ => '$n',
 };
