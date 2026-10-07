@@ -112,9 +112,28 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                             _StatsRow(stats: game.roundStats),
                           ],
                           const SizedBox(height: 24),
-                          FilledButton(
-                            onPressed: game.backToLobby,
-                            child: const Text('ZURÜCK INS LAGER'),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: game.isHost,
+                            builder: (context, host, _) => Wrap(
+                              alignment: WrapAlignment.center,
+                              spacing: 12,
+                              runSpacing: 12,
+                              children: [
+                                FilledButton.icon(
+                                  onPressed: host ? game.rematch : null,
+                                  icon: const Icon(Icons.replay),
+                                  label: Text(
+                                    host
+                                        ? 'NEUES SPIEL'
+                                        : 'WARTE AUF GASTGEBER',
+                                  ),
+                                ),
+                                OutlinedButton(
+                                  onPressed: game.backToLobby,
+                                  child: const Text('ZURÜCK INS LAGER'),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                       ),

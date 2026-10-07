@@ -83,7 +83,7 @@ class GameConfig {
   /// How many CPU tanks a single player round rolls, both ends included.
   static const minBots = 1;
   static const maxBots = 4;
-  static const roundOverSeconds = 6;
+  static const roundOverSeconds = 10;
 
   /// Four paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white
   /// and NATO grey.

@@ -12,6 +12,7 @@ import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
 import '../game_phase.dart';
 import '../special_weapon.dart';
+import '../tank_damage.dart';
 import '../touch_input.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
@@ -67,6 +68,18 @@ class PlayerShip extends ShipBase
   bool _turretRight = false;
   bool _aimed = false;
   int _treeContacts = 0;
+
+  /// Drift a battered running gear puts on the heading, and where it heads.
+  double _wobble = 0;
+  double _wobbleTarget = 0;
+  double _wobbleTimer = 0;
+
+  /// Seconds the engine still sputters after a misfire.
+  double _stall = 0;
+
+  /// Worst stage the driver has been warned about, to warn only once.
+  DamageStage _announced = DamageStage.intact;
+  static final _random = Random();
 
   double _fireCooldown = 0;
   double _sinceSync = 0;
@@ -137,17 +150,44 @@ class PlayerShip extends ShipBase
     }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
+    // Hits cost top speed, pulling power and steering.
+    final damage = this.damage;
     final maxSpeed =
         GameConfig.shipMaxSpeed *
         stats.speed *
+        damage.speedFactor *
         min(_treeContacts > 0 ? 0.55 : 1.0, soft ? 0.6 : 1.0);
-    final acceleration = GameConfig.shipAcceleration * stats.acceleration;
+    final acceleration =
+        GameConfig.shipAcceleration *
+        stats.acceleration *
+        damage.accelerationFactor;
     // Tracks turn slower at full speed, and almost on the spot when standing.
     final turnScale = 1 - 0.35 * (_speed.abs() / maxSpeed);
     angle +=
-        turn * GameConfig.shipRotationSpeed * stats.turnRate * turnScale * dt;
+        turn *
+        GameConfig.shipRotationSpeed *
+        stats.turnRate *
+        damage.turnFactor *
+        turnScale *
+        dt;
+    _rattle(damage, maxSpeed, dt);
 
-    if (thrusting) {
+    // A misfiring engine drops the throttle for a moment.
+    _stall = max(0, _stall - dt);
+    if (thrusting &&
+        _stall <= 0 &&
+        _random.nextDouble() < damage.stallRate * dt) {
+      _stall = 0.25 + _random.nextDouble() * 0.35;
+      backfire();
+      if (!isBot) {
+        gameRef.shake(2);
+        AudioService.play('tick', volume: 0.5);
+      }
+    }
+    if (_stall > 0) {
+      final decel = GameConfig.shipRollingResistance * 0.3 * dt;
+      _speed = _speed.abs() <= decel ? 0 : _speed - decel * _speed.sign;
+    } else if (thrusting) {
       _speed += (_speed < 0 ? GameConfig.shipBrake : acceleration) * dt;
     } else if (braking) {
       _speed -= (_speed > 0 ? GameConfig.shipBrake : acceleration) * dt;
@@ -159,7 +199,10 @@ class PlayerShip extends ShipBase
     if (_speed > maxSpeed) {
       _speed = max(maxSpeed, _speed - 600 * dt);
     }
-    _speed = _speed.clamp(-GameConfig.shipReverseSpeed, maxSpeed);
+    _speed = _speed.clamp(
+      -GameConfig.shipReverseSpeed * damage.speedFactor,
+      maxSpeed,
+    );
 
     velocity
       ..setFrom(direction)
@@ -171,10 +214,42 @@ class PlayerShip extends ShipBase
     }
   }
 
+  /// A damaged running gear makes the ride rough: the heading drifts, broken
+  /// track links knock the tank about and the driver feels every one of them.
+  void _rattle(TankDamage damage, double maxSpeed, double dt) {
+    final rough = damage.bumpiness;
+    final pace = maxSpeed <= 0 ? 0.0 : (_speed.abs() / maxSpeed).clamp(0, 1);
+    if (rough <= 0 || pace < 0.05) {
+      _wobble *= max(0, 1 - dt * 4);
+      return;
+    }
+    _wobbleTimer -= dt;
+    if (_wobbleTimer <= 0) {
+      _wobbleTimer = 0.15 + _random.nextDouble() * 0.35;
+      _wobbleTarget = (_random.nextDouble() * 2 - 1) * 0.8;
+    }
+    _wobble += (_wobbleTarget - _wobble) * min(1.0, dt * 6);
+    angle += _wobble * rough * pace * dt;
+    // Every so often a hard knock robs the tank of some of its speed.
+    if (_random.nextDouble() < rough * pace * 1.6 * dt) {
+      _speed *= 0.82;
+      angle += (_random.nextDouble() * 2 - 1) * 0.06 * rough;
+      bump(0.25 + 0.35 * rough);
+      if (!isBot) {
+        gameRef.shake(1.5 + 2.5 * rough);
+      }
+    } else if (!isBot) {
+      // A steady judder that grows with damage and speed.
+      gameRef.shake(28 * dt * 0.9 * rough * pace);
+    }
+  }
+
   /// The turret turns on its own: with the mouse, the aim stick or Q and E.
   /// Until one of them is used it simply follows the hull.
   void _aim(double dt) {
-    const turretSpeed = 10.0;
+    // A hit turret ring grinds and turns slower.
+    final drive = damage.turretFactor;
+    final turretSpeed = 10.0 * drive;
     final keys = (_turretRight ? 1 : 0) - (_turretLeft ? 1 : 0);
     double? target;
     final stick = input.aim;
@@ -189,7 +264,7 @@ class PlayerShip extends ShipBase
     }
     if (keys != 0) {
       _aimed = true;
-      turretAngle += keys * 3 * dt;
+      turretAngle += keys * 3 * drive * dt;
     } else if (target != null) {
       _aimed = true;
       final diff = (target - turretAngle).toNormalizedAngle();
@@ -319,9 +394,17 @@ class PlayerShip extends ShipBase
       return;
     }
     hp -= amount;
-    flash();
+    takeHitEffects(amount);
+    // A real hit knocks the hull and the turret off line and brakes the tank.
+    if (amount >= 5 && hp > 0) {
+      final kick = min(0.16, amount / 260);
+      angle += (_random.nextBool() ? 1 : -1) * kick * _random.nextDouble();
+      turretAngle += (_random.nextBool() ? 1 : -1) * kick * 1.5;
+      _speed *= max(0.55, 1 - amount / 80);
+    }
     if (!isBot) {
       gameRef.hpNotifier.value = hp;
+      _announceDamage();
     }
     // Zone ticks are tiny, only real hits get a number and a shake.
     if (amount >= 2) {
@@ -337,6 +420,23 @@ class PlayerShip extends ShipBase
       } else {
         gameRef.onLocalDeath(killerId);
       }
+    }
+  }
+
+  /// Tells the driver once per stage what broke. A repair crate that patches
+  /// the tank up lets the warnings come again.
+  void _announceDamage() {
+    final stage = damage.stage;
+    if (stage.index < _announced.index) {
+      _announced = stage;
+    }
+    if (hp <= 0 || stage.index <= _announced.index) {
+      return;
+    }
+    _announced = stage;
+    final notice = stage.notice;
+    if (notice != null) {
+      gameRef.showNotice(notice);
     }
   }
 

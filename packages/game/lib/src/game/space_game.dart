@@ -460,7 +460,9 @@ class SpaceGame extends FlameGame
       myId,
       if (!solo)
         for (final member in roster.value)
-          if (member.phase == GamePhase.lobby.name) member.id,
+          if (member.phase == GamePhase.lobby.name ||
+              member.phase == GamePhase.roundOver.name)
+            member.id,
     }.toList();
     // CPU tanks only exist when playing alone, and then there are always some.
     final botCount = solo
@@ -522,7 +524,10 @@ class SpaceGame extends FlameGame
   }
 
   void _onRoundStart(RoundStartPayload payload) {
-    if (phase.value == GamePhase.lobby) {
+    // Players still looking at the results join a rematch straight away.
+    if (phase.value == GamePhase.lobby ||
+        (phase.value == GamePhase.roundOver &&
+            payload.participants.contains(myId))) {
       _applyRoundStart(payload);
       return;
     }
@@ -1142,7 +1147,7 @@ class SpaceGame extends FlameGame
       }
       ship
         ..hp = payload.hp
-        ..flash();
+        ..takeHitEffects(damage);
       AudioService.play(
         'hit',
         volume: 0.8,
@@ -1552,6 +1557,16 @@ class SpaceGame extends FlameGame
     _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
+  }
+
+  /// Host only: straight from the results into the next round, with the same
+  /// settings and everybody who is still in the room.
+  void rematch() {
+    if (phase.value != GamePhase.roundOver || !canStart) {
+      return;
+    }
+    backToLobby();
+    startRound();
   }
 
   /// Closes the waiting room: as host for everybody, as guest just for you.
