@@ -13,12 +13,18 @@ String _newCode() {
   ].join();
 }
 
+bool _hosting = true;
+
+/// True when this session opened the room, false when it joined by a link.
+bool isRoomHost() => _hosting;
+
 /// Reads the room from `?room=CODE`. Without one a fresh private room is
 /// opened and written into the address bar, so the link can be copied.
 String resolveRoom() {
   final uri = Uri.base;
   final given = uri.queryParameters['room']?.trim();
   if (given != null && given.isNotEmpty) {
+    _hosting = false;
     return given.toUpperCase();
   }
   final code = _newCode();

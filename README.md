@@ -1,9 +1,7 @@
-# Building a Real-Time Multiplayer Tank Game with Flame and Supabase
+# Panzergefecht
 
-Workshop monorepo for building a last-player-standing multiplayer game. The
-reference game, Panzergefecht, is a Bundeswehr themed tank battle that you can
-play at <https://www.regetskcob.de/wargame/>. The
-game runs entirely on Flutter and serverless primitives: the
+Panzergefecht is a last-player-standing, Bundeswehr themed tank battle that
+you can play at <https://www.regetskcob.de/wargame/>. The game runs entirely on Flutter and serverless primitives: the
 [Flame](https://flame-engine.org) engine drives the 2D canvas, and
 [Supabase Realtime](https://supabase.com/docs/guides/realtime) powers the
 netcode with Broadcast events and Presence. There is no game server.
@@ -25,9 +23,7 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 | Package | Description |
 | --- | --- |
-| `packages/skeleton` | The starting point for the exercises: dependencies wired up, the tanks, theme and sounds drawn in, no game |
-| `packages/game` | Panzergefecht, the finished multiplayer game (Flutter web and macOS) |
-| `packages/slides` | The workshop slide deck, built with [flutter_deck](https://pub.dev/packages/flutter_deck) |
+| `packages/game` | Panzergefecht, the multiplayer game (Flutter web and macOS) |
 
 ## Prerequisites
 
@@ -46,18 +42,6 @@ supabase start
 migrations. The game defaults to the hosted Supabase project (see
 `lib/src/env.dart`), so to play against the local stack pass the local URL and
 the standard local publishable key as dart-defines, as shown below.
-
-## Start the exercises
-
-`packages/skeleton` is where attendees write their code. It carries the
-dependencies, the dart-define configuration, the tuning constants, and the web
-scaffolding, and nothing else. The game itself is what the exercises build:
-
-```sh
-melos run skeleton
-```
-
-See `packages/skeleton/README.md` for the details.
 
 ## Run the game
 
@@ -103,15 +87,6 @@ for the web build. To play a local stack from an Android emulator use
 `http://10.0.2.2:54621`, from a real phone the LAN address of your Mac. Before
 publishing, change the app id and add your own launcher icon and signing
 configuration.
-
-## Run the slides
-
-```sh
-melos run slides
-```
-
-Navigate with the arrow keys. Press the period key for the navigation drawer.
-The presenter view with speaker notes opens from the deck controls.
 
 ## Tests
 

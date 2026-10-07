@@ -15,12 +15,15 @@ import 'payloads/shoot_payload.dart';
 import 'payloads/special_payload.dart';
 
 class NetService {
-  NetService({required this.myId, required this.room});
+  NetService({required this.myId, required this.room, this.isHost = true});
 
   final String myId;
 
   /// Code of the room whose channel this connects to.
   final String room;
+
+  /// Whether this player opened the room. Others only join and play.
+  final bool isHost;
 
   void Function(ShipStatePayload payload)? onShipState;
   void Function(ShootPayload payload)? onShoot;

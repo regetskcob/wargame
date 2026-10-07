@@ -12,6 +12,7 @@ class TankChoice extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.width = 112,
     super.key,
   });
 
@@ -19,13 +20,14 @@ class TankChoice extends StatelessWidget {
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+  final double width;
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
       child: Container(
-        width: 112,
+        width: width,
         padding: const EdgeInsets.symmetric(vertical: 8),
         decoration: ShapeDecoration(
           color: selected ? const Color(0x33FFB300) : const Color(0x55000000),

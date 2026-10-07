@@ -5,6 +5,7 @@ class LobbyPresence {
     required this.colorIndex,
     required this.phase,
     this.team = 0,
+    this.host = false,
     this.seed,
     this.startedAt,
   });
@@ -16,6 +17,7 @@ class LobbyPresence {
       colorIndex: json['color'] as int,
       phase: json['phase'] as String,
       team: json['team'] as int? ?? 0,
+      host: json['host'] as bool? ?? false,
       seed: json['seed'] as int?,
       startedAt: json['startedAt'] as int?,
     );
@@ -29,6 +31,9 @@ class LobbyPresence {
   /// In the lobby the team the player wants (0 for any), in a match the team
   /// they were given.
   final int team;
+
+  /// Opened the room, so decides on mode, map and when the round starts.
+  final bool host;
   final int? seed;
   final int? startedAt;
 
@@ -41,6 +46,7 @@ class LobbyPresence {
       'color': colorIndex,
       'phase': phase,
       'team': team,
+      'host': host,
       'seed': seed,
       'startedAt': startedAt,
     };
