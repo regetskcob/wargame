@@ -306,7 +306,7 @@ class SpaceGame extends FlameGame
   final spectatingName = ValueNotifier<String?>(null);
 
   String myName = 'Panzer-${1000 + Random().nextInt(9000)}';
-  int myColorIndex = GameConfig.randomStyle(Random());
+  int myColorIndex = GameConfig.randomStarterStyle(Random());
 
   RoundState? round;
 

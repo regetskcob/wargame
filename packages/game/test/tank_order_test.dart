@@ -1,4 +1,7 @@
+import 'dart:math';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game/src/game_config.dart';
 import 'package:game/src/game/components/tank_painter.dart';
 import 'package:game/src/ui/widgets/tank_choice.dart';
 
@@ -36,6 +39,18 @@ void main() {
           );
         }
       }
+    }
+  });
+
+  test('a fresh player starts in a vehicle open from rank 1', () {
+    final random = Random(1);
+    for (var i = 0; i < 200; i++) {
+      final style = GameConfig.randomStarterStyle(random);
+      expect(GameConfig.typeOf(style).level, 1);
+      expect(
+        style % GameConfig.shipColors.length,
+        lessThan(GameConfig.freeColors),
+      );
     }
   });
 }
