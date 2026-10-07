@@ -92,21 +92,14 @@ class SpaceGame extends FlameGame
   RoundStats roundStats = RoundStats();
   final killFeed = ValueNotifier<List<KillEntry>>(const []);
 
-  /// Computer controlled tanks this client simulates, and how many to add to
-  /// the next round.
+  /// Computer controlled tanks this client simulates.
   final botShips = <String, PlayerShip>{};
-  final botCount = ValueNotifier<int>(0);
 
   /// True to play with other people, false to play alone against CPU tanks.
   /// Only the host can change it, everybody who joins plays multiplayer.
   final multiplayer = ValueNotifier<bool>(true);
 
-  void setMultiplayer(bool value) {
-    multiplayer.value = value;
-    if (!value && botCount.value == 0) {
-      botCount.value = 3;
-    }
-  }
+  void setMultiplayer(bool value) => multiplayer.value = value;
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
@@ -367,11 +360,14 @@ class SpaceGame extends FlameGame
         for (final member in roster.value)
           if (member.phase == GamePhase.lobby.name) member.id,
     }.toList();
-    // CPU tanks only exist when playing alone.
+    // CPU tanks only exist when playing alone, and then there are always some.
+    final botCount = solo
+        ? GameConfig.minBots +
+              Random().nextInt(GameConfig.maxBots - GameConfig.minBots + 1)
+        : 0;
     final bots = <String, int>{
-      if (solo)
-        for (var i = 1; i <= botCount.value; i++)
-          'cpu-$i': Random().nextInt(GameConfig.styleCount),
+      for (var i = 1; i <= botCount; i++)
+        'cpu-$i': Random().nextInt(GameConfig.styleCount),
     };
     ids
       ..addAll(bots.keys)
