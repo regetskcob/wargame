@@ -61,6 +61,18 @@ void rememberGuest() {
   }
 }
 
+/// Drops the one time code of a sign-in mail from the address once it could
+/// not be redeemed, so a reload does not try again.
+void forgetAuthCode() {
+  final uri = Uri.base;
+  final params = Map.of(uri.queryParameters)..remove('code');
+  web.window.history.replaceState(
+    null,
+    '',
+    uri.replace(queryParameters: params.isEmpty ? null : params).toString(),
+  );
+}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => _hosting;
 

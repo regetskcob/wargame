@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../db/account_service.dart';
 import '../../theme.dart';
+import 'choice_row.dart';
 
 /// Guest or lasting account: secure the guest account by e-mail or with a
 /// login, sign into an account from another device, or sign out.
@@ -47,8 +48,40 @@ class _AccountPanelState extends State<AccountPanel> {
 
   void _refresh() => setState(() {});
 
+  Timer? _watch;
+
+  /// A new address is confirmed with the link in the mail, often in another
+  /// tab or on the phone. Ask every few seconds for up to ten minutes, so
+  /// this page notices without a reload.
+  void _watchConfirmation() {
+    _watch?.cancel();
+    var tries = 0;
+    _watch = Timer.periodic(const Duration(seconds: 5), (timer) async {
+      if (!mounted || ++tries > 120 || !widget.accounts.isGuest) {
+        timer.cancel();
+        return;
+      }
+      try {
+        await widget.accounts.refresh();
+      } on Object {
+        return;
+      }
+      if (!widget.accounts.isGuest) {
+        timer.cancel();
+        if (mounted) {
+          setState(() {
+            _step = _Step.idle;
+            _message = 'E-Mail bestätigt, dein Konto steht.';
+            _error = false;
+          });
+        }
+      }
+    });
+  }
+
   @override
   void dispose() {
+    _watch?.cancel();
     widget.accounts.providers.removeListener(_refresh);
     _email.dispose();
     _code.dispose();
@@ -113,9 +146,13 @@ class _AccountPanelState extends State<AccountPanel> {
           }
         }
         _step = _Step.codeSent;
+        if (!_signIn) {
+          _watchConfirmation();
+        }
       },
-      'Mail ist unterwegs. Öffne den Link darin, oder gib den Code ein, '
-      'falls die Mail einen enthält.',
+      'Mail ist unterwegs. Gib den Code aus der Mail hier ein, oder öffne '
+      'den Link darin. Bestätigst du in einem anderen Tab, geht es hier von '
+      'selbst weiter.',
     );
   }
 
@@ -247,9 +284,24 @@ class _AccountPanelState extends State<AccountPanel> {
     final dim = const TextStyle(color: BwColors.textDim, fontSize: 12);
     final fresh = widget.embedded;
     return [
+      if (fresh) ...[
+        const SizedBox(height: 12),
+        ChoiceRow<bool>(
+          options: const [
+            (true, 'ANMELDEN', null),
+            (false, 'REGISTRIEREN', null),
+          ],
+          selected: _signIn,
+          onSelected: (v) => _switchTo(signIn: v ?? _signIn),
+        ),
+      ],
       const SizedBox(height: 6),
       Text(switch ((_signIn, fresh)) {
-        (true, _) =>
+        (true, true) =>
+          'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
+              'auf dieses Gerät zu holen. Gibt es zu der Adresse noch kein '
+              'Konto, legen wir eins an.',
+        (true, false) =>
           'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
               'auf dieses Gerät zu holen.',
         (false, true) =>
@@ -318,19 +370,23 @@ class _AccountPanelState extends State<AccountPanel> {
           ],
         ),
       ],
-      const SizedBox(height: 4),
-      TextButton(
-        onPressed: () => setState(() {
-          _signIn = !_signIn;
-          _step = _Step.idle;
-          _message = null;
-        }),
-        child: Text(switch ((_signIn, fresh)) {
-          (true, true) => 'Noch kein Konto? Registrieren',
-          (true, false) => 'Noch kein Konto? Gastkonto sichern',
-          (false, _) => 'Schon ein Konto? Anmelden',
-        }),
-      ),
+      if (!fresh) ...[
+        const SizedBox(height: 4),
+        TextButton(
+          onPressed: () => _switchTo(signIn: !_signIn),
+          child: Text(
+            _signIn
+                ? 'Noch kein Konto? Gastkonto sichern'
+                : 'Schon ein Konto? Anmelden',
+          ),
+        ),
+      ],
     ];
   }
+
+  void _switchTo({required bool signIn}) => setState(() {
+    _signIn = signIn;
+    _step = _Step.idle;
+    _message = null;
+  });
 }

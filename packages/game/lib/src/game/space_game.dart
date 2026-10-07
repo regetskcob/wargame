@@ -163,7 +163,9 @@ class SpaceGame extends FlameGame
   /// choosing to play as a guest. Without accounts there is nothing to pick,
   /// and a browser that chose the guest once is not asked again.
   late final welcomed = ValueNotifier<bool>(
-    !Env.accounts || !accounts.isGuest || prefersGuest(),
+    !Env.accounts ||
+        !accounts.isGuest ||
+        (prefersGuest() && !AccountService.mailLinkFailed),
   );
 
   /// Welcome page: go on without an account.

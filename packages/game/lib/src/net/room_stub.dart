@@ -11,6 +11,10 @@ bool prefersGuest() => false;
 /// Remembers that this device plays as a guest.
 void rememberGuest() {}
 
+/// Drops the one time code of a sign-in mail from the address. Outside the
+/// browser there is none.
+void forgetAuthCode() {}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => true;
 

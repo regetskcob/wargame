@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../db/account_service.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/account_panel.dart';
@@ -16,8 +17,8 @@ class WelcomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final account = _Box(
       icon: Icons.verified_user,
-      title: 'ANMELDEN',
-      kicker: 'ODER REGISTRIEREN',
+      title: 'MIT KONTO',
+      kicker: 'FORTSCHRITT AUF JEDEM GERÄT',
       child: AccountPanel(accounts: game.accounts, embedded: true),
     );
     final guest = _Box(
@@ -67,16 +68,29 @@ class WelcomeView extends StatelessWidget {
           'Willkommen, Panzerkommandant.',
           style: TextStyle(color: BwColors.textDim),
         ),
+        if (AccountService.mailLinkFailed) ...[
+          const SizedBox(height: 16),
+          const _Notice(
+            'Der Link aus der Mail ließ sich in diesem Tab nicht abschließen. '
+            'Hast du dich gerade registriert, ist deine Adresse trotzdem '
+            'bestätigt: Wechsle zurück in den Tab, in dem du die Mail '
+            'angefordert hast, dort geht es von selbst weiter. Sonst melde '
+            'dich hier an und gib den Code aus der Mail ein.',
+          ),
+        ],
         const SizedBox(height: 20),
         LayoutBuilder(
           builder: (context, box) => box.maxWidth >= 640
-              ? Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 3, child: account),
-                    const SizedBox(width: 12),
-                    Expanded(flex: 2, child: guest),
-                  ],
+              // Both boxes as tall as the taller one.
+              ? IntrinsicHeight(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(flex: 3, child: account),
+                      const SizedBox(width: 12),
+                      Expanded(flex: 2, child: guest),
+                    ],
+                  ),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -84,6 +98,33 @@ class WelcomeView extends StatelessWidget {
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _Notice extends StatelessWidget {
+  const _Notice(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x33FFB300),
+        border: Border.all(color: BwColors.amber),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Icon(Icons.info_outline, color: BwColors.amber),
+            const SizedBox(width: 10),
+            Expanded(child: Text(text, style: const TextStyle(fontSize: 13))),
+          ],
+        ),
+      ),
     );
   }
 }
