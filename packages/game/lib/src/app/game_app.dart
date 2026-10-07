@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart'
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../db/account_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
@@ -44,6 +45,7 @@ class _GameAppState extends State<GameApp> {
       myId: myId,
       scoreService: ScoreService(client),
       profiles: ProfileService(client),
+      accounts: AccountService(client),
     );
     game.phase.addListener(_reclaimFocus);
   }

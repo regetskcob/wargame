@@ -11,6 +11,7 @@ import '../theme.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/leaderboard.dart';
+import 'widgets/account_panel.dart';
 import 'widgets/panel.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
@@ -36,10 +37,20 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     super.initState();
     _nameController = TextEditingController(text: widget.game.myName);
     _colorIndex = widget.game.myColorIndex;
+    widget.game.pilotVersion.addListener(_reloadPilot);
+  }
+
+  /// Another account was signed in: show its name and look.
+  void _reloadPilot() {
+    setState(() {
+      _nameController.text = widget.game.myName;
+      _colorIndex = widget.game.myColorIndex;
+    });
   }
 
   @override
   void dispose() {
+    widget.game.pilotVersion.removeListener(_reloadPilot);
     _nameController.dispose();
     super.dispose();
   }
@@ -90,6 +101,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         ),
         const SizedBox(height: 16),
         PilotCard(progress: game.progress),
+        const SizedBox(height: 8),
+        AccountPanel(accounts: game.accounts),
         const SizedBox(height: 16),
         TextField(
           controller: _nameController,

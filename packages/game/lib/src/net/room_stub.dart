@@ -12,3 +12,6 @@ String roomLink(String room) => '';
 
 /// Hands [url] to the share sheet of the device. False when there is none.
 Future<bool> shareRoomLink(String url, String text) async => false;
+
+/// Address that sign-in links lead back to, null outside the browser.
+String? authRedirect() => null;

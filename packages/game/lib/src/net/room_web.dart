@@ -49,6 +49,9 @@ String roomLink(String room) {
   ).toString();
 }
 
+/// Address that sign-in links lead back to: the game itself, in this room.
+String? authRedirect() => Uri.base.replace(fragment: '').toString();
+
 Future<bool> shareRoomLink(String url, String text) async {
   final navigator = web.window.navigator;
   if (!(navigator as JSObject).has('share')) {

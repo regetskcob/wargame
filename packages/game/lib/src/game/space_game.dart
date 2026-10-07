@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 
 import '../app/overlay_ids.dart';
 import '../audio_service.dart';
+import '../db/account_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game_config.dart';
@@ -64,12 +65,18 @@ class SpaceGame extends FlameGame
     required this.myId,
     required this.scoreService,
     required this.profiles,
+    required this.accounts,
   }) : super(camera: CameraComponent());
 
   final NetService net;
   final String myId;
   final ScoreService scoreService;
   final ProfileService profiles;
+  final AccountService accounts;
+
+  /// Bumped whenever name and look were loaded anew, after signing in.
+  final pilotVersion = ValueNotifier<int>(0);
+  String? _accountId;
 
   /// Rank, rating and badges of the local pilot.
   late final progress = PilotProgress(scores: scoreService, profiles: profiles);
@@ -290,7 +297,9 @@ class SpaceGame extends FlameGame
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
       ..onPeerLeft = _onPeerLeft;
+    _accountId = scoreService.myId;
     await _loadPilot();
+    accounts.user.addListener(_onAccountChanged);
     await net.connect(_presencePayload());
     overlays.add(OverlayIds.lobby);
   }
@@ -332,6 +341,21 @@ class SpaceGame extends FlameGame
         unawaited(AudioService.stopEngine());
       }
     }
+  }
+
+  /// Signing in or out swaps the account: bring in its name, look and
+  /// progress.
+  void _onAccountChanged() {
+    final id = accounts.user.value?.id;
+    if (id == null || id == _accountId) {
+      return;
+    }
+    _accountId = id;
+    unawaited(() async {
+      await _loadPilot();
+      pilotVersion.value++;
+      await pushPresence();
+    }());
   }
 
   /// Name, look and progress from the last visit. Gives up after a few
