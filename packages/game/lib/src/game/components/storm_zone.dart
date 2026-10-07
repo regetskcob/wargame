@@ -32,14 +32,14 @@ class StormZone extends PositionComponent {
       ..fillType = PathFillType.evenOdd
       ..addRect(Rect.fromCircle(center: Offset.zero, radius: outer))
       ..addOval(Rect.fromCircle(center: Offset.zero, radius: safeRadius));
-    canvas.drawPath(storm, Paint()..color = const Color(0x33FF3355));
+    canvas.drawPath(storm, Paint()..color = const Color(0x44B8860B));
     canvas.drawCircle(
       Offset.zero,
       safeRadius,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 3
-        ..color = const Color(0xAAFF3355),
+        ..color = const Color(0xCCFFB300),
     );
     canvas.drawCircle(
       Offset.zero,
@@ -47,7 +47,7 @@ class StormZone extends PositionComponent {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = const Color(0x5533AAFF),
+        ..color = const Color(0x55FFFFFF),
     );
   }
 }

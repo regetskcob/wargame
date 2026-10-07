@@ -7,6 +7,9 @@ import 'net_events.dart';
 import 'payloads/death_payload.dart';
 import 'payloads/hit_payload.dart';
 import 'payloads/lobby_presence.dart';
+import 'payloads/obstacle_payload.dart';
+import 'payloads/soldier_payload.dart';
+import 'payloads/power_up_payload.dart';
 import 'payloads/round_start_payload.dart';
 import 'payloads/ship_state_payload.dart';
 import 'payloads/shoot_payload.dart';
@@ -20,6 +23,10 @@ class NetService {
   void Function(ShootPayload payload)? onShoot;
   void Function(HitPayload payload)? onHit;
   void Function(DeathPayload payload)? onDeath;
+  void Function(PickupPayload payload)? onPickup;
+  void Function(SmokePayload payload)? onSmoke;
+  void Function(ObstaclePayload payload)? onObstacle;
+  void Function(SoldierPayload payload)? onSoldier;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
@@ -53,6 +60,22 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.death.name),
       (json) => onDeath?.call(DeathPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.soldier.name),
+      (json) => onSoldier?.call(SoldierPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.obstacle.name),
+      (json) => onObstacle?.call(ObstaclePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.pickup.name),
+      (json) => onPickup?.call(PickupPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.smoke.name),
+      (json) => onSmoke?.call(SmokePayload.fromJson(json)),
     );
     _subscriptions.add(
       channel

@@ -1,33 +1,38 @@
 import 'package:flutter/material.dart';
 
-import '../../game_config.dart';
+import '../../theme.dart';
+import 'panel.dart';
 
 class HealthBar extends StatelessWidget {
-  const HealthBar({required this.hp, super.key});
+  const HealthBar({required this.hp, required this.maxHp, super.key});
 
   final double hp;
+  final double maxHp;
 
   @override
   Widget build(BuildContext context) {
-    final ratio = (hp / GameConfig.shipMaxHp).clamp(0.0, 1.0);
+    final ratio = (hp / maxHp).clamp(0.0, 1.0);
     return SizedBox(
       width: 220,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Hull ${hp.ceil().clamp(0, 100)}'),
-          const SizedBox(height: 4),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(4),
-            child: LinearProgressIndicator(
+      child: Panel(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 6),
+            LinearProgressIndicator(
               value: ratio,
               minHeight: 10,
-              backgroundColor: Colors.white12,
-              color: ratio > 0.3 ? Colors.greenAccent : Colors.redAccent,
+              backgroundColor: Colors.black38,
+              color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

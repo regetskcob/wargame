@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../game_config.dart';
 import '../../net/payloads/lobby_presence.dart';
+import '../../theme.dart';
 
 class PlayerList extends StatelessWidget {
   const PlayerList({required this.members, required this.myId, super.key});
@@ -16,7 +17,10 @@ class PlayerList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('Pilots online', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          'BESATZUNGEN IM LAGER',
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         for (final member in sorted)
           Padding(
@@ -25,18 +29,27 @@ class PlayerList extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.rocket_launch,
+                  Icons.shield,
                   size: 16,
-                  color:
-                      GameConfig.shipColors[member.colorIndex %
-                          GameConfig.shipColors.length],
+                  color: GameConfig.colorOf(member.colorIndex),
                 ),
                 const SizedBox(width: 8),
-                Text(member.id == myId ? '${member.name} (you)' : member.name),
+                Text(member.id == myId ? '${member.name} (du)' : member.name),
+                if (member.team > 0) ...[
+                  const SizedBox(width: 8),
+                  Text(
+                    GameConfig.teamNames[member.team],
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: GameConfig.teamColors[member.team],
+                    ),
+                  ),
+                ],
                 const SizedBox(width: 8),
                 Text(
-                  member.inMatch ? 'in match' : member.phase,
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
+                  member.inMatch ? 'im Einsatz' : 'im Lager',
+                  style: const TextStyle(color: BwColors.textDim, fontSize: 12),
                 ),
               ],
             ),

@@ -37,14 +37,32 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
     final seconds = (remainingMs / 1000).ceil().clamp(0, 9);
     return IgnorePointer(
       child: Center(
-        child: Text(
-          seconds > 0 ? '$seconds' : 'Fight!',
-          style: const TextStyle(
-            fontSize: 96,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-            shadows: [Shadow(blurRadius: 24, color: Colors.blueAccent)],
-          ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ValueListenableBuilder<String>(
+              valueListenable: widget.game.mapName,
+              builder: (context, name, _) => Text(
+                'GELÄNDE: ${name.toUpperCase()}',
+                style: const TextStyle(
+                  fontSize: 18,
+                  letterSpacing: 4,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFFFFB300),
+                  shadows: [Shadow(blurRadius: 8, color: Colors.black)],
+                ),
+              ),
+            ),
+            Text(
+              seconds > 0 ? '$seconds' : 'Feuer frei!',
+              style: const TextStyle(
+                fontSize: 96,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFFE6E2D3),
+                shadows: [Shadow(blurRadius: 24, color: Colors.amber)],
+              ),
+            ),
+          ],
         ),
       ),
     );

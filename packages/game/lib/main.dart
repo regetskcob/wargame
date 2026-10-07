@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'src/app/game_app.dart';
+import 'src/audio_service.dart';
 import 'src/env.dart';
 
 Future<void> main() async {
@@ -14,5 +17,6 @@ Future<void> main() async {
   if (auth.currentSession == null) {
     await auth.signInAnonymously();
   }
+  unawaited(AudioService.init());
   runApp(const GameApp());
 }

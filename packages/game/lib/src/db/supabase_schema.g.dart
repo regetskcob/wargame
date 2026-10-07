@@ -15,6 +15,12 @@ extension type const ScoresRow(Map<String, dynamic> _json) implements Object {
   String get name => _json['name'] as String;
   int get wins => _json['wins'] as int;
   DateTime get updatedAt => DateTime.parse(_json['updated_at'] as String);
+  int get rounds => _json['rounds'] as int? ?? 0;
+  int get kills => _json['kills'] as int? ?? 0;
+  int get damage => _json['damage'] as int? ?? 0;
+  int get shots => _json['shots'] as int? ?? 0;
+  int get hits => _json['hits'] as int? ?? 0;
+  int get survivalSeconds => _json['survival_seconds'] as int? ?? 0;
 
   /// The row as decoded from the response.
   Map<String, dynamic> toJson() => _json;
@@ -32,11 +38,23 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
     required String name,
     int? wins,
     DateTime? updatedAt,
+    int? rounds,
+    int? kills,
+    int? damage,
+    int? shots,
+    int? hits,
+    int? survivalSeconds,
   }) : this._({
          'id': id,
          'name': name,
          'wins': ?wins,
          'updated_at': ?updatedAt?.toUtc().toIso8601String(),
+         'rounds': ?rounds,
+         'kills': ?kills,
+         'damage': ?damage,
+         'shots': ?shots,
+         'hits': ?hits,
+         'survival_seconds': ?survivalSeconds,
        });
 }
 
