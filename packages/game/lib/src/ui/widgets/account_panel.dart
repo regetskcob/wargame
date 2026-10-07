@@ -65,7 +65,7 @@ class _AccountPanelState extends State<AccountPanel> {
       _message = done;
       _error = false;
     } on AuthException catch (error) {
-      _message = error.message;
+      _message = _describe(error);
       _error = true;
     } on Object catch (error) {
       _message = '$error';
@@ -88,9 +88,29 @@ class _AccountPanelState extends State<AccountPanel> {
     _run(
       () async {
         if (_signIn) {
-          await widget.accounts.sendSignInMail(email);
+          try {
+            await widget.accounts.sendSignInMail(email);
+          } on AuthException catch (error) {
+            // No account with this address yet: create one from the guest
+            // account instead of turning the player away.
+            if (error.errorCode != _noAccount) {
+              rethrow;
+            }
+            await widget.accounts.secureWithEmail(email);
+            _signIn = false;
+          }
         } else {
-          await widget.accounts.secureWithEmail(email);
+          try {
+            await widget.accounts.secureWithEmail(email);
+          } on AuthException catch (error) {
+            // The address has an account already. On the welcome page the
+            // guest has nothing to lose yet, so sign into that account.
+            if (!widget.embedded || !_taken.contains(error.errorCode)) {
+              rethrow;
+            }
+            await widget.accounts.sendSignInMail(email);
+            _signIn = true;
+          }
         }
         _step = _Step.codeSent;
       },
@@ -98,6 +118,28 @@ class _AccountPanelState extends State<AccountPanel> {
       'falls die Mail einen enthält.',
     );
   }
+
+  /// Error codes of the auth service, see
+  /// https://supabase.com/docs/guides/auth/debugging/error-codes
+  static const _noAccount = 'otp_disabled';
+  static const _taken = {'email_exists', 'user_already_exists'};
+
+  /// The auth service answers in English: say it in German where we know
+  /// the case.
+  String _describe(AuthException error) => switch (error.errorCode) {
+    _noAccount => 'Zu dieser E-Mail gibt es noch kein Konto.',
+    'email_exists' || 'user_already_exists' =>
+      'Zu dieser E-Mail gibt es schon ein Konto. Melde dich damit an.',
+    'email_address_invalid' ||
+    'validation_failed' => 'Diese E-Mail-Adresse ist ungültig.',
+    'over_email_send_rate_limit' || 'over_request_rate_limit' =>
+      'Zu viele Versuche in kurzer Zeit. Bitte warte einen Moment.',
+    'otp_expired' =>
+      'Der Code ist falsch oder abgelaufen. Fordere eine neue Mail an.',
+    'email_address_not_authorized' =>
+      'An diese Adresse darf gerade keine Mail gehen.',
+    _ => error.message,
+  };
 
   void _verify() {
     _run(
