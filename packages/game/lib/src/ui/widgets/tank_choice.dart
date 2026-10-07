@@ -132,14 +132,14 @@ class StatBars extends StatelessWidget {
   static double strengthOf(TankType type) =>
       rowsOf(type).fold(0.0, (sum, row) => sum + row.$2);
 
-  /// The vehicles in the order a pilot gets them: by the rank that unlocks
-  /// them, and among those of one rank from the weakest to the strongest.
+  /// The vehicles as the lobby lists them: first those the pilot may drive,
+  /// then the locked ones, each group from the weakest to the strongest.
   /// The enum keeps its order, its index travels over the wire.
-  static final List<TankType> byUnlock = [...TankType.values]
-    ..sort((a, b) {
-      final rank = a.level.compareTo(b.level);
-      return rank != 0 ? rank : strengthOf(a).compareTo(strengthOf(b));
-    });
+  static List<TankType> ordered(bool Function(TankType) unlocked) =>
+      [...TankType.values]..sort((a, b) {
+        final open = (unlocked(a) ? 0 : 1).compareTo(unlocked(b) ? 0 : 1);
+        return open != 0 ? open : strengthOf(a).compareTo(strengthOf(b));
+      });
 
   @override
   Widget build(BuildContext context) {

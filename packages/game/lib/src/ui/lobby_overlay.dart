@@ -400,7 +400,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final type in StatBars.byUnlock)
+                    for (final type in StatBars.ordered(
+                      game.progress.vehicleUnlocked,
+                    ))
                       TankChoice(
                         type: type,
                         width: width.floorToDouble(),
