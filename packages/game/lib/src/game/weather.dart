@@ -33,6 +33,28 @@ class Conditions {
   final bool night;
   final MapTheme theme;
 
+  /// How long one spell of weather lasts at least, in seconds.
+  static const spell = 70.0;
+
+  /// The weather [seconds] into a round with [seed]. It starts with the sky
+  /// of the seed and may turn after every [spell]: half the time it stays,
+  /// otherwise it rolls anew. Every client works out the same sky from the
+  /// seed and the round clock alone.
+  static Sky skyAt(int seed, double seconds) {
+    var sky = Conditions.forSeed(seed).sky;
+    final spells = max(0, seconds ~/ spell);
+    for (var k = 1; k <= spells; k++) {
+      final random = Random(seed * 31 + k * 7919);
+      if (random.nextBool()) {
+        sky = _skyOf(random.nextInt(_skyFactor));
+      }
+    }
+    return sky;
+  }
+
+  Conditions withSky(Sky value) =>
+      Conditions(sky: value, night: night, theme: theme);
+
   static const _mapFactor = 4;
   static const _skyFactor = 20;
   static const _nightFactor = 4;
@@ -116,6 +138,9 @@ class WeatherLayer {
   late final List<_Particle> _particles;
   double _time = 0;
 
+  /// 0 to 1, for the change from one weather to the next.
+  double opacity = 1;
+
   void update(double dt) {
     _time += dt;
   }
@@ -144,7 +169,7 @@ class WeatherLayer {
     if (conditions.rain) {
       canvas.drawRect(
         Offset.zero & size,
-        Paint()..color = const Color(0x22101828),
+        Paint()..color = Color.fromRGBO(16, 24, 40, 0.13 * opacity),
       );
     }
     // The particles live on a tile the size of the view that repeats over
@@ -170,16 +195,31 @@ class WeatherLayer {
       final wy = wrap(p.y * tileH + fallY - camera.dy, tileH);
       final at = Offset(wx * scale, wy * scale);
       if (conditions.snow) {
-        paint.color = Color.fromRGBO(255, 255, 255, 0.55 + 0.4 * p.seed);
+        paint.color = Color.fromRGBO(
+          255,
+          255,
+          255,
+          (0.55 + 0.4 * p.seed) * opacity,
+        );
         canvas.drawCircle(at, (1.2 + 1.8 * p.seed) * scale, paint);
       } else if (conditions.sand) {
         paint
-          ..color = Color.fromRGBO(222, 190, 130, 0.35 + 0.3 * p.seed)
+          ..color = Color.fromRGBO(
+            222,
+            190,
+            130,
+            (0.35 + 0.3 * p.seed) * opacity,
+          )
           ..strokeWidth = 1.4 * scale;
         canvas.drawLine(at, at + Offset(-14 * scale, 0), paint);
       } else {
         paint
-          ..color = Color.fromRGBO(180, 200, 230, 0.25 + 0.3 * p.seed)
+          ..color = Color.fromRGBO(
+            180,
+            200,
+            230,
+            (0.25 + 0.3 * p.seed) * opacity,
+          )
           ..strokeWidth = 1.1 * scale;
         canvas.drawLine(at, at + Offset(-2.5 * scale, -16 * scale), paint);
       }
@@ -203,7 +243,10 @@ class WeatherLayer {
     final centre = rect.center;
     final radius = vision * scale;
     canvas.saveLayer(rect, Paint());
-    canvas.drawRect(rect, Paint()..color = shade);
+    canvas.drawRect(
+      rect,
+      Paint()..color = shade.withValues(alpha: shade.a * opacity),
+    );
     final clear = Paint()
       ..blendMode = BlendMode.dstOut
       ..shader = Gradient.radial(
