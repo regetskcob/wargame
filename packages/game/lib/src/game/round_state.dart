@@ -27,6 +27,9 @@ class RoundState {
   /// Everybody together against waves of enemies, see [isEnemy].
   final bool defense;
 
+  /// Real people play against each other, so every tank gets its own colour.
+  bool get distinctColors => bots.isEmpty;
+
   /// Enemies of a defense round that are already destroyed, so a late state
   /// message does not bring them back.
   final fallen = <String>{};

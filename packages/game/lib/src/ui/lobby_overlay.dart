@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../game_config.dart';
@@ -28,6 +30,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   late final TextEditingController _nameController;
   late int _colorIndex;
   late int _teamPick = widget.game.teamPick;
+  bool _closeArmed = false;
+  Timer? _closeTimer;
 
   @override
   void initState() {
@@ -38,6 +42,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
 
   @override
   void dispose() {
+    _closeTimer?.cancel();
     _nameController.dispose();
     super.dispose();
   }
@@ -98,113 +103,75 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 8),
         Text('FAHRZEUG', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        LayoutBuilder(
-          builder: (context, box) {
-            // Two or more cards per row that share the width evenly.
-            final columns = (((box.maxWidth + 8) / 120).floor()).clamp(2, 4);
-            final width = (box.maxWidth - 8 * (columns - 1)) / columns;
-            return Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final type in TankType.values)
-                  TankChoice(
-                    type: type,
-                    width: width.floorToDouble(),
-                    color: GameConfig.colorOf(_colorIndex),
-                    selected: type == GameConfig.typeOf(_colorIndex),
-                    onTap: () => _pick(type: type.index),
-                  ),
-              ],
-            );
-          },
+        ListenableBuilder(
+          listenable: Listenable.merge([game.roster, game.mode]),
+          builder: (context, _) => LayoutBuilder(
+            builder: (context, box) {
+              // Two or more cards per row that share the width evenly.
+              final columns = (((box.maxWidth + 8) / 120).floor()).clamp(2, 4);
+              final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+              return Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final type in TankType.values)
+                    TankChoice(
+                      type: type,
+                      width: width.floorToDouble(),
+                      color: game.lobbyColorOf(game.myId, _colorIndex),
+                      selected: type == GameConfig.typeOf(_colorIndex),
+                      onTap: () => _pick(type: type.index),
+                    ),
+                ],
+              );
+            },
+          ),
         ),
         const SizedBox(height: 12),
         StatBars(type: GameConfig.typeOf(_colorIndex)),
         const SizedBox(height: 16),
-        Text('TARNUNG', style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < GameConfig.shipColors.length; i++)
-              Tooltip(
-                message: GameConfig.colorNames[i],
-                child: ColorSwatchButton(
-                  color: GameConfig.shipColors[i],
-                  selected: i == _colorIndex % GameConfig.shipColors.length,
-                  onTap: () => _pick(color: i),
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => mode.withOthers
+              ? const Text(
+                  'Mit anderen fährt jeder Panzer in einer eigenen, '
+                  'gut sichtbaren Farbe statt in Tarnung.',
+                  style: TextStyle(color: BwColors.textDim, fontSize: 12),
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'TARNUNG',
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (var i = 0; i < GameConfig.shipColors.length; i++)
+                          Tooltip(
+                            message: GameConfig.colorNames[i],
+                            child: ColorSwatchButton(
+                              color: GameConfig.shipColors[i],
+                              selected:
+                                  i ==
+                                  _colorIndex % GameConfig.shipColors.length,
+                              onTap: () => _pick(color: i),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-          ],
         ),
-        if (game.net.isHost) ...[
+        if (game.isHost.value) ...[
           ValueListenableBuilder<GameMode>(
             valueListenable: game.mode,
             builder: (context, mode, _) => mode == GameMode.defense
                 ? const SizedBox()
                 : _teamChoice(context),
-          ),
-          ValueListenableBuilder<GameMode>(
-            valueListenable: game.mode,
-            builder: (context, mode, _) => mode != GameMode.solo
-                ? const SizedBox()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const SizedBox(height: 16),
-                      Text(
-                        'CPU-GEGNER',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 4),
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.botCount,
-                        builder: (context, count, _) => Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton.outlined(
-                              tooltip: 'Weniger',
-                              onPressed: count > 0
-                                  ? () => game.botCount.value = count - 1
-                                  : null,
-                              icon: const Icon(Icons.remove),
-                            ),
-                            SizedBox(
-                              width: 56,
-                              child: Text(
-                                '$count',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .headlineMedium,
-                              ),
-                            ),
-                            IconButton.outlined(
-                              tooltip: 'Mehr',
-                              onPressed: count < 6
-                                  ? () => game.botCount.value = count + 1
-                                  : null,
-                              icon: const Icon(Icons.add),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                count == 0
-                                    ? 'Nur echte Spieler.'
-                                    : 'Läuft auf deinem Gerät.',
-                                style: const TextStyle(
-                                  color: BwColors.textDim,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
           ),
           const SizedBox(height: 16),
           Text('GELÄNDE', style: Theme.of(context).textTheme.titleMedium),
@@ -229,8 +196,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         ] else ...[
           const SizedBox(height: 16),
           const Text(
-            'Modus, Gelände und CPU-Gegner legt der Gastgeber fest. '
-            'Du suchst dir hier nur Namen, Fahrzeug und Tarnung aus.',
+            'Modus und Gelände legt der Gastgeber fest. '
+            'Du suchst dir hier nur Namen und Fahrzeug aus.',
             style: TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ],
@@ -261,6 +228,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     icon: const Icon(Icons.visibility),
                     label: const Text('LAUFENDE ÜBUNG BEOBACHTEN'),
                   ),
+                OutlinedButton.icon(
+                  onPressed: _confirmClose,
+                  style: _closeArmed
+                      ? OutlinedButton.styleFrom(
+                          foregroundColor: BwColors.danger,
+                          side: const BorderSide(color: BwColors.danger),
+                        )
+                      : null,
+                  icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+                  label: Text(switch ((_closeArmed, game.isHost.value)) {
+                    (true, true) => 'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                    (true, false) => 'WIRKLICH VERLASSEN?',
+                    (false, true) => 'WARTERAUM SCHLIESSEN',
+                    (false, false) => 'WARTERAUM VERLASSEN',
+                  }),
+                ),
               ],
             );
           },
@@ -273,11 +256,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus, unabhängig von der '
                       'Wanne, und feuert, sobald du über den Ring schiebst. '
-                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt.'
+                      'Die Sticks erscheinen dort, wo dein Daumen aufsetzt. '
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit dem runden Knopf über dem rechten Stick auslöst.'
                 : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
                       'Maus (oder Q und E), Feuer mit Leertaste oder Linksklick. '
-                      'Auf Touchgeräten steuerst du mit zwei Sticks am '
-                      'Bildschirm.',
+                      'Munition ist knapp: blaue Gems füllen sie auf, rote '
+                      'und violette bringen Granatwerfer oder Drohne, die du '
+                      'mit F auslöst. Auf Touchgeräten steuerst du mit zwei '
+                      'Sticks am Bildschirm.',
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         ),
@@ -359,7 +347,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
               const SizedBox(height: 6),
               Text(switch (mode) {
-                GameMode.solo => 'Du spielst allein gegen CPU-Panzer.',
+                GameMode.solo =>
+                  'Du spielst allein gegen ${GameConfig.minBots} bis '
+                      '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
+                      'ausgewürfelt.',
                 GameMode.multi =>
                   'Spiele mit anderen: Schick den Link weiter. '
                       'Es gibt keine CPU-Gegner.',
@@ -367,8 +358,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   'Gemeinsam gegen ${GameConfig.defenseWaves} Wellen, '
                       'allein oder mit anderen. Die Feinde rollen über die '
                       'Straße zum Stützpunkt. Für Abschüsse gibt es Mittel, '
-                      'davon baust du Geschütze (Taste B). Zerstörte Panzer '
-                      'kehren nach kurzer Zeit zurück.',
+                      'davon baust du Geschütze (Taste B). Munition gibt es am '
+                      'Stützpunkt, zerstörte Panzer kehren nach kurzer Zeit '
+                      'zurück.',
               }, style: const TextStyle(color: BwColors.textDim, fontSize: 12)),
             ],
           ),
@@ -393,15 +385,43 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         ValueListenableBuilder<List<LobbyPresence>>(
           valueListenable: game.roster,
-          builder: (context, roster, _) =>
-              PlayerList(members: roster, myId: game.myId),
+          builder: (context, roster, _) => PlayerList(
+            members: roster,
+            myId: game.myId,
+            colorOf: (member) =>
+                game.lobbyColorOf(member.id, member.colorIndex),
+          ),
         ),
       ],
     );
   }
 
+  /// Closing takes two clicks: the first one asks, the second one closes.
+  void _confirmClose() {
+    if (_closeArmed) {
+      _closeTimer?.cancel();
+      widget.game.closeRoom();
+      return;
+    }
+    setState(() => _closeArmed = true);
+    _closeTimer = Timer(const Duration(seconds: 4), () {
+      if (mounted) {
+        setState(() => _closeArmed = false);
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
+    // A guest stands in when the host leaves and hands back on return: the
+    // whole lobby follows the role.
+    return ValueListenableBuilder<bool>(
+      valueListenable: widget.game.isHost,
+      builder: (context, _, _) => _build(context),
+    );
+  }
+
+  Widget _build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xAA000000),
       child: LayoutBuilder(
@@ -417,7 +437,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      if (!widget.game.net.isHost)
+                      if (!widget.game.isHost.value)
                         const _JoinedBanner()
                       else ...[
                         _modeChoice(context),

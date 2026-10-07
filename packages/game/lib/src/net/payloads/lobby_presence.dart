@@ -6,6 +6,7 @@ class LobbyPresence {
     required this.phase,
     this.team = 0,
     this.host = false,
+    this.owner = false,
     this.seed,
     this.startedAt,
     this.defense = false,
@@ -20,6 +21,7 @@ class LobbyPresence {
       phase: json['phase'] as String,
       team: json['team'] as int? ?? 0,
       host: json['host'] as bool? ?? false,
+      owner: json['owner'] as bool? ?? false,
       seed: json['seed'] as int?,
       startedAt: json['startedAt'] as int?,
       defense: json['defense'] as bool? ?? false,
@@ -38,6 +40,9 @@ class LobbyPresence {
 
   /// Opened the room, so decides on mode, map and when the round starts.
   final bool host;
+
+  /// Opened the room. Stays its host; others only stand in while away.
+  final bool owner;
   final int? seed;
   final int? startedAt;
 
@@ -55,6 +60,7 @@ class LobbyPresence {
       'phase': phase,
       'team': team,
       'host': host,
+      'owner': owner,
       'seed': seed,
       'startedAt': startedAt,
       if (defense) 'defense': true,

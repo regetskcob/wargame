@@ -15,6 +15,31 @@ String _newCode() {
 
 bool _hosting = true;
 
+const _hostedKey = 'panzergefecht.hostedRooms';
+
+/// Rooms this browser opened, so reloading the page keeps you their host.
+Set<String> _hostedRooms() {
+  try {
+    final stored = web.window.localStorage.getItem(_hostedKey);
+    return stored == null || stored.isEmpty ? {} : stored.split(',').toSet();
+  } on Object {
+    return {};
+  }
+}
+
+void _rememberHosted(String code) {
+  try {
+    // Only the latest few, the list must not grow forever.
+    final rooms = [..._hostedRooms().where((r) => r != code), code];
+    web.window.localStorage.setItem(
+      _hostedKey,
+      rooms.skip(max(0, rooms.length - 10)).join(','),
+    );
+  } on Object {
+    // Without storage a reload simply joins as a guest.
+  }
+}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => _hosting;
 
@@ -24,10 +49,12 @@ String resolveRoom() {
   final uri = Uri.base;
   final given = uri.queryParameters['room']?.trim();
   if (given != null && given.isNotEmpty) {
-    _hosting = false;
-    return given.toUpperCase();
+    final code = given.toUpperCase();
+    _hosting = _hostedRooms().contains(code);
+    return code;
   }
   final code = _newCode();
+  _rememberHosted(code);
   web.window.history.replaceState(
     null,
     '',
@@ -62,4 +89,21 @@ Future<bool> shareRoomLink(String url, String text) async {
   } on Object {
     return false;
   }
+}
+
+/// Reloads the page without a room, which opens a fresh one with this
+/// session as its host.
+bool openFreshRoom() {
+  final uri = Uri.base;
+  final params = Map.of(uri.queryParameters)..remove('room');
+  web.window.location.assign(
+    Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString(),
+  );
+  return true;
 }

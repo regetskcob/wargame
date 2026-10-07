@@ -13,6 +13,7 @@ import 'payloads/power_up_payload.dart';
 import 'payloads/round_start_payload.dart';
 import 'payloads/ship_state_payload.dart';
 import 'payloads/shoot_payload.dart';
+import 'payloads/special_payload.dart';
 
 class NetService {
   NetService({required this.myId, required this.room, this.isHost = true});
@@ -22,7 +23,8 @@ class NetService {
   /// Code of the room whose channel this connects to.
   final String room;
 
-  /// Whether this player opened the room. Others only join and play.
+  /// Whether this player opened the room. Others only join and play. The
+  /// game hands the role on from there.
   final bool isHost;
 
   void Function(ShipStatePayload payload)? onShipState;
@@ -35,9 +37,15 @@ class NetService {
   void Function(SoldierPayload payload)? onSoldier;
   void Function(DefensePayload payload)? onDefense;
   void Function(TowerPayload payload)? onTower;
+  void Function(GrenadePayload payload)? onGrenade;
+  void Function(DronePayload payload)? onDrone;
+  void Function(BlastPayload payload)? onBlast;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
+
+  /// The host closed the room. Carries the id of who sent it.
+  void Function(String id)? onClose;
 
   RealtimeChannel? _channel;
   LobbyPresence? _me;
@@ -47,6 +55,7 @@ class NetService {
   SupabaseClient get _client => Supabase.instance.client;
 
   Future<void> connect(LobbyPresence me) async {
+    _disposed = false;
     _me = me;
     final channel = _client.channel(
       'game-arena-$room',
@@ -74,6 +83,18 @@ class NetService {
       (json) => onSoldier?.call(SoldierPayload.fromJson(json)),
     );
     _listen(
+      channel.onBroadcast(event: NetEvent.grenade.name),
+      (json) => onGrenade?.call(GrenadePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.drone.name),
+      (json) => onDrone?.call(DronePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.blast.name),
+      (json) => onBlast?.call(BlastPayload.fromJson(json)),
+    );
+    _listen(
       channel.onBroadcast(event: NetEvent.obstacle.name),
       (json) => onObstacle?.call(ObstaclePayload.fromJson(json)),
     );
@@ -92,6 +113,10 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.tower.name),
       (json) => onTower?.call(TowerPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.close.name),
+      (json) => onClose?.call(json['id'] as String),
     );
     _subscriptions.add(
       channel
@@ -212,6 +237,22 @@ class NetService {
     if (channel != null) {
       await _client.removeChannel(channel);
     }
+  }
+
+  /// Tells everybody in the room that it is closed, then leaves it.
+  Future<void> closeRoom() async {
+    final channel = _channel;
+    if (channel != null) {
+      try {
+        await channel.sendBroadcastMessage(
+          event: NetEvent.close.name,
+          payload: {'id': myId},
+        );
+      } on Object {
+        // Leaving matters more than the goodbye.
+      }
+    }
+    await dispose();
   }
 
   Future<void> dispose() async {

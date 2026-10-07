@@ -12,6 +12,7 @@ import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
 import '../defense/defense_map.dart';
 import '../game_phase.dart';
+import '../special_weapon.dart';
 import '../touch_input.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
@@ -50,7 +51,18 @@ class PlayerShip extends ShipBase
   double speedFactor = 1;
   double fireFactor = 1;
   double syncInterval = GameConfig.stateSyncInterval;
+
+  /// Enemies of a defense round never run dry, there are no gems for them.
+  bool endlessAmmo = false;
   double rapidFireLeft = 0;
+
+  /// Rounds left in the magazine. Gems put more back.
+  late int ammo = stats.ammo;
+
+  /// Special weapon from a gem and the charges it has left.
+  SpecialWeapon? special;
+  int specialCharges = 0;
+  double _specialCooldown = 0;
 
   /// Forward speed as a share of this tank's top speed, below 0 in reverse.
   double get load => _speed / (GameConfig.shipMaxSpeed * stats.speed);
@@ -60,6 +72,7 @@ class PlayerShip extends ShipBase
   bool _left = false;
   bool _right = false;
   bool _fire = false;
+  bool _special = false;
   bool _turretLeft = false;
   bool _turretRight = false;
   bool _aimed = false;
@@ -96,6 +109,7 @@ class PlayerShip extends ShipBase
         keysPressed.contains(LogicalKeyboardKey.arrowRight) ||
         keysPressed.contains(LogicalKeyboardKey.keyD);
     _fire = keysPressed.contains(LogicalKeyboardKey.space);
+    _special = keysPressed.contains(LogicalKeyboardKey.keyF);
     _turretLeft = keysPressed.contains(LogicalKeyboardKey.keyQ);
     _turretRight = keysPressed.contains(LogicalKeyboardKey.keyE);
     if (event is KeyDownEvent && event.logicalKey == LogicalKeyboardKey.keyB) {
@@ -117,14 +131,23 @@ class PlayerShip extends ShipBase
     _aim(dt);
     _applyZoneDamage(dt);
     _handleFire(dt);
+    _handleSpecial(dt);
     _broadcastState(dt);
   }
 
   /// Tracks drive along the hull, so the tank never slides sideways: the
   /// velocity vector is always derived from the heading and [_speed].
   void _integrate(double dt) {
-    final turn =
+    final thrusting = _thrust || input.thrust;
+    final braking = _brake || input.brake;
+    var turn =
         ((_right || input.right) ? 1 : 0) - ((_left || input.left) ? 1 : 0);
+    // Steering follows the direction of travel: in reverse, left swings the
+    // rear to the left like a car would. Bots steer by heading, so not them.
+    final reversing = _speed < 0 || (_speed == 0 && braking && !thrusting);
+    if (reversing && !isBot) {
+      turn = -turn;
+    }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
     final maxSpeed =
@@ -138,9 +161,9 @@ class PlayerShip extends ShipBase
     angle +=
         turn * GameConfig.shipRotationSpeed * stats.turnRate * turnScale * dt;
 
-    if (_thrust || input.thrust) {
+    if (thrusting) {
       _speed += (_speed < 0 ? GameConfig.shipBrake : acceleration) * dt;
-    } else if (_brake || input.brake) {
+    } else if (braking) {
       _speed -= (_speed > 0 ? GameConfig.shipBrake : acceleration) * dt;
     } else {
       final decel = GameConfig.shipRollingResistance * dt;
@@ -216,17 +239,71 @@ class PlayerShip extends ShipBase
 
   void _handleFire(double dt) {
     _fireCooldown -= dt;
-    if (rapidFireLeft > 0 && !isBot) {
+    if (rapidFireLeft > 0) {
       rapidFireLeft = max(0, rapidFireLeft - dt);
-      gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
+      if (!isBot) {
+        gameRef.rapidFireSeconds.value = rapidFireLeft.ceil();
+      }
     }
     if ((_fire || input.fire || input.aimFire) && _fireCooldown <= 0) {
+      if (ammo <= 0 && !endlessAmmo) {
+        // Dry click, and a reminder that the magazine is empty.
+        _fireCooldown = 0.5;
+        if (!isBot) {
+          AudioService.play('tick', volume: 0.6);
+          gameRef.showNotice('MUNITION LEER');
+        }
+        return;
+      }
       _fireCooldown =
           stats.fireCooldown *
           fireFactor *
           (rapidFireLeft > 0 ? GameConfig.rapidFireFactor : 1);
+      if (!endlessAmmo) {
+        setAmmo(ammo - 1);
+      }
       gameRef.fireFrom(this);
     }
+  }
+
+  void setAmmo(int value) {
+    ammo = value.clamp(0, stats.ammo);
+    if (!isBot) {
+      gameRef.ammoNotifier.value = ammo;
+    }
+  }
+
+  /// Hands out [weapon] with a full set of charges, replacing any other.
+  void arm(SpecialWeapon weapon) {
+    special = weapon;
+    specialCharges = weapon.charges;
+    _publishSpecial();
+  }
+
+  void _publishSpecial() {
+    if (!isBot) {
+      final weapon = special;
+      gameRef.specialNotifier.value = weapon == null
+          ? null
+          : (weapon, specialCharges);
+    }
+  }
+
+  void _handleSpecial(double dt) {
+    _specialCooldown -= dt;
+    final weapon = special;
+    if (weapon == null ||
+        _specialCooldown > 0 ||
+        !(_special || input.special)) {
+      return;
+    }
+    _specialCooldown = weapon.cooldown;
+    gameRef.fireSpecial(this, weapon);
+    specialCharges--;
+    if (specialCharges <= 0) {
+      special = null;
+    }
+    _publishSpecial();
   }
 
   void _broadcastState(double dt) {
@@ -316,9 +393,7 @@ class PlayerShip extends ShipBase
         ).toJson(),
       );
     } else if (other is PowerUp) {
-      if (!isBot) {
-        gameRef.collectPowerUp(other);
-      }
+      gameRef.collectPowerUp(other, this);
     } else if (other is Soldier) {
       if (load.abs() > 0.08) {
         gameRef.runOver(other, playerId);

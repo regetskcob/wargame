@@ -45,9 +45,9 @@ class GameConfig {
   static const barrierCount = 14;
   static const spawnRadius = 600.0;
 
-  static const powerUpSlots = 14;
+  static const powerUpSlots = 18;
   static const powerUpFirstAt = 5.0;
-  static const powerUpEvery = 7.0;
+  static const powerUpEvery = 6.0;
   static const repairAmount = 40.0;
   static const rapidFireSeconds = 8.0;
   static const rapidFireFactor = 0.45;
@@ -66,6 +66,11 @@ class GameConfig {
   static const enemyFireFactor = 3.0;
   static const enemySyncInterval = 0.1;
   static const respawnSeconds = 6.0;
+
+  /// How close to the base a tank refills, and how long a full magazine
+  /// takes there.
+  static const resupplyReach = 130.0;
+  static const resupplySeconds = 4.0;
   static const startCredits = 150;
   static const creditsPerKill = 20;
   static const waveBonus = 50;
@@ -77,7 +82,35 @@ class GameConfig {
   static const towerDamage = 18.0;
   static const towerBulletSpeed = 560.0;
 
+  /// Share of the full magazine an ammo gem puts back.
+  static const ammoRefillShare = 0.6;
+
+  /// At or below this share of the magazine the HUD warns.
+  static const ammoLowShare = 0.2;
+
+  static const grenadeCharges = 3;
+  static const grenadeCooldown = 1.1;
+  static const grenadeRange = 380.0;
+  static const grenadeMinRange = 90.0;
+  static const grenadeFlightSeconds = 0.9;
+  static const grenadeRadius = 85.0;
+  static const grenadeDamage = 45.0;
+
+  static const droneCharges = 1;
+  static const droneCooldown = 1.5;
+  static const droneSpeed = 230.0;
+  static const droneTurnRate = 3.2;
+  static const droneSeconds = 10.0;
+  static const droneTrigger = 34.0;
+  static const droneRadius = 75.0;
+  static const droneDamage = 60.0;
+  static const droneSyncInterval = 0.08;
+
   static const countdownSeconds = 3;
+
+  /// How many CPU tanks a single player round rolls, both ends included.
+  static const minBots = 1;
+  static const maxBots = 4;
   static const roundOverSeconds = 6;
 
   /// Four paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white
@@ -95,6 +128,30 @@ class GameConfig {
     'WINTERTARN',
     'NATO-GRAU',
   ];
+
+  /// Multiplayer rounds paint every tank in its own loud colour instead of
+  /// camouflage, so players tell each other apart at a glance. Red and blue
+  /// are left out, they belong to the teams.
+  static const playerColors = [
+    Color(0xFFF2C230),
+    Color(0xFF2EC4B6),
+    Color(0xFFD94BC0),
+    Color(0xFFF08A24),
+    Color(0xFF9BD93B),
+    Color(0xFF8E6CEF),
+    Color(0xFFF2F2F2),
+    Color(0xFFFF8FA3),
+  ];
+
+  /// Colour of the player at [index] in a multiplayer round.
+  static Color playerColor(int index) =>
+      playerColors[index % playerColors.length];
+
+  static const lobbyIdleTimeout = Duration(minutes: 10);
+
+  /// How long the room may be without a host, or with two, before it settles
+  /// the question itself.
+  static const hostSettleSeconds = 3.0;
 
   /// A player's look travels as one number, the paint scheme in the low two
   /// bits and the vehicle above it, so the wire format stays a single int.
