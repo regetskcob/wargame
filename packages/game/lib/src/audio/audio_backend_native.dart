@@ -33,10 +33,11 @@ class _NativeAudioBackend implements AudioBackend {
       await player.setReleaseMode(ReleaseMode.release);
       await player.setVolume(volume);
       await player.play(source);
-      await player.onPlayerComplete.first.timeout(
-        const Duration(seconds: 5),
-        onTimeout: () {},
-      );
+      // The stream is a mapped one whose futures are typed by the platform
+      // event, so drop the value before giving it a void timeout handler.
+      await player.onPlayerComplete.first
+          .then<void>((_) {})
+          .timeout(const Duration(seconds: 5), onTimeout: () {});
     } on Object catch (error) {
       debugPrint('Audio play failed: $error');
     } finally {

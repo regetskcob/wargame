@@ -72,7 +72,7 @@ class _KillFeedViewState extends State<KillFeedView> {
     final fade = age > 6000 ? (1 - (age - 6000) / 2000).clamp(0.0, 1.0) : 1.0;
     final highlight = entry.byMe || entry.meDied;
     final text = TextStyle(
-      fontSize: widget.compact ? 11 : 13,
+      fontSize: widget.compact ? 10 : 13,
       fontWeight: FontWeight.w700,
     );
     return Opacity(
@@ -80,7 +80,7 @@ class _KillFeedViewState extends State<KillFeedView> {
       child: Container(
         margin: EdgeInsets.only(top: widget.compact ? 2 : 4),
         padding: widget.compact
-            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
+            ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
             : const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: ShapeDecoration(
           color: const Color(0xB3101408),

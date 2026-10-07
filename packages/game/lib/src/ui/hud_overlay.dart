@@ -257,7 +257,7 @@ class _HudOverlayState extends State<HudOverlay> {
           ),
         ),
         if (game.usesFuel) ...[
-          SizedBox(height: compact ? 4 : 6),
+          SizedBox(height: compact ? 3 : 6),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
             builder: (context, fuel, _) =>
@@ -438,94 +438,170 @@ class _HudOverlayState extends State<HudOverlay> {
 /// Defense round: how the base stands, the money, the buttons that put a
 /// gun where the tank stands or upgrade the one next to it, and the
 /// upgrades for the tank.
-class _DefensePanel extends StatelessWidget {
+class _DefensePanel extends StatefulWidget {
   const _DefensePanel({required this.game, required this.touch});
 
   final SpaceGame game;
   final bool touch;
 
-  Widget _shop(int credits) {
-    final near = game.nearTower.value;
-    final small = TextStyle(fontSize: touch ? 10 : 11, letterSpacing: 0.5);
-    final buttonStyle = ButtonStyle(
-      padding: WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: touch ? 6 : 10, vertical: 4),
+  @override
+  State<_DefensePanel> createState() => _DefensePanelState();
+}
+
+/// What the touch panel shows below its header: nothing, the guns to build
+/// or the upgrades for the tank. One list at a time keeps the arena visible.
+enum _Shop { closed, towers, upgrades }
+
+class _DefensePanelState extends State<_DefensePanel> {
+  _Shop _shop = _Shop.closed;
+
+  SpaceGame get game => widget.game;
+  bool get touch => widget.touch;
+
+  ButtonStyle get _buttonStyle => ButtonStyle(
+    padding: WidgetStatePropertyAll(
+      EdgeInsets.symmetric(horizontal: touch ? 8 : 10, vertical: 4),
+    ),
+    // Big enough for a thumb on phones, still a single line of text.
+    minimumSize: WidgetStatePropertyAll(Size(0, touch ? 32 : 30)),
+    visualDensity: VisualDensity.compact,
+    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+  );
+
+  TextStyle get _small =>
+      TextStyle(fontSize: touch ? 10 : 11, letterSpacing: 0.5);
+
+  Widget _nearTower(Tower near, int credits) {
+    return FilledButton.icon(
+      style: _buttonStyle,
+      onPressed:
+          near.kind.upgradable &&
+              near.level < TowerKind.maxLevel &&
+              credits >= near.kind.upgradeCost(near.level)
+          ? () => game.upgradeTower(near)
+          : null,
+      icon: const Icon(Icons.upgrade, size: 16),
+      label: Text(
+        !near.kind.upgradable
+            ? '${near.kind.label} BESETZT'
+            : near.level >= TowerKind.maxLevel
+            ? '${near.kind.label} HÖCHSTE STUFE'
+            : '${near.kind.label} AUFRÜSTEN  '
+                  '${near.kind.upgradeCost(near.level)}',
+        style: _small,
       ),
-      minimumSize: const WidgetStatePropertyAll(Size(0, 30)),
-      visualDensity: VisualDensity.compact,
     );
+  }
+
+  Widget _towers(int credits) {
+    final wave = game.defense.value?.wave ?? 0;
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        for (final kind in TowerKind.values)
+          Tooltip(
+            message: kind.unlockedIn(wave)
+                ? kind.hint
+                : '${kind.hint}, ab Welle ${kind.fromWave}',
+            child:
+                (kind == game.towerChoice.value
+                ? FilledButton.new
+                : OutlinedButton.new)(
+                  style: _buttonStyle,
+                  onPressed: credits >= kind.cost && kind.unlockedIn(wave)
+                      ? () => game.buildTower(kind)
+                      : null,
+                  child: Text(
+                    kind.unlockedIn(wave)
+                        ? '${kind.label} ${kind.cost}'
+                        : '${kind.label} AB W${kind.fromWave}',
+                    style: _small,
+                  ),
+                ),
+          ),
+      ],
+    );
+  }
+
+  Widget _upgrades(int credits) {
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: [
+        for (final kind in UpgradeKind.values) _upgrade(kind, credits),
+      ],
+    );
+  }
+
+  Widget _shopDesktop(int credits) {
+    final near = game.nearTower.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          touch
-              ? 'MITTEL $credits'
-              : 'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
+          'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
           style: const TextStyle(
             color: BwColors.amber,
             fontWeight: FontWeight.w800,
           ),
         ),
         const SizedBox(height: 6),
-        if (near != null)
-          FilledButton.icon(
-            style: buttonStyle,
-            onPressed:
-                near.kind.upgradable &&
-                    near.level < TowerKind.maxLevel &&
-                    credits >= near.kind.upgradeCost(near.level)
-                ? () => game.upgradeTower(near)
-                : null,
-            icon: const Icon(Icons.upgrade, size: 16),
-            label: Text(
-              !near.kind.upgradable
-                  ? '${near.kind.label} BESETZT'
-                  : near.level >= TowerKind.maxLevel
-                  ? '${near.kind.label} HÖCHSTE STUFE'
-                  : '${near.kind.label} AUFRÜSTEN  '
-                        '${near.kind.upgradeCost(near.level)}',
-              style: small,
-            ),
-          )
-        else
-          Wrap(
-            spacing: 6,
-            runSpacing: 4,
-            children: [
-              for (final kind in TowerKind.values)
-                Tooltip(
-                  message: kind.unlockedIn(game.defense.value?.wave ?? 0)
-                      ? kind.hint
-                      : '${kind.hint}, ab Welle ${kind.fromWave}',
-                  child:
-                      (kind == game.towerChoice.value
-                      ? FilledButton.new
-                      : OutlinedButton.new)(
-                        style: buttonStyle,
-                        onPressed:
-                            credits >= kind.cost &&
-                                kind.unlockedIn(game.defense.value?.wave ?? 0)
-                            ? () => game.buildTower(kind)
-                            : null,
-                        child: Text(
-                          kind.unlockedIn(game.defense.value?.wave ?? 0)
-                              ? '${kind.label} ${kind.cost}'
-                              : '${kind.label} AB W${kind.fromWave}',
-                          style: small,
-                        ),
-                      ),
-                ),
-            ],
-          ),
+        if (near != null) _nearTower(near, credits) else _towers(credits),
         const SizedBox(height: 6),
-        Wrap(
-          spacing: 6,
-          runSpacing: 4,
+        _upgrades(credits),
+      ],
+    );
+  }
+
+  Widget _tab(String label, _Shop shop) {
+    final open = _shop == shop;
+    return (open ? FilledButton.new : OutlinedButton.new)(
+      style: _buttonStyle,
+      onPressed: () => setState(() => _shop = open ? _Shop.closed : shop),
+      child: Text(label, style: _small),
+    );
+  }
+
+  /// Phones: a slim header with the base and the credits, the lists fold out
+  /// on demand. Standing by a gun shows its upgrade button right away.
+  Widget _shopTouch(int credits) {
+    final near = game.nearTower.value;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            for (final kind in UpgradeKind.values) _upgrade(kind, credits),
+            Text(
+              'MITTEL $credits',
+              style: const TextStyle(
+                color: BwColors.amber,
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 8),
+            _tab('TÜRME', _Shop.towers),
+            const SizedBox(width: 6),
+            _tab('UPGRADES', _Shop.upgrades),
           ],
         ),
+        if (near != null) ...[
+          const SizedBox(height: 6),
+          _nearTower(near, credits),
+        ],
+        if (_shop != _Shop.closed) ...[
+          const SizedBox(height: 6),
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 330),
+            child: _shop == _Shop.towers
+                ? _towers(credits)
+                : _upgrades(credits),
+          ),
+        ],
       ],
     );
   }
@@ -537,12 +613,11 @@ class _DefensePanel extends StatelessWidget {
     return Tooltip(
       message: '${kind.label}: ${kind.effect} je Stufe',
       child: OutlinedButton(
-        style: ButtonStyle(
+        style: _buttonStyle.copyWith(
           padding: WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: touch ? 5 : 8, vertical: 2),
+            EdgeInsets.symmetric(horizontal: touch ? 6 : 8, vertical: 2),
           ),
-          minimumSize: const WidgetStatePropertyAll(Size(0, 28)),
-          visualDensity: VisualDensity.compact,
+          minimumSize: WidgetStatePropertyAll(Size(0, touch ? 32 : 28)),
           side: WidgetStatePropertyAll(BorderSide(color: kind.color)),
         ),
         onPressed: !maxed && credits >= cost
@@ -551,54 +626,66 @@ class _DefensePanel extends StatelessWidget {
         child: Text(
           '${kind.label} ${'●' * level}${'○' * (GameConfig.upgradeMaxLevel - level)}'
           '${maxed ? '' : ' $cost'}',
-          style: TextStyle(fontSize: touch ? 9 : 10, color: kind.color),
+          style: TextStyle(fontSize: 10, color: kind.color),
         ),
       ),
+    );
+  }
+
+  Widget _base() {
+    return ValueListenableBuilder<DefensePayload?>(
+      valueListenable: game.defense,
+      builder: (context, state, _) {
+        final hq = state?.hq ?? 1;
+        final hp = state?.hp ?? GameConfig.baseHp;
+        final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
+        final bar = SizedBox(
+          width: touch ? 90 : 200,
+          height: touch ? 6 : 8,
+          child: LinearProgressIndicator(
+            value: ratio,
+            backgroundColor: const Color(0x66000000),
+            color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+          ),
+        );
+        final label = Text(
+          touch
+              ? 'STÜTZPUNKT ${hp.ceil()}'
+              : 'STÜTZPUNKT · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
+          style: TextStyle(
+            fontSize: touch ? 10 : 12,
+            fontWeight: FontWeight.w800,
+          ),
+        );
+        if (touch) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [label, const SizedBox(width: 8), bar],
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [label, const SizedBox(height: 4), bar],
+        );
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
     final panel = Panel(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: touch
+          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
+          : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: touch
+            ? CrossAxisAlignment.end
+            : CrossAxisAlignment.start,
         children: [
-          ValueListenableBuilder<DefensePayload?>(
-            valueListenable: game.defense,
-            builder: (context, state, _) {
-              final hq = state?.hq ?? 1;
-              final hp = state?.hp ?? GameConfig.baseHp;
-              final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'STÜTZPUNKT · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  SizedBox(
-                    width: touch ? 140 : 200,
-                    height: 8,
-                    child: LinearProgressIndicator(
-                      value: ratio,
-                      backgroundColor: const Color(0x66000000),
-                      color: ratio > 0.3
-                          ? const Color(0xFF9CCC65)
-                          : BwColors.danger,
-                    ),
-                  ),
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 8),
+          _base(),
+          SizedBox(height: touch ? 6 : 8),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.credits,
@@ -607,7 +694,9 @@ class _DefensePanel extends StatelessWidget {
               game.upgrades,
               game.defense,
             ]),
-            builder: (context, _) => _shop(game.credits.value),
+            builder: (context, _) => touch
+                ? _shopTouch(game.credits.value)
+                : _shopDesktop(game.credits.value),
           ),
         ],
       ),
@@ -619,7 +708,7 @@ class _DefensePanel extends StatelessWidget {
         alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
         child: Padding(
           padding: touch
-              ? const EdgeInsets.only(top: 58)
+              ? const EdgeInsets.only(top: 50)
               : const EdgeInsets.all(8),
           child: _HudButtons(game: game, child: panel),
         ),
