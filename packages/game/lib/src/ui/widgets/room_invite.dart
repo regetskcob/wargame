@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../game/space_game.dart';
 import '../../net/payloads/lobby_presence.dart';
@@ -54,6 +55,43 @@ class _RoomInviteState extends State<RoomInvite> {
     if (!shared) {
       await _copy();
     }
+  }
+
+  /// The link as a code to scan with a phone camera, on white for contrast.
+  Widget _qr(String link) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(8),
+          child: QrImageView(
+            data: link,
+            size: 116,
+            padding: EdgeInsets.zero,
+            backgroundColor: Colors.white,
+            errorCorrectionLevel: QrErrorCorrectLevel.M,
+            eyeStyle: const QrEyeStyle(
+              eyeShape: QrEyeShape.square,
+              color: Color(0xFF11140C),
+            ),
+            dataModuleStyle: const QrDataModuleStyle(
+              dataModuleShape: QrDataModuleShape.square,
+              color: Color(0xFF11140C),
+            ),
+          ),
+        ),
+        const SizedBox(height: 4),
+        const Text(
+          'ZUM SCANNEN',
+          style: TextStyle(
+            fontSize: 9,
+            letterSpacing: 1.5,
+            color: BwColors.textDim,
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -127,36 +165,49 @@ class _RoomInviteState extends State<RoomInvite> {
                       vertical: 8,
                     ),
                     color: const Color(0x66000000),
-                    child: SelectableText(
+                    child: Text(
                       _link,
-                      maxLines: 1,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: 12),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                  Row(
                     children: [
-                      FilledButton.icon(
-                        onPressed: _copy,
-                        icon: Icon(_copied ? Icons.check : Icons.copy),
-                        label: Text(_copied ? 'KOPIERT' : 'LINK KOPIEREN'),
+                      Expanded(
+                        child: FilledButton.icon(
+                          onPressed: _copy,
+                          icon: Icon(_copied ? Icons.check : Icons.copy),
+                          label: Text(
+                            _copied ? 'KOPIERT' : 'KOPIEREN',
+                            maxLines: 1,
+                          ),
+                        ),
                       ),
-                      OutlinedButton.icon(
-                        onPressed: _share,
-                        icon: const Icon(Icons.ios_share),
-                        label: const Text('TEILEN'),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _share,
+                          icon: const Icon(Icons.ios_share),
+                          label: const Text('TEILEN', maxLines: 1),
+                        ),
                       ),
                     ],
                   ),
                 ],
               ],
             );
+            final qr = hasLink ? _qr(_link) : null;
             if (constraints.maxWidth < 560) {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: [code, const SizedBox(height: 12), invite],
+                children: [
+                  code,
+                  const SizedBox(height: 12),
+                  invite,
+                  if (qr != null) ...[const SizedBox(height: 12), qr],
+                ],
               );
             }
             return Row(
@@ -165,6 +216,7 @@ class _RoomInviteState extends State<RoomInvite> {
                 SizedBox(width: 190, child: code),
                 const SizedBox(width: 20),
                 Expanded(child: invite),
+                if (qr != null) ...[const SizedBox(width: 16), qr],
               ],
             );
           },
