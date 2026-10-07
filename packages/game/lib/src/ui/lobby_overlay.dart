@@ -583,6 +583,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         'ein. Waffen löst du danach mit F aus. In der '
                         'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
             ),
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: game.showTutorial,
+              icon: const Icon(Icons.school, size: 18),
+              label: const Text('EINWEISUNG ANSEHEN'),
+            ),
           ],
         ),
       ),

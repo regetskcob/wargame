@@ -26,6 +26,18 @@ class TankChoice extends StatelessWidget {
   /// The pilot's rank is too low for it yet.
   final bool locked;
 
+  /// One line of text [height] high, shrunk to fit instead of wrapping.
+  static Widget _line(String text, TextStyle style, double height) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 6),
+    child: SizedBox(
+      height: height,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, style: style, maxLines: 1, softWrap: false),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final card = InkWell(
@@ -37,9 +49,11 @@ class TankChoice extends StatelessWidget {
           color: selected ? const Color(0x33FFB300) : const Color(0x55000000),
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(8),
+            // The same width for all: a thicker border would make the
+            // selected card bigger than the others.
             side: BorderSide(
               color: selected ? BwColors.amber : BwColors.oliveLight,
-              width: selected ? 2.5 : 1.5,
+              width: 2,
             ),
           ),
         ),
@@ -52,20 +66,24 @@ class TankChoice extends StatelessWidget {
               child: CustomPaint(painter: TankPreviewPainter(type, color)),
             ),
             const SizedBox(height: 4),
-            Text(
+            // One line each, shrunk to fit, so every card has the same
+            // height however long the name is.
+            _line(
               type.label,
-              style: const TextStyle(
+              const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1,
               ),
+              17,
             ),
-            Text(
+            _line(
               locked ? 'ab Stufe ${type.level}' : type.role,
-              style: TextStyle(
+              TextStyle(
                 fontSize: 10,
                 color: locked ? BwColors.amber : BwColors.textDim,
               ),
+              14,
             ),
           ],
         ),

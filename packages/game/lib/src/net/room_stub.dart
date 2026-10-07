@@ -11,6 +11,15 @@ bool prefersGuest() => false;
 /// Remembers that this device plays as a guest.
 void rememberGuest() {}
 
+var _tutorialSeen = false;
+
+/// Whether the tutorial was seen. Outside the browser nothing is stored, so
+/// it opens once per start of the app.
+bool tutorialSeen() => _tutorialSeen;
+
+/// Remembers that the tutorial was seen, until the app is closed.
+void rememberTutorialSeen() => _tutorialSeen = true;
+
 /// Back from a sign-in mail: drops its code and room from the address.
 /// Outside the browser there is none.
 void leaveMailLink() {}

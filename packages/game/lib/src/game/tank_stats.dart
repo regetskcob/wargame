@@ -134,6 +134,20 @@ class TankStats {
       sound: 'cannon',
       blurb: 'Rheinmetall Panther: 130-mm-Kanone, der schwerste Panzer im Feld',
     ),
+    TankType.pzh: TankStats(
+      maxHp: 185,
+      speed: 0.95,
+      acceleration: 0.85,
+      turnRate: 0.9,
+      fireCooldown: 1.05,
+      ammo: 12,
+      damage: 75,
+      bulletSpeed: 700,
+      barrels: 1,
+      sound: 'cannon',
+      blurb:
+          'Panzerhaubitze 2000: 155-mm-Rohr, lädt langsam, trifft verheerend',
+    ),
   };
 
   static TankStats of(TankType type) => _byType[type]!;
