@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 
 import '../../db/supabase_schema.g.dart';
+import '../../game/components/tank_painter.dart';
 import '../../game/space_game.dart';
 import '../../theme.dart';
+import 'choice_row.dart';
 
-/// Ranking of all pilots by wins, with the totals behind it. The own row is
-/// highlighted.
+enum _View { total, week, vehicles }
+
+/// Ranking of all pilots by rating, with the totals behind it, the same for
+/// the current week, and the player's own numbers per vehicle. The own row
+/// is highlighted.
 class Leaderboard extends StatefulWidget {
   const Leaderboard({required this.game, this.rows = 10, super.key});
 
@@ -20,15 +25,28 @@ class Leaderboard extends StatefulWidget {
 
 class _LeaderboardState extends State<Leaderboard> {
   late final Stream<List<ScoresRow>> _scores;
+  var _view = _View.total;
+  late Future<List<WeeklyScoresRow>> _week;
+  late Future<List<TankScoresRow>> _vehicles;
 
   @override
   void initState() {
     super.initState();
-    _scores = widget.game.scoreService.topScores();
+    _scores = widget.game.scoreService.topScores(limit: 50);
+    _reload();
   }
 
-  /// Wins first, kills and damage break ties.
+  void _reload() {
+    _week = widget.game.scoreService.weeklyScores();
+    _vehicles = widget.game.scoreService.myTankScores();
+  }
+
+  /// Rating first, then wins, kills and damage break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
+    final byRating = b.rating.compareTo(a.rating);
+    if (byRating != 0) {
+      return byRating;
+    }
     final byWins = b.wins.compareTo(a.wins);
     if (byWins != 0) {
       return byWins;
@@ -42,6 +60,171 @@ class _LeaderboardState extends State<Leaderboard> {
 
   @override
   Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('BESTENLISTE', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: 8),
+        ChoiceRow<_View>(
+          options: const [
+            (_View.total, 'GESAMT', null),
+            (_View.week, 'DIESE WOCHE', null),
+            (_View.vehicles, 'MEINE FAHRZEUGE', null),
+          ],
+          selected: _view,
+          onSelected: (v) => setState(() {
+            _view = v ?? _view;
+            _reload();
+          }),
+        ),
+        const SizedBox(height: 10),
+        switch (_view) {
+          _View.total => _total(context),
+          _View.week => _weekTable(),
+          _View.vehicles => _vehicleTable(),
+        },
+      ],
+    );
+  }
+
+  static const _empty = Text(
+    'Noch keine Übungen gewertet.',
+    style: TextStyle(color: BwColors.textDim),
+  );
+
+  Widget _table(List<String> labels, List<TableRow> rows) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 640),
+        child: Table(
+          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+          columnWidths: const {
+            0: FixedColumnWidth(48),
+            1: FlexColumnWidth(2.4),
+          },
+          children: [_headerOf(labels), ...rows],
+        ),
+      ),
+    );
+  }
+
+  TableRow _plainRow(List<String> cells, {bool mine = false, int? rank}) {
+    final base = TextStyle(
+      fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
+      color: mine ? BwColors.amber : BwColors.text,
+    );
+    final medal = rank != null && rank <= 3 ? _medals[rank - 1] : null;
+    return TableRow(
+      decoration: BoxDecoration(
+        color: mine ? const Color(0x33FFB300) : null,
+        border: const Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+      ),
+      children: [
+        for (var i = 0; i < cells.length; i++)
+          _cell(
+            cells[i],
+            style: i == 0 && medal != null
+                ? base.copyWith(color: medal, fontWeight: FontWeight.w900)
+                : base,
+            align: i == 1 ? TextAlign.left : TextAlign.right,
+          ),
+      ],
+    );
+  }
+
+  Widget _weekTable() {
+    final me = widget.game.scoreService.myId;
+    return FutureBuilder<List<WeeklyScoresRow>>(
+      future: _week,
+      builder: (context, snapshot) {
+        final rows = snapshot.data ?? const <WeeklyScoresRow>[];
+        if (rows.isEmpty) {
+          return snapshot.connectionState == ConnectionState.done
+              ? const Text(
+                  'Diese Woche wurde noch nicht geübt.',
+                  style: TextStyle(color: BwColors.textDim),
+                )
+              : const SizedBox(height: 24);
+        }
+        return _table(
+          const [
+            'RANG',
+            'PILOT',
+            'EP',
+            'SIEGE',
+            'RUNDEN',
+            'ABSCHÜSSE',
+            '± WERTUNG',
+          ],
+          [
+            for (var i = 0; i < rows.length; i++)
+              _plainRow(
+                [
+                  '${i + 1}',
+                  rows[i].name ?? '',
+                  '${rows[i].xp ?? 0}',
+                  '${rows[i].wins ?? 0}',
+                  '${rows[i].rounds ?? 0}',
+                  '${rows[i].kills ?? 0}',
+                  _signed(rows[i].ratingChange ?? 0),
+                ],
+                mine: rows[i].id == me,
+                rank: i + 1,
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  static String _signed(int value) => value > 0 ? '+$value' : '$value';
+
+  Widget _vehicleTable() {
+    return FutureBuilder<List<TankScoresRow>>(
+      future: _vehicles,
+      builder: (context, snapshot) {
+        final byType = {
+          for (final row in snapshot.data ?? const <TankScoresRow>[])
+            if (row.tankType != null) row.tankType!: row,
+        };
+        if (byType.isEmpty) {
+          return snapshot.connectionState == ConnectionState.done
+              ? _empty
+              : const SizedBox(height: 24);
+        }
+        return _table(
+          const [
+            '',
+            'FAHRZEUG',
+            'RUNDEN',
+            'SIEGE',
+            'ABSCHÜSSE',
+            'SCHADEN',
+            'TREFFER',
+          ],
+          [
+            for (final type in TankType.values)
+              if (byType[type.index] case final row?)
+                _plainRow([
+                  '',
+                  type.label,
+                  '${row.rounds ?? 0}',
+                  '${row.wins ?? 0}',
+                  '${row.kills ?? 0}',
+                  '${row.damage ?? 0}',
+                  (row.shots ?? 0) == 0
+                      ? '-'
+                      : '${((row.hits ?? 0) * 100 / row.shots!).round()} %',
+                ]),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _total(BuildContext context) {
     return StreamBuilder<List<ScoresRow>>(
       stream: _scores,
       builder: (context, snapshot) {
@@ -49,38 +232,13 @@ class _LeaderboardState extends State<Leaderboard> {
           ..sort(_byRank);
         final shown = scores.take(widget.rows).toList();
         final me = widget.game.scoreService.myId;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('BESTENLISTE', style: Theme.of(context).textTheme.titleMedium),
-            const SizedBox(height: 8),
-            if (shown.isEmpty)
-              const Text(
-                'Noch keine Übungen gewertet.',
-                style: TextStyle(color: BwColors.textDim),
-              )
-            else
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 640),
-                  child: Table(
-                    defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-                    columnWidths: const {
-                      0: FixedColumnWidth(48),
-                      1: FlexColumnWidth(2.4),
-                    },
-                    children: [
-                      _header(),
-                      for (var i = 0; i < shown.length; i++)
-                        _row(i + 1, shown[i], mine: shown[i].id == me),
-                    ],
-                  ),
-                ),
-              ),
-          ],
-        );
+        if (shown.isEmpty) {
+          return _empty;
+        }
+        return _table(_labels, [
+          for (var i = 0; i < shown.length; i++)
+            _row(i + 1, shown[i], mine: shown[i].id == me),
+        ]);
       },
     );
   }
@@ -107,17 +265,19 @@ class _LeaderboardState extends State<Leaderboard> {
     ),
   );
 
-  TableRow _header() {
-    const labels = [
-      'RANG',
-      'PILOT',
-      'SIEGE',
-      'RUNDEN',
-      'ABSCHÜSSE',
-      'SCHADEN',
-      'TREFFER',
-      'Ø ÜBERLEBT',
-    ];
+  static const _labels = [
+    'RANG',
+    'PILOT',
+    'WERTUNG',
+    'SIEGE',
+    'RUNDEN',
+    'ABSCHÜSSE',
+    'SCHADEN',
+    'TREFFER',
+    'Ø ÜBERLEBT',
+  ];
+
+  TableRow _headerOf(List<String> labels) {
     return TableRow(
       decoration: const BoxDecoration(
         border: Border(bottom: BorderSide(color: BwColors.oliveLight)),
@@ -165,6 +325,7 @@ class _LeaderboardState extends State<Leaderboard> {
           ),
         ),
         _cell(row.name, style: base, align: TextAlign.left),
+        _cell('${row.rating}', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.rounds}', style: base),
         _cell('${row.kills}', style: base),

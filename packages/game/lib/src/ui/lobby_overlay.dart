@@ -12,6 +12,7 @@ import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/panel.dart';
+import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
@@ -44,6 +45,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   void _pick({int? type, int? color}) {
+    if (color != null && !widget.game.progress.unlocked(color)) {
+      return;
+    }
     setState(() {
       _colorIndex = GameConfig.styleOf(
         type ?? GameConfig.typeOf(_colorIndex).index,
@@ -84,7 +88,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           'Gefechtsübung: Der letzte Panzer im Feld gewinnt.',
           style: TextStyle(color: BwColors.textDim),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+        PilotCard(progress: game.progress),
+        const SizedBox(height: 16),
         TextField(
           controller: _nameController,
           maxLength: 16,
@@ -124,20 +130,27 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         const SizedBox(height: 16),
         Text('TARNUNG', style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            for (var i = 0; i < GameConfig.shipColors.length; i++)
-              Tooltip(
-                message: GameConfig.colorNames[i],
-                child: ColorSwatchButton(
-                  color: GameConfig.shipColors[i],
-                  selected: i == _colorIndex % GameConfig.shipColors.length,
-                  onTap: () => _pick(color: i),
+        ValueListenableBuilder(
+          valueListenable: game.progress.rank,
+          builder: (context, rank, _) => Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (var i = 0; i < GameConfig.shipColors.length; i++)
+                Tooltip(
+                  message: game.progress.unlocked(i)
+                      ? GameConfig.colorNames[i]
+                      : '${GameConfig.colorNames[i]}: ab Stufe '
+                            '${GameConfig.colorLevels[i]}',
+                  child: ColorSwatchButton(
+                    color: GameConfig.shipColors[i],
+                    selected: i == _colorIndex % GameConfig.shipColors.length,
+                    locked: !game.progress.unlocked(i),
+                    onTap: () => _pick(color: i),
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
         if (game.net.isHost) ...[
           const SizedBox(height: 16),
@@ -450,12 +463,16 @@ class ColorSwatchButton extends StatelessWidget {
     required this.color,
     required this.selected,
     required this.onTap,
+    this.locked = false,
     super.key,
   });
 
   final Color color;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Needs a higher rank: dimmed with a lock.
+  final bool locked;
 
   @override
   Widget build(BuildContext context) {
@@ -464,8 +481,9 @@ class ColorSwatchButton extends StatelessWidget {
       child: Container(
         width: 32,
         height: 32,
+        alignment: Alignment.center,
         decoration: ShapeDecoration(
-          color: color,
+          color: locked ? color.withValues(alpha: 0.35) : color,
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
@@ -474,6 +492,9 @@ class ColorSwatchButton extends StatelessWidget {
             ),
           ),
         ),
+        child: locked
+            ? const Icon(Icons.lock, size: 14, color: Color(0xCCFFFFFF))
+            : null,
       ),
     );
   }

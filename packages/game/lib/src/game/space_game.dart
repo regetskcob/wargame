@@ -10,6 +10,7 @@ import 'package:flutter/foundation.dart';
 
 import '../app/overlay_ids.dart';
 import '../audio_service.dart';
+import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game_config.dart';
 import '../net/net_events.dart';
@@ -33,6 +34,7 @@ import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/obstacle.dart';
 import 'map_theme.dart';
+import 'pilot_progress.dart';
 import 'weather.dart';
 import 'plausibility.dart';
 import 'components/bullet.dart';
@@ -57,12 +59,24 @@ import 'round_state.dart';
 
 class SpaceGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
-  SpaceGame({required this.net, required this.myId, required this.scoreService})
-    : super(camera: CameraComponent());
+  SpaceGame({
+    required this.net,
+    required this.myId,
+    required this.scoreService,
+    required this.profiles,
+  }) : super(camera: CameraComponent());
 
   final NetService net;
   final String myId;
   final ScoreService scoreService;
+  final ProfileService profiles;
+
+  /// Rank, rating and badges of the local pilot.
+  late final progress = PilotProgress(scores: scoreService, profiles: profiles);
+
+  /// Account ids of the players in the current round, for the rating.
+  final _uids = <String, String>{};
+  async.Timer? _saveTimer;
 
   final phase = ValueNotifier<GamePhase>(GamePhase.lobby);
   final roster = ValueNotifier<List<LobbyPresence>>([]);
@@ -276,6 +290,7 @@ class SpaceGame extends FlameGame
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
       ..onPeerLeft = _onPeerLeft;
+    await _loadPilot();
     await net.connect(_presencePayload());
     overlays.add(OverlayIds.lobby);
   }
@@ -319,6 +334,24 @@ class SpaceGame extends FlameGame
     }
   }
 
+  /// Name, look and progress from the last visit. Gives up after a few
+  /// seconds so a slow network never holds up the lobby.
+  Future<void> _loadPilot() async {
+    try {
+      final profile = await profiles.load().timeout(const Duration(seconds: 3));
+      await progress.load().timeout(const Duration(seconds: 3));
+      if (profile != null) {
+        myName = profile.name;
+        final color = profile.style % GameConfig.shipColors.length;
+        myColorIndex = progress.unlocked(color)
+            ? profile.style % GameConfig.styleCount
+            : GameConfig.styleOf(GameConfig.typeOf(profile.style).index, 0);
+      }
+    } on Object {
+      return;
+    }
+  }
+
   LobbyPresence _presencePayload() {
     return LobbyPresence(
       id: myId,
@@ -329,6 +362,7 @@ class SpaceGame extends FlameGame
       host: net.isHost,
       seed: round?.seed,
       startedAt: round?.startedAt,
+      uid: scoreService.myId,
     );
   }
 
@@ -365,8 +399,16 @@ class SpaceGame extends FlameGame
 
   void setPilot({required String name, required int colorIndex}) {
     myName = name.trim().isEmpty ? myName : name.trim();
-    myColorIndex = colorIndex;
+    final color = colorIndex % GameConfig.shipColors.length;
+    if (progress.unlocked(color)) {
+      myColorIndex = colorIndex;
+    }
     unawaited(pushPresence());
+    // Typing a name calls this on every key, so save once it settles.
+    _saveTimer?.cancel();
+    _saveTimer = async.Timer(const Duration(milliseconds: 800), () {
+      unawaited(profiles.save(name: myName, style: myColorIndex));
+    });
   }
 
   static final _liveMatchPhases = {
@@ -527,6 +569,14 @@ class SpaceGame extends FlameGame
     );
     myTeam = payload.teams[myId] ?? 0;
     guard.reset();
+    progress.clearRound();
+    _uids
+      ..clear()
+      ..addAll({
+        for (final member in roster.value)
+          if (member.uid != null && payload.participants.contains(member.id))
+            member.id: member.uid!,
+      });
     killFeed.value = const [];
     roundStats = RoundStats();
     round = activeRound;
@@ -1119,7 +1169,7 @@ class SpaceGame extends FlameGame
     );
     _recordKill(myId, killerId);
     roundStats.finish(_secondsIntoRound);
-    round?.alive.remove(myId);
+    round?.markDead(myId);
     world.add(
       Explosion(position: ship.position.clone(), color: ship.shipColor),
     );
@@ -1387,7 +1437,7 @@ class SpaceGame extends FlameGame
       DeathPayload(id: bot.playerId, killerId: killerId).toJson(),
     );
     _recordKill(bot.playerId, killerId);
-    activeRound.alive.remove(bot.playerId);
+    activeRound.markDead(bot.playerId);
     aliveCount.value = activeRound.alive.length;
     world.add(Explosion(position: bot.position.clone(), color: bot.shipColor));
     shakeAt(bot.position, 8);
@@ -1411,7 +1461,7 @@ class SpaceGame extends FlameGame
         }
       }
     }
-    if (activeRound != null && activeRound.alive.remove(id)) {
+    if (activeRound != null && activeRound.markDead(id)) {
       aliveCount.value = activeRound.alive.length;
       _refreshSpectateTarget();
       _checkRoundEnd();
@@ -1423,7 +1473,7 @@ class SpaceGame extends FlameGame
     if (activeRound == null) {
       return;
     }
-    activeRound.alive.remove(id);
+    activeRound.markDead(id);
     aliveCount.value = activeRound.alive.length;
     final ship = remoteShips.remove(id);
     if (ship != null) {
@@ -1486,7 +1536,9 @@ class SpaceGame extends FlameGame
     if (activeRound == null) {
       return;
     }
-    activeRound.winnerId = winnerId;
+    activeRound
+      ..winnerId = winnerId
+      ..winnerTeam = winnerTeam;
     roundStats.finish(_secondsIntoRound);
     final teamWin = winnerTeam != null;
     final myTeamWon = teamWin && myTeam == winnerTeam;
@@ -1504,8 +1556,22 @@ class SpaceGame extends FlameGame
     }
     final won = teamWin ? myTeamWon : winnerId != null && winnerId == myId;
     if (activeRound.participants.contains(myId)) {
+      final placements = activeRound.placementsOf(myId);
+      List<String> accounts(List<String> ids) => [
+        for (final id in ids) ?_uids[id],
+      ];
       unawaited(
-        scoreService.recordRound(name: myName, stats: roundStats, won: won),
+        progress.recordRound(
+          name: myName,
+          stats: roundStats,
+          won: won,
+          tankType: GameConfig.typeOf(myColorIndex),
+          hpLeft: max(0, myShip?.hp ?? 0),
+          soldiers: soldiersRunOver.value,
+          night: conditions?.night ?? false,
+          beaten: accounts(placements.beaten),
+          beatenBy: accounts(placements.beatenBy),
+        ),
       );
     }
     if (won) {

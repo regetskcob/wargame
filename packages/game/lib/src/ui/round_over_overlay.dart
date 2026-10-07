@@ -6,6 +6,7 @@ import '../game/round_stats.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
+import 'widgets/round_rewards.dart';
 
 /// End of round: gold rays and confetti for the winner, a red pulse and a
 /// shaking banner for everyone who lost.
@@ -110,6 +111,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                               false) ...[
                             const SizedBox(height: 20),
                             _StatsRow(stats: game.roundStats),
+                            RoundRewards(progress: game.progress),
                           ],
                           const SizedBox(height: 24),
                           _Actions(game: game),

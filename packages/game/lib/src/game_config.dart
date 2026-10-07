@@ -81,13 +81,17 @@ class GameConfig {
   static const fillTo = 4;
   static const roundOverSeconds = 10;
 
-  /// Four paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white
-  /// and NATO grey.
+  /// Paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white and
+  /// NATO grey for everybody, then four that come with higher ranks.
   static const shipColors = [
     Color(0xFF6B7F3A),
     Color(0xFFC2A878),
     Color(0xFFD8DCD6),
     Color(0xFF8C8C84),
+    Color(0xFF3E5C7A),
+    Color(0xFF2C2C2A),
+    Color(0xFF8B3E2B),
+    Color(0xFFC9A227),
   ];
 
   static const colorNames = [
@@ -95,7 +99,14 @@ class GameConfig {
     'WÜSTENTARN',
     'WINTERTARN',
     'NATO-GRAU',
+    'MARINEBLAU',
+    'NACHTSCHWARZ',
+    'ROSTROT',
+    'EHRENGOLD',
   ];
+
+  /// Rank a paint scheme needs.
+  static const colorLevels = [1, 1, 1, 1, 3, 5, 7, 10];
 
   /// A player's look travels as one number, the vehicle times the number of
   /// paint schemes plus the scheme, so the wire format stays a single int.

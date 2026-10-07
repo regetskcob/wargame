@@ -8,6 +8,9 @@ class RoundStats {
   int kills = 0;
   double damage = 0;
 
+  /// Damage the player's own tank took.
+  double damageTaken = 0;
+
   /// Seconds from the start of the round until the player went down or the
   /// round ended. Null while still going.
   double? survived;

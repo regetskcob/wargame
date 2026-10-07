@@ -8,6 +8,7 @@ class LobbyPresence {
     this.host = false,
     this.seed,
     this.startedAt,
+    this.uid,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -20,6 +21,7 @@ class LobbyPresence {
       host: json['host'] as bool? ?? false,
       seed: json['seed'] as int?,
       startedAt: json['startedAt'] as int?,
+      uid: json['uid'] as String?,
     );
   }
 
@@ -37,6 +39,9 @@ class LobbyPresence {
   final int? seed;
   final int? startedAt;
 
+  /// Account id of the player, for the rating.
+  final String? uid;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -49,6 +54,7 @@ class LobbyPresence {
       'host': host,
       'seed': seed,
       'startedAt': startedAt,
+      if (uid != null) 'uid': uid,
     };
   }
 }

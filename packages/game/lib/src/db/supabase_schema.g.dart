@@ -8,6 +8,286 @@
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+/// A row of the `achievements` table, as `select()` reads it with every column.
+/// Badges earned per pilot
+extension type const AchievementsRow(Map<String, dynamic> _json)
+    implements Object {
+  String get playerId => _json['player_id'] as String;
+  String get code => _json['code'] as String;
+  DateTime get unlockedAt => DateTime.parse(_json['unlocked_at'] as String);
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Values for inserting a row into `achievements`. Columns that are nullable,
+/// identity, or covered by a database default are optional; passing `null`
+/// omits the column so the database default applies. Columns the database
+/// always generates itself are left out entirely. Use the `set…ToNull` methods
+/// to insert SQL NULL explicitly.
+extension type const AchievementsInsert._(Map<String, dynamic> _json)
+    implements Object {
+  AchievementsInsert({
+    required String playerId,
+    required String code,
+    DateTime? unlockedAt,
+  }) : this._({
+         'player_id': playerId,
+         'code': code,
+         'unlocked_at': ?unlockedAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Values for updating rows of `achievements`. All columns are optional;
+/// passing `null` omits the column, leaving it unchanged. Use the `set…ToNull`
+/// methods to write SQL NULL explicitly.
+extension type const AchievementsUpdate._(Map<String, dynamic> _json)
+    implements Object {
+  AchievementsUpdate({String? playerId, String? code, DateTime? unlockedAt})
+    : this._({
+        'player_id': ?playerId,
+        'code': ?code,
+        'unlocked_at': ?unlockedAt?.toUtc().toIso8601String(),
+      });
+}
+
+/// Typed access to the `achievements` table.
+class Achievements {
+  const Achievements._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table =
+      PostgrestTable<AchievementsRow, AchievementsInsert, AchievementsUpdate>(
+        'achievements',
+        AchievementsRow.new,
+        schema: 'public',
+        primaryKey: [playerId, code],
+      );
+
+  static const playerId = PostgrestColumn<AchievementsRow, String>('player_id');
+  static const code = PostgrestColumn<AchievementsRow, String>('code');
+  static const unlockedAt = PostgrestColumn<AchievementsRow, DateTime>(
+    'unlocked_at',
+    fromJson: _dateTimeFromJson,
+  );
+}
+
+/// A row of the `players` table, as `select()` reads it with every column.
+/// Call sign and vehicle of every pilot
+extension type const PlayersRow(Map<String, dynamic> _json) implements Object {
+  String get id => _json['id'] as String;
+  String get name => _json['name'] as String;
+  DateTime get createdAt => DateTime.parse(_json['created_at'] as String);
+
+  /// Vehicle and paint scheme in one number, as the game sends it
+  int get style => _json['style'] as int? ?? 0;
+  DateTime get updatedAt => DateTime.parse(_json['updated_at'] as String);
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Values for inserting a row into `players`. Columns that are nullable,
+/// identity, or covered by a database default are optional; passing `null`
+/// omits the column so the database default applies. Columns the database
+/// always generates itself are left out entirely. Use the `set…ToNull` methods
+/// to insert SQL NULL explicitly.
+extension type const PlayersInsert._(Map<String, dynamic> _json)
+    implements Object {
+  PlayersInsert({
+    required String id,
+    required String name,
+    DateTime? createdAt,
+    int? style,
+    DateTime? updatedAt,
+  }) : this._({
+         'id': id,
+         'name': name,
+         'created_at': ?createdAt?.toUtc().toIso8601String(),
+         'style': ?style,
+         'updated_at': ?updatedAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Values for updating rows of `players`. All columns are optional; passing
+/// `null` omits the column, leaving it unchanged. Use the `set…ToNull` methods
+/// to write SQL NULL explicitly.
+extension type const PlayersUpdate._(Map<String, dynamic> _json)
+    implements Object {
+  PlayersUpdate({
+    String? id,
+    String? name,
+    DateTime? createdAt,
+    int? style,
+    DateTime? updatedAt,
+  }) : this._({
+         'id': ?id,
+         'name': ?name,
+         'created_at': ?createdAt?.toUtc().toIso8601String(),
+         'style': ?style,
+         'updated_at': ?updatedAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Typed access to the `players` table.
+class Players {
+  const Players._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table = PostgrestTable<PlayersRow, PlayersInsert, PlayersUpdate>(
+    'players',
+    PlayersRow.new,
+    schema: 'public',
+    primaryKey: [id],
+  );
+
+  static const id = PostgrestColumn<PlayersRow, String>('id');
+  static const name = PostgrestColumn<PlayersRow, String>('name');
+  static const createdAt = PostgrestColumn<PlayersRow, DateTime>(
+    'created_at',
+    fromJson: _dateTimeFromJson,
+  );
+  static const style = PostgrestColumn<PlayersRow, int>('style');
+  static const updatedAt = PostgrestColumn<PlayersRow, DateTime>(
+    'updated_at',
+    fromJson: _dateTimeFromJson,
+  );
+}
+
+/// A row of the `round_results` table, as `select()` reads it with every
+/// column.
+/// One row per pilot and finished round
+extension type const RoundResultsRow(Map<String, dynamic> _json)
+    implements Object {
+  int get id => _json['id'] as int;
+  String get playerId => _json['player_id'] as String;
+  String get name => _json['name'] as String;
+  int get tankType => _json['tank_type'] as int;
+  bool get won => _json['won'] as bool;
+  int get kills => _json['kills'] as int;
+  int get damage => _json['damage'] as int;
+  int get shots => _json['shots'] as int;
+  int get hits => _json['hits'] as int;
+  int get survivalSeconds => _json['survival_seconds'] as int;
+  int get opponents => _json['opponents'] as int;
+  int get ratingChange => _json['rating_change'] as int;
+  int get xp => _json['xp'] as int;
+  DateTime get createdAt => DateTime.parse(_json['created_at'] as String);
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Values for inserting a row into `round_results`. Columns that are nullable,
+/// identity, or covered by a database default are optional; passing `null`
+/// omits the column so the database default applies. Columns the database
+/// always generates itself are left out entirely. Use the `set…ToNull` methods
+/// to insert SQL NULL explicitly.
+extension type const RoundResultsInsert._(Map<String, dynamic> _json)
+    implements Object {
+  RoundResultsInsert({
+    required String playerId,
+    required String name,
+    required int tankType,
+    required bool won,
+    int? kills,
+    int? damage,
+    int? shots,
+    int? hits,
+    int? survivalSeconds,
+    int? opponents,
+    int? ratingChange,
+    int? xp,
+    DateTime? createdAt,
+  }) : this._({
+         'player_id': playerId,
+         'name': name,
+         'tank_type': tankType,
+         'won': won,
+         'kills': ?kills,
+         'damage': ?damage,
+         'shots': ?shots,
+         'hits': ?hits,
+         'survival_seconds': ?survivalSeconds,
+         'opponents': ?opponents,
+         'rating_change': ?ratingChange,
+         'xp': ?xp,
+         'created_at': ?createdAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Values for updating rows of `round_results`. All columns are optional;
+/// passing `null` omits the column, leaving it unchanged. Use the `set…ToNull`
+/// methods to write SQL NULL explicitly.
+extension type const RoundResultsUpdate._(Map<String, dynamic> _json)
+    implements Object {
+  RoundResultsUpdate({
+    String? playerId,
+    String? name,
+    int? tankType,
+    bool? won,
+    int? kills,
+    int? damage,
+    int? shots,
+    int? hits,
+    int? survivalSeconds,
+    int? opponents,
+    int? ratingChange,
+    int? xp,
+    DateTime? createdAt,
+  }) : this._({
+         'player_id': ?playerId,
+         'name': ?name,
+         'tank_type': ?tankType,
+         'won': ?won,
+         'kills': ?kills,
+         'damage': ?damage,
+         'shots': ?shots,
+         'hits': ?hits,
+         'survival_seconds': ?survivalSeconds,
+         'opponents': ?opponents,
+         'rating_change': ?ratingChange,
+         'xp': ?xp,
+         'created_at': ?createdAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Typed access to the `round_results` table.
+class RoundResults {
+  const RoundResults._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table =
+      PostgrestTable<RoundResultsRow, RoundResultsInsert, RoundResultsUpdate>(
+        'round_results',
+        RoundResultsRow.new,
+        schema: 'public',
+        primaryKey: [id],
+      );
+
+  static const id = PostgrestColumn<RoundResultsRow, int>('id');
+  static const playerId = PostgrestColumn<RoundResultsRow, String>('player_id');
+  static const name = PostgrestColumn<RoundResultsRow, String>('name');
+  static const tankType = PostgrestColumn<RoundResultsRow, int>('tank_type');
+  static const won = PostgrestColumn<RoundResultsRow, bool>('won');
+  static const kills = PostgrestColumn<RoundResultsRow, int>('kills');
+  static const damage = PostgrestColumn<RoundResultsRow, int>('damage');
+  static const shots = PostgrestColumn<RoundResultsRow, int>('shots');
+  static const hits = PostgrestColumn<RoundResultsRow, int>('hits');
+  static const survivalSeconds = PostgrestColumn<RoundResultsRow, int>(
+    'survival_seconds',
+  );
+  static const opponents = PostgrestColumn<RoundResultsRow, int>('opponents');
+  static const ratingChange = PostgrestColumn<RoundResultsRow, int>(
+    'rating_change',
+  );
+  static const xp = PostgrestColumn<RoundResultsRow, int>('xp');
+  static const createdAt = PostgrestColumn<RoundResultsRow, DateTime>(
+    'created_at',
+    fromJson: _dateTimeFromJson,
+  );
+}
+
 /// A row of the `scores` table, as `select()` reads it with every column.
 /// One row per pilot with their total round wins
 extension type const ScoresRow(Map<String, dynamic> _json) implements Object {
@@ -21,6 +301,8 @@ extension type const ScoresRow(Map<String, dynamic> _json) implements Object {
   int get shots => _json['shots'] as int? ?? 0;
   int get hits => _json['hits'] as int? ?? 0;
   int get survivalSeconds => _json['survival_seconds'] as int? ?? 0;
+  int get rating => _json['rating'] as int? ?? 1000;
+  int get xp => _json['xp'] as int? ?? 0;
 
   /// The row as decoded from the response.
   Map<String, dynamic> toJson() => _json;
@@ -44,6 +326,8 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
     int? shots,
     int? hits,
     int? survivalSeconds,
+    int? rating,
+    int? xp,
   }) : this._({
          'id': id,
          'name': name,
@@ -55,6 +339,8 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
          'shots': ?shots,
          'hits': ?hits,
          'survival_seconds': ?survivalSeconds,
+         'rating': ?rating,
+         'xp': ?xp,
        });
 }
 
@@ -63,13 +349,33 @@ extension type const ScoresInsert._(Map<String, dynamic> _json)
 /// to write SQL NULL explicitly.
 extension type const ScoresUpdate._(Map<String, dynamic> _json)
     implements Object {
-  ScoresUpdate({String? id, String? name, int? wins, DateTime? updatedAt})
-    : this._({
-        'id': ?id,
-        'name': ?name,
-        'wins': ?wins,
-        'updated_at': ?updatedAt?.toUtc().toIso8601String(),
-      });
+  ScoresUpdate({
+    String? id,
+    String? name,
+    int? wins,
+    DateTime? updatedAt,
+    int? rounds,
+    int? kills,
+    int? damage,
+    int? shots,
+    int? hits,
+    int? survivalSeconds,
+    int? rating,
+    int? xp,
+  }) : this._({
+         'id': ?id,
+         'name': ?name,
+         'wins': ?wins,
+         'updated_at': ?updatedAt?.toUtc().toIso8601String(),
+         'rounds': ?rounds,
+         'kills': ?kills,
+         'damage': ?damage,
+         'shots': ?shots,
+         'hits': ?hits,
+         'survival_seconds': ?survivalSeconds,
+         'rating': ?rating,
+         'xp': ?xp,
+       });
 }
 
 /// Typed access to the `scores` table.
@@ -90,6 +396,101 @@ class Scores {
   static const updatedAt = PostgrestColumn<ScoresRow, DateTime>(
     'updated_at',
     fromJson: _dateTimeFromJson,
+  );
+  static const rounds = PostgrestColumn<ScoresRow, int>('rounds');
+  static const kills = PostgrestColumn<ScoresRow, int>('kills');
+  static const damage = PostgrestColumn<ScoresRow, int>('damage');
+  static const shots = PostgrestColumn<ScoresRow, int>('shots');
+  static const hits = PostgrestColumn<ScoresRow, int>('hits');
+  static const survivalSeconds = PostgrestColumn<ScoresRow, int>(
+    'survival_seconds',
+  );
+  static const rating = PostgrestColumn<ScoresRow, int>('rating');
+  static const xp = PostgrestColumn<ScoresRow, int>('xp');
+}
+
+/// A row of the `tank_scores` table, as `select()` reads it with every column.
+/// Totals per pilot and vehicle
+extension type const TankScoresRow(Map<String, dynamic> _json)
+    implements Object {
+  String? get playerId => _json['player_id'] as String?;
+  int? get tankType => _json['tank_type'] as int?;
+  int? get rounds => _json['rounds'] as int?;
+  int? get wins => _json['wins'] as int?;
+  int? get kills => _json['kills'] as int?;
+  int? get damage => _json['damage'] as int?;
+  int? get shots => _json['shots'] as int?;
+  int? get hits => _json['hits'] as int?;
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Typed access to the `tank_scores` table.
+class TankScores {
+  const TankScores._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table = PostgrestTable<TankScoresRow, Never, Never>(
+    'tank_scores',
+    TankScoresRow.new,
+    schema: 'public',
+    primaryKey: [],
+  );
+
+  static const playerId = PostgrestNullableColumn<TankScoresRow, String>(
+    'player_id',
+  );
+  static const tankType = PostgrestNullableColumn<TankScoresRow, int>(
+    'tank_type',
+  );
+  static const rounds = PostgrestNullableColumn<TankScoresRow, int>('rounds');
+  static const wins = PostgrestNullableColumn<TankScoresRow, int>('wins');
+  static const kills = PostgrestNullableColumn<TankScoresRow, int>('kills');
+  static const damage = PostgrestNullableColumn<TankScoresRow, int>('damage');
+  static const shots = PostgrestNullableColumn<TankScoresRow, int>('shots');
+  static const hits = PostgrestNullableColumn<TankScoresRow, int>('hits');
+}
+
+/// A row of the `weekly_scores` table, as `select()` reads it with every
+/// column.
+/// Totals per pilot since Monday
+extension type const WeeklyScoresRow(Map<String, dynamic> _json)
+    implements Object {
+  String? get id => _json['id'] as String?;
+  String? get name => _json['name'] as String?;
+  int? get rounds => _json['rounds'] as int?;
+  int? get wins => _json['wins'] as int?;
+  int? get kills => _json['kills'] as int?;
+  int? get damage => _json['damage'] as int?;
+  int? get xp => _json['xp'] as int?;
+  int? get ratingChange => _json['rating_change'] as int?;
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Typed access to the `weekly_scores` table.
+class WeeklyScores {
+  const WeeklyScores._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table = PostgrestTable<WeeklyScoresRow, Never, Never>(
+    'weekly_scores',
+    WeeklyScoresRow.new,
+    schema: 'public',
+    primaryKey: [],
+  );
+
+  static const id = PostgrestNullableColumn<WeeklyScoresRow, String>('id');
+  static const name = PostgrestNullableColumn<WeeklyScoresRow, String>('name');
+  static const rounds = PostgrestNullableColumn<WeeklyScoresRow, int>('rounds');
+  static const wins = PostgrestNullableColumn<WeeklyScoresRow, int>('wins');
+  static const kills = PostgrestNullableColumn<WeeklyScoresRow, int>('kills');
+  static const damage = PostgrestNullableColumn<WeeklyScoresRow, int>('damage');
+  static const xp = PostgrestNullableColumn<WeeklyScoresRow, int>('xp');
+  static const ratingChange = PostgrestNullableColumn<WeeklyScoresRow, int>(
+    'rating_change',
   );
 }
 

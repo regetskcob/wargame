@@ -6,6 +6,7 @@ import 'package:flutter/gestures.dart'
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
 import '../game/space_game.dart';
@@ -42,6 +43,7 @@ class _GameAppState extends State<GameApp> {
       net: NetService(myId: myId, room: resolveRoom(), isHost: isRoomHost()),
       myId: myId,
       scoreService: ScoreService(client),
+      profiles: ProfileService(client),
     );
     game.phase.addListener(_reclaimFocus);
   }

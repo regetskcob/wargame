@@ -270,6 +270,7 @@ class PlayerShip extends ShipBase
     flash();
     if (!isBot) {
       gameRef.hpNotifier.value = hp;
+      gameRef.roundStats.damageTaken += amount;
     }
     // Zone ticks are tiny, only real hits get a number and a shake.
     if (amount >= 2) {
