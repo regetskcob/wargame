@@ -61,15 +61,25 @@ void rememberGuest() {
   }
 }
 
-/// Drops the one time code of a sign-in mail from the address once it could
-/// not be redeemed, so a reload does not try again.
-void forgetAuthCode() {
+/// Back from a sign-in mail: drops its one time code and any room from the
+/// address, so a reload does not try the code again and the game opens a
+/// fresh room on the start page.
+void leaveMailLink() {
   final uri = Uri.base;
-  final params = Map.of(uri.queryParameters)..remove('code');
+  final params = Map.of(uri.queryParameters)
+    ..remove('code')
+    ..remove('room');
+  // Built anew: replace() keeps the old query when given none.
   web.window.history.replaceState(
     null,
     '',
-    uri.replace(queryParameters: params.isEmpty ? null : params).toString(),
+    Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString(),
   );
 }
 
@@ -109,8 +119,14 @@ String roomLink(String room) {
   ).toString();
 }
 
-/// Address that sign-in links lead back to: the game itself, in this room.
-String? authRedirect() => Uri.base.replace(fragment: '').toString();
+/// Address that sign-in links lead back to: the start page of the game, not
+/// the room the mail was asked for in.
+String? authRedirect() => Uri(
+  scheme: Uri.base.scheme,
+  host: Uri.base.host,
+  port: Uri.base.hasPort ? Uri.base.port : null,
+  path: Uri.base.path,
+).toString();
 
 /// Opens [room] in this window, as if its link had been followed.
 bool joinRoom(String room) {

@@ -281,7 +281,9 @@ class _AccountPanelState extends State<AccountPanel> {
   ];
 
   List<Widget> _guest(BuildContext context) {
-    final dim = const TextStyle(color: BwColors.textDim, fontSize: 12);
+    final dim = widget.embedded
+        ? const TextStyle(color: BwColors.text, fontSize: 14, height: 1.35)
+        : const TextStyle(color: BwColors.textDim, fontSize: 12);
     final fresh = widget.embedded;
     return [
       if (fresh) ...[

@@ -34,6 +34,8 @@ class LaunchView extends StatelessWidget {
                 ),
               ),
             ),
+            const SizedBox(width: 12),
+            _CallSign(game: game),
             const MuteButton(),
           ],
         ),
@@ -48,20 +50,36 @@ class LaunchView extends StatelessWidget {
         LayoutBuilder(
           builder: (context, box) {
             // Three cards side by side when there is room, else one per row.
-            final columns = box.maxWidth >= 640 ? 3 : 1;
-            final width = (box.maxWidth - 12 * (columns - 1)) / columns;
-            return Wrap(
-              spacing: 12,
-              runSpacing: 12,
+            // All three equally tall, so the row reads calmly.
+            if (box.maxWidth >= 640) {
+              return IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, option) in _options.indexed) ...[
+                      if (i > 0) const SizedBox(width: 12),
+                      Expanded(
+                        child: _ModeCard(
+                          option: option,
+                          stretched: true,
+                          onTap: () => game.chooseMode(option.mode),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                for (final option in _options)
-                  SizedBox(
-                    width: width.floorToDouble(),
-                    child: _ModeCard(
-                      option: option,
-                      onTap: () => game.chooseMode(option.mode),
-                    ),
+                for (final (i, option) in _options.indexed) ...[
+                  if (i > 0) const SizedBox(height: 12),
+                  _ModeCard(
+                    option: option,
+                    onTap: () => game.chooseMode(option.mode),
                   ),
+                ],
               ],
             );
           },
@@ -114,10 +132,18 @@ const List<_Option> _options = [
 ];
 
 class _ModeCard extends StatelessWidget {
-  const _ModeCard({required this.option, required this.onTap});
+  const _ModeCard({
+    required this.option,
+    required this.onTap,
+    this.stretched = false,
+  });
 
   final _Option option;
   final VoidCallback onTap;
+
+  /// Side by side the card is as tall as its neighbours, and WEITER sits at
+  /// the bottom.
+  final bool stretched;
 
   @override
   Widget build(BuildContext context) {
@@ -139,12 +165,18 @@ class _ModeCard extends StatelessWidget {
             children: [
               Icon(option.icon, color: BwColors.amber, size: 36),
               const SizedBox(height: 12),
-              Text(
-                option.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: BwColors.sand,
+              // Shrinks on narrow cards instead of breaking the word.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  option.title,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: BwColors.sand,
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
@@ -152,7 +184,7 @@ class _ModeCard extends StatelessWidget {
                 option.kicker,
                 style: const TextStyle(
                   color: BwColors.amber,
-                  fontSize: 11,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1.5,
                 ),
@@ -160,8 +192,13 @@ class _ModeCard extends StatelessWidget {
               const SizedBox(height: 10),
               Text(
                 option.text,
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(
+                  color: BwColors.text,
+                  fontSize: 14,
+                  height: 1.35,
+                ),
               ),
+              if (stretched) const Spacer(),
               const SizedBox(height: 14),
               const Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -177,6 +214,123 @@ class _ModeCard extends StatelessWidget {
                   Icon(Icons.chevron_right, color: BwColors.amber),
                 ],
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The player's call sign at the top: tap to change it.
+class _CallSign extends StatefulWidget {
+  const _CallSign({required this.game});
+
+  final SpaceGame game;
+
+  @override
+  State<_CallSign> createState() => _CallSignState();
+}
+
+class _CallSignState extends State<_CallSign> {
+  final _controller = TextEditingController();
+  final _focus = FocusNode();
+  var _editing = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.game.pilotVersion.addListener(_refresh);
+    _focus.addListener(() {
+      if (!_focus.hasFocus && _editing) {
+        _save();
+      }
+    });
+  }
+
+  void _refresh() => setState(() {});
+
+  @override
+  void dispose() {
+    widget.game.pilotVersion.removeListener(_refresh);
+    _controller.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _edit() {
+    _controller
+      ..text = widget.game.myName
+      ..selection = TextSelection(
+        baseOffset: 0,
+        extentOffset: widget.game.myName.length,
+      );
+    setState(() => _editing = true);
+    _focus.requestFocus();
+  }
+
+  void _save() {
+    final game = widget.game;
+    game.setPilot(name: _controller.text, colorIndex: game.myColorIndex);
+    // The waiting room reads the name again from the game.
+    game.pilotVersion.value++;
+    setState(() => _editing = false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_editing) {
+      return SizedBox(
+        width: 220,
+        child: TextField(
+          controller: _controller,
+          focusNode: _focus,
+          maxLength: 16,
+          decoration: InputDecoration(
+            labelText: 'RUFNAME',
+            counterText: '',
+            isDense: true,
+            suffixIcon: IconButton(
+              tooltip: 'Speichern',
+              onPressed: _save,
+              icon: const Icon(Icons.check, color: BwColors.amber),
+            ),
+          ),
+          onSubmitted: (_) => _save(),
+        ),
+      );
+    }
+    return Tooltip(
+      message: 'Rufnamen ändern',
+      child: InkWell(
+        onTap: _edit,
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 260),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: ShapeDecoration(
+            color: const Color(0x44000000),
+            shape: BeveledRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+              side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.badge_outlined, size: 18, color: BwColors.amber),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  widget.game.myName,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(Icons.edit, size: 16, color: BwColors.textDim),
             ],
           ),
         ),
