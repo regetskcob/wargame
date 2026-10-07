@@ -40,6 +40,9 @@ void _rememberHosted(String code) {
   }
 }
 
+/// The browser keeps its settings in `localStorage`, nothing to open.
+Future<void> openLocalStore() async {}
+
 const _guestKey = 'panzergefecht.guest';
 
 /// Whether this browser chose to play as a guest before.

@@ -1028,8 +1028,7 @@ class DemoPainter extends CustomPainter {
         style: TextStyle(
           fontSize: size,
           color: color,
-          fontFamily: 'Courier New',
-          fontFamilyFallback: const ['Courier', 'monospace'],
+          fontFamily: 'Roboto',
           fontWeight: bold ? FontWeight.w900 : FontWeight.w800,
           letterSpacing: 1,
         ),
