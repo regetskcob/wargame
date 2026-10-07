@@ -34,6 +34,7 @@ class RemoteShip extends ShipBase {
     _targetAngle = state.rotation;
     _targetTurret = state.turret ?? state.rotation;
     hp = state.hp;
+    shielded = state.shielded;
     if (position.distanceTo(_target) > GameConfig.remoteTeleportDistance) {
       position.setFrom(_target);
       angle = _targetAngle;

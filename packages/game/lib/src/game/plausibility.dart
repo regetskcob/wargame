@@ -54,6 +54,22 @@ class PlausibilityGuard {
     _track(id).healBudget += GameConfig.repairAmount;
   }
 
+  /// The player picked up mines or a barrage and may use it once.
+  /// With [consume] the use is checked and spent instead.
+  bool allowSpecial(String id, {bool consume = false}) {
+    final track = _track(id);
+    if (!consume) {
+      track.specials++;
+      return true;
+    }
+    if (track.specials <= 0) {
+      _strike(id);
+      return false;
+    }
+    track.specials--;
+    return true;
+  }
+
   /// The player picked up rapid fire and may shoot faster for a while.
   void allowRapidFire(String id) {
     _track(id).rapidUntil = _clock().add(
@@ -197,4 +213,5 @@ class _Track {
   DateTime? rapidUntil;
   DateTime? shotAt;
   double shells = 0;
+  int specials = 0;
 }

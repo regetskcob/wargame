@@ -54,6 +54,21 @@ class GameConfig {
   static const smokeRadius = 130.0;
   static const smokeSeconds = 10.0;
 
+  /// A shield lets only part of the damage through for a few seconds.
+  static const shieldSeconds = 8.0;
+  static const shieldFactor = 0.4;
+
+  static const minesPerCrate = 3;
+  static const mineRadius = 12.0;
+  static const mineArmSeconds = 1.0;
+  static const mineDamage = 35.0;
+
+  /// Seconds between calling in a barrage and the shells landing.
+  static const artilleryDelay = 2.5;
+  static const artilleryRadius = 110.0;
+  static const artilleryDamage = 45.0;
+  static const artilleryRange = 360.0;
+
   static const countdownSeconds = 3;
 
   /// How many CPU tanks a single player round rolls, both ends included.

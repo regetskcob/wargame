@@ -14,6 +14,7 @@ import '../game_phase.dart';
 import '../touch_input.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
+import 'mine.dart';
 import 'obstacle.dart';
 import 'soldier.dart';
 import 'bullet.dart';
@@ -44,6 +45,7 @@ class PlayerShip extends ShipBase
   final velocity = Vector2.zero();
   double _speed = 0;
   double rapidFireLeft = 0;
+  double shieldLeft = 0;
 
   /// Forward speed as a share of this tank's top speed, below 0 in reverse.
   double get load => _speed / (GameConfig.shipMaxSpeed * stats.speed);
@@ -103,11 +105,23 @@ class PlayerShip extends ShipBase
         !(isBot && phase == GamePhase.spectating)) {
       return;
     }
+    _tickShield(dt);
     _integrate(dt);
     _aim(dt);
     _applyZoneDamage(dt);
     _handleFire(dt);
     _broadcastState(dt);
+  }
+
+  void _tickShield(double dt) {
+    if (shieldLeft <= 0) {
+      return;
+    }
+    shieldLeft = max(0, shieldLeft - dt);
+    shielded = shieldLeft > 0;
+    if (!isBot) {
+      gameRef.shieldSeconds.value = shieldLeft.ceil();
+    }
   }
 
   /// Tracks drive along the hull, so the tank never slides sideways: the
@@ -217,6 +231,7 @@ class PlayerShip extends ShipBase
     }
     _sinceSync = 0;
     final moved =
+        shielded ||
         position.distanceTo(_lastSentPosition) > 0.5 ||
         (angle - _lastSentAngle).abs() > 0.01 ||
         (turretAngle - _lastSentTurret).abs() > 0.01;
@@ -238,6 +253,7 @@ class PlayerShip extends ShipBase
         rotation: angle,
         hp: hp,
         turret: turretAngle,
+        shielded: shielded,
       ).toJson(),
     );
   }
@@ -245,6 +261,10 @@ class PlayerShip extends ShipBase
   void applyDamage(double amount, {required String? killerId}) {
     if (hp <= 0) {
       return;
+    }
+    // The shield holds off shells, mines and barrages, not the zone.
+    if (shielded && killerId != null) {
+      amount *= GameConfig.shieldFactor;
     }
     hp -= amount;
     flash();
@@ -295,6 +315,12 @@ class PlayerShip extends ShipBase
           hp: hp,
         ).toJson(),
       );
+    } else if (other is Mine) {
+      if (other.armed &&
+          other.ownerId != playerId &&
+          !gameRef.sameTeam(playerId, other.ownerId)) {
+        gameRef.triggerMine(other, this);
+      }
     } else if (other is PowerUp) {
       if (!isBot) {
         gameRef.collectPowerUp(other);

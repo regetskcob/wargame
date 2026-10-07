@@ -8,6 +8,7 @@ class ShipStatePayload {
     required this.rotation,
     required this.hp,
     this.turret,
+    this.shielded = false,
   });
 
   factory ShipStatePayload.fromJson(Map<String, dynamic> json) {
@@ -20,6 +21,7 @@ class ShipStatePayload {
       rotation: (json['rot'] as num).toDouble(),
       hp: (json['hp'] as num).toDouble(),
       turret: (json['tur'] as num?)?.toDouble(),
+      shielded: json['sh'] == 1,
     );
   }
 
@@ -34,6 +36,9 @@ class ShipStatePayload {
   /// World angle of the turret, absent from older clients.
   final double? turret;
 
+  /// Whether the tank has a shield up.
+  final bool shielded;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -44,6 +49,7 @@ class ShipStatePayload {
       'rot': rotation,
       'hp': hp,
       if (turret != null) 'tur': turret,
+      if (shielded) 'sh': 1,
     };
   }
 }

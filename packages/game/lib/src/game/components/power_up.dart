@@ -10,7 +10,10 @@ import 'storm_zone.dart';
 enum PowerUpType {
   repair('REPARATUR', Color(0xFF66BB6A)),
   smoke('NEBELWERFER', Color(0xFFB0BEC5)),
-  rapidFire('SCHNELLFEUER', Color(0xFFFFB300));
+  rapidFire('SCHNELLFEUER', Color(0xFFFFB300)),
+  shield('SCHILD', Color(0xFF4FC3F7)),
+  mines('MINEN', Color(0xFFE57373)),
+  artillery('ARTILLERIE', Color(0xFFFF7043));
 
   const PowerUpType(this.label, this.color);
 
@@ -54,15 +57,32 @@ class PowerUpSlot {
             id: i,
             appearsAt: appearsAt,
             position: Vector2(cos(direction), sin(direction))..scale(distance),
-            type: roll < 0.4
-                ? PowerUpType.repair
-                : roll < 0.7
-                ? PowerUpType.rapidFire
-                : PowerUpType.smoke,
+            type: _typeFor(roll),
           );
         }(),
     ];
   }
+}
+
+/// How often each crate turns up, the shares add up to 1.
+const _odds = [
+  (PowerUpType.repair, 0.25),
+  (PowerUpType.rapidFire, 0.2),
+  (PowerUpType.smoke, 0.15),
+  (PowerUpType.shield, 0.15),
+  (PowerUpType.mines, 0.12),
+  (PowerUpType.artillery, 0.13),
+];
+
+PowerUpType _typeFor(double roll) {
+  var sum = 0.0;
+  for (final (type, share) in _odds) {
+    sum += share;
+    if (roll < sum) {
+      return type;
+    }
+  }
+  return _odds.last.$1;
 }
 
 /// A crate lying on the field, picked up by driving over it.
@@ -134,6 +154,33 @@ class PowerUp extends PositionComponent {
         canvas.drawCircle(center.translate(-4, 2), 4.5, fill);
         canvas.drawCircle(center.translate(4, 2), 4.5, fill);
         canvas.drawCircle(center.translate(0, -3), 5, fill);
+      case PowerUpType.shield:
+        canvas.drawPath(
+          Path()
+            ..moveTo(center.dx, center.dy - 8)
+            ..lineTo(center.dx + 7, center.dy - 5)
+            ..lineTo(center.dx + 6, center.dy + 3)
+            ..lineTo(center.dx, center.dy + 8)
+            ..lineTo(center.dx - 6, center.dy + 3)
+            ..lineTo(center.dx - 7, center.dy - 5)
+            ..close(),
+          paint..strokeWidth = 2.5,
+        );
+      case PowerUpType.mines:
+        final fill = Paint()..color = color;
+        canvas.drawCircle(center, 6, fill);
+        for (var i = 0; i < 4; i++) {
+          final a = i * pi / 2;
+          canvas.drawLine(
+            center + Offset(cos(a), sin(a)) * 6,
+            center + Offset(cos(a), sin(a)) * 9,
+            paint..strokeWidth = 2,
+          );
+        }
+      case PowerUpType.artillery:
+        canvas.drawCircle(center, 7, paint..strokeWidth = 2);
+        canvas.drawLine(center.translate(-10, 0), center.translate(10, 0), paint);
+        canvas.drawLine(center.translate(0, -10), center.translate(0, 10), paint);
     }
   }
 }

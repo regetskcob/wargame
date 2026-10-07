@@ -51,6 +51,10 @@ abstract class ShipBase extends PositionComponent {
   /// Set while the tank sits in smoke the viewer is not part of.
   bool hidden = false;
 
+  /// A shield is up and swallows most of the damage.
+  bool shielded = false;
+  double _shieldTime = 0;
+
   Vector2 get direction => Vector2(sin(angle), -cos(angle));
 
   Vector2 get turretDirection => Vector2(sin(turretAngle), -cos(turretAngle));
@@ -96,6 +100,7 @@ abstract class ShipBase extends PositionComponent {
     if (_flashTime > 0) {
       _flashTime -= dt;
     }
+    _shieldTime += dt;
     bloodTimer = max(0, bloodTimer - dt);
     _recoil = max(0, _recoil - dt * 7);
     _muzzleFlash = max(0, _muzzleFlash - dt * 14);
@@ -166,6 +171,23 @@ abstract class ShipBase extends PositionComponent {
       recoil: _recoil,
       flash: _muzzleFlash,
     );
+    if (shielded) {
+      final pulse = 0.5 + 0.5 * sin(_shieldTime * 5);
+      final centre = Offset(size.x / 2, size.y / 2);
+      canvas.drawCircle(
+        centre,
+        size.x * 0.78,
+        Paint()..color = Color.fromRGBO(79, 195, 247, 0.12 + 0.08 * pulse),
+      );
+      canvas.drawCircle(
+        centre,
+        size.x * 0.78,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
+          ..color = Color.fromRGBO(129, 212, 250, 0.5 + 0.4 * pulse),
+      );
+    }
   }
 }
 

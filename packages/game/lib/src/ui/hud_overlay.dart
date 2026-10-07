@@ -218,6 +218,24 @@ class _HudOverlayState extends State<HudOverlay> {
                       ),
                     ),
             ),
+            ValueListenableBuilder<int>(
+              valueListenable: game.shieldSeconds,
+              builder: (context, seconds, _) => seconds <= 0
+                  ? const SizedBox()
+                  : Padding(
+                      padding: const EdgeInsets.only(top: 6),
+                      child: Panel(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: Text(
+                          'SCHILD  $seconds s',
+                          style: const TextStyle(color: Color(0xFF81D4FA)),
+                        ),
+                      ),
+                    ),
+            ),
           ],
         ),
       ),

@@ -8,6 +8,7 @@ import 'payloads/hit_payload.dart';
 import 'payloads/lobby_presence.dart';
 import 'payloads/obstacle_payload.dart';
 import 'payloads/soldier_payload.dart';
+import 'payloads/special_payload.dart';
 import 'payloads/power_up_payload.dart';
 import 'payloads/round_start_payload.dart';
 import 'payloads/ship_state_payload.dart';
@@ -32,6 +33,8 @@ class NetService {
   void Function(SmokePayload payload)? onSmoke;
   void Function(ObstaclePayload payload)? onObstacle;
   void Function(SoldierPayload payload)? onSoldier;
+  void Function(MinePayload payload)? onMine;
+  void Function(ArtilleryPayload payload)? onArtillery;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
@@ -77,6 +80,14 @@ class NetService {
     _listen(
       channel.onBroadcast(event: NetEvent.pickup.name),
       (json) => onPickup?.call(PickupPayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.mine.name),
+      (json) => onMine?.call(MinePayload.fromJson(json)),
+    );
+    _listen(
+      channel.onBroadcast(event: NetEvent.artillery.name),
+      (json) => onArtillery?.call(ArtilleryPayload.fromJson(json)),
     );
     _listen(
       channel.onBroadcast(event: NetEvent.smoke.name),

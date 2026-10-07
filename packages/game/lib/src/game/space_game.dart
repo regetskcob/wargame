@@ -19,11 +19,14 @@ import '../net/payloads/hit_payload.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../net/payloads/obstacle_payload.dart';
 import '../net/payloads/soldier_payload.dart';
+import '../net/payloads/special_payload.dart';
 import '../net/payloads/power_up_payload.dart';
 import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
 import 'components/aim_overlay.dart';
+import 'components/artillery_strike.dart';
+import 'components/mine.dart';
 import 'components/asteroid_field.dart';
 import 'components/effects.dart';
 import 'components/mud_field.dart';
@@ -82,6 +85,7 @@ class SpaceGame extends FlameGame
 
   /// Seconds of rapid fire left, and the last crate the player picked up.
   final rapidFireSeconds = ValueNotifier<int>(0);
+  final shieldSeconds = ValueNotifier<int>(0);
   final notice = ValueNotifier<String?>(null);
   async.Timer? _noticeTimer;
 
@@ -89,6 +93,8 @@ class SpaceGame extends FlameGame
   final powerUps = <int, PowerUp>{};
   final _gone = <int>{};
   final smokes = <SmokeCloud>[];
+  final mines = <String, Mine>{};
+  int _specialCounter = 0;
   final winnerName = ValueNotifier<String?>(null);
   RoundStats roundStats = RoundStats();
   final killFeed = ValueNotifier<List<KillEntry>>(const []);
@@ -231,6 +237,8 @@ class SpaceGame extends FlameGame
       ..onSmoke = _onSmoke
       ..onObstacle = _onObstacle
       ..onSoldier = _onSoldier
+      ..onMine = _onMine
+      ..onArtillery = _onArtillery
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
       ..onPeerLeft = _onPeerLeft;
@@ -632,6 +640,15 @@ class SpaceGame extends FlameGame
             y: ship.position.y,
           ).toJson(),
         );
+      case PowerUpType.shield:
+        ship
+          ..shieldLeft = GameConfig.shieldSeconds
+          ..shielded = true;
+        shieldSeconds.value = GameConfig.shieldSeconds.ceil();
+      case PowerUpType.mines:
+        _layMines(ship);
+      case PowerUpType.artillery:
+        _callArtillery(ship);
     }
     AudioService.play('go', volume: 0.5);
     _noticeTimer?.cancel();
@@ -658,6 +675,8 @@ class SpaceGame extends FlameGame
         guard.allowRepair(payload.id);
       case PowerUpType.rapidFire:
         guard.allowRapidFire(payload.id);
+      case PowerUpType.mines || PowerUpType.artillery:
+        guard.allowSpecial(payload.id);
       case _:
     }
     _gone.add(payload.powerUpId);
@@ -678,6 +697,166 @@ class SpaceGame extends FlameGame
       return;
     }
     _addSmoke(Vector2(payload.x, payload.y));
+  }
+
+  /// Drops a small fan of mines behind [ship].
+  void _layMines(PlayerShip ship) {
+    final back = -ship.direction;
+    final side = Vector2(-back.y, back.x);
+    final spots = [
+      ship.position + back * 46 + side * 30,
+      ship.position + back * 46 - side * 30,
+      ship.position + back * 80,
+    ].take(GameConfig.minesPerCrate);
+    final laid = [
+      for (final spot in spots)
+        (id: '$myId-m${_specialCounter++}', x: spot.x, y: spot.y),
+    ];
+    for (final mine in laid) {
+      _addMine(mine.id, myId, Vector2(mine.x, mine.y));
+    }
+    net.send(NetEvent.mine, MinePayload(id: myId, mines: laid).toJson());
+  }
+
+  void _addMine(String mineId, String ownerId, Vector2 at) {
+    if (mines.containsKey(mineId)) {
+      return;
+    }
+    final mine = Mine(
+      mineId: mineId,
+      ownerId: ownerId,
+      friendly: ownerId == myId || isTeammate(ownerId),
+      position: at,
+    );
+    mines[mineId] = mine;
+    _extras.add(mine);
+    world.add(mine);
+  }
+
+  void _onMine(MinePayload payload) {
+    if (round?.alive.contains(payload.id) != true ||
+        !guard.allowSpecial(payload.id, consume: true)) {
+      return;
+    }
+    for (final mine in payload.mines.take(GameConfig.minesPerCrate)) {
+      _addMine(mine.id, payload.id, Vector2(mine.x, mine.y));
+    }
+  }
+
+  /// [ship], run by this client, drove onto an enemy mine.
+  void triggerMine(Mine mine, PlayerShip ship) {
+    if (mines.remove(mine.mineId) == null) {
+      return;
+    }
+    mineBlast(world, mine.position.clone());
+    mine.removeFromParent();
+    AudioService.play('explosion', distance: _distanceToView(mine.position));
+    _damageLocal(ship, GameConfig.mineDamage, mine.ownerId, mine.mineId);
+  }
+
+  /// Damage from something other than a shell to a tank this client runs,
+  /// told to the others like a shell hit.
+  void _damageLocal(
+    PlayerShip ship,
+    double amount,
+    String ownerId,
+    String sourceId,
+  ) {
+    if (ship.hp <= 0) {
+      return;
+    }
+    ship.applyDamage(amount, killerId: ownerId);
+    net.send(
+      NetEvent.hit,
+      HitPayload(
+        id: ship.playerId,
+        shooterId: ownerId,
+        bulletId: sourceId,
+        hp: max(0, ship.hp),
+      ).toJson(),
+    );
+  }
+
+  /// Calls a barrage onto the mouse cursor, or ahead of the turret when
+  /// there is no mouse, at most [GameConfig.artilleryRange] away.
+  void _callArtillery(PlayerShip ship) {
+    var target =
+        pointerWorld() ??
+        ship.position + ship.turretDirection * GameConfig.artilleryRange;
+    final offset = target - ship.position;
+    if (offset.length > GameConfig.artilleryRange) {
+      target = ship.position + offset.normalized() * GameConfig.artilleryRange;
+    }
+    final payload = ArtilleryPayload(
+      id: myId,
+      strikeId: '$myId-a${_specialCounter++}',
+      x: target.x,
+      y: target.y,
+      at:
+          DateTime.now().millisecondsSinceEpoch +
+          (GameConfig.artilleryDelay * 1000).round(),
+    );
+    _addArtillery(payload);
+    net.send(NetEvent.artillery, payload.toJson());
+  }
+
+  void _addArtillery(ArtilleryPayload payload) {
+    final strike = ArtilleryStrike(
+      strikeId: payload.strikeId,
+      ownerId: payload.id,
+      at: payload.at,
+      position: Vector2(payload.x, payload.y),
+    );
+    _extras.add(strike);
+    world.add(strike);
+    AudioService.play('tick', distance: _distanceToView(strike.position));
+  }
+
+  void _onArtillery(ArtilleryPayload payload) {
+    final now = DateTime.now().millisecondsSinceEpoch;
+    // Never further out than the delay, and never long past.
+    final late = payload.at - now;
+    if (round?.alive.contains(payload.id) != true ||
+        late > GameConfig.artilleryDelay * 1000 + 1000 ||
+        late < -1000 ||
+        !guard.allowSpecial(payload.id, consume: true)) {
+      return;
+    }
+    _addArtillery(payload);
+  }
+
+  /// The shells of [strike] land: hurt the tanks this client runs, and let
+  /// the caller's client knock down what stands in the circle.
+  void artilleryImpact(ArtilleryStrike strike) {
+    AudioService.play('explosion', distance: _distanceToView(strike.position));
+    final ships = [?myShip, ...botShips.values];
+    for (final ship in ships) {
+      if (ship.playerId == strike.ownerId ||
+          sameTeam(ship.playerId, strike.ownerId)) {
+        continue;
+      }
+      final distance = ship.position.distanceTo(strike.position);
+      if (distance > GameConfig.artilleryRadius + GameConfig.shipRadius) {
+        continue;
+      }
+      final falloff =
+          1 - 0.5 * (distance / GameConfig.artilleryRadius).clamp(0.0, 1.0);
+      _damageLocal(
+        ship,
+        GameConfig.artilleryDamage * falloff,
+        strike.ownerId,
+        strike.strikeId,
+      );
+    }
+    if (strike.ownerId == myId || botShips.containsKey(strike.ownerId)) {
+      for (final obstacle in [...?_asteroidField?.obstacles]) {
+        if (obstacle.hp > 0 &&
+            obstacle.position.distanceTo(strike.position) <
+                GameConfig.artilleryRadius) {
+          damageObstacle(obstacle, GameConfig.artilleryDamage);
+        }
+      }
+    }
   }
 
   void fireLocalBullet() {
@@ -777,6 +956,12 @@ class SpaceGame extends FlameGame
 
   void _removeBullet(String bulletId) {
     bullets[bulletId]?.removeFromParent();
+    final mine = mines.remove(bulletId);
+    if (mine != null) {
+      mineBlast(world, mine.position.clone());
+      mine.removeFromParent();
+      AudioService.play('explosion', distance: _distanceToView(mine.position));
+    }
   }
 
   void _onShipState(ShipStatePayload raw) {
@@ -1313,6 +1498,8 @@ class SpaceGame extends FlameGame
     _extras.clear();
     powerUps.clear();
     smokes.clear();
+    mines.clear();
+    shieldSeconds.value = 0;
     _gone.clear();
     _powerUpSlots = const [];
     rapidFireSeconds.value = 0;
