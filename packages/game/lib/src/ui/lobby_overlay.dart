@@ -6,6 +6,7 @@ import '../game/map_theme.dart';
 import '../game/weather.dart';
 import '../game/space_game.dart';
 import '../net/payloads/lobby_presence.dart';
+import '../net/room.dart';
 import '../game/components/tank_painter.dart';
 import '../theme.dart';
 import 'widgets/mute_button.dart';
@@ -15,6 +16,7 @@ import 'widgets/account_panel.dart';
 import 'widgets/panel.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
+import 'widgets/room_list.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 
@@ -334,10 +336,25 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 selected: multi,
                 onSelected: (v) => game.setMultiplayer(v ?? true),
               ),
+              if (multi && roomLink(game.net.room).isNotEmpty) ...[
+                const SizedBox(height: 10),
+                ValueListenableBuilder<bool>(
+                  valueListenable: game.publicRoom,
+                  builder: (context, public, _) => ChoiceRow<bool>(
+                    options: const [
+                      (false, 'PRIVAT', null),
+                      (true, 'ÖFFENTLICH', null),
+                    ],
+                    selected: public,
+                    onSelected: (v) => game.publicRoom.value = v ?? false,
+                  ),
+                ),
+              ],
               const SizedBox(height: 6),
               Text(
                 multi
-                    ? 'Spiele mit anderen: Schick den Link weiter.'
+                    ? 'Spiele mit anderen: Schick den Link weiter. Ein '
+                          'öffentlicher Raum steht außerdem in der Raumliste.'
                     : 'Du spielst allein gegen ${GameConfig.minBots} bis '
                           '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
                           'ausgewürfelt.',
@@ -457,6 +474,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                             _rosterColumn(),
                           ],
                         ),
+                      if (roomLink(widget.game.net.room).isNotEmpty) ...[
+                        const SizedBox(height: 28),
+                        RoomList(game: widget.game),
+                      ],
                       const SizedBox(height: 28),
                       Leaderboard(game: widget.game),
                     ],

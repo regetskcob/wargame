@@ -15,3 +15,7 @@ Future<bool> shareRoomLink(String url, String text) async => false;
 
 /// Address that sign-in links lead back to, null outside the browser.
 String? authRedirect() => null;
+
+/// Switches to [room]. Outside the browser there is no address to switch, so
+/// this returns false.
+bool joinRoom(String room) => false;

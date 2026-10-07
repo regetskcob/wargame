@@ -52,6 +52,12 @@ String roomLink(String room) {
 /// Address that sign-in links lead back to: the game itself, in this room.
 String? authRedirect() => Uri.base.replace(fragment: '').toString();
 
+/// Opens [room] in this window, as if its link had been followed.
+bool joinRoom(String room) {
+  web.window.location.assign(roomLink(room.trim().toUpperCase()));
+  return true;
+}
+
 Future<bool> shareRoomLink(String url, String text) async {
   final navigator = web.window.navigator;
   if (!(navigator as JSObject).has('share')) {

@@ -26,6 +26,7 @@ import '../net/payloads/power_up_payload.dart';
 import '../net/payloads/round_start_payload.dart';
 import '../net/payloads/ship_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
+import '../net/room_directory.dart';
 import 'components/aim_overlay.dart';
 import 'components/artillery_strike.dart';
 import 'components/asteroid.dart';
@@ -131,6 +132,33 @@ class SpaceGame extends FlameGame
   final multiplayer = ValueNotifier<bool>(true);
 
   void setMultiplayer(bool value) => multiplayer.value = value;
+
+  /// Whether the host lists this room publicly. Private rooms are only
+  /// reachable by their link or code.
+  final publicRoom = ValueNotifier<bool>(false);
+
+  /// The public list of rooms.
+  late final directory = RoomDirectory(room: net.room);
+
+  void _updateListing() {
+    final listed = net.isHost && multiplayer.value && publicRoom.value;
+    final current = phase.value;
+    unawaited(
+      directory.advertise(
+        listed
+            ? RoomListing(
+                room: net.room,
+                host: myName,
+                players: max(1, roster.value.length),
+                inMatch:
+                    current != GamePhase.lobby &&
+                    current != GamePhase.roundOver,
+                teams: teamMode.value,
+              )
+            : null,
+      ),
+    );
+  }
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
@@ -301,6 +329,16 @@ class SpaceGame extends FlameGame
     await _loadPilot();
     accounts.user.addListener(_onAccountChanged);
     await net.connect(_presencePayload());
+    directory.connect();
+    for (final notifier in <Listenable>[
+      publicRoom,
+      multiplayer,
+      teamMode,
+      phase,
+      roster,
+    ]) {
+      notifier.addListener(_updateListing);
+    }
     overlays.add(OverlayIds.lobby);
   }
 
