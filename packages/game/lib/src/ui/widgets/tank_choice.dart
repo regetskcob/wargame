@@ -117,15 +117,34 @@ class StatBars extends StatelessWidget {
   static double _max(double Function(TankStats) read) =>
       TankType.values.map((t) => read(TankStats.of(t))).reduce(max);
 
-  @override
-  Widget build(BuildContext context) {
+  /// The bars of [type], each against the best vehicle in that stat.
+  static List<(String, double)> rowsOf(TankType type) {
     final stats = TankStats.of(type);
-    final rows = [
+    return [
       ('PANZERUNG', stats.maxHp / _max((s) => s.maxHp)),
       ('TEMPO', stats.speed / _max((s) => s.speed)),
       ('WENDIGKEIT', stats.turnRate / _max((s) => s.turnRate)),
       ('FEUERKRAFT', stats.dps / _max((s) => s.dps)),
     ];
+  }
+
+  /// Overall strength: the bars added up.
+  static double strengthOf(TankType type) =>
+      rowsOf(type).fold(0.0, (sum, row) => sum + row.$2);
+
+  /// The vehicles in the order a pilot gets them: by the rank that unlocks
+  /// them, and among those of one rank from the weakest to the strongest.
+  /// The enum keeps its order, its index travels over the wire.
+  static final List<TankType> byUnlock = [...TankType.values]
+    ..sort((a, b) {
+      final rank = a.level.compareTo(b.level);
+      return rank != 0 ? rank : strengthOf(a).compareTo(strengthOf(b));
+    });
+
+  @override
+  Widget build(BuildContext context) {
+    final stats = TankStats.of(type);
+    final rows = rowsOf(type);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
