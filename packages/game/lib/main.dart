@@ -23,6 +23,7 @@ Future<void> main() async {
     ]);
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
+  await openLocalStore();
   // A link from a sign-in mail carries a one time code. Supabase redeems it
   // during initialize and drops it from the address, unless this browser
   // lacks the key the code was requested with.

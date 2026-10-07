@@ -22,10 +22,10 @@ class HealthBar extends StatelessWidget {
     final ratio = (hp / maxHp).clamp(0.0, 1.0);
     final color = ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger;
     return SizedBox(
-      width: compact ? 150 : 220,
+      width: compact ? 130 : 220,
       child: Panel(
         padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
             : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,7 +35,7 @@ class HealthBar extends StatelessWidget {
               children: [
                 Icon(
                   Icons.health_and_safety,
-                  size: compact ? 12 : 16,
+                  size: compact ? 11 : 16,
                   color: color,
                 ),
                 const SizedBox(width: 4),
@@ -43,15 +43,15 @@ class HealthBar extends StatelessWidget {
                   'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: compact ? 11 : null,
+                    fontSize: compact ? 10 : null,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 3 : 6),
+            SizedBox(height: compact ? 2 : 6),
             LinearProgressIndicator(
               value: ratio,
-              minHeight: compact ? 7 : 10,
+              minHeight: compact ? 5 : 10,
               backgroundColor: Colors.black38,
               color: color,
             ),

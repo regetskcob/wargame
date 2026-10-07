@@ -20,6 +20,7 @@ import '../ui/hud_overlay.dart';
 import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
+import '../ui/tutorial/tutorial_overlay.dart';
 import 'overlay_ids.dart';
 
 class GameApp extends StatefulWidget {
@@ -133,6 +134,14 @@ class _GameAppState extends State<GameApp> {
                 OverlayIds.roundOver: (context, game) =>
                     RoundOverOverlay(game: game),
                 OverlayIds.closed: (context, game) => ClosedOverlay(game: game),
+                OverlayIds.tutorial: (context, game) =>
+                    ValueListenableBuilder<bool>(
+                      valueListenable: game.touchMode,
+                      builder: (context, touch, _) => TutorialOverlay(
+                        touch: touch,
+                        onClose: game.closeTutorial,
+                      ),
+                    ),
               },
             ),
           ),

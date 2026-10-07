@@ -583,6 +583,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         'ein. Waffen löst du danach mit F aus. In der '
                         'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
             ),
+            const SizedBox(height: 4),
+            TextButton.icon(
+              onPressed: game.showTutorial,
+              icon: const Icon(Icons.school, size: 18),
+              label: const Text('EINWEISUNG ANSEHEN'),
+            ),
           ],
         ),
       ),
@@ -685,27 +691,31 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ]),
       builder: (context, _) => ColoredBox(
         color: const Color(0xAA000000),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final narrow = constraints.maxWidth < 820;
-            return Center(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.all(narrow ? 8 : 16),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1040),
-                  child: Panel(
-                    padding: EdgeInsets.all(narrow ? 14 : 24),
-                    child: !widget.game.welcomed.value
-                        ? WelcomeView(game: widget.game)
-                        : widget.game.choosingMode.value &&
-                              widget.game.isHost.value
-                        ? LaunchView(game: widget.game)
-                        : _room(context, narrow: narrow),
+        // Keeps the menu clear of the notch and the Dynamic Island on
+        // phones held sideways, the backdrop still covers the whole screen.
+        child: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final narrow = constraints.maxWidth < 820;
+              return Center(
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.all(narrow ? 8 : 16),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 1040),
+                    child: Panel(
+                      padding: EdgeInsets.all(narrow ? 14 : 24),
+                      child: !widget.game.welcomed.value
+                          ? WelcomeView(game: widget.game)
+                          : widget.game.choosingMode.value &&
+                                widget.game.isHost.value
+                          ? LaunchView(game: widget.game)
+                          : _room(context, narrow: narrow),
+                    ),
                   ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
       ),
     );

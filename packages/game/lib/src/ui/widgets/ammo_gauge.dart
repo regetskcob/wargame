@@ -40,10 +40,10 @@ class AmmoGauge extends StatelessWidget {
         ? BwColors.amber
         : const Color(0xFF4FC3F7);
     return SizedBox(
-      width: compact ? 150 : 220,
+      width: compact ? 130 : 220,
       child: Panel(
         padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
             : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,7 +51,7 @@ class AmmoGauge extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.inventory_2, size: compact ? 12 : 16, color: color),
+                Icon(Icons.inventory_2, size: compact ? 11 : 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   endless
@@ -61,16 +61,16 @@ class AmmoGauge extends StatelessWidget {
                       : 'MUNITION $ammo/$maxAmmo',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: compact ? 11 : null,
+                    fontSize: compact ? 10 : null,
                     color: ammo == 0 && !endless ? BwColors.danger : null,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 3 : 6),
+            SizedBox(height: compact ? 2 : 6),
             LinearProgressIndicator(
               value: ratio,
-              minHeight: compact ? 5 : 7,
+              minHeight: compact ? 4 : 7,
               backgroundColor: Colors.black38,
               color: color,
             ),
@@ -98,10 +98,10 @@ class FuelGauge extends StatelessWidget {
         ? BwColors.amber
         : const Color(0xFFFF9100);
     return SizedBox(
-      width: compact ? 150 : 220,
+      width: compact ? 130 : 220,
       child: Panel(
         padding: compact
-            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
             : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -111,7 +111,7 @@ class FuelGauge extends StatelessWidget {
               children: [
                 Icon(
                   Icons.local_gas_station,
-                  size: compact ? 12 : 16,
+                  size: compact ? 11 : 16,
                   color: color,
                 ),
                 const SizedBox(width: 4),
@@ -121,16 +121,16 @@ class FuelGauge extends StatelessWidget {
                       : 'TREIBSTOFF ${(fuel * 100).ceil()} %',
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
-                    fontSize: compact ? 11 : null,
+                    fontSize: compact ? 10 : null,
                     color: fuel <= 0 ? BwColors.danger : null,
                   ),
                 ),
               ],
             ),
-            SizedBox(height: compact ? 3 : 6),
+            SizedBox(height: compact ? 2 : 6),
             LinearProgressIndicator(
               value: fuel.clamp(0.0, 1.0),
-              minHeight: compact ? 5 : 7,
+              minHeight: compact ? 4 : 7,
               backgroundColor: Colors.black38,
               color: color,
             ),

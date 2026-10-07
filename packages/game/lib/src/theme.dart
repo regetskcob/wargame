@@ -14,11 +14,7 @@ class BwColors {
   static const textDim = Color(0xFFBFC6AA);
 }
 
-const _stencil = TextStyle(
-  fontFamily: 'Courier New',
-  fontFamilyFallback: ['Courier', 'monospace'],
-  letterSpacing: 1.2,
-);
+const _stencil = TextStyle(fontFamily: 'Roboto', letterSpacing: 1.2);
 
 final _buttonShape = BeveledRectangleBorder(
   borderRadius: BorderRadius.circular(6),
