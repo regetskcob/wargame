@@ -4,6 +4,7 @@ import '../db/account_service.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/account_panel.dart';
+import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
 
 /// First page when accounts are switched on: sign in or create an account,
@@ -102,6 +103,8 @@ class WelcomeView extends StatelessWidget {
                   children: [account, const SizedBox(height: 12), guest],
                 ),
         ),
+        const SizedBox(height: 12),
+        const LegalLinks(),
       ],
     );
   }

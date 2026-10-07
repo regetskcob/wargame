@@ -13,7 +13,12 @@ enum TankType {
   lynx('LYNX KF41', 'Schützenpanzer', level: 5),
 
   /// Rheinmetall's main battle tank with the 130 mm gun.
-  panther('PANTHER KF51', 'Kampfpanzer', level: 8);
+  panther('PANTHER KF51', 'Kampfpanzer', level: 8),
+
+  /// The self-propelled howitzer with the 155 mm gun and its big turret at
+  /// the back. New vehicles always go at the end: the index travels over
+  /// the wire and is kept in the players' looks.
+  pzh('PZH 2000', 'Panzerhaubitze', level: 4);
 
   const TankType(this.label, this.role, {this.level = 1});
 
@@ -38,6 +43,7 @@ const _muzzles = {
   TankType.wiesel: [Offset(27.5, 0)],
   TankType.lynx: [Offset(26, -9)],
   TankType.panther: [Offset(24, -22)],
+  TankType.pzh: [Offset(24, -21)],
 };
 
 /// Where the turret ring sits on the hull.
@@ -49,6 +55,7 @@ const _pivots = {
   TankType.wiesel: Offset(24, 27),
   TankType.lynx: Offset(24, 22),
   TankType.panther: Offset(24, 25),
+  TankType.pzh: Offset(24, 32),
 };
 
 typedef _TurretPass = void Function(void Function() draw);
@@ -132,6 +139,8 @@ void paintTank(
       _lynx(canvas, hull, dark, light, turret);
     case TankType.panther:
       _panther(canvas, hull, dark, light, turret);
+    case TankType.pzh:
+      _pzh(canvas, hull, dark, light, turret);
   }
   canvas.restore();
 }
@@ -693,5 +702,64 @@ void _panther(
     canvas.drawCircle(const Offset(29, 22), 2.6, _fill(dark));
     canvas.drawCircle(const Offset(29, 22), 1.3, _fill(light));
     canvas.drawRect(const Rect.fromLTWH(17.5, 19, 3.6, 4), _fill(dark));
+  });
+}
+
+void _pzh(
+  Canvas canvas,
+  Color hull,
+  Color dark,
+  Color light,
+  _TurretPass turret,
+) {
+  _tracks(canvas, 3, 47, 9);
+  _skirts(canvas, dark, 7, 45);
+
+  // Long hull, the engine up front on the right, the driver beside it.
+  final body = Path()
+    ..moveTo(15, 46)
+    ..lineTo(15, 10)
+    ..lineTo(19, 3.5)
+    ..lineTo(29, 3.5)
+    ..lineTo(33, 10)
+    ..lineTo(33, 46)
+    ..close();
+  canvas.drawPath(body, _fill(hull));
+  canvas.drawPath(body, _line(dark));
+  canvas.drawRect(const Rect.fromLTWH(25.5, 7, 6, 10), _fill(dark));
+  for (var y = 8.0; y < 17; y += 1.8) {
+    canvas.drawLine(Offset(26, y), Offset(31, y), _line(light, 0.6));
+  }
+  canvas.drawCircle(const Offset(19.5, 9.5), 2, _fill(dark));
+  _balkenkreuz(canvas, 19.5, 16.5, 5);
+
+  turret(() {
+    // 155 mm gun, far longer than the hull, with a muzzle brake and a
+    // thermal sleeve.
+    canvas.drawRect(const Rect.fromLTWH(22.8, -19, 2.4, 42), _fill(_steel));
+    canvas.drawRect(const Rect.fromLTWH(22.2, 0, 3.6, 9), _fill(_steel));
+    canvas.drawRect(
+      const Rect.fromLTWH(21.4, -21, 5.2, 3.2),
+      _fill(_barrelTip),
+    );
+    canvas.drawRect(const Rect.fromLTWH(20, 20, 8, 4), _fill(_steel));
+
+    // Big boxy turret over the back half of the hull.
+    final turret = Path()
+      ..moveTo(16, 23)
+      ..lineTo(32, 23)
+      ..lineTo(34, 26)
+      ..lineTo(34, 44)
+      ..lineTo(14, 44)
+      ..lineTo(14, 26)
+      ..close();
+    canvas.drawPath(turret, _fill(light));
+    canvas.drawPath(turret, _line(dark));
+    canvas.drawLine(const Offset(14, 39), const Offset(34, 39), _line(dark));
+    // Hatches, a machine gun ring and the shell door at the back.
+    canvas.drawCircle(const Offset(19, 31), 2.6, _fill(dark));
+    canvas.drawCircle(const Offset(19, 31), 1.3, _fill(light));
+    canvas.drawCircle(const Offset(29, 31), 2.4, _fill(dark));
+    canvas.drawRect(const Rect.fromLTWH(19, 40, 10, 3), _fill(dark));
   });
 }

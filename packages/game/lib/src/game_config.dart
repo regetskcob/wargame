@@ -357,12 +357,24 @@ class GameConfig {
   /// Paint schemes everybody has from the start.
   static const freeColors = 4;
 
-  /// A vehicle and one of the free paint schemes, for a fresh player or a
-  /// CPU tank.
+  /// Any vehicle and one of the free paint schemes, for a CPU tank.
   static int randomStyle(Random random) => styleOf(
     random.nextInt(TankType.values.length),
     random.nextInt(freeColors),
   );
+
+  /// A vehicle everybody has from the start and a free paint scheme, for a
+  /// fresh player: nobody begins in a vehicle their rank does not allow.
+  static int randomStarterStyle(Random random) {
+    final free = [
+      for (final type in TankType.values)
+        if (type.level <= 1) type,
+    ];
+    return styleOf(
+      free[random.nextInt(free.length)].index,
+      random.nextInt(freeColors),
+    );
+  }
 
   static Color colorOf(int style) => shipColors[style % shipColors.length];
 

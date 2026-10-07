@@ -26,6 +26,18 @@ class TankChoice extends StatelessWidget {
   /// The pilot's rank is too low for it yet.
   final bool locked;
 
+  /// One line of text [height] high, shrunk to fit instead of wrapping.
+  static Widget _line(String text, TextStyle style, double height) => Padding(
+    padding: const EdgeInsets.symmetric(horizontal: 6),
+    child: SizedBox(
+      height: height,
+      child: FittedBox(
+        fit: BoxFit.scaleDown,
+        child: Text(text, style: style, maxLines: 1, softWrap: false),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     final card = InkWell(
@@ -37,9 +49,11 @@ class TankChoice extends StatelessWidget {
           color: selected ? const Color(0x33FFB300) : const Color(0x55000000),
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(8),
+            // The same width for all: a thicker border would make the
+            // selected card bigger than the others.
             side: BorderSide(
               color: selected ? BwColors.amber : BwColors.oliveLight,
-              width: selected ? 2.5 : 1.5,
+              width: 2,
             ),
           ),
         ),
@@ -52,20 +66,24 @@ class TankChoice extends StatelessWidget {
               child: CustomPaint(painter: TankPreviewPainter(type, color)),
             ),
             const SizedBox(height: 4),
-            Text(
+            // One line each, shrunk to fit, so every card has the same
+            // height however long the name is.
+            _line(
               type.label,
-              style: const TextStyle(
+              const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1,
               ),
+              17,
             ),
-            Text(
+            _line(
               locked ? 'ab Stufe ${type.level}' : type.role,
-              style: TextStyle(
+              TextStyle(
                 fontSize: 10,
                 color: locked ? BwColors.amber : BwColors.textDim,
               ),
+              14,
             ),
           ],
         ),
@@ -132,14 +150,19 @@ class StatBars extends StatelessWidget {
   static double strengthOf(TankType type) =>
       rowsOf(type).fold(0.0, (sum, row) => sum + row.$2);
 
-  /// The vehicles in the order a pilot gets them: by the rank that unlocks
-  /// them, and among those of one rank from the weakest to the strongest.
+  /// The vehicles as the lobby lists them: first those the pilot may drive,
+  /// from the weakest to the strongest, then the locked ones by the rank
+  /// they need and among one rank by strength.
   /// The enum keeps its order, its index travels over the wire.
-  static final List<TankType> byUnlock = [...TankType.values]
-    ..sort((a, b) {
-      final rank = a.level.compareTo(b.level);
-      return rank != 0 ? rank : strengthOf(a).compareTo(strengthOf(b));
-    });
+  static List<TankType> ordered(bool Function(TankType) unlocked) =>
+      [...TankType.values]..sort((a, b) {
+        final open = (unlocked(a) ? 0 : 1).compareTo(unlocked(b) ? 0 : 1);
+        if (open != 0) {
+          return open;
+        }
+        final rank = unlocked(a) ? 0 : a.level.compareTo(b.level);
+        return rank != 0 ? rank : strengthOf(a).compareTo(strengthOf(b));
+      });
 
   @override
   Widget build(BuildContext context) {

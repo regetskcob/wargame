@@ -49,17 +49,23 @@ class AmmoGauge extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              endless
-                  ? 'MUNITION ∞'
-                  : ammo == 0
-                  ? 'MUNITION LEER'
-                  : 'MUNITION $ammo/$maxAmmo',
-              style: TextStyle(
-                fontWeight: FontWeight.w800,
-                fontSize: compact ? 11 : null,
-                color: ammo == 0 && !endless ? BwColors.danger : null,
-              ),
+            Row(
+              children: [
+                Icon(Icons.inventory_2, size: compact ? 12 : 16, color: color),
+                const SizedBox(width: 4),
+                Text(
+                  endless
+                      ? 'MUNITION ∞'
+                      : ammo == 0
+                      ? 'MUNITION LEER'
+                      : 'MUNITION $ammo/$maxAmmo',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: compact ? 11 : null,
+                    color: ammo == 0 && !endless ? BwColors.danger : null,
+                  ),
+                ),
+              ],
             ),
             SizedBox(height: compact ? 3 : 6),
             LinearProgressIndicator(

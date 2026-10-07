@@ -7,7 +7,6 @@ import '../game_config.dart';
 import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/map_theme.dart';
-import '../game/weather.dart';
 import '../game/space_game.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../net/room.dart';
@@ -316,7 +315,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     final game = widget.game;
     return _Section(
       icon: Icons.landscape_outlined,
-      title: 'GELÄNDE & WETTER',
+      title: 'GELÄNDE & TAGESZEIT',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -334,21 +333,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ),
           ),
           const SizedBox(height: 14),
-          _label(context, 'WETTER'),
-          ValueListenableBuilder<Sky?>(
-            valueListenable: game.skyChoice,
-            builder: (context, choice, _) => ChoiceRow<Sky>(
-              allowNone: true,
-              options: const [
-                (Sky.clear, 'KLAR', null),
-                (Sky.precipitation, 'NIEDERSCHLAG', null),
-                (Sky.fog, 'NEBEL', null),
-              ],
-              selected: choice,
-              onSelected: (v) => game.skyChoice.value = v,
-            ),
-          ),
-          const SizedBox(height: 14),
           _label(context, 'TAGESZEIT'),
           ValueListenableBuilder<bool?>(
             valueListenable: game.nightChoice,
@@ -361,8 +345,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ),
           const SizedBox(height: 6),
           _hint(
-            'Ohne Auswahl wird zufällig bestimmt. Nachts, im Nebel und im '
-            'Sandsturm siehst du nur, was nah ist.',
+            'Ohne Auswahl wird zufällig bestimmt. Das Wetter würfelt jede '
+            'Runde selbst aus, in langen Runden schlägt es um. Nachts, im '
+            'Nebel und im Sandsturm siehst du nur, was nah ist.',
           ),
         ],
       ),
@@ -415,7 +400,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final type in StatBars.byUnlock)
+                    for (final type in StatBars.ordered(
+                      game.progress.vehicleUnlocked,
+                    ))
                       TankChoice(
                         type: type,
                         width: width.floorToDouble(),
@@ -488,8 +475,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       builder: (context, mode, _) => !mode.withOthers
           ? const SizedBox.shrink()
           : _Section(
-              icon: Icons.groups_outlined,
-              title: 'BESATZUNGEN',
+              // The list brings its own heading.
               child: ValueListenableBuilder<List<LobbyPresence>>(
                 valueListenable: game.roster,
                 builder: (context, roster, _) => PlayerList(
@@ -734,14 +720,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
 
 /// A group of settings under a heading, set off by a thin frame.
 class _Section extends StatelessWidget {
-  const _Section({
-    required this.icon,
-    required this.title,
-    required this.child,
-  });
+  const _Section({required this.child, this.icon, this.title});
 
-  final IconData icon;
-  final String title;
+  final IconData? icon;
+  final String? title;
   final Widget child;
 
   @override
@@ -759,18 +741,20 @@ class _Section extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              children: [
-                Icon(icon, size: 18, color: BwColors.amber),
-                const SizedBox(width: 8),
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium
-                      ?.copyWith(letterSpacing: 2),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
+            if (title != null) ...[
+              Row(
+                children: [
+                  Icon(icon, size: 18, color: BwColors.amber),
+                  const SizedBox(width: 8),
+                  Text(
+                    title!,
+                    style: Theme.of(context).textTheme.titleMedium
+                        ?.copyWith(letterSpacing: 2),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+            ],
             child,
           ],
         ),
