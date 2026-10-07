@@ -13,6 +13,7 @@ import '../audio_service.dart';
 import '../db/account_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
+import '../env.dart';
 import '../game_config.dart';
 import '../net/net_events.dart';
 import '../net/net_service.dart';
@@ -157,6 +158,19 @@ class SpaceGame extends FlameGame
   final mode = ValueNotifier<GameMode>(GameMode.multi);
 
   void setMode(GameMode value) => mode.value = value;
+
+  /// Whether the player got past the welcome page by signing in or by
+  /// choosing to play as a guest. Without accounts there is nothing to pick,
+  /// and a browser that chose the guest once is not asked again.
+  late final welcomed = ValueNotifier<bool>(
+    !Env.accounts || !accounts.isGuest || prefersGuest(),
+  );
+
+  /// Welcome page: go on without an account.
+  void playAsGuest() {
+    rememberGuest();
+    welcomed.value = true;
+  }
 
   /// Whether the host still looks at the start page with the three ways to
   /// play. Players who joined by a link go straight to the waiting room.
@@ -469,6 +483,9 @@ class SpaceGame extends FlameGame
   /// Signing in or out swaps the account: bring in its name, look and
   /// progress.
   void _onAccountChanged() {
+    if (!accounts.isGuest) {
+      welcomed.value = true;
+    }
     final id = accounts.user.value?.id;
     if (id == null || id == _accountId) {
       return;

@@ -9,9 +9,18 @@ import '../../theme.dart';
 /// Guest or lasting account: secure the guest account by e-mail or with a
 /// login, sign into an account from another device, or sign out.
 class AccountPanel extends StatefulWidget {
-  const AccountPanel({required this.accounts, super.key});
+  const AccountPanel({
+    required this.accounts,
+    this.embedded = false,
+    super.key,
+  });
 
   final AccountService accounts;
+
+  /// On the welcome page: always open, without the status line, and signing
+  /// in comes first. Securing the fresh guest account there means creating
+  /// a new one.
+  final bool embedded;
 
   @override
   State<AccountPanel> createState() => _AccountPanelState();
@@ -23,7 +32,7 @@ class _AccountPanelState extends State<AccountPanel> {
   final _email = TextEditingController();
   final _code = TextEditingController();
   var _open = false;
-  var _signIn = false;
+  late var _signIn = widget.embedded;
   var _step = _Step.idle;
   var _busy = false;
   String? _message;
@@ -94,7 +103,11 @@ class _AccountPanelState extends State<AccountPanel> {
     _run(
       () =>
           widget.accounts.verifyCode(_email.text, _code.text, signIn: _signIn),
-      _signIn ? 'Angemeldet.' : 'Konto gesichert.',
+      _signIn
+          ? 'Angemeldet.'
+          : widget.embedded
+          ? 'Konto angelegt.'
+          : 'Konto gesichert.',
     ).then((_) {
       if (!_error && mounted) {
         setState(() => _step = _Step.idle);
@@ -108,6 +121,13 @@ class _AccountPanelState extends State<AccountPanel> {
       valueListenable: widget.accounts.user,
       builder: (context, user, _) {
         final guest = widget.accounts.isGuest;
+        if (widget.embedded) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [..._guest(context), ..._status()],
+          );
+        }
         return DecoratedBox(
           decoration: BoxDecoration(
             color: const Color(0x44000000),
@@ -159,16 +179,7 @@ class _AccountPanelState extends State<AccountPanel> {
                   ],
                 ),
                 if (guest && _open) ..._guest(context),
-                if (_message != null) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    _message!,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: _error ? BwColors.danger : BwColors.sand,
-                    ),
-                  ),
-                ],
+                ..._status(),
               ],
             ),
           ),
@@ -177,18 +188,35 @@ class _AccountPanelState extends State<AccountPanel> {
     );
   }
 
+  List<Widget> _status() => [
+    if (_message != null) ...[
+      const SizedBox(height: 8),
+      Text(
+        _message!,
+        style: TextStyle(
+          fontSize: 12,
+          color: _error ? BwColors.danger : BwColors.sand,
+        ),
+      ),
+    ],
+  ];
+
   List<Widget> _guest(BuildContext context) {
     final dim = const TextStyle(color: BwColors.textDim, fontSize: 12);
+    final fresh = widget.embedded;
     return [
       const SizedBox(height: 6),
-      Text(
-        _signIn
-            ? 'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
-                  'auf dieses Gerät zu holen.'
-            : 'Als Gast hängt dein Fortschritt an diesem Browser. Sichere dein '
-                  'Konto, damit Rang, Wertung und Abzeichen bleiben.',
-        style: dim,
-      ),
+      Text(switch ((_signIn, fresh)) {
+        (true, _) =>
+          'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
+              'auf dieses Gerät zu holen.',
+        (false, true) =>
+          'Lege ein Konto mit deiner E-Mail an. Rang, Wertung und Abzeichen '
+              'bleiben dann auf jedem Gerät erhalten.',
+        (false, false) =>
+          'Als Gast hängt dein Fortschritt an diesem Browser. Sichere dein '
+              'Konto, damit Rang, Wertung und Abzeichen bleiben.',
+      }, style: dim),
       const SizedBox(height: 10),
       if (_step == _Step.idle) ...[
         TextField(
@@ -205,7 +233,11 @@ class _AccountPanelState extends State<AccountPanel> {
           children: [
             FilledButton(
               onPressed: _busy ? null : _sendMail,
-              child: Text(_signIn ? 'ANMELDELINK SENDEN' : 'KONTO SICHERN'),
+              child: Text(switch ((_signIn, fresh)) {
+                (true, _) => 'ANMELDELINK SENDEN',
+                (false, true) => 'KONTO ANLEGEN',
+                (false, false) => 'KONTO SICHERN',
+              }),
             ),
             for (final (provider, label) in widget.accounts.providers.value)
               OutlinedButton(
@@ -251,11 +283,11 @@ class _AccountPanelState extends State<AccountPanel> {
           _step = _Step.idle;
           _message = null;
         }),
-        child: Text(
-          _signIn
-              ? 'Noch kein Konto? Gastkonto sichern'
-              : 'Schon ein Konto? Anmelden',
-        ),
+        child: Text(switch ((_signIn, fresh)) {
+          (true, true) => 'Noch kein Konto? Registrieren',
+          (true, false) => 'Noch kein Konto? Gastkonto sichern',
+          (false, _) => 'Schon ein Konto? Anmelden',
+        }),
       ),
     ];
   }

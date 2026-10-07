@@ -32,12 +32,14 @@ jobs:
           args=()
           if [ -n "$SUPABASE_URL" ]; then args+=(--dart-define=SUPABASE_URL="$SUPABASE_URL"); fi
           if [ -n "$SUPABASE_KEY" ]; then args+=(--dart-define=SUPABASE_KEY="$SUPABASE_KEY"); fi
+          if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
           flutter build web --base-href "/${REPO_NAME}/" "${args[@]}"
         working-directory: packages/game
         env:
           REPO_NAME: ${{ github.event.repository.name }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
+          ACCOUNTS: ${{ vars.ACCOUNTS }}
       - run: cp build/web/index.html build/web/404.html
         working-directory: packages/game
       - uses: actions/configure-pages@v5

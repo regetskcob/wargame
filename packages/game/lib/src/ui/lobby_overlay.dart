@@ -14,6 +14,7 @@ import '../net/room.dart';
 import '../game/components/tank_painter.dart';
 import '../theme.dart';
 import 'launch_view.dart';
+import 'welcome_view.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/leaderboard.dart';
@@ -572,9 +573,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   Widget _build(BuildContext context) {
-    return ValueListenableBuilder<bool>(
-      valueListenable: widget.game.choosingMode,
-      builder: (context, choosing, _) => ColoredBox(
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        widget.game.choosingMode,
+        widget.game.welcomed,
+      ]),
+      builder: (context, _) => ColoredBox(
         color: const Color(0xAA000000),
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -586,7 +590,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   constraints: const BoxConstraints(maxWidth: 860),
                   child: Panel(
                     padding: EdgeInsets.all(narrow ? 14 : 24),
-                    child: choosing && widget.game.isHost.value
+                    child: !widget.game.welcomed.value
+                        ? WelcomeView(game: widget.game)
+                        : widget.game.choosingMode.value &&
+                              widget.game.isHost.value
                         ? LaunchView(game: widget.game)
                         : Column(
                             crossAxisAlignment: CrossAxisAlignment.start,

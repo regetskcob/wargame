@@ -34,7 +34,9 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - A rematch button on the end screen, and a replay of the last round.
 - Ranks from experience, an Elo rating, ten badges, an all time and a weekly
   leaderboard and statistics per vehicle.
-- Guest accounts, and behind a switch the option to secure them by e-mail or
+- A start page that picks single player, multiplayer or the defense mode.
+- Guest accounts, and behind a switch a welcome page to sign in, register
+  or play as a guest, and the option to secure a guest account by e-mail or
   with a GitHub or Google login. Private rooms by link or code and a list of
   public rooms.
 
@@ -174,8 +176,11 @@ is no server of our own.
    work once they are applied. Push the migrations before the game.
 
    Securing the guest account and signing in on another device are switched
-   off for now. Build with `--dart-define=ACCOUNTS=true` to show them in the
-   lobby once the following is in place. For lasting accounts, set the URL of the game as Site URL and add it with
+   off for now. Build with `--dart-define=ACCOUNTS=true`, or set the
+   repository variable `ACCOUNTS` to `true` for the `pages` workflow, once
+   the following is in place. The game then opens on a welcome page that
+   offers to sign in, to create an account or to play as a guest, and the
+   lobby offers to secure the guest account later. For lasting accounts, set the URL of the game as Site URL and add it with
    `/**` to the redirect URLs (Authentication, URL Configuration), so the
    links in the mails lead back to the game, and turn on "Allow manual
    linking". Without a custom SMTP server Supabase only mails the members of

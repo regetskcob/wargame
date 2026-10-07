@@ -40,6 +40,27 @@ void _rememberHosted(String code) {
   }
 }
 
+const _guestKey = 'panzergefecht.guest';
+
+/// Whether this browser chose to play as a guest before.
+bool prefersGuest() {
+  try {
+    return web.window.localStorage.getItem(_guestKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that this browser plays as a guest, so the welcome page does
+/// not ask again.
+void rememberGuest() {
+  try {
+    web.window.localStorage.setItem(_guestKey, '1');
+  } on Object {
+    // Without storage the welcome page simply asks again next time.
+  }
+}
+
 /// True when this session opened the room, false when it joined by a link.
 bool isRoomHost() => _hosting;
 
