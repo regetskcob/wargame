@@ -84,6 +84,10 @@ class GameConfig {
   static const artilleryDelay = 2.5;
   static const artilleryRadius = 110.0;
   static const artilleryDamage = 45.0;
+
+  /// A bomb from a jet, the enemy's, the base's or the bomber of a gem:
+  /// a tenth harder than an artillery shell.
+  static const bombDamage = artilleryDamage * 1.1;
   static const artilleryRange = 360.0;
 
   /// Defense: the base, the waves and the guns the players put down.

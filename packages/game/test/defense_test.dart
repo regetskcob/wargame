@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:game/src/game/components/artillery_strike.dart';
 import 'package:game/src/game_config.dart';
 import 'package:game/src/game/defense/defense_map.dart';
 import 'package:game/src/game/defense/tower.dart';
@@ -8,6 +9,7 @@ import 'package:game/src/net/payloads/defense_payload.dart';
 import 'package:game/src/net/payloads/lobby_presence.dart';
 import 'package:game/src/net/payloads/round_start_payload.dart';
 import 'package:game/src/net/payloads/shoot_payload.dart';
+import 'package:game/src/net/payloads/soldier_payload.dart';
 
 void main() {
   test('players defend together, every enemy is on the other side', () {
@@ -243,6 +245,65 @@ void main() {
         const TowerPayload(id: 'a', index: 1, x: 0, y: 0).toJson(),
       ).hp,
       isNull,
+    );
+  });
+
+  test('both sides send troops on foot', () {
+    final round = RoundState(
+      seed: 1,
+      startedAt: 2,
+      participants: const ['a'],
+      botHost: 'a',
+      defense: true,
+    );
+    expect(round.isAlly('ally-q3-0'), isTrue);
+    expect(round.teamOf('ally-q3-0'), round.teamOf('a'));
+    expect(round.botName('ally-q3-0'), 'EIGENE INFANTERIE');
+    expect(
+      DefenseMap.planFor(GameConfig.defenseWaves).squads,
+      greaterThan(DefenseMap.planFor(1).squads),
+    );
+    final squad = SquadPayload.fromJson(
+      const SquadPayload(
+        id: 'a',
+        owner: 'ally-q3-0',
+        squad: 'ally-q3-0',
+        x: 0,
+        y: 0,
+        at: 1,
+        rifles: 4,
+        rockets: 1,
+        road: true,
+        back: true,
+      ).toJson(),
+    );
+    expect((squad.road, squad.back), (true, true));
+  });
+
+  test('the enemy outpost stands beside the start of the road', () {
+    for (var seed = 0; seed < 16; seed += 4) {
+      final map = DefenseMap.forSeed(seed);
+      expect(DefenseMap.bounds.contains(map.outpost.toOffset()), isTrue);
+      expect(map.distanceToRoad(map.outpost), greaterThan(80));
+      expect(map.outpost.distanceTo(map.entry), lessThan(250));
+    }
+  });
+
+  test('jet bombs hit a tenth harder than artillery shells', () {
+    ArtilleryStrike strike(String id) => ArtilleryStrike(
+      strikeId: id,
+      ownerId: 'a',
+      at: 0,
+      position: Vector2.zero(),
+    );
+    expect(strike('td-j-3-2-b0').fromJet, isTrue);
+    expect(strike('air-j-5-b2').fromJet, isTrue);
+    expect(strike('a-j7').fromJet, isTrue);
+    expect(strike('a-a7').fromJet, isFalse);
+    expect(strike('a-a7').damage, GameConfig.artilleryDamage);
+    expect(
+      strike('td-j-3-2-b0').damage,
+      closeTo(GameConfig.artilleryDamage * 1.1, 0.001),
     );
   });
 

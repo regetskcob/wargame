@@ -24,23 +24,26 @@ class BotItems {
 
   /// How far a bot drives out of its way for a crate it wants.
   double get detour => switch (level) {
-    BotLevel.easy => 150,
-    BotLevel.normal => 230,
-    BotLevel.hard => 300,
+    BotLevel.easy => 200,
+    BotLevel.normal => 320,
+    BotLevel.hard => 420,
   };
+
+  /// A crate this close is picked up on the way, even in a fight.
+  static const passing = 140.0;
 
   /// Share of crates a bot takes an interest in at all.
   double get _greed => switch (level) {
-    BotLevel.easy => 0.25,
-    BotLevel.normal => 0.45,
-    BotLevel.hard => 0.6,
+    BotLevel.easy => 0.4,
+    BotLevel.normal => 0.7,
+    BotLevel.hard => 0.9,
   };
 
   /// Seconds between two items, longer on the easy level.
   double get _pause => switch (level) {
-    BotLevel.easy => 7,
-    BotLevel.normal => 4,
-    BotLevel.hard => 2.5,
+    BotLevel.easy => 6,
+    BotLevel.normal => 3,
+    BotLevel.hard => 2,
   };
 
   /// Whether [ship] is short of what [type] brings, enough to go and get it
@@ -62,12 +65,15 @@ class BotItems {
   };
 
   /// The crate the bot should fetch now, if any. [engaged] is set while an
-  /// enemy is close: then only what it badly needs is worth the detour.
+  /// enemy is close: then only what it badly needs is worth the detour, and
+  /// what lies right on the way. [accept] can rule out a crate, a comrade of
+  /// the defense for one across the river or far from its post.
   PowerUp? wanted(
     SpaceGame game,
     PlayerShip ship, {
     required bool engaged,
     double safeRadius = double.infinity,
+    bool Function(PowerUp crate)? accept,
   }) {
     final people = game.humanTanks.toList();
     PowerUp? best;
@@ -81,11 +87,16 @@ class BotItems {
       }
       final distance = crate.position.distanceTo(ship.position);
       final needed = urgent(ship, type);
-      if (distance > (needed ? detour * 1.8 : detour) || (engaged && !needed)) {
+      if (distance > (needed ? detour * 1.8 : detour) ||
+          (engaged && !needed && distance > passing) ||
+          (accept != null && !accept(crate))) {
         continue;
       }
-      // Somebody real is closer: leave it to them.
-      if (people.any((p) => p.position.distanceTo(crate.position) < distance)) {
+      // Somebody real is closer and on their way: leave it to them.
+      if (people.any((p) {
+        final theirs = p.position.distanceTo(crate.position);
+        return theirs < distance && theirs < detour;
+      })) {
         continue;
       }
       final keen = _interest.putIfAbsent(
@@ -123,11 +134,11 @@ class BotItems {
     for (var i = 0; i < slots.length; i++) {
       final type = slots[i].type;
       final now = switch (type) {
-        PowerUpType.repair => health < 0.5,
+        PowerUpType.repair => health < 0.5 || (health < 0.75 && distance > 500),
         PowerUpType.ammo =>
           !ship.endlessAmmo && ship.ammo < ship.magazine * 0.25,
         PowerUpType.fuel => ship.usesFuel && ship.fuel < 0.3,
-        PowerUpType.shield => health < 0.65 && distance < 400,
+        PowerUpType.shield => health < 0.8 && distance < 400,
         PowerUpType.smoke => health < 0.35 && distance < 380,
         PowerUpType.rapidFire => distance < 380,
         PowerUpType.mines => distance < 260,

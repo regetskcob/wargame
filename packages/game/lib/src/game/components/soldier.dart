@@ -33,6 +33,8 @@ class Soldier extends PositionComponent {
     this.march,
     this.marchAt = 0,
     this.lane = 0,
+    this.back = false,
+    this.hold = 0.5,
   }) : tag = tag ?? '#$index',
        super(size: Vector2.all(16), anchor: Anchor.center, priority: 1);
 
@@ -65,6 +67,11 @@ class Soldier extends PositionComponent {
   final DefenseMap? march;
   final double marchAt;
   final double lane;
+
+  /// A soldier of the base marches up the road instead, against the enemy,
+  /// and holds the line at [hold], the share of the road from its start.
+  final bool back;
+  final double hold;
 
   bool dead = false;
 
@@ -104,7 +111,11 @@ class Soldier extends PositionComponent {
     final road = march;
     if (road != null) {
       final distance = max(0.0, (t - marchAt) * GameConfig.marchSpeed);
-      final (point, dir) = road.alongRoad(min(distance, road.roadLength));
+      final (point, dir) = back
+          ? road.alongRoad(
+              road.roadLength - min(distance, road.roadLength * (1 - hold)),
+            )
+          : road.alongRoad(min(distance, road.roadLength));
       return point + Vector2(-dir.y, dir.x) * lane;
     }
     return home +
@@ -181,6 +192,7 @@ class Soldier extends PositionComponent {
     _gait += dt * (march != null ? 4 : speed * 14);
     final road = march;
     if (road != null &&
+        !back &&
         !arrived &&
         (t - marchAt) * GameConfig.marchSpeed >= road.roadLength) {
       arrived = true;
@@ -424,6 +436,9 @@ class SoldierField extends Component {
     }
     final random = Random(stableHash(payload.squad));
     final start = clockAt(payload.at);
+    // Where a squad of the base stops, the same on every client.
+    final hold =
+        0.35 + Random(stableHash(payload.squad) + 1).nextDouble() * 0.25;
     final centre = Vector2(payload.x, payload.y);
     for (var i = 0; i < payload.count; i++) {
       final a = random.nextDouble() * 2 * pi;
@@ -443,6 +458,8 @@ class SoldierField extends Component {
         march: marching ? map : null,
         marchAt: start + i * 0.9,
         lane: (random.nextDouble() * 2 - 1) * (DefenseMap.roadHalfWidth - 12),
+        back: payload.back,
+        hold: hold,
       );
       squads[soldier.tag] = soldier;
       if (soldier.appearsAt > clock) {

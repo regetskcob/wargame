@@ -40,19 +40,41 @@ class DefenseField extends Component {
       map.distanceToRoad(position) > DefenseMap.roadHalfWidth + radius + 40 &&
       map.distanceToRiver(position) > DefenseMap.riverHalfWidth + radius + 16 &&
       position.distanceTo(map.base) > 260 &&
+      position.distanceTo(map.outpost) > 90 + radius &&
       !map.bridges.any(
         (b) => b.centre.distanceTo(position) < b.halfLength + radius + 30,
       );
 
+  /// River and road lie in the world itself, under the soldiers and the
+  /// tracks. As children of the field they would be drawn at the field's
+  /// own place in the world, over everything that walks on the road.
+  late final _ground = _Ground(map: map, theme: theme);
+
+  @override
+  void onMount() {
+    super.onMount();
+    parent?.add(_ground);
+  }
+
+  @override
+  void onRemove() {
+    _ground.removeFromParent();
+    super.onRemove();
+  }
+
   @override
   void onLoad() {
-    add(_River(map: map, theme: theme));
-    add(_Road(map: map, theme: theme));
     headquarters = Headquarters(
       position: map.base.clone(),
       approach: (map.road[map.road.length - 2] - map.base).normalized(),
     );
     add(headquarters);
+    add(
+      EnemyOutpost(
+        position: map.outpost.clone(),
+        facing: (map.road[0] - map.outpost).normalized(),
+      ),
+    );
     final random = Random(seed);
     _plantWoods(random);
     _buildHouses(random);
@@ -142,6 +164,15 @@ class DefenseField extends Component {
 }
 
 /// The river with its banks, below the road so the bridges lie on top.
+/// River and road of the field, below soldiers (-12) and tracks (-15).
+class _Ground extends Component {
+  _Ground({required DefenseMap map, required MapTheme theme})
+    : super(priority: -17) {
+    add(_River(map: map, theme: theme));
+    add(_Road(map: map, theme: theme));
+  }
+}
+
 class _River extends PositionComponent {
   _River({required this.map, required this.theme}) : super(priority: -16);
 
@@ -503,6 +534,78 @@ class Headquarters extends PositionComponent {
         ..color = ratio > 0.3
             ? const Color(0xFF9CCC65)
             : const Color(0xFFD1492E),
+    );
+  }
+}
+
+/// The enemy's outpost beside the start of the road, where tanks and squads
+/// roll out from: a watchtower on a sandbagged square under the enemy's
+/// flag. Only scenery.
+class EnemyOutpost extends PositionComponent {
+  EnemyOutpost({required super.position, required this.facing})
+    : super(size: Vector2.all(80), anchor: Anchor.center, priority: 4);
+
+  /// Direction to the road, where the gate opens.
+  final Vector2 facing;
+
+  @override
+  void render(Canvas canvas) {
+    final c = Offset(size.x / 2, size.y / 2);
+    final enemy = GameConfig.teamColors[2];
+    canvas.drawCircle(c, 40, Paint()..color = const Color(0x33000000));
+    // Sandbag ring, open towards the road.
+    final gate = atan2(facing.y, facing.x);
+    canvas.drawArc(
+      Rect.fromCircle(center: c, radius: 34),
+      gate + 0.5,
+      2 * pi - 1,
+      false,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 9
+        ..color = const Color(0xFF9C8A62),
+    );
+    // Watchtower on four legs with a roof.
+    final tower = Rect.fromCenter(center: c, width: 30, height: 30);
+    canvas.drawRect(
+      tower.shift(const Offset(4, 5)),
+      Paint()..color = const Color(0x55000000),
+    );
+    canvas.drawRect(tower, Paint()..color = const Color(0xFF4A4A52));
+    canvas.drawRect(
+      tower,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 3
+        ..color = const Color(0xFF1E1E24),
+    );
+    canvas.drawLine(
+      tower.topLeft,
+      tower.bottomRight,
+      Paint()
+        ..strokeWidth = 2
+        ..color = const Color(0xFF1E1E24),
+    );
+    canvas.drawLine(
+      tower.topRight,
+      tower.bottomLeft,
+      Paint()
+        ..strokeWidth = 2
+        ..color = const Color(0xFF1E1E24),
+    );
+    canvas.drawCircle(c, 6, Paint()..color = enemy);
+    // The enemy's flag.
+    final pole = c + const Offset(10, -8);
+    canvas.drawLine(
+      pole,
+      pole + const Offset(0, -40),
+      Paint()
+        ..strokeWidth = 3
+        ..color = const Color(0xFF2E221A),
+    );
+    canvas.drawRect(
+      Rect.fromLTWH(pole.dx, pole.dy - 40, 24, 14),
+      Paint()..color = enemy,
     );
   }
 }

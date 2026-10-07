@@ -110,6 +110,65 @@ Everything resolves from pub.dev. There are no git dependencies and no
   an aim assist (on by default, switched with a button) turns the turret
   onto the nearest enemy while the right thumb rests.
 
+### Weapons and damage
+
+All values are hit points. They live in `packages/game/lib/src/game_config.dart`,
+`packages/game/lib/src/game/tank_stats.dart` and, for the guns,
+`packages/game/lib/src/game/defense/tower.dart`. Blasts do their full damage at
+the centre and half at the edge of the radius.
+
+**Tank guns.** Per second means with every shot landing.
+
+| Vehicle | Armour | Damage per shot | Barrels | Seconds per shot | Per second | Magazine |
+| --- | --- | --- | --- | --- | --- | --- |
+| Puma | 100 | 8 | 1 | 0.17 | 47 | 90 |
+| Wiesel | 60 | 38 | 1 | 1.2 | 32 | 14 |
+| Boxer | 70 | 11 | 1 | 0.26 | 42 | 55 |
+| Gepard | 105 | 9 | 2 | 0.26 | 69 | 45 |
+| Leopard 2 | 165 | 33 | 1 | 0.52 | 63 | 20 |
+| PzH 2000 | 185 | 75 | 1 | 1.05 | 71 | 12 |
+| Lynx KF41 | 135 | 14 | 1 | 0.2 | 70 | 70 |
+| Panther KF51 | 190 | 50 | 1 | 0.64 | 78 | 16 |
+
+Rapid fire from a crate shortens the time between shots to 45 % for 8
+seconds. In a defense round the enemy tanks fire three times slower.
+
+**Special weapons and crates.**
+
+| Weapon | Damage | Radius | Range | Uses |
+| --- | --- | --- | --- | --- |
+| Grenade launcher (gem) | 45 | 85 | 90–380 | 3 |
+| Mortar (gem) | 55 | 95 | 140–560 | 4 |
+| Kamikaze drone (gem) | 60 | 75 | hunts by itself | 1 |
+| Hunter drone (gem) | 60 | 75 | after a random enemy | 1 |
+| Artillery (crate) | 45 | 110 | up to 360 | 1 barrage |
+| Air strike (gem, hard) | 49.5 per bomb | 110 | up to 700 | 4 bombs |
+| Mines (crate) | 35 | 12 | where the tank stands | 3 mines |
+| Repair (crate) | +40 armour | | | |
+
+**Soldiers.** A rifle does 1 per shot every 1.3 seconds up to 220, which is
+deadly to soldiers and little to tanks. A rocket launcher does 18 every 4
+seconds up to 300.
+
+**Defense.**
+
+| Who | Damage | Notes |
+| --- | --- | --- |
+| Cannon | 18 per shot, 0.45 s, range 420 | +35 % per level |
+| Flak | 6 per shot, 0.16 s, range 480 | double against aircraft |
+| Mortar emplacement | 50, radius 75, range 130–620 | +35 % per level |
+| Howitzer | 110, radius 75, range 240–1050 | +35 % per level |
+| Helicopter (both sides) | 10 per rocket, every 1.8 s, range 420 | |
+| Jet (both sides) | 49.5 per bomb, 3 bombs | |
+| Enemy kamikaze drone | 60, radius 75 | |
+| Enemy tank at the base | 120 per 100 armour of the tank | it blows itself up |
+| Enemy soldier at the base | 25 | |
+
+**What softens a hit.** A shield lets 40 % through, every armour upgrade
+takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
+to the tank's shells. Against aircraft, flak and the Gepard do double, other
+shells a quarter to a helicopter and nothing to a jet.
+
 ### Defense thresholds
 
 The numbers that decide how a defense round grows. They live in

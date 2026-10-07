@@ -321,6 +321,26 @@
       "comment": null
     },
     {
+      "table_id": 16385,
+      "schema": "public",
+      "table": "scores",
+      "id": "16385.13",
+      "ordinal_position": 13,
+      "name": "rated_rounds",
+      "default_value": "0",
+      "data_type": "integer",
+      "format": "int4",
+      "is_identity": false,
+      "identity_generation": null,
+      "is_generated": false,
+      "is_nullable": false,
+      "is_updatable": true,
+      "is_unique": false,
+      "enums": [],
+      "check": null,
+      "comment": "Rounds with at least one rated opponent"
+    },
+    {
       "table_id": 16400,
       "schema": "public",
       "table": "players",

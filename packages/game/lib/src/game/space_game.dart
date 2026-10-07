@@ -433,6 +433,11 @@ class SpaceGame extends FlameGame
         camera: camera.viewfinder.position.toOffset(),
         scale: viewScale,
         heading: playing ? ship.angle : null,
+        focus: playing
+            ? ((ship.position - camera.viewfinder.position) * viewScale +
+                      canvasSize / 2)
+                  .toOffset()
+            : null,
         // Spectators and the fallen see the whole field.
         veil: playing,
       );
@@ -504,22 +509,35 @@ class SpaceGame extends FlameGame
   }
 
   /// New players get the tutorial once they are past the welcome page.
+  /// The welcome page may sign into an account, so the account is asked
+  /// only once the player is past it.
   void _offerTutorial() {
-    if (tutorialSeen()) {
-      return;
-    }
     if (welcomed.value) {
-      showTutorial();
+      if (!_tutorialSeen()) {
+        showTutorial();
+      }
       return;
     }
     void onWelcomed() {
       if (welcomed.value) {
         welcomed.removeListener(onWelcomed);
-        showTutorial();
+        if (!_tutorialSeen()) {
+          showTutorial();
+        }
       }
     }
 
     welcomed.addListener(onWelcomed);
+  }
+
+  /// Seen in this browser, or on the account for the current controls. A
+  /// browser that saw it before accounts kept the marker hands it on.
+  bool _tutorialSeen() {
+    if (tutorialSeen()) {
+      unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
+      return true;
+    }
+    return accounts.tutorialSeen(touch: touchMode.value);
   }
 
   /// Opens the tutorial over everything else. The start page and the
@@ -533,6 +551,7 @@ class SpaceGame extends FlameGame
   /// Closes the tutorial for good: it no longer opens by itself.
   void closeTutorial() {
     rememberTutorialSeen();
+    unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
     overlays.remove(OverlayIds.tutorial);
   }
 
@@ -1437,6 +1456,36 @@ class SpaceGame extends FlameGame
     );
   }
 
+  /// Host of a defense round: the base sends [count] squads on foot up the
+  /// road against wave [wave], a few seconds apart. They hold a line and
+  /// fight what comes.
+  void spawnBaseSquads(int wave, int count) {
+    final map = defenseMap;
+    if (map == null) {
+      return;
+    }
+    final now = DateTime.now().millisecondsSinceEpoch;
+    for (var i = 0; i < count; i++) {
+      final id = 'ally-q$wave-$i';
+      _addSquad(
+        SquadPayload(
+          id: myId,
+          owner: id,
+          squad: id,
+          x: map.base.x,
+          y: map.base.y,
+          at: now + i * 4000,
+          rifles: GameConfig.squadRifles,
+          rockets: count >= 3 ? 2 : 1,
+          road: true,
+          back: true,
+        ),
+        send: true,
+      );
+    }
+    showNotice('EIGENE INFANTERIE RÜCKT AUS');
+  }
+
   /// Host of a defense round: a helicopter or a jet comes in over the edge
   /// of the field. A jet heads for the base or for one of the defenders.
   void spawnAircraft(String id, AirKind kind) {
@@ -1855,8 +1904,12 @@ class SpaceGame extends FlameGame
         payload.count > GameConfig.squadRifles + GameConfig.paraDropRockets) {
       return;
     }
-    final enemy = activeRound.defense && activeRound.isEnemy(payload.owner);
-    if (!enemy &&
+    // Squads of the waves and of the base come from the host.
+    final wave =
+        activeRound.defense &&
+        (activeRound.isEnemy(payload.owner) ||
+            activeRound.isAlly(payload.owner));
+    if (!wave &&
         (!activeRound.alive.contains(payload.owner) ||
             !guard.allowSpecial(payload.owner, consume: true))) {
       return;
@@ -2581,9 +2634,28 @@ class SpaceGame extends FlameGame
       return;
     }
     final type = ship.items.take(index);
-    if (type != null) {
-      _applyItem(ship, type);
+    if (type == null) {
+      return;
     }
+    _applyItem(ship, type);
+    _calloutItem(ship.position, type);
+    // Repair and rapid fire announce themselves already.
+    if (type != PowerUpType.repair && type != PowerUpType.rapidFire) {
+      net.send(
+        NetEvent.use,
+        UsePayload(id: ship.playerId, item: type.name).toJson(),
+      );
+    }
+  }
+
+  void _calloutItem(Vector2 at, PowerUpType type) {
+    world.add(
+      ItemCallout(
+        position: at + Vector2(0, -GameConfig.shipRadius - 16),
+        text: type.label,
+        color: type.color,
+      ),
+    );
   }
 
   /// The tanks people drive: the local one and those of other players.
@@ -2745,7 +2817,12 @@ class SpaceGame extends FlameGame
   }
 
   void _onUse(UsePayload payload) {
-    switch (PowerUpType.values.asNameMap()[payload.item]) {
+    final type = PowerUpType.values.asNameMap()[payload.item];
+    final bot = remoteShips[payload.id];
+    if (type != null && bot != null && (round?.isBot(payload.id) ?? false)) {
+      _calloutItem(bot.position, type);
+    }
+    switch (type) {
       case PowerUpType.repair:
         guard.allowRepair(payload.id);
       case PowerUpType.rapidFire:
@@ -3022,7 +3099,7 @@ class SpaceGame extends FlameGame
           1 - 0.5 * (distance / GameConfig.artilleryRadius).clamp(0.0, 1.0);
       _damageLocal(
         ship,
-        GameConfig.artilleryDamage * falloff,
+        strike.damage * falloff,
         strike.ownerId,
         strike.strikeId,
       );
@@ -3033,13 +3110,13 @@ class SpaceGame extends FlameGame
           (round?.isEnemy(strike.ownerId) ?? false) &&
           base.position.distanceTo(strike.position) <
               GameConfig.artilleryRadius + DefenseMap.baseRadius) {
-        damageBase(GameConfig.artilleryDamage);
+        damageBase(strike.damage);
       }
       _blastTowers(
         strike.ownerId,
         strike.position,
         GameConfig.artilleryRadius,
-        GameConfig.artilleryDamage,
+        strike.damage,
       );
       _blastSoldiers(
         strike.ownerId,
@@ -3053,7 +3130,7 @@ class SpaceGame extends FlameGame
         if (obstacle.hp > 0 &&
             obstacle.position.distanceTo(strike.position) <
                 GameConfig.artilleryRadius) {
-          damageObstacle(obstacle, GameConfig.artilleryDamage);
+          damageObstacle(obstacle, strike.damage);
         }
       }
       for (final tree in [

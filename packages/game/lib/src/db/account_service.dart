@@ -85,6 +85,32 @@ class AccountService {
     user.value = _client.auth.currentUser;
   }
 
+  /// Marker on the account for the tutorial of the touch controls or of
+  /// keyboard and mouse. The two tutorials differ, so each counts on its own.
+  static String _tutorialKey({required bool touch}) =>
+      touch ? 'tutorial_seen_touch' : 'tutorial_seen_desktop';
+
+  /// Whether the account went through that tutorial, on any device.
+  bool tutorialSeen({required bool touch}) =>
+      user.value?.userMetadata[_tutorialKey(touch: touch)] == true;
+
+  /// Marks the tutorial as seen on the account, so signing in on another
+  /// device does not bring it up again. Guests get the marker too: it stays
+  /// when they register.
+  Future<void> rememberTutorialSeen({required bool touch}) async {
+    if (user.value == null || tutorialSeen(touch: touch)) {
+      return;
+    }
+    try {
+      await _client.auth.updateUser(
+        UserAttributes(data: {_tutorialKey(touch: touch): true}),
+      );
+      user.value = _client.auth.currentUser;
+    } on Object {
+      // The browser still remembers it, the account asks again elsewhere.
+    }
+  }
+
   /// Links a GitHub or Google login to the guest account.
   Future<void> secureWith(OAuthProvider provider) async {
     await _client.auth.linkIdentity(provider, redirectTo: authRedirect());
