@@ -1045,6 +1045,11 @@ class SpaceGame extends FlameGame
     }
     if (killerId == myId && victimId != myId) {
       roundStats.kills++;
+      final victim = remoteShips[victimId] ?? botShips[victimId];
+      if (victim != null) {
+        world.add(KillMarker(position: victim.position.clone()));
+        shake(4);
+      }
     }
     final entry = KillEntry(
       victim: _nameOf(victimId),

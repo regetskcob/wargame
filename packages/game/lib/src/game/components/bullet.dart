@@ -6,6 +6,7 @@ import 'package:flame/components.dart';
 import '../../game_config.dart';
 import '../space_game.dart';
 import 'asteroid.dart';
+import 'effects.dart';
 import 'obstacle.dart';
 
 class Bullet extends PositionComponent
@@ -55,14 +56,40 @@ class Bullet extends PositionComponent
   ) {
     super.onCollisionStart(intersectionPoints, other);
     if (other is Asteroid) {
+      _impact(const Color(0xFF6B5A3A));
       removeFromParent();
     } else if (other is Obstacle) {
+      _impact(const Color(0xFFB8B0A0));
       // Only the shooter's client applies the damage and tells the others.
       if (ownerId == gameRef.myId) {
         gameRef.damageObstacle(other, damage);
       }
       removeFromParent();
     }
+  }
+
+  /// Sparks and a little dust where the shell struck something solid.
+  void _impact(Color dust) {
+    parent?.addAll([
+      puff(
+        position: position.clone(),
+        color: const Color(0xFFFFD27A),
+        count: 5,
+        lifespan: 0.25,
+        speed: (40, 120),
+        size: (1.5, 3),
+        opacity: 0.9,
+      ),
+      puff(
+        position: position.clone(),
+        color: dust,
+        count: 4,
+        lifespan: 0.7,
+        speed: (8, 30),
+        size: (3, 7),
+        opacity: 0.5,
+      ),
+    ]);
   }
 
   @override

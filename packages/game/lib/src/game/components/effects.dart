@@ -3,7 +3,7 @@ import 'dart:ui' hide TextStyle;
 
 import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
-import 'package:flutter/painting.dart' show TextStyle;
+import 'package:flutter/painting.dart' show FontWeight, Shadow, TextStyle;
 
 /// Churned up ground behind the tanks. One component paints all the marks, so
 /// a busy arena costs a single draw loop.
@@ -168,6 +168,54 @@ class DamageNumber extends PositionComponent {
       }
     }
     _paint.render(canvas, _text, Vector2.zero(), anchor: Anchor.center);
+    canvas.restore();
+  }
+}
+
+/// A red cross over a tank the local player just destroyed.
+class KillMarker extends PositionComponent {
+  KillMarker({required Vector2 position})
+    : super(position: position, priority: 31, anchor: Anchor.center);
+
+  static const _lifetime = 1.1;
+  static final _label = TextPaint(
+    style: const TextStyle(
+      color: Color(0xFFFF5A45),
+      fontSize: 14,
+      fontWeight: FontWeight.w900,
+      letterSpacing: 2,
+      shadows: [Shadow(blurRadius: 3, color: Color(0xFF000000))],
+    ),
+  );
+  double _age = 0;
+
+  @override
+  void update(double dt) {
+    _age += dt;
+    if (_age >= _lifetime) {
+      removeFromParent();
+    }
+  }
+
+  @override
+  void render(Canvas canvas) {
+    final t = _age / _lifetime;
+    final fade = (1 - t).clamp(0.0, 1.0);
+    // Pops in big and settles.
+    final arm = 30 * (1 + 0.6 * (1 - (t * 5).clamp(0.0, 1.0)));
+    final paint = Paint()
+      ..color = Color.fromRGBO(255, 90, 69, fade)
+      ..strokeWidth = 4
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(Offset(-arm, -arm), Offset(arm, arm), paint);
+    canvas.drawLine(Offset(arm, -arm), Offset(-arm, arm), paint);
+    canvas.saveLayer(null, Paint()..color = Color.fromRGBO(255, 255, 255, fade));
+    _label.render(
+      canvas,
+      'ABSCHUSS',
+      Vector2(0, -arm - 12),
+      anchor: Anchor.bottomCenter,
+    );
     canvas.restore();
   }
 }
