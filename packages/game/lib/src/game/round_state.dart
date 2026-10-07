@@ -33,19 +33,32 @@ class RoundState {
   /// Real people play against each other, so every tank gets its own colour.
   bool get distinctColors => bots.isEmpty;
 
-  /// Enemies of a defense round that are already destroyed, so a late state
-  /// message does not bring them back.
+  /// Enemies and comrades of a defense round that are already destroyed, so
+  /// a late state message does not bring them back.
   final destroyedEnemies = <String>{};
 
   /// Enemies of a defense round are called `td-<wave>-<n>` and run by the
   /// [botHost].
   bool isEnemy(String id) => defense && id.startsWith('td-');
 
-  bool isBot(String id) => bots.containsKey(id) || isEnemy(id);
+  /// CPU comrades of a defense round are called `ally-<slot>-<life>`, a new
+  /// life after every respawn, and run by the [botHost] as well.
+  bool isAlly(String id) => defense && id.startsWith('ally-');
 
-  /// "CPU-3" for the bot called `cpu-3`, "FEIND" for enemies of the defense.
-  String botName(String id) =>
-      isEnemy(id) ? 'FEIND' : 'CPU-${id.split('-').last}';
+  bool isBot(String id) => bots.containsKey(id) || isEnemy(id) || isAlly(id);
+
+  /// "CPU-3" for the bot called `cpu-3`, "FEIND" for enemies of the defense
+  /// and "KAMERAD 2" for the comrade in slot 1.
+  String botName(String id) {
+    if (isEnemy(id)) {
+      return 'FEIND';
+    }
+    final parts = id.split('-');
+    if (isAlly(id)) {
+      return 'KAMERAD ${(int.tryParse(parts[1]) ?? 0) + 1}';
+    }
+    return 'CPU-${parts.last}';
+  }
 
   /// Look of an enemy, which follows from its wave and number.
   int enemyStyle(String id) {
@@ -55,10 +68,17 @@ class RoundState {
     return GameConfig.styleOf(DefenseMap.enemyType(wave, n).index, 1);
   }
 
+  /// Look of a comrade, which follows from its slot: in camouflage, so it
+  /// stands apart from the loud colours of the players and from the enemy.
+  int allyStyle(String id) {
+    final slot = int.tryParse(id.split('-')[1]) ?? 0;
+    return GameConfig.styleOf(DefenseMap.allyType(slot).index, 0);
+  }
+
   /// In a defense round every player is on team 1 and every enemy on 2.
   int teamOf(String id) {
     if (defense) {
-      return participants.contains(id) ? 1 : 2;
+      return participants.contains(id) || isAlly(id) ? 1 : 2;
     }
     return teams[id] ?? 0;
   }

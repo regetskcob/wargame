@@ -10,6 +10,10 @@ class GameConfig {
   /// World units that fit along the shorter side of the window.
   static const viewShortSide = 720.0;
 
+  /// The same for a defense round, wide enough to see most of the field:
+  /// the road, the guns and where the next wave comes from.
+  static const defenseViewShortSide = 1150.0;
+
   /// How far the ground and the danger zone are drawn from the middle, far
   /// enough that a wide window never shows the void.
   static const groundReach = worldRadius * 2.8;
@@ -91,6 +95,13 @@ class GameConfig {
   static const enemyFireFactor = 3.0;
   static const enemySyncInterval = 0.1;
   static const respawnSeconds = 6.0;
+
+  /// Nobody holds the base alone: CPU comrades fill the squad up to this
+  /// size, at least one of them even with a full room. They come back from
+  /// the base a while after they were destroyed.
+  static const defenseSquad = 4;
+  static const allyRespawnSeconds = 10.0;
+  static const allyRange = 440.0;
 
   /// How close to the base a tank refills, and how long a full magazine
   /// takes there.

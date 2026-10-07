@@ -119,6 +119,78 @@ class DefenseMap {
     return candidates.first;
   }
 
+  /// Length of the road from where the enemy rolls in to the base.
+  double get roadLength {
+    var total = 0.0;
+    for (var i = 0; i < road.length - 1; i++) {
+      total += road[i].distanceTo(road[i + 1]);
+    }
+    return total;
+  }
+
+  /// The point [distance] along the road from the entry and the index of the
+  /// segment it lies on.
+  (Vector2, int) pointAlong(double distance) {
+    var left = distance;
+    for (var i = 0; i < road.length - 1; i++) {
+      final length = road[i].distanceTo(road[i + 1]);
+      if (left <= length || i == road.length - 2) {
+        final t = length == 0 ? 0.0 : (left / length).clamp(0.0, 1.0);
+        return (road[i] + (road[i + 1] - road[i]) * t, i);
+      }
+      left -= length;
+    }
+    return (road.last.clone(), road.length - 2);
+  }
+
+  /// Share of the road, counted from the entry, where the comrade in [slot]
+  /// keeps watch: spread out so they meet the enemy one after the other,
+  /// the first close to the base.
+  static const _postShares = [0.78, 0.58, 0.4, 0.66, 0.5];
+
+  /// Where the comrade in [slot] takes up position: on the shoulder of the
+  /// road, close enough to fire on everything that passes and out of the way
+  /// of the tanks that drive on it.
+  Vector2 allyPost(int slot) {
+    final share = _postShares[slot % _postShares.length];
+    final (point, segment) = pointAlong(roadLength * share);
+    final along = (road[segment + 1] - road[segment]).normalized();
+    final side = Vector2(-along.y, along.x);
+    const offset = roadHalfWidth + 24;
+    final sides = slot.isEven ? [1.0, -1.0] : [-1.0, 1.0];
+    for (final sign in sides) {
+      final at = point + side * (offset * sign);
+      if (bounds.deflate(40).contains(at.toOffset()) &&
+          distanceToRoad(at) > roadHalfWidth + 15) {
+        return at;
+      }
+    }
+    return point + side * (offset * sides.first);
+  }
+
+  /// The way from the base to the post of [slot]: back up the road to the
+  /// spot next to the post, then off onto the shoulder. On the road the
+  /// comrades never run into the woods.
+  List<Vector2> allyRoute(int slot) {
+    final post = allyPost(slot);
+    final share = _postShares[slot % _postShares.length];
+    final (point, segment) = pointAlong(roadLength * share);
+    return [
+      for (var i = road.length - 2; i > segment; i--) road[i].clone(),
+      point,
+      post,
+    ];
+  }
+
+  /// The vehicle of the comrade in [slot].
+  static TankType allyType(int slot) => const [
+    TankType.leopard,
+    TankType.puma,
+    TankType.gepard,
+    TankType.leopard,
+    TankType.boxer,
+  ][slot % 5];
+
   /// The enemy for slot [n] of wave [wave]: more and heavier tanks later on.
   static TankType enemyType(int wave, int n) {
     final roll = (wave * 7 + n * 13) % 10;

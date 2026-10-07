@@ -133,6 +133,52 @@ void main() {
     expect(map.whyNotBuild(free, [free + Vector2(20, 0)]), isNotNull);
   });
 
+  test('CPU comrades fight on the side of the players', () {
+    final round = RoundState(
+      seed: 1,
+      startedAt: 2,
+      participants: const ['a'],
+      botHost: 'a',
+      defense: true,
+    );
+    expect(round.isAlly('ally-0-3'), isTrue);
+    expect(round.isEnemy('ally-0-3'), isFalse);
+    expect(round.isBot('ally-0-3'), isTrue);
+    expect(round.teamOf('ally-0-3'), round.teamOf('a'));
+    expect(round.botName('ally-1-0'), 'KAMERAD 2');
+    expect(
+      RoundState(
+        seed: 1,
+        startedAt: 2,
+        participants: const ['a'],
+      ).isAlly('ally-0-0'),
+      isFalse,
+    );
+  });
+
+  test('comrades keep watch beside the road, inside the field', () {
+    for (var seed = 0; seed < 12; seed += 4) {
+      final map = DefenseMap.forSeed(seed);
+      for (var slot = 0; slot < 4; slot++) {
+        final post = map.allyPost(slot);
+        expect(DefenseMap.bounds.contains(post.toOffset()), isTrue);
+        expect(
+          map.distanceToRoad(post),
+          greaterThan(DefenseMap.roadHalfWidth + 10),
+        );
+        expect(
+          map.distanceToRoad(post),
+          lessThan(DefenseMap.roadHalfWidth + 40),
+        );
+        final route = map.allyRoute(slot);
+        expect(route.last, post);
+        for (final point in route.take(route.length - 1)) {
+          expect(map.distanceToRoad(point), lessThan(1));
+        }
+      }
+    }
+  });
+
   test('later waves are bigger', () {
     expect(DefenseMap.waveSize(8), greaterThan(DefenseMap.waveSize(1)));
   });
