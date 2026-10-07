@@ -44,9 +44,9 @@ Future<void> main() async {
       // Offline: the lobby still offers the code from the mail.
     }
   }
-  if (fromMail && (auth.currentUser?.isAnonymous ?? true)) {
-    AccountService.mailLinkFailed = true;
-    forgetAuthCode();
+  if (fromMail) {
+    AccountService.mailLinkFailed = auth.currentUser?.isAnonymous ?? true;
+    leaveMailLink();
   }
   unawaited(AudioService.init());
   runApp(const GameApp());

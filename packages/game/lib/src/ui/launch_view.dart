@@ -139,12 +139,18 @@ class _ModeCard extends StatelessWidget {
             children: [
               Icon(option.icon, color: BwColors.amber, size: 36),
               const SizedBox(height: 12),
-              Text(
-                option.title,
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                  color: BwColors.sand,
+              // Shrinks on narrow cards instead of breaking the word.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  option.title,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 2,
+                    color: BwColors.sand,
+                  ),
                 ),
               ),
               const SizedBox(height: 2),
