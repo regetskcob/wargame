@@ -4,30 +4,43 @@ import '../../theme.dart';
 import 'panel.dart';
 
 class HealthBar extends StatelessWidget {
-  const HealthBar({required this.hp, required this.maxHp, super.key});
+  const HealthBar({
+    required this.hp,
+    required this.maxHp,
+    this.compact = false,
+    super.key,
+  });
 
   final double hp;
   final double maxHp;
+
+  /// Smaller plate for phones held sideways.
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final ratio = (hp / maxHp).clamp(0.0, 1.0);
     return SizedBox(
-      width: 220,
+      width: compact ? 150 : 220,
       child: Panel(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: compact
+            ? const EdgeInsets.symmetric(horizontal: 8, vertical: 5)
+            : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
               'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
-              style: const TextStyle(fontWeight: FontWeight.w800),
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: compact ? 11 : null,
+              ),
             ),
-            const SizedBox(height: 6),
+            SizedBox(height: compact ? 3 : 6),
             LinearProgressIndicator(
               value: ratio,
-              minHeight: 10,
+              minHeight: compact ? 7 : 10,
               backgroundColor: Colors.black38,
               color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
             ),

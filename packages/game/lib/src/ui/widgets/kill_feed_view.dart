@@ -9,9 +9,12 @@ import '../../theme.dart';
 
 /// The last few kills, newest at the bottom, fading out after a few seconds.
 class KillFeedView extends StatefulWidget {
-  const KillFeedView({required this.feed, super.key});
+  const KillFeedView({required this.feed, this.compact = false, super.key});
 
   final ValueListenable<List<KillEntry>> feed;
+
+  /// Fewer and smaller lines for phones held sideways.
+  final bool compact;
 
   @override
   State<KillFeedView> createState() => _KillFeedViewState();
@@ -47,10 +50,13 @@ class _KillFeedViewState extends State<KillFeedView> {
         valueListenable: widget.feed,
         builder: (context, entries, _) {
           final now = DateTime.now();
-          final live = [
+          var live = [
             for (final e in entries)
               if (now.difference(e.at) < _lifetime) e,
           ];
+          if (widget.compact && live.length > 3) {
+            live = live.sublist(live.length - 3);
+          }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -65,12 +71,17 @@ class _KillFeedViewState extends State<KillFeedView> {
     final age = now.difference(entry.at).inMilliseconds;
     final fade = age > 6000 ? (1 - (age - 6000) / 2000).clamp(0.0, 1.0) : 1.0;
     final highlight = entry.byMe || entry.meDied;
-    const text = TextStyle(fontSize: 13, fontWeight: FontWeight.w700);
+    final text = TextStyle(
+      fontSize: widget.compact ? 11 : 13,
+      fontWeight: FontWeight.w700,
+    );
     return Opacity(
       opacity: fade,
       child: Container(
-        margin: const EdgeInsets.only(top: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        margin: EdgeInsets.only(top: widget.compact ? 2 : 4),
+        padding: widget.compact
+            ? const EdgeInsets.symmetric(horizontal: 7, vertical: 3)
+            : const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: ShapeDecoration(
           color: const Color(0xB3101408),
           shape: BeveledRectangleBorder(

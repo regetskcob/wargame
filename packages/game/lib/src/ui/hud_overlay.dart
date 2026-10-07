@@ -40,7 +40,7 @@ class _HudOverlayState extends State<HudOverlay> {
     super.dispose();
   }
 
-  String _zoneLabel() {
+  String _zoneLabel({bool compact = false}) {
     final round = widget.game.round;
     if (round == null) {
       return '';
@@ -50,36 +50,135 @@ class _HudOverlayState extends State<HudOverlay> {
         round.startedAt + GameConfig.zoneGraceSeconds.toInt() * 1000;
     if (now < graceEndsAt) {
       final seconds = ((graceEndsAt - now) / 1000).ceil();
-      return 'Sperrgebiet wird in $seconds s zugezogen';
+      return compact
+          ? 'Sperrgebiet in $seconds s'
+          : 'Sperrgebiet wird in $seconds s zugezogen';
     }
     final radius = StormZone.radiusAt(round.startedAt, now);
     if (radius <= GameConfig.zoneMinRadius) {
-      return 'Sperrgebiet vollständig geschlossen';
+      return compact ? 'Sperrgebiet zu' : 'Sperrgebiet vollständig geschlossen';
     }
-    return 'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}';
+    return compact
+        ? 'Sicher: Radius ${radius.round()}'
+        : 'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}';
   }
 
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
-    return Stack(
-      children: [
-        _status(game),
-        _effects(game),
-        const Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: EdgeInsets.only(top: 12),
-            child: MuteButton(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: game.touchMode,
+      builder: (context, touch, _) => Stack(
+        children: [
+          if (touch) _compact(game) else _status(game),
+          _effects(game),
+          if (!touch)
+            const Align(
+              alignment: Alignment.topCenter,
+              child: Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: MuteButton(),
+              ),
+            ),
+          EnemyIndicators(game: game),
+          if (touch) TouchControls(input: game.touch),
+        ],
+      ),
+    );
+  }
+
+  Widget _alive(SpaceGame game, double fontSize) {
+    final style = TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800);
+    return ValueListenableBuilder<int>(
+      valueListenable: game.aliveCount,
+      builder: (context, alive, _) {
+        final round = game.round;
+        if (round != null && round.teamMode) {
+          return Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: 'ROT ${round.aliveIn(1)}',
+                  style: TextStyle(color: GameConfig.teamColors[1]),
+                ),
+                const TextSpan(text: '   '),
+                TextSpan(
+                  text: 'BLAU ${round.aliveIn(2)}',
+                  style: TextStyle(color: GameConfig.teamColors[2]),
+                ),
+              ],
+            ),
+            style: style,
+          );
+        }
+        return Text('$alive PANZER IM FELD', style: style);
+      },
+    );
+  }
+
+  /// Phones held sideways: the thumbs own the lower corners and the lower half
+  /// of the screen, so everything sits along the top in small plates.
+  Widget _compact(SpaceGame game) {
+    return SafeArea(
+      minimum: const EdgeInsets.all(8),
+      child: Stack(
+        children: [
+          Align(
+            alignment: Alignment.topLeft,
+            child: IgnorePointer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: game.hpNotifier,
+                    builder: (context, hp, _) =>
+                        HealthBar(hp: hp, maxHp: game.myMaxHp, compact: true),
+                  ),
+                  KillFeedView(feed: game.killFeed, compact: true),
+                ],
+              ),
+            ),
           ),
-        ),
-        EnemyIndicators(game: game),
-        ValueListenableBuilder<bool>(
-          valueListenable: game.touchMode,
-          builder: (context, touch, _) =>
-              touch ? TouchControls(input: game.touch) : const SizedBox(),
-        ),
-      ],
+          Align(
+            alignment: Alignment.topCenter,
+            child: MiniMap(game: game, size: 88),
+          ),
+          Align(
+            alignment: Alignment.topRight,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                IgnorePointer(
+                  child: Panel(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 5,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _alive(game, 11),
+                        const SizedBox(height: 2),
+                        Text(
+                          _zoneLabel(compact: true),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: BwColors.amber,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const MuteButton(),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -150,37 +249,7 @@ class _HudOverlayState extends State<HudOverlay> {
                     crossAxisAlignment: CrossAxisAlignment.end,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.aliveCount,
-                        builder: (context, alive, _) {
-                          const style = TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          );
-                          final round = game.round;
-                          if (round != null && round.teamMode) {
-                            return Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'ROT ${round.aliveIn(1)}',
-                                  style: style.copyWith(
-                                    color: GameConfig.teamColors[1],
-                                  ),
-                                ),
-                                const Text('   ', style: style),
-                                Text(
-                                  'BLAU ${round.aliveIn(2)}',
-                                  style: style.copyWith(
-                                    color: GameConfig.teamColors[2],
-                                  ),
-                                ),
-                              ],
-                            );
-                          }
-                          return Text('$alive PANZER IM FELD', style: style);
-                        },
-                      ),
+                      _alive(game, 16),
                       ValueListenableBuilder<int>(
                         valueListenable: game.soldiersRunOver,
                         builder: (context, n, _) => n == 0
@@ -206,16 +275,9 @@ class _HudOverlayState extends State<HudOverlay> {
             const SizedBox(height: 8),
             KillFeedView(feed: game.killFeed),
             const Spacer(),
-            // With touch controls both thumbs own the lower corners, so the
-            // map moves to the middle.
-            ValueListenableBuilder<bool>(
-              valueListenable: game.touchMode,
-              builder: (context, touch, _) => Align(
-                alignment: touch
-                    ? Alignment.bottomCenter
-                    : Alignment.bottomRight,
-                child: MiniMap(game: game, size: touch ? 104 : 150),
-              ),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: MiniMap(game: game),
             ),
           ],
         ),
