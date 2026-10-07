@@ -103,8 +103,8 @@ class SpaceGame extends FlameGame
   void setMultiplayer(bool value) => multiplayer.value = value;
 
   /// Whether this player runs the room: picks mode and map and starts the
-  /// round. The role moves on after every multiplayer round, and to whoever
-  /// is left when the host goes.
+  /// round. The one who opened the room keeps the role for good. Only when
+  /// they are gone does somebody else stand in, until they are back.
   late final isHost = ValueNotifier<bool>(net.isHost);
   double _hostlessFor = 0;
   double _hostClashFor = 0;
@@ -297,6 +297,7 @@ class SpaceGame extends FlameGame
       phase: phase.value.name,
       team: phase.value == GamePhase.lobby ? teamPick : myTeam,
       host: isHost.value,
+      owner: net.isHost,
       seed: round?.seed,
       startedAt: round?.startedAt,
     );
@@ -377,7 +378,8 @@ class SpaceGame extends FlameGame
 
   /// Makes sure the room has exactly one host. Presence takes a moment to
   /// travel, so a missing or doubled host is only fixed once it lasts: then
-  /// the player with the smallest id takes over or keeps the role.
+  /// the player with the smallest id stands in, and a stand-in hands back as
+  /// soon as the owner of the room returns.
   void _settleHost(double dt) {
     final members = roster.value;
     if (phase.value == GamePhase.closed || !members.any((m) => m.id == myId)) {
@@ -395,9 +397,14 @@ class SpaceGame extends FlameGame
       _hostlessFor = 0;
       _setHost(true);
     }
+    final outranked = members.any(
+      (m) => m.host && m.id != myId && (m.owner || m.id.compareTo(myId) < 0),
+    );
+    // The owner never steps down.
     if (_hostClashFor >= GameConfig.hostSettleSeconds &&
         isHost.value &&
-        hosts.any((id) => id.compareTo(myId) < 0)) {
+        !net.isHost &&
+        outranked) {
       _hostClashFor = 0;
       _setHost(false);
     }
@@ -460,7 +467,6 @@ class SpaceGame extends FlameGame
       teams: _assignTeams(ids),
       bots: bots,
       botHost: bots.isEmpty ? null : myId,
-      host: myId,
     );
     if (!solo) {
       net.send(NetEvent.roundStart, payload.toJson());
@@ -492,7 +498,6 @@ class SpaceGame extends FlameGame
         for (final member in roster.value)
           if (member.inMatch && member.team > 0) member.id: member.team,
       },
-      host: roster.value.where((m) => m.host).firstOrNull?.id,
     );
     _applyRoundStart(payload);
   }
@@ -528,7 +533,6 @@ class SpaceGame extends FlameGame
       teams: payload.teams,
       bots: payload.bots,
       botHost: payload.botHost,
-      hostId: payload.host,
     );
     myTeam = payload.teams[myId] ?? 0;
     killFeed.value = const [];
@@ -1256,35 +1260,12 @@ class SpaceGame extends FlameGame
     if (phase.value != GamePhase.roundOver) {
       return;
     }
-    final finished = round;
     _clearWorld();
     round = null;
     myTeam = 0;
-    _handOverHost(finished);
     _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
-  }
-
-  /// After a round with other people the next player in line hosts. Every
-  /// client works out the same answer from the round, so nobody has to ask.
-  void _handOverHost(RoundState? finished) {
-    if (finished == null ||
-        !finished.distinctColors ||
-        finished.humans.length < 2) {
-      return;
-    }
-    final next = finished.nextHost({
-      myId,
-      for (final member in roster.value) member.id,
-    });
-    if (next != null) {
-      // Pushed with the lobby presence right after.
-      isHost.value = next == myId;
-      if (!isHost.value) {
-        multiplayer.value = true;
-      }
-    }
   }
 
   /// Closes the waiting room: as host for everybody, as guest just for you.

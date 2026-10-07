@@ -378,8 +378,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
 
   @override
   Widget build(BuildContext context) {
-    // Host and guest swap after rounds, and a guest takes over when the host
-    // leaves: the whole lobby follows the role.
+    // A guest stands in when the host leaves and hands back on return: the
+    // whole lobby follows the role.
     return ValueListenableBuilder<bool>(
       valueListenable: widget.game.isHost,
       builder: (context, _, _) => _build(context),

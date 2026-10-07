@@ -6,7 +6,6 @@ class RoundStartPayload {
     this.teams = const {},
     this.bots = const {},
     this.botHost,
-    this.host,
   });
 
   factory RoundStartPayload.fromJson(Map<String, dynamic> json) {
@@ -15,7 +14,6 @@ class RoundStartPayload {
       startedAt: json['startedAt'] as int,
       participants: (json['participants'] as List<dynamic>).cast<String>(),
       botHost: json['botHost'] as String?,
-      host: json['host'] as String?,
       bots: {
         for (final entry
             in (json['bots'] as Map<String, dynamic>? ?? const {}).entries)
@@ -40,9 +38,6 @@ class RoundStartPayload {
   final Map<String, int> bots;
   final String? botHost;
 
-  /// Host of the room who started the round.
-  final String? host;
-
   Map<String, dynamic> toJson() {
     return {
       'seed': seed,
@@ -51,7 +46,6 @@ class RoundStartPayload {
       if (teams.isNotEmpty) 'teams': teams,
       if (bots.isNotEmpty) 'bots': bots,
       if (botHost != null) 'botHost': botHost,
-      if (host != null) 'host': host,
     };
   }
 }

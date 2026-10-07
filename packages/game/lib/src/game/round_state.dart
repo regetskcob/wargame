@@ -6,7 +6,6 @@ class RoundState {
     this.teams = const {},
     this.bots = const {},
     this.botHost,
-    this.hostId,
   }) : alive = participants.toSet();
 
   final int seed;
@@ -21,34 +20,8 @@ class RoundState {
   final Map<String, int> bots;
   final String? botHost;
 
-  /// Host of the room when the round began, null when nobody knows.
-  final String? hostId;
-
   /// Real people play against each other, so every tank gets its own colour.
   bool get distinctColors => bots.isEmpty;
-
-  /// Players in seating order, without the CPU tanks.
-  List<String> get humans => [
-    for (final id in participants)
-      if (!isBot(id)) id,
-  ];
-
-  /// Who hosts after this round: the next player in seating order after the
-  /// current host, so the role goes round the table.
-  String? nextHost(Set<String> present) {
-    final seats = humans.where(present.contains).toList();
-    if (seats.isEmpty || hostId == null) {
-      return null;
-    }
-    final at = humans.indexOf(hostId!);
-    for (var step = 1; step <= humans.length; step++) {
-      final candidate = humans[(at + step) % humans.length];
-      if (present.contains(candidate)) {
-        return candidate;
-      }
-    }
-    return null;
-  }
 
   bool isBot(String id) => bots.containsKey(id);
 
