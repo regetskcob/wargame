@@ -306,7 +306,9 @@ extension TankGameRound on TankGame {
     fuelNotifier.value = 1;
     _applyUpgrades(tank);
     world.add(tank);
-    camera.follow(tank, snap: true);
+    if (!overview.value) {
+      camera.follow(tank, snap: true);
+    }
     return tank;
   }
 
@@ -863,6 +865,7 @@ extension TankGameRound on TankGame {
   }
 
   void backToLobby() {
+    overview.value = false;
     if (phase.value != GamePhase.roundOver) {
       return;
     }
@@ -907,7 +910,9 @@ extension TankGameRound on TankGame {
     _spectateIndex = index % targets.length;
     final target = targets[_spectateIndex];
     spectatingName.value = target.playerName;
-    camera.follow(target, snap: false);
+    if (!overview.value) {
+      camera.follow(target, snap: false);
+    }
   }
 
   void _clearWorld() {

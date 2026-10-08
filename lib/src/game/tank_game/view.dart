@@ -38,7 +38,10 @@ extension TankGameView on TankGame {
 
   /// The local tank was hit.
   void onLocalDamage(Vector2 at, double amount) {
-    _damageFlash = min(1.0, _damageFlash + 0.35 + amount / 60);
+    // On the overview of a duel the whole screen is both players'.
+    if (!overview.value) {
+      _damageFlash = min(1.0, _damageFlash + 0.35 + amount / 60);
+    }
     shake(3 + amount / 4);
     showHit(at, amount, mine: true, color: const Color(0xFFFF6B5A));
   }
@@ -64,8 +67,9 @@ extension TankGameView on TankGame {
                     canvasSize / 2)
                 .toOffset()
           : null,
-      // Spectators and the fallen see the whole field.
-      veil: playing,
+      // Spectators and the fallen see the whole field, and so does the
+      // overview of a duel, which shows both players.
+      veil: playing && !overview.value,
     );
   }
 
@@ -93,6 +97,14 @@ extension TankGameView on TankGame {
     if (defenseMap == null) {
       return short / GameConfig.viewShortSide;
     }
+    if (overview.value) {
+      // The whole field fits, with its border.
+      const margin = TankGame._defenseMargin;
+      return min(
+        canvasSize.x / (DefenseMap.halfWidth * 2 + margin * 2),
+        canvasSize.y / (DefenseMap.halfHeight * 2 + margin * 2),
+      );
+    }
     return max(
       short / GameConfig.defenseViewShortSide,
       canvasSize.y / (DefenseMap.halfHeight * 2 + TankGame._defenseMargin * 2),
@@ -107,6 +119,14 @@ extension TankGameView on TankGame {
     camera.viewfinder.zoom = scale;
     if (defenseMap == null || scale <= 0) {
       camera.setBounds(null);
+      return;
+    }
+    if (overview.value) {
+      // Held still over the middle of the field.
+      camera
+        ..stop()
+        ..setBounds(null);
+      camera.viewfinder.position = Vector2.zero();
       return;
     }
     const margin = TankGame._defenseMargin;

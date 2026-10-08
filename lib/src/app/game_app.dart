@@ -28,6 +28,7 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
+import '../tv/duel_hud.dart';
 import '../tv/second_player.dart';
 import '../tv/split_view.dart';
 import '../tv/tv_focus_frame.dart';
@@ -286,12 +287,20 @@ class _GameAppState extends State<GameApp> {
                   OverlayIds.lobby: (context, game) => LobbyOverlay(game: game),
                   OverlayIds.countdown: (context, game) =>
                       CountdownOverlay(game: game),
+                  // A duel of two on this screen shows the whole field,
+                  // with both players' plates.
                   OverlayIds.hud: (context, game) =>
-                      TabletScale(child: HudOverlay(game: game)),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: game.overview,
+                        builder: (context, overview, _) => overview
+                            ? DuelOverviewHud(game: game)
+                            : TabletScale(child: HudOverlay(game: game)),
+                      ),
                   OverlayIds.spectator: (context, game) =>
                       SpectatorOverlay(game: game),
-                  OverlayIds.roundOver: (context, game) =>
-                      RoundOverOverlay(game: game),
+                  OverlayIds.roundOver: (context, game) => game.overview.value
+                      ? DuelOverviewResult(game: game)
+                      : RoundOverOverlay(game: game),
                   OverlayIds.closed: (context, game) =>
                       ClosedOverlay(game: game),
                   OverlayIds.tutorial: (context, game) =>

@@ -172,6 +172,14 @@ class TankGame extends FlameGame
   /// Troops this player sent in a defense duel, for their ids.
   int _troopCounter = 0;
 
+  /// A defense duel of two players on this screen: the whole field at once,
+  /// from above, with both players' tanks on it, instead of a camera behind
+  /// the own tank.
+  final overview = ValueNotifier<bool>(false);
+
+  /// The second player's game on this screen, while there is one.
+  TankGame? partner;
+
   /// A second player on the same Apple TV joined this room with a game of
   /// their own: single player rounds take them along.
   bool localGuest = false;

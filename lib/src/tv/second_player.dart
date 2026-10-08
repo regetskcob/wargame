@@ -99,6 +99,7 @@ class SecondPlayer extends ChangeNotifier {
       _drop();
       _local = local;
       guest = _join(host, local: local);
+      host.partner = guest;
       notifyListeners();
     }
     host.localGuest = true;
@@ -189,6 +190,7 @@ class SecondPlayer extends ChangeNotifier {
     }
     guest = null;
     _local = null;
+    _host().partner = null;
     PadScreen.instance.clearRoutes();
     final connection = _connection;
     _connection = null;

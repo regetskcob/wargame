@@ -526,7 +526,11 @@ as they are, but each side's roll along the road against the other's base, so
 they meet on the way, and every gun, tank and squad fights the other side. Y on
 a controller, T on a keyboard, sends an extra tank against the other base for
 120 funds (`troops` event, run by the host). Bases grow on their
-own, the HUD shows both, whose base falls first loses, and the waves go on past
+own. Two players on one screen watch their duel on the whole field at once
+instead of a split screen: the camera holds still over the map
+(`TankGame.overview`), the wave and both bases on top, each player's tank,
+funds and inventory in their corner (`lib/src/tv/duel_hud.dart`). Whose base
+falls first loses, and the waves go on past
 wave 8 by themselves. Duels are unranked. The host runs the waves and keeps the
 score of every base and gun, also of the other player's shots. Phones as
 the two players' controllers talk to the television on a lane each.

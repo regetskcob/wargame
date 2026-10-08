@@ -39,10 +39,14 @@ class TvSplitView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([second, host.phase]),
+      listenable: Listenable.merge([second, host.phase, host.overview]),
       builder: (context, _) {
         final guest = second.guest;
-        final split = guest != null && _inRound.contains(host.phase.value);
+        // A duel shows the whole field instead, the second game unseen.
+        final split =
+            guest != null &&
+            _inRound.contains(host.phase.value) &&
+            !host.overview.value;
         return LayoutBuilder(
           builder: (context, box) {
             // Side by side on a wide screen, one above the other on a tablet

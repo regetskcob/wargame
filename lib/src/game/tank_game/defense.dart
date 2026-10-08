@@ -77,6 +77,9 @@ extension TankGameDefense on TankGame {
       _extras.add(director);
       world.add(director);
     }
+    // Two players on this screen watch their duel on one map.
+    overview.value = activeRound.duel && localGuest;
+    _fitCamera();
     _enterRound(activeRound);
   }
 
