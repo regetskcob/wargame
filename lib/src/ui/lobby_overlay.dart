@@ -126,75 +126,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Way to play, who may join and the link to share. Host only.
-  Widget _roundSection(BuildContext context) {
+  /// Difficulty, CPU tanks and teams. Host only.
+  Widget _battleSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.flag_outlined,
-      title: tr('RUNDE', 'ROUND'),
+      icon: Icons.tune,
+      title: tr('EINSATZ', 'MISSION'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
         builder: (context, mode, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ChoiceRow<GameMode>(
-                  options: [
-                    (
-                      mode,
-                      switch (mode) {
-                        GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
-                        GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
-                        GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
-                      },
-                      null,
-                    ),
-                  ],
-                  selected: mode,
-                  onSelected: (_) => game.changeMode(),
-                ),
-                TextButton.icon(
-                  onPressed: game.changeMode,
-                  icon: const Icon(Icons.swap_horiz),
-                  label: Text(tr('ÄNDERN', 'CHANGE')),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            _hint(switch (mode) {
-              GameMode.solo => tr(
-                'Du spielst allein gegen ${GameConfig.minBots} bis '
-                    '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
-                    'ausgewürfelt.',
-                'You play alone against ${GameConfig.minBots} to '
-                    '${GameConfig.maxBots} CPU tanks, rolled anew every round.',
-              ),
-              GameMode.multi => tr(
-                'Den Link zum Einladen gibt es im Warteraum. Ein '
-                    'öffentlicher Raum steht außerdem in der Raumliste der '
-                    'Startseite.',
-                'The link to invite others comes in the waiting room. A '
-                    'public room is also listed in the room list on the '
-                    'start page.',
-              ),
-              GameMode.defense => tr(
-                'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
-                    'zweiten Welle auch aus der Luft. Abschüsse bringen '
-                    'Mittel für Geschütze${game.touchMode.value ? '' : ' (B)'} '
-                    'und Upgrades.',
-                'The enemies roll down the road to the base, from the '
-                    'second wave also through the air. Kills bring funds '
-                    'for turrets${game.touchMode.value ? '' : ' (B)'} '
-                    'and upgrades.',
-              ),
-            }),
             if (mode == GameMode.multi &&
                 roomLink(game.net.room).isNotEmpty) ...[
-              const SizedBox(height: 12),
               _label(context, tr('SICHTBARKEIT', 'VISIBILITY')),
               ValueListenableBuilder<bool>(
                 valueListenable: game.publicRoom,
@@ -207,24 +151,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.publicRoom.value = v ?? false,
                 ),
               ),
+              const SizedBox(height: 6),
+              _hint(
+                tr(
+                  'Öffentliche Räume stehen in der Raumliste der Startseite.',
+                  'Public rooms are listed on the start page.',
+                ),
+              ),
+              const SizedBox(height: 14),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// Difficulty, CPU tanks and teams. Host only.
-  Widget _battleSection(BuildContext context) {
-    final game = widget.game;
-    return _Section(
-      icon: Icons.tune,
-      title: tr('EINSATZ', 'MISSION'),
-      child: ValueListenableBuilder<GameMode>(
-        valueListenable: game.mode,
-        builder: (context, mode, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
             _label(context, tr('SCHWIERIGKEIT', 'DIFFICULTY')),
             ValueListenableBuilder<BotLevel>(
               valueListenable: game.botLevel,
@@ -279,15 +214,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.fillWithBots.value = v ?? false,
                 ),
               ),
-              const SizedBox(height: 6),
-              _hint(
-                tr(
-                  'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
-                      'und gleicht bei Teams die Seiten aus.',
-                  'Filling brings the field up to ${GameConfig.fillTo} tanks '
-                      'and evens out the sides in teams.',
-                ),
-              ),
             ],
             if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),
@@ -333,10 +259,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             const SizedBox(height: 6),
             _hint(
               tr(
-                'AUTO füllt das kleinere Team. Eigene Teammitglieder und '
-                    'Trupps triffst du nicht.',
-                'AUTO fills the smaller team. You do not hit your own '
-                    'teammates and squads.',
+                'AUTO füllt das kleinere Team.',
+                'AUTO fills the smaller team.',
               ),
             ),
           ],
@@ -354,7 +278,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label(context, tr('GELÄNDE', 'TERRAIN')),
           ValueListenableBuilder<int?>(
             valueListenable: game.mapChoice,
             builder: (context, choice, _) => ChoiceRow<int>(
@@ -370,14 +293,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 6),
           _hint(
             tr(
-              'Ohne Auswahl wird zufällig bestimmt. Tag und Nacht wechseln '
-                  'sich regelmäßig ab, das Wetter würfelt jede Runde selbst aus und '
-                  'schlägt in langen Runden um. Nachts, im Nebel und im Sandsturm '
-                  'siehst du nur, was nah ist.',
-              'Without a choice it is picked at random. Day and night '
-                  'alternate regularly, the weather rolls itself every round '
-                  'and changes in long rounds. At night, in fog and in a '
-                  'sandstorm you only see what is close.',
+              'Ohne Auswahl zufällig. Wetter und Tageszeit wechseln von '
+                  'selbst.',
+              'Random without a choice. Weather and time of day change by '
+                  'themselves.',
             ),
           ),
         ],
@@ -385,70 +304,33 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// What the host set up, in short, with the way back to change it.
-  Widget _summarySection(BuildContext context) {
+  /// Call sign, rank and badges of the player. The call sign and the
+  /// account are changed behind the profile button.
+  Widget _pilotSection(BuildContext context) {
     final game = widget.game;
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        game.mode,
-        game.botLevel,
-        game.fillWithBots,
-        game.teamMode,
-        game.mapChoice,
-        game.publicRoom,
-      ]),
-      builder: (context, _) {
-        final mode = game.mode.value;
-        final map = game.mapChoice.value;
-        final facts = [
-          switch (mode) {
-            GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
-            GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
-            GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
-          },
-          game.botLevel.value.label,
-          if (mode == GameMode.multi)
-            game.fillWithBots.value
-                ? tr('MIT CPU AUFFÜLLEN', 'FILL WITH CPU')
-                : tr('NUR MENSCHEN', 'HUMANS ONLY'),
-          if (mode != GameMode.defense)
-            game.teamMode.value
-                ? 'TEAMS'
-                : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
-          map == null
-              ? tr('ZUFÄLLIGES GELÄNDE', 'RANDOM TERRAIN')
-              : MapTheme.all[map].name.toUpperCase(),
-          if (mode == GameMode.multi && roomLink(game.net.room).isNotEmpty)
-            game.publicRoom.value
-                ? tr('ÖFFENTLICH', 'PUBLIC')
-                : tr('PRIVAT', 'PRIVATE'),
-        ];
-        return _Section(
-          icon: Icons.tune,
-          title: tr('EINSTELLUNGEN', 'SETTINGS'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [for (final fact in facts) _Fact(fact)],
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: game.editSettings,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(tr('ÄNDERN', 'CHANGE')),
-              ),
-            ],
-          ),
-        );
-      },
+    return _Section(
+      icon: Icons.military_tech_outlined,
+      title: tr('PILOT', 'PILOT'),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          CallSign(game: game),
+          const SizedBox(height: 12),
+          PilotCard(progress: game.progress),
+        ],
+      ),
     );
   }
 
-  /// Call sign, vehicle and paint: what every player sets. The call sign
-  /// and the account are changed behind the profile button.
+  /// The vehicles the player may drive, and the next one to earn. The
+  /// rest stays out of sight until it comes closer.
+  List<TankType> _offeredVehicles() {
+    final unlocked = widget.game.progress.vehicleUnlocked;
+    final all = StatBars.ordered(unlocked);
+    return [...all.where(unlocked), ...all.where((t) => !unlocked(t)).take(1)];
+  }
+
+  /// Vehicle and paint: what every player sets.
   Widget _tankSection(BuildContext context) {
     final game = widget.game;
     return _Section(
@@ -457,9 +339,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PilotCard(progress: game.progress),
-          const SizedBox(height: 12),
-          CallSign(game: game),
           _label(context, tr('FAHRZEUG', 'VEHICLE')),
           ListenableBuilder(
             listenable: Listenable.merge([
@@ -478,9 +357,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final type in StatBars.ordered(
-                      game.progress.vehicleUnlocked,
-                    ))
+                    for (final type in _offeredVehicles())
                       TankChoice(
                         type: type,
                         width: width.floorToDouble(),
@@ -499,15 +376,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 14),
           ValueListenableBuilder<GameMode>(
             valueListenable: game.mode,
+            // With others every tank drives in its own colour.
             builder: (context, mode, _) => mode.withOthers
-                ? _hint(
-                    tr(
-                      'Mit anderen fährt jeder Panzer in einer eigenen Farbe '
-                          'statt in Tarnung.',
-                      'With others every tank drives in its own colour '
-                          'instead of camouflage.',
-                    ),
-                  )
+                ? const SizedBox.shrink()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -592,6 +463,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
               ),
             ),
+            if (game.isHost.value)
+              OutlinedButton.icon(
+                onPressed: game.editSettings,
+                icon: const Icon(Icons.tune),
+                label: Text(tr('EINSTELLUNGEN', 'SETTINGS')),
+              ),
             if (live != null)
               OutlinedButton.icon(
                 onPressed: game.spectateLiveMatch,
@@ -785,18 +662,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         _header(context, tr('EINSTELLUNGEN', 'SETTINGS')),
         const SizedBox(height: 18),
-        if (narrow)
-          _column([
-            _roundSection(context),
-            _battleSection(context),
-            _fieldSection(context),
-          ])
-        else
-          _columns(
-            [_roundSection(context), _fieldSection(context)],
-            [_battleSection(context)],
-            narrow: narrow,
-          ),
+        _columns(
+          [_battleSection(context)],
+          [_fieldSection(context)],
+          narrow: narrow,
+        ),
         const SizedBox(height: 18),
         ValueListenableBuilder<GameMode>(
           valueListenable: game.mode,
@@ -847,19 +717,30 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 18),
           _columns(
             [
-              if (host) _summarySection(context) else const _JoinedBanner(),
+              if (!host) const _JoinedBanner(),
               if (mode.withOthers) ...[
                 if (host) RoomInvite(game: widget.game),
                 _crewSection(),
               ],
+              // The pilot goes where there is room: below the settings when
+              // playing alone, next to the tank when the invite and the
+              // crew fill the left side.
+              if (!mode.withOthers) _pilotSection(context),
+              if (!narrow) _Section(child: _controls()),
             ],
-            [_tankSection(context)],
+            [
+              if (mode.withOthers) _pilotSection(context),
+              _tankSection(context),
+            ],
             narrow: narrow,
           ),
+          // On a phone the controls come last, below the tank.
+          if (narrow) ...[
+            const SizedBox(height: 14),
+            _Section(child: _controls()),
+          ],
           const SizedBox(height: 18),
           _actions(),
-          const SizedBox(height: 8),
-          _controls(),
         ],
       ),
     );
@@ -986,38 +867,6 @@ class _Section extends StatelessWidget {
             ],
             child,
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// One setting in the summary, as a small framed tag.
-class _Fact extends StatelessWidget {
-  const _Fact(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x33000000),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-          side: const BorderSide(color: BwColors.sand, width: 1),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
-            color: BwColors.sand,
-          ),
         ),
       ),
     );
