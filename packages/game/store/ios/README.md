@@ -28,6 +28,17 @@ schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
 Schlüsselwörter enthalten bewusst keine geschützten Namen wie Bundeswehr oder
 Leopard, das verbietet Apple (Richtlinie 2.3.7).
 
+## Icon neu erzeugen
+
+`store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
+Karte) und schreibt es nach `icon/`, ins iOS-Icon-Set und nach `web/`.
+Danach `store/tool/android_icons.py` für Android und Google Play:
+
+```sh
+python3 store/tool/app_icon.py
+python3 store/tool/android_icons.py
+```
+
 ## Screenshots neu erzeugen
 
 Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) in
