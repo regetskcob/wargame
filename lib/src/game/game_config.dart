@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../app/env.dart';
 import 'components/tank_painter.dart';
 import '../l10n/l10n.dart';
 
@@ -41,9 +42,14 @@ class GameConfig {
 
   /// Pilots a room holds, spectators included. Every message counts once
   /// per receiver, so the load of a room grows with the square of its
-  /// pilots: four with CPU tanks need about 230 a second, within the Pro
-  /// plan's 500. Whoever comes later is turned away.
-  static const maxPilots = 4;
+  /// pilots: two with CPU tanks need about 70 a second, within the free
+  /// plan's 100, four about 230, within Pro's 500. Whoever comes later is
+  /// turned away. Set by the build, see [Env.maxPilots].
+  static const maxPilots = Env.maxPilots;
+
+  /// Rooms with more than one pilot that play at the same time, project
+  /// wide. See [Env.maxRooms] and `RoomSlots`.
+  static const maxRooms = Env.maxRooms;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;

@@ -38,7 +38,9 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 7. **Realtime-Budget:** Jede Nachricht zählt einmal gesendet und einmal pro
    Empfänger, projektweit 100/s und 2 Mio./Monat im Free-Plan. Darum
    `state` mit 10/s, CPU-Panzer gebündelt in `states`, allein im Raum wird
-   nichts gesendet, Räume halten 4 Piloten, Presence gedrosselt. Ohne
+   nichts gesendet, Presence gedrosselt. Raumgröße `MAX_PILOTS` (Standard
+   2) und gleichzeitige Mehrspieler-Räume `MAX_ROOMS` (Standard 1, Plätze
+   über `claim_room`, Migration 0015) folgen dem Supabase-Plan. Ohne
    Server startet das Spiel trotzdem (`ServerStatus`). Zahlen und Tests:
    README „Realtime limits“.
 
@@ -76,8 +78,12 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
 
 - **Direkt auf `main`**, keine PRs: Branch mit `origin/main` mergen, prüfen,
   pushen. Push auf `main` deployt sofort per GitHub Pages.
-- **Vor jedem Push alle drei Builds grün**: Web, iOS, Android
-  (`tool/verify.sh`), im Abschluss nennen, was lief. Skill `/ship`.
+- **Vor jedem Push grün, im Umfang passend zur Änderung**, im Abschluss
+  nennen, was lief. Skill `/ship`. Kleine Änderungen nur an Dart-Code oder
+  Doku: `tool/verify.sh --quick` reicht (den Web-Build macht `pages`).
+  Voller Lauf (`tool/verify.sh`: Web, iOS, Android) bei `pubspec.*`,
+  `ios/`, `android/`, `tvos/`, Watch, Assets, Plugins, Versionsnummer,
+  größeren Umbauten und vor Store-Releases.
 - Code, Kommentare, Commit-Messages und README auf **Englisch**; Commits als
   ganzer Satz im Imperativ ohne Präfix ("Put leave on the left …").
   Mit dem Nutzer auf Deutsch sprechen.

@@ -24,4 +24,12 @@ class Env {
   /// the project sends mails through its own SMTP server, see the README.
   /// Build with `--dart-define=ACCOUNTS=true` to switch it on.
   static const accounts = bool.fromEnvironment('ACCOUNTS');
+
+  /// Pilots a room holds, and how many rooms with more than one pilot play
+  /// at once. Both follow the Supabase plan, whose Realtime limits count for
+  /// the whole project: the free plan carries one room of two (README,
+  /// "Rooms and room sizes", which also lists the values for Pro, such as
+  /// `MAX_PILOTS=4`).
+  static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 2);
+  static const maxRooms = int.fromEnvironment('MAX_ROOMS', defaultValue: 1);
 }

@@ -543,7 +543,9 @@ the way Realtime counts it; its skipped tests are the targets still out
 of reach. `test/net/pad_budget_test.dart` does the same for a paired
 phone controller, `test/net/presence_throttle_test.dart` checks that no
 burst of presence updates gets near Realtime's limit, both on a fake
-clock. `test/game/room_capacity_test.dart` covers the room limit,
+clock. `test/game/room_capacity_test.dart` covers the room limit and the
+room slots, `test/ui/widgets/rooms_busy_test.dart` what the start page and
+the room list show while every slot is taken,
 `test/db/server_status_test.dart` a server that refuses with 402 or
 cannot be reached. All of them run without a server; see
 [Realtime limits](#realtime-limits).
@@ -631,10 +633,19 @@ is no server of our own.
 2. In the GitHub repository, set Pages to the "GitHub Actions" source and add
    the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable
    key) under Settings, Secrets and variables, Actions, Variables, and
-   `ACCOUNTS` set to `true` for accounts.
+   `ACCOUNTS` set to `true` for accounts. Optionally `MAX_PILOTS` and
+   `MAX_ROOMS` for a bigger Supabase plan; without them the build keeps
+   to what the free plan carries, see
+   [Rooms and room sizes](#rooms-and-room-sizes).
 3. Push to `main`. The `pages` workflow builds the game with the
    repository name as base path and publishes it. Without the variables the
    build falls back to the project configured in `lib/src/app/env.dart`.
+
+GitHub only mails when a workflow fails, not when it recovers. The
+`build-status` workflow fills that gap: when `ci` or `pages` fails on
+`main`, it opens an issue labelled `build-failed` (one per workflow, later
+failures add a comment), and the next green run closes it with a comment.
+Watchers of the repository get a mail for both.
 
 To build by hand:
 
@@ -667,9 +678,17 @@ flutter build web --base-href /your-repo/ \
   gaps with dead reckoning. The host sends the states of all its CPU tanks
   together as one `states` message. A client alone in its room sends
   nothing at all. See [Realtime limits](#realtime-limits).
-- A room holds four pilots, spectators included. Presences carry when the
-  pilot joined; every client keeps the owner and then the earliest
-  arrivals, and whoever comes later sees that the room is full and leaves.
+- A room holds `MAX_PILOTS` pilots (two by default), spectators included.
+  Presences carry when the pilot joined; every client keeps the owner and
+  then the earliest arrivals, and whoever comes later sees that the room is
+  full and leaves.
+- Only `MAX_ROOMS` rooms with more than one pilot play at once, project
+  wide (one by default). A room takes one of these slots through the
+  `claim_room` database function as soon as a second pilot is in it, and
+  everybody in it refreshes the slot once a minute; a silent room gives it
+  back after two and a half minutes. Who comes into a room that finds no
+  free slot sees that all rooms are taken and leaves; the owner stays and
+  waits. See [Rooms and room sizes](#rooms-and-room-sizes).
 - Without a server the game still starts; single player goes on, and the
   heartbeat notices when the server is back. See
   [Running without the server](#running-without-the-server).
@@ -753,7 +772,7 @@ Room totals are what Realtime counts, sent plus delivered.
 | 3 pilots with CPU tanks | ~386/s | ~138/s | Pro |
 | 4 pilots | ~331/s | ~174/s | Pro |
 | 4 pilots with CPU tanks | ~597/s | ~227/s | Pro |
-| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither, rooms now hold 4 |
+| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither, not allowed any more |
 
 | Phone controller, one pair | Before | After |
 |---|---:|---:|
@@ -782,15 +801,21 @@ What changed:
    `states` and do not see the CPU tanks of a host that sends them.
 4. **Presence is throttled.** At most four updates per channel in 30
    seconds, the last one always arrives.
-5. **Rooms hold four pilots.** Eight would need about 800 a second, more
-   than the Pro plan allows; four with CPU tanks fit within it. The room
-   list shows full rooms without a join button.
+5. **Rooms hold two pilots by default.** The build variable `MAX_PILOTS`
+   sets it: two for the free plan, up to four for Pro. Eight would need
+   about 800 a second, more than Pro allows. The room list shows full
+   rooms without a join button.
 6. **The phone controller is spaced out.** The phone reads its sticks every
    40 ms and sends a change at most every 80 ms, rounded to sixteenths of
    the stick and sixty-fourths of a radian of aim; the screen sends the
    status at most every 250 ms. A quick tap on the aim stick shorter than
    80 ms can now go unnoticed; items and building go out at once as
    before.
+7. **Rooms take slots.** Only `MAX_ROOMS` rooms with more than one pilot
+   play at once, one by default (migration 0015, `RoomSlots`). The start
+   page and the waiting room say when every slot is taken, the
+   multiplayer card reads `ALLE RÄUME BELEGT`, and the room list shows
+   rooms that cannot be joined as `BELEGT`.
 
 ### Monthly quota
 
@@ -802,15 +827,8 @@ counted the same way, sent plus delivered:
 | Free | 2 million | grace period, then restrictions |
 | Pro ($25 a month) | 5 million | $2.50 per further million |
 
-What a million buys after the changes above:
-
-| Room | Messages an hour | Hours per million |
-|---|---:|---:|
-| Solo | ~0 | unlimited |
-| 2 pilots | ~160,000 | ~6 |
-| 2 pilots with CPU tanks | ~250,000 | ~4 |
-| 4 pilots with CPU tanks | ~820,000 | ~1.2 |
-| Phone controller, on top | ~115,000 | ~9 |
+How much playing time that is per room size, see
+[Rooms and room sizes](#rooms-and-room-sizes).
 
 On 8 October 2026 the project stood at about 610,000 of its 2 million,
 most of it from testing before the changes, when everything cost about
@@ -826,6 +844,118 @@ Realtime, until the next billing month or an upgrade. See
 [Manage Realtime Messages usage](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages)
 and the Fair Use Policy in the
 [billing FAQ](https://supabase.com/docs/guides/platform/billing-faq).
+
+### Rooms and room sizes
+
+Two limits decide what can be played, independently of each other:
+
+- **Messages per second** decide how many rooms can play **at the same
+  time**. They count for the whole project, so the loads of all rooms
+  playing at that moment add up. Above the limit every room is thrown out,
+  not only the one that tipped it over.
+- **Messages per month** decide how much **playing time** there is in all.
+
+**On the free plan, which the project is on**, plan with 80 of the 100
+messages a second, a fifth kept in reserve:
+
+| At the same time | Load | Free plan |
+|---|---:|---|
+| Any number of solo rounds | 0 | fits |
+| One room of 2 pilots | ~44/s | fits |
+| One room of 2 pilots with CPU tanks | ~70/s | fits |
+| One room of 2 pilots and a phone controller | ~76/s | fits, just |
+| Two rooms of 2 pilots | ~88/s | below 100, no reserve |
+| One room of 3 pilots | ~98/s | only on its own, at the limit |
+| Apple TV duel with two phones | ~95/s | only on its own, at the limit |
+| One room of 3 pilots with CPU tanks | ~138/s | does not fit |
+| One room of 4 pilots | ~174/s | does not fit |
+
+So on the free plan **one small room plays at a time**: two pilots, with
+or without CPU tanks, next to any number of solo rounds. That is what the
+game allows by default, `MAX_PILOTS=2` and `MAX_ROOMS=1`; rooms of three
+or four and a second room at the same time are turned away. The monthly
+quota adds up to about 12 hours of a room of two, shared by all rooms.
+
+| Plan | `MAX_PILOTS` | `MAX_ROOMS` | At most, with CPU tanks |
+|---|---:|---:|---:|
+| Free (default) | 2 | 1 | ~70/s of 100 |
+| Pro, full rooms | 4 | 1 | ~227/s of 500 |
+| Pro, many small rooms | 2 | 5 | ~350/s of 500 |
+| Pro, two full rooms | 4 | 2 | ~454/s of 500, no reserve |
+
+Set them as repository variables next to `ACCOUNTS`; the `pages`, `play`
+and `testflight` workflows hand them to the build. Every client of one
+release should be built with the same values.
+
+The same for every plan:
+
+Single player costs nothing of either: alone nothing goes over Realtime,
+so any number of solo rounds can run. The room size (`MAX_PILOTS`) and
+the rooms playing at once (`MAX_ROOMS`) are set by the build and enforced
+by the game; the tables show what each plan carries.
+
+**Rooms at the same time**, from the measured load of one room (sent plus
+delivered, own tank always driving and firing). The second number keeps a
+fifth in reserve for busy fights, lobbies and presence, and is the one to
+plan with:
+
+| Room | Load | Free (100/s) | Pro (500/s) | Team (2,500/s) |
+|---|---:|---:|---:|---:|
+| Solo, with or without CPU tanks | 0 | any | any | any |
+| 2 pilots | ~44/s | 2, safely 1 | 11, safely 9 | 56, safely 45 |
+| 2 pilots with CPU tanks | ~70/s | 1 | 7, safely 5 | 35, safely 28 |
+| 3 pilots | ~98/s | 1, on the edge | 5, safely 4 | 25, safely 20 |
+| 3 pilots with CPU tanks | ~138/s | none | 3, safely 2 | 18, safely 14 |
+| 4 pilots | ~174/s | none | 2 | 14, safely 11 |
+| 4 pilots with CPU tanks | ~227/s | none | 2, safely 1 | 11, safely 8 |
+| Phone controller, per pair | ~32/s | on top of its room | | |
+| Apple TV duel with two phones | ~95/s | 1, at the limit | 5, safely 4 | 26, safely 21 |
+
+Rooms of different sizes add up. Combinations that still fit, with the
+reserve:
+
+- **Free**: one room of two, with or without CPU tanks, plus any number
+  of solo rounds. Two rooms of two only without CPU tanks and without a
+  phone controller, and then with no reserve left. A room of three only on
+  its own. A room of four does not fit at all.
+- **Pro**: one full room of four with CPU tanks plus two rooms of two
+  (~227 + 2 × 70 ≈ 370/s), or two rooms of four without CPU tanks
+  (~350/s), or about five rooms of two with CPU tanks.
+- **Team**: around eight full rooms of four with CPU tanks.
+
+**Playing time per month**, the same loads over an hour:
+
+| Room | Messages an hour | Free plan (2 million) | Pro, included (5 million) | Pro, each hour beyond |
+|---|---:|---:|---:|---:|
+| Solo | ~0 | unlimited | unlimited | $0 |
+| 2 pilots | ~160,000 | ~12 h | ~31 h | ~$0.40 |
+| 2 pilots with CPU tanks | ~250,000 | ~8 h | ~20 h | ~$0.63 |
+| 3 pilots | ~350,000 | ~5.5 h | ~14 h | ~$0.88 |
+| 3 pilots with CPU tanks | ~500,000 | ~4 h | ~10 h | ~$1.24 |
+| 4 pilots | ~630,000 | ~3 h | ~8 h | ~$1.57 |
+| 4 pilots with CPU tanks | ~820,000 | ~2.5 h | ~6 h | ~$2.04 |
+| Phone controller, on top | ~115,000 | ~17 h | ~43 h | ~$0.29 |
+| Apple TV duel with two phones | ~340,000 | ~6 h | ~15 h | ~$0.86 |
+
+The hours are for the whole project and month, shared by all rooms: two
+rooms of two playing for an hour use two hours of the "2 pilots" row.
+
+An Apple TV duel plays both halves in private rooms of their own, which
+cost nothing; with controllers or the Siri Remote the duel is free. Two
+phones share one pad channel with the television, so every input and
+status reaches both other ends, the other phone included: that third is
+wasted, and a pad channel per phone would bring the duel down to about
+63 a second.
+
+The other Realtime limits do not bind before these: every client holds
+one connection however many channels it joins (200 at once on the free
+plan, 500 on Pro), and channel joins per second only matter when many
+come in at the same moment.
+
+In short: **the free plan carries one small room at a time and a few
+evenings a month; anything with rooms of four or several rooms at once
+needs Pro**, and on Pro the playing time is what costs money, not the
+number of rooms.
 
 ### Running without the server
 
@@ -846,10 +976,18 @@ The game no longer depends on the server to start
 
 ### What players notice
 
-- **The room limit**, plainly: the fifth pilot reads "Der Raum ist voll:
-  höchstens 4 Piloten." and leaves, the room list shows full rooms as
-  `VOLL`. Groups of five or more cannot play together any more, not even
-  as spectators.
+- **The room limit**, plainly: one pilot too many reads "Der Raum ist
+  voll: höchstens 2 Piloten." and leaves, the room list shows full rooms
+  as `VOLL`. On the free plan that means duels of two, filled up with CPU
+  tanks; spectators count as pilots.
+- **All rooms taken**, plainly: while another room plays, the start page
+  says that a multiplayer battle is already running, the multiplayer card
+  reads `ALLE RÄUME BELEGT`, and rooms of one in the list are `BELEGT`.
+  Opening a waiting room still works, and it says that nobody can come in
+  until a slot is free. Who joins through a link or code anyway reads
+  "Alle Räume sind gerade belegt …" and leaves. A slot comes free up to
+  two and a half minutes after its room ended. Single player always
+  works.
 - **The phone controller** a little: on average about 40 ms, at most 80 ms
   more delay on the sticks, the status on the phone up to 250 ms later,
   and a tap on the aim stick shorter than 80 ms can go unnoticed.
@@ -872,11 +1010,20 @@ at once whether a change still fits the plan.
 
 - Three pilots on the free plan only work as long as no other room plays,
   and full rooms of four need the Pro plan. Bigger rooms would need a relay
-  of our own instead of Broadcast.
+  of our own instead of Broadcast. See
+  [Rooms and room sizes](#rooms-and-room-sizes).
+- Room slots only cover rooms. Phone controllers and the Apple TV duel
+  with two phones talk on their own pad channels and take no slot, though
+  a duel with two phones uses nearly the whole free plan.
+- Clients from before migration 0015 take no slot and do not know the
+  room limit of two.
 - Shots, hits and the other events are not counted against a budget yet;
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
+- An Apple TV duel with two phones costs about 95 a second, nearly the
+  whole free plan, because both phones share one pad channel. A channel
+  per phone would bring it to about 63.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they

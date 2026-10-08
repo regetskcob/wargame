@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../db/room_slots.dart';
 import '../../game/game_config.dart';
 import '../../game/tank_game.dart';
 import '../../net/room.dart';
@@ -57,9 +58,13 @@ class _RoomListState extends State<RoomList> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        ValueListenableBuilder<List<RoomListing>>(
-          valueListenable: widget.game.directory.rooms,
-          builder: (context, rooms, _) {
+        ListenableBuilder(
+          listenable: Listenable.merge([
+            widget.game.directory.rooms,
+            RoomSlots.live,
+          ]),
+          builder: (context, _) {
+            final rooms = widget.game.directory.rooms.value;
             if (rooms.isEmpty) {
               return Text(
                 tr(
@@ -115,6 +120,8 @@ class _RoomListState extends State<RoomList> {
 
   Widget _tile(RoomListing room) {
     final full = room.players >= GameConfig.maxPilots;
+    // A room of one holds no slot yet: joining needs a free one.
+    final taken = RoomSlots.allTaken && room.players < 2;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -139,10 +146,12 @@ class _RoomListState extends State<RoomList> {
             ),
           ),
           TextButton(
-            onPressed: full ? null : () => _join(room.room),
+            onPressed: full || taken ? null : () => _join(room.room),
             child: Text(
               full
                   ? tr('VOLL', 'FULL')
+                  : taken
+                  ? tr('BELEGT', 'TAKEN')
                   : room.inMatch
                   ? tr('ZUSEHEN', 'WATCH')
                   : tr('BEITRETEN', 'JOIN'),

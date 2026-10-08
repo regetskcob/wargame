@@ -20,8 +20,10 @@ LobbyPresence _pilot(String id, {int? joined, bool owner = false}) =>
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('a room holds four pilots, enough for the Pro plan', () {
-    expect(GameConfig.maxPilots, 4);
+  test('by default a room holds two pilots and one room plays at a time, '
+      'what the free plan carries', () {
+    expect(GameConfig.maxPilots, 2);
+    expect(GameConfig.maxRooms, 1);
   });
 
   group('who stays in a full room', () {
@@ -78,13 +80,15 @@ void main() {
     });
   });
 
+  const max = GameConfig.maxPilots;
+
   group('a game in a full room', () {
-    test('the fifth pilot is turned away and says why', () async {
+    test('one pilot too many is turned away and says why', () async {
       final net = FakeNet(isHost: false);
       final game = await loadedGame(net: net);
       game.chooseMode(GameMode.multi);
       net.onRosterChanged!([
-        for (var i = 0; i < 4; i++) _pilot('p$i', joined: i),
+        for (var i = 0; i < max; i++) _pilot('p$i', joined: i),
         _pilot('me', joined: net.joinedAt),
       ]);
       expect(game.phase.value, GamePhase.closed);
@@ -92,19 +96,106 @@ void main() {
       expect(net.disposes, 1);
     });
 
-    test('a pilot who was there first stays and sees only four', () async {
-      final net = FakeNet(isHost: false);
-      final game = await loadedGame(net: net);
+    test(
+      'a pilot who was there first stays and sees only a full room',
+      () async {
+        final net = FakeNet(isHost: false);
+        final game = await loadedGame(net: net);
+        game.chooseMode(GameMode.multi);
+        final me = net.joinedAt;
+        net.onRosterChanged!([
+          _pilot('me', joined: me),
+          for (var i = 0; i < max; i++) _pilot('p$i', joined: me + 1 + i),
+        ]);
+        expect(game.phase.value, GamePhase.lobby);
+        expect(game.roster.value, hasLength(max));
+        expect(
+          game.roster.value.map((m) => m.id),
+          isNot(contains('p${max - 1}')),
+        );
+        expect(net.disposes, 0);
+      },
+    );
+  });
+
+  group('room slots across the project', () {
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('a pilot alone takes no slot', () async {
+      final slots = FakeSlots();
+      final net = FakeNet(isHost: true);
+      final game = await loadedGame(net: net, slots: slots);
       game.chooseMode(GameMode.multi);
-      final me = net.joinedAt;
+      net.onRosterChanged!([_pilot('me', joined: 1)]);
+      await settle();
+      expect(slots.claims, isEmpty);
+    });
+
+    test('a second pilot in the room takes a slot', () async {
+      final slots = FakeSlots();
+      final net = FakeNet(isHost: true);
+      final game = await loadedGame(net: net, slots: slots);
+      game.chooseMode(GameMode.multi);
       net.onRosterChanged!([
-        _pilot('me', joined: me),
-        for (var i = 0; i < 4; i++) _pilot('p$i', joined: me + 1 + i),
+        _pilot('me', joined: 1, owner: true),
+        _pilot('friend', joined: 2),
       ]);
+      await settle();
+      expect(slots.claims, [net.room]);
       expect(game.phase.value, GamePhase.lobby);
-      expect(game.roster.value, hasLength(4));
-      expect(game.roster.value.map((m) => m.id), isNot(contains('p3')));
+    });
+
+    test(
+      'with every slot taken, who comes in is turned away and says why',
+      () async {
+        final slots = FakeSlots(free: false);
+        final net = FakeNet(isHost: false);
+        final game = await loadedGame(net: net, slots: slots);
+        game.chooseMode(GameMode.multi);
+        net.onRosterChanged!([
+          _pilot('host', joined: 1, owner: true),
+          _pilot('me', joined: net.joinedAt),
+        ]);
+        await settle();
+        expect(game.phase.value, GamePhase.closed);
+        expect(game.closedReason.value, contains('belegt'));
+        expect(net.disposes, 1);
+      },
+    );
+
+    test('the owner of the room stays and waits', () async {
+      final slots = FakeSlots(free: false);
+      final net = FakeNet(isHost: true);
+      final game = await loadedGame(net: net, slots: slots);
+      game.chooseMode(GameMode.multi);
+      net.onRosterChanged!([
+        _pilot('me', joined: 1, owner: true),
+        _pilot('guest', joined: 2),
+      ]);
+      await settle();
+      expect(game.phase.value, GamePhase.lobby);
       expect(net.disposes, 0);
+    });
+
+    test('a room that held its slot keeps playing when a pilot drops out '
+        'and comes back', () async {
+      final slots = FakeSlots();
+      final net = FakeNet(isHost: false);
+      final game = await loadedGame(net: net, slots: slots);
+      game.chooseMode(GameMode.multi);
+      final pair = [
+        _pilot('host', joined: 1, owner: true),
+        _pilot('me', joined: net.joinedAt),
+      ];
+      net.onRosterChanged!(pair);
+      await settle();
+      // Meanwhile the slot went to another room.
+      slots.free = false;
+      net
+        ..onRosterChanged!([pair.first])
+        ..onRosterChanged!(pair);
+      await settle();
+      expect(game.phase.value, isNot(GamePhase.closed));
     });
   });
 }

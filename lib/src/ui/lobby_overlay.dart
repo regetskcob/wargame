@@ -15,6 +15,7 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
@@ -736,7 +737,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ],
             ),
             const SizedBox(height: 18),
-            if (mode.withOthers) const ServerNotice(),
+            if (mode.withOthers) ...[
+              const ServerNotice(),
+              ValueListenableBuilder(
+                valueListenable: widget.game.roster,
+                builder: (context, roster, _) => roster.length < 2
+                    ? RoomsBusyNotice(slots: widget.game.slots, waiting: true)
+                    : const SizedBox.shrink(),
+              ),
+            ],
             if (room.isEmpty)
               _tankSection(context)
             else
@@ -797,12 +806,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Starts at the top: short pages leave the room below them
-              // instead of floating in the middle of the screen. The
-              // television shows every page whole, there it sits in the
-              // middle.
+              // Phones and the tablet apps start at the top: short pages
+              // leave the room below them instead of floating in the middle
+              // of a screen held in the hand. The browser and the
+              // television frame the menu as a plate, which sits best in
+              // the middle.
               return Align(
-                alignment: onTv ? Alignment.center : Alignment.topCenter,
+                alignment: phone ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.

@@ -3,6 +3,7 @@ import 'package:flutter/widgets.dart';
 import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/db/account_service.dart';
 import 'package:wargame/src/db/profile_service.dart';
+import 'package:wargame/src/db/room_slots.dart';
 import 'package:wargame/src/db/score_service.dart';
 import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -119,6 +120,24 @@ class FakeNet extends NetService {
   Future<void> dispose() async => disposes++;
 }
 
+/// Room slots without a server: every claim gets one unless told
+/// otherwise, and counting changes nothing.
+class FakeSlots implements RoomSlots {
+  FakeSlots({this.free = true});
+
+  bool free;
+  final claims = <String>[];
+
+  @override
+  Future<bool> claim(String room) async {
+    claims.add(room);
+    return free;
+  }
+
+  @override
+  Future<void> count() async {}
+}
+
 /// The public room list without a server behind it.
 class FakeDirectory extends RoomDirectory {
   FakeDirectory() : super(room: 'TEST1');
@@ -140,6 +159,7 @@ TankGame offlineGame({
   AccountService? accounts,
   ProfileService? profiles,
   NetService? net,
+  RoomSlots? slots,
 }) => TankGame(
   net: net ?? FakeNet(),
   myId: 'me',
@@ -147,12 +167,14 @@ TankGame offlineGame({
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),
   directory: FakeDirectory(),
+  slots: slots ?? FakeSlots(),
 );
 
 /// A game loaded and mounted as the app would, with every overlay, so the
 /// net callbacks are wired and rounds can run.
-Future<TankGame> loadedGame({NetService? net}) async {
-  final game = offlineGame(net: net)..onGameResize(Vector2(1280, 720));
+Future<TankGame> loadedGame({NetService? net, RoomSlots? slots}) async {
+  final game = offlineGame(net: net, slots: slots)
+    ..onGameResize(Vector2(1280, 720));
   for (final id in [
     OverlayIds.lobby,
     OverlayIds.countdown,
