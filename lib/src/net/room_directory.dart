@@ -59,7 +59,11 @@ class RoomListing {
 /// of public rooms put their room on it, everybody can read it. A room
 /// vanishes from the list by itself when its host closes the window.
 class RoomDirectory {
-  RoomDirectory({required this.room});
+  RoomDirectory({required this.room, SupabaseClient? client})
+    : _ownClient = client;
+
+  /// A connection of its own, as [NetService] has for a second player.
+  final SupabaseClient? _ownClient;
 
   /// Own room, left out of [rooms].
   final String room;
@@ -72,7 +76,7 @@ class RoomDirectory {
   var _subscribed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
 
   void connect() {
     final channel = _client.channel(

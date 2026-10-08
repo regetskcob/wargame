@@ -16,7 +16,10 @@ extension TankGameRound on TankGame {
     if (phase.value != GamePhase.lobby || !canStart) {
       return;
     }
-    final solo = mode.value == GameMode.solo;
+    // Single player with a second player on the same Apple TV: both
+    // together against the CPU tanks, in a round the other one hears of.
+    final together = mode.value == GameMode.solo && localGuest;
+    final solo = mode.value == GameMode.solo && !together;
     final defending = mode.value == GameMode.defense;
     // Players still looking at the last end screen come along as well.
     final ids = <String>{
@@ -29,7 +32,7 @@ extension TankGameRound on TankGame {
     }.toList();
     final random = Random();
     final botCount = botsFor(
-      solo: solo,
+      solo: solo || together,
       humans: ids.length,
       fill: fillWithBots.value && !defending,
       teams: teamMode.value,
@@ -54,7 +57,11 @@ extension TankGameRound on TankGame {
           DateTime.now().millisecondsSinceEpoch +
               GameConfig.countdownSeconds * 1000,
       participants: ids,
-      teams: defending ? const {} : _assignTeams(ids),
+      teams: defending
+          ? const {}
+          : together
+          ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
+          : _assignTeams(ids),
       bots: bots,
       botHost: bots.isEmpty && !defending ? null : myId,
       defense: defending,
@@ -140,6 +147,7 @@ extension TankGameRound on TankGame {
       botHost: payload.botHost,
       botLevel: BotLevel.of(payload.botLevel),
       defense: payload.defense,
+      lanes: payload.defense ? payload.lanes : const [],
     );
     myTeam = activeRound.teamOf(myId);
     guard.reset();

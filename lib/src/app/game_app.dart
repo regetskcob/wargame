@@ -29,6 +29,8 @@ import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
 import '../tv/duel_view.dart';
+import '../tv/second_player.dart';
+import '../tv/split_view.dart';
 import '../tv/tv_focus_frame.dart';
 import '../tv/tv_input.dart';
 import '../ui/widgets/tablet_scale.dart';
@@ -66,7 +68,14 @@ class _GameAppState extends State<GameApp> {
     listenForRoomLinks();
     PadScreen.instance.game = game;
     unawaited(PadScreen.instance.resume());
+    _second?.attach();
   }
+
+  /// A second player on the Apple TV, with a game of their own.
+  late final SecondPlayer? _second = onTv ? SecondPlayer(() => game) : null;
+
+  /// Between rounds the second player may come or go.
+  void _phaseChanged() => _second?.update();
 
   /// A pairing link opened on this device: it becomes the controller of
   /// the screen that showed it.
@@ -102,24 +111,29 @@ class _GameAppState extends State<GameApp> {
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
     return TankGame(
-      net: NetService(myId: myId, room: room, isHost: host),
-      myId: myId,
-      scoreService: ScoreService(client),
-      profiles: ProfileService(client),
-      accounts: AccountService(client),
-    )..phase.addListener(_reclaimFocus);
+        net: NetService(myId: myId, room: room, isHost: host),
+        myId: myId,
+        scoreService: ScoreService(client),
+        profiles: ProfileService(client),
+        accounts: AccountService(client),
+      )
+      ..phase.addListener(_reclaimFocus)
+      ..phase.addListener(_phaseChanged);
   }
 
   /// The apps' stand-in for loading another room's address: the old game
   /// leaves its room and a fresh one joins the new room.
   void _switchRoom(String room, {required bool host}) {
     final old = game;
-    old.phase.removeListener(_reclaimFocus);
+    old.phase
+      ..removeListener(_reclaimFocus)
+      ..removeListener(_phaseChanged);
     _liveActivity.detach();
     unawaited(old.leave());
     setState(() => game = _createGame(room, host: host));
     PadScreen.instance.game = game;
     _liveActivity = LiveActivityBridge(game)..attach();
+    _second?.followRoom();
   }
 
   // The lobby's text field and buttons own the keyboard focus. Once their
@@ -143,7 +157,10 @@ class _GameAppState extends State<GameApp> {
     onPadLink = null;
     _online.dispose();
     _liveActivity.detach();
-    game.phase.removeListener(_reclaimFocus);
+    game.phase
+      ..removeListener(_reclaimFocus)
+      ..removeListener(_phaseChanged);
+    _second?.dispose();
     _gameFocus.dispose();
     super.dispose();
   }
@@ -192,95 +209,100 @@ class _GameAppState extends State<GameApp> {
   }
 
   Widget _home() {
+    final second = _second;
+    final view = _view();
     return Scaffold(
       backgroundColor: BwColors.background,
-      body: Listener(
-        behavior: HitTestBehavior.translucent,
-        onPointerDown: (event) {
-          // A click on a button must not take the keyboard from the tank.
-          if (game.phase.value != GamePhase.lobby) {
-            _reclaimFocus();
+      body: second == null
+          ? view
+          : TvSplitView(host: game, second: second, child: view),
+    );
+  }
+
+  Widget _view() {
+    return Listener(
+      behavior: HitTestBehavior.translucent,
+      onPointerDown: (event) {
+        // A click on a button must not take the keyboard from the tank.
+        if (game.phase.value != GamePhase.lobby) {
+          _reclaimFocus();
+        }
+        if (event.kind == PointerDeviceKind.touch) {
+          game.touchMode.value = true;
+        } else if (event.kind == PointerDeviceKind.mouse) {
+          _aimWithMouse(event.localPosition);
+          if (event.buttons & kPrimaryMouseButton != 0 && !game.pointerOnHud) {
+            game.touch.fire = true;
           }
-          if (event.kind == PointerDeviceKind.touch) {
-            game.touchMode.value = true;
-          } else if (event.kind == PointerDeviceKind.mouse) {
-            _aimWithMouse(event.localPosition);
-            if (event.buttons & kPrimaryMouseButton != 0 &&
-                !game.pointerOnHud) {
-              game.touch.fire = true;
-            }
-          }
-        },
-        onPointerUp: (event) {
-          if (event.kind == PointerDeviceKind.mouse) {
-            game.touch.fire = false;
-          }
-        },
-        onPointerCancel: (_) => game.touch.fire = false,
-        onPointerMove: (event) {
-          if (event.kind == PointerDeviceKind.mouse) {
-            _aimWithMouse(event.localPosition);
-          }
-        },
-        onPointerHover: (event) => _aimWithMouse(event.localPosition),
-        child: ValueListenableBuilder<GamePhase>(
-          valueListenable: game.phase,
-          builder: (context, phase, child) => MouseRegion(
-            cursor: phase == GamePhase.playing
-                ? SystemMouseCursors.precise
-                : MouseCursor.defer,
-            onExit: (_) => game.touch.fire = false,
-            child: child,
-          ),
-          child: GameWidget<TankGame>(
-            // A new room brings a new game, which needs a fresh widget.
-            key: ObjectKey(game),
-            game: game,
-            focusNode: _gameFocus,
-            autofocus: true,
-            overlayBuilderMap: onWatch
-                ? {
-                    OverlayIds.lobby: (context, game) => WatchLobby(game: game),
-                    OverlayIds.countdown: (context, game) =>
-                        WatchCountdown(game: game),
-                    OverlayIds.hud: (context, game) => WatchHud(game: game),
-                    OverlayIds.spectator: (context, game) =>
-                        WatchSpectator(game: game),
-                    OverlayIds.roundOver: (context, game) =>
-                        WatchRoundOver(game: game),
-                    OverlayIds.closed: (context, game) =>
-                        WatchClosed(game: game),
-                    OverlayIds.tutorial: (context, game) =>
-                        const SizedBox.shrink(),
-                  }
-                : {
-                    OverlayIds.lobby: (context, game) =>
-                        LobbyOverlay(game: game),
-                    OverlayIds.countdown: (context, game) =>
-                        CountdownOverlay(game: game),
-                    OverlayIds.hud: (context, game) =>
-                        TabletScale(child: HudOverlay(game: game)),
-                    OverlayIds.spectator: (context, game) =>
-                        SpectatorOverlay(game: game),
-                    OverlayIds.roundOver: (context, game) =>
-                        RoundOverOverlay(game: game),
-                    OverlayIds.closed: (context, game) =>
-                        ClosedOverlay(game: game),
-                    OverlayIds.tutorial: (context, game) =>
-                        // On the Apple TV the controls follow the controller
-                        // in hand.
-                        ListenableBuilder(
-                          listenable: Listenable.merge([
-                            game.touchMode,
-                            TvInput.instance.kind,
-                          ]),
-                          builder: (context, _) => TutorialOverlay(
-                            touch: game.touchMode.value,
-                            onClose: game.closeTutorial,
-                          ),
+        }
+      },
+      onPointerUp: (event) {
+        if (event.kind == PointerDeviceKind.mouse) {
+          game.touch.fire = false;
+        }
+      },
+      onPointerCancel: (_) => game.touch.fire = false,
+      onPointerMove: (event) {
+        if (event.kind == PointerDeviceKind.mouse) {
+          _aimWithMouse(event.localPosition);
+        }
+      },
+      onPointerHover: (event) => _aimWithMouse(event.localPosition),
+      child: ValueListenableBuilder<GamePhase>(
+        valueListenable: game.phase,
+        builder: (context, phase, child) => MouseRegion(
+          cursor: phase == GamePhase.playing
+              ? SystemMouseCursors.precise
+              : MouseCursor.defer,
+          onExit: (_) => game.touch.fire = false,
+          child: child,
+        ),
+        child: GameWidget<TankGame>(
+          // A new room brings a new game, which needs a fresh widget.
+          key: ObjectKey(game),
+          game: game,
+          focusNode: _gameFocus,
+          autofocus: true,
+          overlayBuilderMap: onWatch
+              ? {
+                  OverlayIds.lobby: (context, game) => WatchLobby(game: game),
+                  OverlayIds.countdown: (context, game) =>
+                      WatchCountdown(game: game),
+                  OverlayIds.hud: (context, game) => WatchHud(game: game),
+                  OverlayIds.spectator: (context, game) =>
+                      WatchSpectator(game: game),
+                  OverlayIds.roundOver: (context, game) =>
+                      WatchRoundOver(game: game),
+                  OverlayIds.closed: (context, game) => WatchClosed(game: game),
+                  OverlayIds.tutorial: (context, game) =>
+                      const SizedBox.shrink(),
+                }
+              : {
+                  OverlayIds.lobby: (context, game) => LobbyOverlay(game: game),
+                  OverlayIds.countdown: (context, game) =>
+                      CountdownOverlay(game: game),
+                  OverlayIds.hud: (context, game) =>
+                      TabletScale(child: HudOverlay(game: game)),
+                  OverlayIds.spectator: (context, game) =>
+                      SpectatorOverlay(game: game),
+                  OverlayIds.roundOver: (context, game) =>
+                      RoundOverOverlay(game: game),
+                  OverlayIds.closed: (context, game) =>
+                      ClosedOverlay(game: game),
+                  OverlayIds.tutorial: (context, game) =>
+                      // On the Apple TV the controls follow the controller
+                      // in hand.
+                      ListenableBuilder(
+                        listenable: Listenable.merge([
+                          game.touchMode,
+                          TvInput.instance.kind,
+                        ]),
+                        builder: (context, _) => TutorialOverlay(
+                          touch: game.touchMode.value,
+                          onClose: game.closeTutorial,
                         ),
-                  },
-          ),
+                      ),
+                },
         ),
       ),
     );

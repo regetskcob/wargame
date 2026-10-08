@@ -46,6 +46,7 @@ class SquadPayload {
     this.para = false,
     this.road = false,
     this.back = false,
+    this.lane = 0,
   });
 
   factory SquadPayload.fromJson(Map<String, dynamic> json) => SquadPayload(
@@ -60,6 +61,7 @@ class SquadPayload {
     para: json['para'] as bool? ?? false,
     road: json['road'] as bool? ?? false,
     back: json['back'] as bool? ?? false,
+    lane: json['lane'] is int ? (json['lane'] as int).clamp(0, 1) : 0,
   );
 
   /// Who sent it.
@@ -81,6 +83,9 @@ class SquadPayload {
   /// a squad the base sends against the enemy.
   final bool back;
 
+  /// With [road]: the side of a duel whose road it takes.
+  final int lane;
+
   int get count => rifles + rockets;
 
   Map<String, dynamic> toJson() => {
@@ -95,5 +100,6 @@ class SquadPayload {
     if (para) 'para': true,
     if (road) 'road': true,
     if (back) 'back': true,
+    if (lane > 0) 'lane': lane,
   };
 }

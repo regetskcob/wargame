@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'bot_level.dart';
 import 'game_config.dart';
 import 'defense/defense_map.dart';
@@ -13,6 +15,7 @@ class RoundState {
     this.botHost,
     this.botLevel = BotLevel.normal,
     this.defense = false,
+    this.lanes = const [],
   }) : alive = participants.toSet();
 
   final int seed;
@@ -30,6 +33,14 @@ class RoundState {
 
   /// Everybody together against waves of enemies, see [isEnemy].
   final bool defense;
+
+  /// A defense duel: who defends the base of each side. Empty otherwise.
+  final List<String> lanes;
+
+  bool get duel => lanes.length > 1;
+
+  /// The side [id] defends in a duel, the left one for anybody else.
+  int laneOf(String id) => max(0, lanes.indexOf(id));
 
   /// Real people play against each other, so every tank gets its own colour.
   bool get distinctColors => bots.isEmpty;

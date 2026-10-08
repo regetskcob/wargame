@@ -11,6 +11,9 @@ class DefensePayload {
     this.result = DefenseResult.running,
     this.hq = 1,
     this.extended = false,
+    this.hp2,
+    this.hq2 = 1,
+    this.fell = -1,
   });
 
   factory DefensePayload.fromJson(Map<String, dynamic> json) {
@@ -26,6 +29,9 @@ class DefensePayload {
           )],
       hq: json['hq'] as int? ?? 1,
       extended: json['ext'] as bool? ?? false,
+      hp2: (json['hp2'] as num?)?.toDouble(),
+      hq2: json['hq2'] as int? ?? 1,
+      fell: json['fell'] as int? ?? -1,
     );
   }
 
@@ -49,6 +55,28 @@ class DefensePayload {
   /// safe from then on, even if the base falls.
   final bool extended;
 
+  /// A duel: hit points of the right side's base, null outside a duel.
+  final double? hp2;
+
+  /// A duel: how far the right side's base has grown.
+  final int hq2;
+
+  /// A duel: the side whose base fell first, -1 while both stand, 2 when
+  /// both fell at once.
+  final int fell;
+
+  bool get duel => hp2 != null;
+
+  /// Hit points of the base of [lane].
+  double hpOf(int lane) => lane == 1 ? hp2 ?? 0 : hp;
+
+  /// How far the base of [lane] has grown.
+  int hqOf(int lane) => lane == 1 ? hq2 : hq;
+
+  /// The state with the base of [lane] changed.
+  DefensePayload withBase(int lane, {double? hp, int? hq}) =>
+      lane == 1 ? copyWith(hp2: hp, hq2: hq) : copyWith(hp: hp, hq: hq);
+
   /// The last regular wave is beaten off and the host has yet to say
   /// whether to go on.
   bool get deciding =>
@@ -64,6 +92,9 @@ class DefensePayload {
     DefenseResult? result,
     int? hq,
     bool? extended,
+    double? hp2,
+    int? hq2,
+    int? fell,
   }) {
     return DefensePayload(
       id: id,
@@ -73,6 +104,9 @@ class DefensePayload {
       result: result ?? this.result,
       hq: hq ?? this.hq,
       extended: extended ?? this.extended,
+      hp2: hp2 ?? this.hp2,
+      hq2: hq2 ?? this.hq2,
+      fell: fell ?? this.fell,
     );
   }
 
@@ -85,6 +119,9 @@ class DefensePayload {
       'result': result.index,
       if (hq != 1) 'hq': hq,
       if (extended) 'ext': true,
+      if (hp2 != null) 'hp2': hp2,
+      if (hq2 != 1) 'hq2': hq2,
+      if (fell >= 0) 'fell': fell,
     };
   }
 }

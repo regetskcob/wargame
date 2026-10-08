@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../app/overlay_ids.dart';
 import '../db/account_service.dart';
 import '../db/profile_service.dart';
-import '../db/score_service.dart';
 import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
@@ -22,6 +21,7 @@ import '../ui/spectator_overlay.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/panel.dart';
 import '../ui/widgets/tablet_scale.dart';
+import 'second_player.dart';
 import 'tv_input.dart';
 
 /// One against one on the Apple TV: the screen split in half, each player
@@ -69,6 +69,14 @@ class DuelSeat {
       : kind == TvPadKind.gamepad
       ? 'Controller'
       : 'Siri Remote';
+}
+
+/// Changes whenever a controller or a phone comes or goes.
+abstract final class TvInputSeats {
+  static final Listenable listenable = Listenable.merge([
+    TvInput.instance.count,
+    PadScreen.instance.phones,
+  ]);
 }
 
 /// Who can play a duel, in the order the halves are handed out: controllers
@@ -139,7 +147,7 @@ class _DuelViewState extends State<DuelView> {
         TankGame(
             net: NetService(myId: id, room: _roomCode(random), isHost: true),
             myId: id,
-            scoreService: _Unranked(client),
+            scoreService: UnrankedScores(client),
             profiles: ProfileService(client),
             accounts: AccountService(client),
           )
@@ -318,7 +326,7 @@ class _DuelViewState extends State<DuelView> {
         IgnorePointer(
           child: DecoratedBox(
             decoration: BoxDecoration(
-              border: Border.all(color: _playerColors[player], width: 4),
+              border: Border.all(color: playerColors[player], width: 4),
             ),
           ),
         ),
@@ -351,7 +359,7 @@ class _DuelViewState extends State<DuelView> {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: _PlayerTag(
+            child: PlayerTag(
               player: player,
               seat: player < _seats.length ? _seats[player] : null,
             ),
@@ -362,20 +370,13 @@ class _DuelViewState extends State<DuelView> {
   }
 }
 
-/// The colour of each player's half: its frame and its name.
-const _playerColors = [Color(0xFF6FB3E8), Color(0xFFE88A6F)];
+/// The colour of each player's half on a split screen: its frame and its
+/// name.
+const playerColors = [Color(0xFF6FB3E8), Color(0xFFE88A6F)];
 
-/// Rounds of a duel count for nobody: the record of a guest.
-class _Unranked extends ScoreService {
-  _Unranked(super.client);
-
-  @override
-  bool get isGuest => true;
-}
-
-/// Which player a half belongs to, and what steers it.
-class _PlayerTag extends StatelessWidget {
-  const _PlayerTag({required this.player, required this.seat});
+/// Which player a half of a split screen belongs to, and what steers it.
+class PlayerTag extends StatelessWidget {
+  const PlayerTag({required this.player, required this.seat, super.key});
 
   final int player;
   final DuelSeat? seat;
@@ -393,7 +394,7 @@ class _PlayerTag extends StatelessWidget {
       decoration: ShapeDecoration(
         color: BwColors.panel,
         shape: BwShapes.chip(
-          edge: seat == null ? BwColors.danger : _playerColors[player],
+          edge: seat == null ? BwColors.danger : playerColors[player],
           width: 2,
         ),
       ),
@@ -404,7 +405,7 @@ class _PlayerTag extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w800,
             letterSpacing: 1.5,
-            color: _playerColors[player],
+            color: playerColors[player],
           ),
         ),
       ),
