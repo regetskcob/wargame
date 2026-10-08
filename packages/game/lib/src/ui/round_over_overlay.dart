@@ -62,93 +62,30 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                 const ColoredBox(color: Color(0x88000000)),
                 if (won) CustomPaint(painter: _VictoryPainter(t)),
                 if (lost) CustomPaint(painter: _DefeatPainter(t)),
-                Center(
-                  child: TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0, end: 1),
-                    duration: const Duration(milliseconds: 700),
-                    curve: Curves.elasticOut,
-                    builder: (context, scale, child) =>
-                        Transform.scale(scale: 0.3 + 0.7 * scale, child: child),
-                    child: Panel(
-                      padding: const EdgeInsets.all(28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Transform.translate(
-                            offset: lost
-                                ? Offset(sin(t * 2 * pi * 40) * 3, 0)
-                                : Offset.zero,
-                            child: Text(
-                              title,
-                              style: TextStyle(
-                                fontSize: 44,
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 6,
-                                color: accent,
-                                shadows: [
-                                  Shadow(
-                                    blurRadius: won ? 24 : 12,
-                                    color: accent.withValues(alpha: 0.8),
-                                  ),
-                                ],
-                              ),
+                // The backdrop covers the whole screen, the panel stays clear
+                // of the notch, the Dynamic Island and the home indicator.
+                SafeArea(
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final narrow = box.maxWidth < 480;
+                      return Center(
+                        child: SingleChildScrollView(
+                          padding: EdgeInsets.all(narrow ? 12 : 16),
+                          child: ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 560),
+                            child: _panel(
+                              context,
+                              t: t,
+                              narrow: narrow,
+                              won: won,
+                              lost: lost,
+                              accent: accent,
+                              title: title,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          ValueListenableBuilder<String?>(
-                            valueListenable: game.winnerName,
-                            builder: (context, winner, _) => Text(
-                              game.round?.defense ?? false
-                                  ? _defenseLine(game.defense.value, won)
-                                  : winner == null
-                                  ? 'Unentschieden. Das Sperrgebiet gewinnt.'
-                                  : won
-                                  ? (game.round?.teamMode ?? false
-                                        ? 'Euer Team behauptet das Feld!'
-                                        : 'Letzter Panzer im Feld. Gut gemacht!')
-                                  : '$winner gewinnt das Gefecht.',
-                              style: Theme.of(context).textTheme.titleMedium,
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                          if (game.round?.participants.contains(game.myId) ??
-                              false) ...[
-                            const SizedBox(height: 20),
-                            _StatsRow(stats: game.roundStats),
-                            RoundRewards(progress: game.progress),
-                          ],
-                          const SizedBox(height: 24),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: game.isHost,
-                            builder: (context, host, _) => Wrap(
-                              alignment: WrapAlignment.center,
-                              spacing: 12,
-                              runSpacing: 12,
-                              children: [
-                                FilledButton.icon(
-                                  onPressed: host ? game.rematch : null,
-                                  icon: const Icon(Icons.replay),
-                                  label: Text(
-                                    host
-                                        ? 'NEUES SPIEL'
-                                        : 'WARTE AUF GASTGEBER',
-                                  ),
-                                ),
-                                OutlinedButton(
-                                  onPressed: game.backToLobby,
-                                  child: const Text('ZURÜCK INS LAGER'),
-                                ),
-                                OutlinedButton.icon(
-                                  onPressed: game.watchReplay,
-                                  icon: const Icon(Icons.movie_outlined),
-                                  label: const Text('WIEDERHOLUNG'),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ],
@@ -156,6 +93,107 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
           },
         );
       },
+    );
+  }
+
+  Widget _panel(
+    BuildContext context, {
+    required double t,
+    required bool narrow,
+    required bool won,
+    required bool lost,
+    required Color accent,
+    required String title,
+  }) {
+    final game = widget.game;
+    return TweenAnimationBuilder<double>(
+      tween: Tween(begin: 0, end: 1),
+      duration: const Duration(milliseconds: 700),
+      curve: Curves.elasticOut,
+      builder: (context, scale, child) =>
+          Transform.scale(scale: 0.3 + 0.7 * scale, child: child),
+      child: Panel(
+        padding: EdgeInsets.all(narrow ? 18 : 28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Transform.translate(
+              offset: lost ? Offset(sin(t * 2 * pi * 40) * 3, 0) : Offset.zero,
+              // One line always: a long word shrinks rather
+              // than breaking in the middle.
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  title,
+                  maxLines: 1,
+                  style: TextStyle(
+                    fontSize: narrow ? 34 : 44,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: narrow ? 3 : 6,
+                    color: accent,
+                    shadows: [
+                      Shadow(
+                        blurRadius: won ? 24 : 12,
+                        color: accent.withValues(alpha: 0.8),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            ValueListenableBuilder<String?>(
+              valueListenable: game.winnerName,
+              builder: (context, winner, _) => Text(
+                game.round?.defense ?? false
+                    ? _defenseLine(game.defense.value, won)
+                    : winner == null
+                    ? 'Unentschieden. Das Sperrgebiet gewinnt.'
+                    : won
+                    ? (game.round?.teamMode ?? false
+                          ? 'Euer Team behauptet das Feld!'
+                          : 'Letzter Panzer im Feld. Gut gemacht!')
+                    : '$winner gewinnt das Gefecht.',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontSize: narrow ? 14 : null,
+                  letterSpacing: narrow ? 1 : null,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            if (game.round?.participants.contains(game.myId) ?? false) ...[
+              const SizedBox(height: 20),
+              _StatsRow(stats: game.roundStats),
+              RoundRewards(progress: game.progress),
+            ],
+            const SizedBox(height: 24),
+            ValueListenableBuilder<bool>(
+              valueListenable: game.isHost,
+              builder: (context, host, _) => Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  FilledButton.icon(
+                    onPressed: host ? game.rematch : null,
+                    icon: const Icon(Icons.replay),
+                    label: Text(host ? 'NEUES SPIEL' : 'WARTE AUF GASTGEBER'),
+                  ),
+                  OutlinedButton(
+                    onPressed: game.backToLobby,
+                    child: const Text('ZURÜCK INS LAGER'),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: game.watchReplay,
+                    icon: const Icon(Icons.movie_outlined),
+                    label: const Text('WIEDERHOLUNG'),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -291,8 +329,8 @@ class _StatsRow extends StatelessWidget {
                 Text(
                   label,
                   style: const TextStyle(
-                    fontSize: 10,
-                    letterSpacing: 1.5,
+                    fontSize: 11,
+                    letterSpacing: 1.2,
                     color: BwColors.textDim,
                   ),
                 ),

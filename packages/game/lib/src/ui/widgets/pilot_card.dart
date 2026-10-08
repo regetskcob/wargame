@@ -83,7 +83,7 @@ class PilotCard extends StatelessWidget {
                         const Text(
                           'WERTUNG',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
                             letterSpacing: 1.4,
                             color: BwColors.textDim,
                           ),
@@ -192,7 +192,7 @@ class BadgeChip extends StatelessWidget {
             Text(
               achievement.title.toUpperCase(),
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 letterSpacing: 0.8,
                 fontWeight: FontWeight.w700,
                 color: color,
