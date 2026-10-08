@@ -812,9 +812,11 @@ at once whether a change still fits the plan.
   Migration 0014 makes both run with the caller's rights again;
   `weekly_scores` reads through a function in the `private` schema that the
   API does not expose, `tank_scores` only needs the own rows anyway, and no
-  longer shows other pilots' totals per vehicle. 0014 was not tried against
-  a database before release: push it with `supabase db push` and look at
-  the weekly leaderboard and the numbers per vehicle once.
+  longer shows other pilots' totals per vehicle. Checked with PGlite
+  against all migrations in order: the weekly totals of every account for
+  guests and pilots alike, the totals per vehicle only for the own pilot.
+  After `supabase db push`, look at the weekly leaderboard and the numbers
+  per vehicle once in the live game.
 - **RLS errors on `achievements`**: badges were written even when the
   database had refused the round. They are now only written after a round
   that was recorded.
