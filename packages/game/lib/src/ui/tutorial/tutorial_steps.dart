@@ -100,7 +100,8 @@ const _touch = [
     text:
         'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
         'nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE über '
-        'dem Stick schaltet sie aus und wieder an.',
+        'dem Stick schaltet sie aus und wieder an. Auf Schwer gibt es keine '
+        'Zielhilfe.',
   ),
   TutorialStep(
     title: 'INVENTAR',
@@ -232,7 +233,7 @@ final _tour = [
         'Nebel, die die Sicht begrenzen. Häuser, Sperren und Bäume lassen '
         'sich zerschießen.',
     chips: [
-      TutorialChip(Icons.park, 'ÜBUNGSPLATZ'),
+      TutorialChip(Icons.park, 'GEFECHTSPLATZ'),
       TutorialChip(Icons.wb_sunny, 'WÜSTE'),
       TutorialChip(Icons.ac_unit, 'WINTER'),
       TutorialChip(Icons.location_city, 'STADT'),

@@ -93,7 +93,7 @@ class Achievement {
     Achievement(
       'first_win',
       'Erster Sieg',
-      'Eine Übung gewonnen',
+      'Ein Gefecht gewonnen',
       (r) => r.won,
     ),
     Achievement(
@@ -129,13 +129,13 @@ class Achievement {
     Achievement(
       'night_owl',
       'Nachteule',
-      'Eine Übung bei Nacht gewonnen',
+      'Ein Gefecht bei Nacht gewonnen',
       (r) => r.won && r.night,
     ),
     Achievement(
       'veteran',
       'Veteran',
-      'Fünfzig Übungen bestritten',
+      'Fünfzig Gefechte bestritten',
       (r) => r.totalRounds >= 50,
     ),
     Achievement(

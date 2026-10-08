@@ -30,12 +30,14 @@ class ScoreService {
   /// Id of the signed in player, to find their own row in the leaderboard.
   String? get myId => _client.auth.currentUser?.id;
 
-  /// The best pilots, the highest rating first. A plain query: the start
-  /// page asks again every so often instead of holding a live channel open.
+  /// The best pilots, the highest rating first. Pilots without a rated round
+  /// are left out. A plain query: the start page asks again every so often
+  /// instead of holding a live channel open.
   Future<List<ScoresRow>> topScores({int limit = 20}) async {
     return _client
         .table(Scores.table)
         .select()
+        .where(Scores.ratedRounds.gt(0))
         .order(Scores.rating.desc())
         .order(Scores.wins.desc())
         .limit(limit);

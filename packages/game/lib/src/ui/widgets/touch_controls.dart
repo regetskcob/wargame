@@ -18,10 +18,18 @@ import '../../theme.dart';
 /// sticks appear wherever the thumb lands, so nobody has to find a button.
 /// A special weapon from a gem gets a button of its own, next to the assist.
 class TouchControls extends StatelessWidget {
-  const TouchControls({required this.input, required this.special, super.key});
+  const TouchControls({
+    required this.input,
+    required this.special,
+    this.assist = true,
+    super.key,
+  });
 
   final TouchInput input;
   final ValueListenable<(SpecialWeapon, int)?> special;
+
+  /// Whether the aim assist and its button are offered. Not on hard.
+  final bool assist;
 
   /// Share of the stick radius past which the aim stick fires.
   static const fireRing = 0.62;
@@ -82,11 +90,12 @@ class TouchControls extends StatelessWidget {
                     ..aimHeld = false,
                 ),
               ),
-              Positioned(
-                right: 84,
-                top: buttonTop,
-                child: _AssistToggle(input: input),
-              ),
+              if (assist)
+                Positioned(
+                  right: 84,
+                  top: buttonTop,
+                  child: _AssistToggle(input: input),
+                ),
               Positioned(
                 right: 8,
                 top: buttonTop,

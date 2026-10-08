@@ -78,7 +78,7 @@ Everything resolves from pub.dev. There are no git dependencies and no
   come with ranks 2, 3, 4, 5 and 8, and every later one is stronger than the
   ones before. The lobby lists the unlocked ones first. Four free paint
   schemes and four more that come with higher ranks.
-- Four grounds (Übungsplatz, Wüste, Winter, Stadt), each with weather and a
+- Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather and a
   time of day: clear, rain, snow, a sandstorm or fog, by day or at night.
   Night, fog and sand limit the view to a circle around the tank.
 - Buildings, barriers and trees that can be shot down, and soldiers on foot

@@ -10,7 +10,7 @@ import 'choice_row.dart';
 
 enum _View { total, week, vehicles }
 
-/// Ranking of all pilots by rating, with the totals behind it, the same for
+/// Ranking of the pilots with a rated round by rating, with the totals behind it, the same for
 /// the current week, and the player's own numbers per vehicle. The own row
 /// is highlighted.
 class Leaderboard extends StatefulWidget {
@@ -54,13 +54,8 @@ class _LeaderboardState extends State<Leaderboard> {
     _vehicles = widget.game.scoreService.myTankScores();
   }
 
-  /// Pilots with a rated round first, then rating, then wins, kills and
-  /// damage break ties.
+  /// Rating first, then wins, kills and damage break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
-    final byRated = _rated(b).compareTo(_rated(a));
-    if (byRated != 0) {
-      return byRated;
-    }
     final byRating = b.rating.compareTo(a.rating);
     if (byRating != 0) {
       return byRating;
@@ -72,9 +67,6 @@ class _LeaderboardState extends State<Leaderboard> {
     final byKills = b.kills.compareTo(a.kills);
     return byKills != 0 ? byKills : b.damage.compareTo(a.damage);
   }
-
-  /// Without a rated opponent yet the rating is only the starting value.
-  static int _rated(ScoresRow row) => row.ratedRounds > 0 ? 1 : 0;
 
   static String _time(int seconds) =>
       '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
@@ -110,7 +102,7 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   static const _empty = Text(
-    'Noch keine Übungen gewertet.',
+    'Noch keine Gefechte gewertet.',
     style: TextStyle(color: BwColors.textDim),
   );
 
@@ -366,7 +358,7 @@ class _LeaderboardState extends State<Leaderboard> {
           ),
         ),
         _cell(row.name, style: base, align: TextAlign.left),
-        _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
+        _cell('${row.rating}', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.rounds}', style: base),
         _cell('${row.kills}', style: base),
