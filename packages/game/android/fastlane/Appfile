@@ -1,0 +1,3 @@
+# Service account key of the Play Console API, see store/android/README.md.
+json_key_file(ENV.fetch("PLAY_JSON_KEY", "play-service-account.json"))
+package_name("de.regetskcob.wargame")

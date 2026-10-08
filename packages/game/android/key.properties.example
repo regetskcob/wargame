@@ -4,6 +4,9 @@
 #   keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
 #     -keysize 2048 -validity 10000 -alias upload
 #
+# Without a system JDK keytool comes with Android Studio:
+# "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool"
+#
 # Keep the .jks and the passwords safe: losing them means asking Google to
 # reset the upload key.
 storePassword=
