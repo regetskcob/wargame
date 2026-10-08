@@ -11,10 +11,16 @@ import '../game/game_mode.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
 import '../net/pad_link.dart';
+import 'web_pads_stub.dart' if (dart.library.js_interop) 'web_pads.dart';
 
 /// Whether this is the Apple TV build. Always false elsewhere, also in the
 /// browser, where `dart:io` has no platform to ask.
 bool get onTv => !kIsWeb && FlutterTvosPlatform.isTvos;
+
+/// Where game controllers are read: the Apple TV and the iPhone and iPad
+/// through GameController, the browser through its Gamepad API.
+bool get padsSupported =>
+    onTv || kIsWeb || defaultTargetPlatform == TargetPlatform.iOS;
 
 /// What steers on the Apple TV right now.
 enum TvPadKind {
@@ -99,13 +105,25 @@ class TvInput {
   TvPadState player(int index) =>
       index >= 0 && index < pads.length ? pads[index] : const TvPadState();
 
+  /// Off the Apple TV: the first player keeps their own keyboard, mouse or
+  /// touch screen, and the first controller or phone is the second player.
+  final ownInput = ValueNotifier<bool>(false);
+
   StreamSubscription<Object?>? _sub;
+  Object? _web;
   final _awake = <Object>{};
   bool? _sent;
 
-  /// Starts listening. Does nothing off the Apple TV.
+  /// Starts listening where controllers can be read.
   void start() {
-    if (!onTv || _sub != null) {
+    if (_sub != null || _web != null) {
+      return;
+    }
+    if (kIsWeb) {
+      _web = startWebPads(receive);
+      return;
+    }
+    if (!padsSupported) {
       return;
     }
     _sub = _events.receiveBroadcastStream().listen((event) {
@@ -131,7 +149,7 @@ class TvInput {
   /// Keeps the screen saver away while any [who] wants it, as during a
   /// round. A duel has two games asking.
   void keepAwake(Object who, bool on) {
-    if (!onTv) {
+    if (kIsWeb || !padsSupported) {
       return;
     }
     on ? _awake.add(who) : _awake.remove(who);
@@ -145,6 +163,11 @@ class TvInput {
     );
   }
 }
+
+/// Whether [game] is steered with a controller or the Siri Remote: always on
+/// the Apple TV, elsewhere when a controller plays this half.
+bool steeredByPad(TankGame game) =>
+    onTv || TvInput.instance.player(game.tvPlayer).kind != TvPadKind.none;
 
 /// Buttons that set off the inventory slots on a controller, in slot order.
 const tvGamepadSlotButtons = ['x', 'y', 'left', 'up', 'right', 'down'];
@@ -184,7 +207,7 @@ class TvSteering {
 
   /// Call every frame.
   void update() {
-    if (!onTv) {
+    if (!padsSupported) {
       return;
     }
     final game = _game;

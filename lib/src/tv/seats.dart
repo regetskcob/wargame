@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
@@ -6,14 +7,28 @@ import '../ui/theme.dart';
 import '../ui/widgets/panel.dart';
 import 'tv_input.dart';
 
-/// Who steers a player's half of the split screen: a controller of the Apple TV, or a phone
-/// paired with it.
+/// Who steers a player's half of the split screen: a controller, a phone
+/// paired with the screen, or the device's own keyboard, mouse or touch
+/// screen.
 @immutable
 class DuelSeat {
-  const DuelSeat.pad(this.pad, this.kind) : phone = null, phoneName = '';
+  const DuelSeat.pad(this.pad, this.kind)
+    : phone = null,
+      phoneName = '',
+      own = false;
   const DuelSeat.phone(String this.phone, this.phoneName)
     : pad = -1,
-      kind = TvPadKind.none;
+      kind = TvPadKind.none,
+      own = false;
+  const DuelSeat.own()
+    : pad = -1,
+      kind = TvPadKind.none,
+      phone = null,
+      phoneName = '',
+      own = true;
+
+  /// The device's own keyboard and mouse, or its touch screen.
+  final bool own;
 
   /// Index into [TvInput.pads], -1 for a phone.
   final int pad;
@@ -23,7 +38,12 @@ class DuelSeat {
   final String? phone;
   final String phoneName;
 
-  String get label => phone != null
+  String get label => own
+      ? (defaultTargetPlatform == TargetPlatform.iOS ||
+                defaultTargetPlatform == TargetPlatform.android
+            ? 'Touch'
+            : tr('Tastatur', 'keyboard'))
+      : phone != null
       ? (phoneName.isEmpty ? tr('Handy', 'phone') : phoneName)
       : kind == TvPadKind.gamepad
       ? 'Controller'
@@ -34,6 +54,7 @@ class DuelSeat {
 abstract final class TvInputSeats {
   static final Listenable listenable = Listenable.merge([
     TvInput.instance.count,
+    TvInput.instance.ownInput,
     PadScreen.instance.phones,
   ]);
 }
@@ -44,6 +65,8 @@ abstract final class TvInputSeats {
 List<DuelSeat> duelSeats() {
   final pads = TvInput.instance.pads;
   return [
+    // Off the Apple TV the first player may keep their own controls.
+    if (!onTv && TvInput.instance.ownInput.value) const DuelSeat.own(),
     for (final (i, pad) in pads.indexed)
       if (pad.kind == TvPadKind.gamepad) DuelSeat.pad(i, pad.kind),
     for (final (id, name) in PadScreen.instance.phones.value)

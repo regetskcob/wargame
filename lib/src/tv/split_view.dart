@@ -45,22 +45,35 @@ class TvSplitView extends StatelessWidget {
         final split = guest != null && _inRound.contains(host.phase.value);
         return LayoutBuilder(
           builder: (context, box) {
-            final half = box.maxWidth / 2;
+            // Side by side on a wide screen, one above the other on a tablet
+            // held upright.
+            final wide = box.maxWidth >= box.maxHeight;
+            final full = Offset.zero & box.biggest;
+            final first = wide
+                ? Rect.fromLTRB(0, 0, box.maxWidth / 2 - 2, box.maxHeight)
+                : Rect.fromLTRB(0, 0, box.maxWidth, box.maxHeight / 2 - 2);
+            final second = wide
+                ? Rect.fromLTRB(
+                    box.maxWidth / 2 + 2,
+                    0,
+                    box.maxWidth,
+                    box.maxHeight,
+                  )
+                : Rect.fromLTRB(
+                    0,
+                    box.maxHeight / 2 + 2,
+                    box.maxWidth,
+                    box.maxHeight,
+                  );
             return Stack(
               children: [
-                Positioned(
-                  left: 0,
-                  top: 0,
-                  bottom: 0,
-                  width: split ? half - 2 : box.maxWidth,
+                Positioned.fromRect(
+                  rect: split ? first : full,
                   child: ClipRect(child: child),
                 ),
                 if (guest != null)
-                  Positioned(
-                    left: half + 2,
-                    top: 0,
-                    bottom: 0,
-                    width: half - 2,
+                  Positioned.fromRect(
+                    rect: second,
                     // Unseen between rounds, but running: it joins the
                     // rounds of the room like any other pilot.
                     child: Offstage(
@@ -70,13 +83,10 @@ class TvSplitView extends StatelessWidget {
                       ),
                     ),
                   ),
-                if (split) ...[
-                  for (final player in [0, 1])
-                    Positioned(
-                      left: player * half,
-                      width: half,
-                      top: 0,
-                      bottom: 0,
+                if (split)
+                  for (final (player, rect) in [first, second].indexed)
+                    Positioned.fromRect(
+                      rect: rect,
                       child: IgnorePointer(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
@@ -91,8 +101,8 @@ class TvSplitView extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 10),
                               child: PlayerTag(
                                 player: player,
-                                seat: player < second.seats.length
-                                    ? second.seats[player]
+                                seat: player < this.second.seats.length
+                                    ? this.second.seats[player]
                                     : null,
                               ),
                             ),
@@ -100,7 +110,6 @@ class TvSplitView extends StatelessWidget {
                         ),
                       ),
                     ),
-                ],
               ],
             );
           },

@@ -520,7 +520,10 @@ extension TankGameLobby on TankGame {
   /// With somebody else in the room messages flow, and the room needs one
   /// of the project's few slots. Everybody in it keeps the slot fresh.
   void _watchSlot() {
-    final shared = roster.value.length > 1 && phase.value != GamePhase.closed;
+    // The second player on this device costs nothing: only people on other
+    // devices make the room take a slot.
+    final others = roster.value.where((m) => !net.isLocalPeer(m.id));
+    final shared = others.length > 1 && phase.value != GamePhase.closed;
     if (!shared) {
       // Alone again, for now: no refresh, but a room that held its slot
       // keeps counting as one when the others come back.

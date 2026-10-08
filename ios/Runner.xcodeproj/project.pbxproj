@@ -21,6 +21,7 @@
 		4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
 		4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
 		4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */; };
+		A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D000192F00000200C0FFEE /* GamepadPlugin.swift */; };
 		4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */; };
 /* End PBXBuildFile section */
 
@@ -88,6 +89,7 @@
 		4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlineWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
 		4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPlugin.swift; sourceTree = "<group>"; };
+		A1D000192F00000200C0FFEE /* GamepadPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadPlugin.swift; sourceTree = "<group>"; };
 		4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLiveActivity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -164,6 +166,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */,
+				A1D000192F00000200C0FFEE /* GamepadPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -390,6 +393,7 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */,
+				A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */,
 				4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

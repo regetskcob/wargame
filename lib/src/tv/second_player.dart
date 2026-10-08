@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
@@ -14,6 +14,8 @@ import '../l10n/l10n.dart';
 import '../app/env.dart';
 import '../net/net_service.dart';
 import '../net/room_directory.dart';
+import '../ui/widgets/tablet_scale.dart';
+import 'tv_input.dart';
 import '../net/pad_link.dart';
 import 'seats.dart';
 
@@ -66,7 +68,8 @@ class SecondPlayer extends ChangeNotifier {
         host.phase.value == GamePhase.lobby ||
         host.phase.value == GamePhase.closed;
     final seats = duelSeats();
-    final two = seats.length >= 2;
+    // Two halves need a big screen: the television, a computer or a tablet.
+    final two = seats.length >= 2 && _bigScreen;
     if (!between && guest != null) {
       return;
     }
@@ -74,56 +77,91 @@ class SecondPlayer extends ChangeNotifier {
       _drop();
       host
         ..localGuest = false
-        ..tvPlayer = 0;
+        ..tvPlayer = onTv ? 0 : -1;
       return;
     }
     _seats = seats.take(2).toList();
+    // Alone in the room the two games talk on this device; with people on
+    // other devices the second player needs a connection of their own, or
+    // those would not see them.
     final current = guest;
-    if (current == null || current.net.room != host.net.room) {
+    final local = !host.roster.value.any(
+      (member) => member.id != host.myId && member.id != current?.myId,
+    );
+    if (current == null ||
+        current.net.room != host.net.room ||
+        _local != local) {
       _drop();
-      guest = _join(host);
+      _local = local;
+      guest = _join(host, local: local);
       notifyListeners();
     }
     host.localGuest = true;
     _hand(host, guest!);
   }
 
+  static bool get _bigScreen {
+    if (onTv) {
+      return true;
+    }
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final size = view.physicalSize / view.devicePixelRatio;
+    return size.shortestSide >= tabletShortSide;
+  }
+
   /// The room changed, as after a new one was opened: follow it.
   void followRoom() => update();
 
-  /// The second game's own connection: one connection joins a room's
-  /// channel only once, and both games sit in the same room.
+  /// The second game's own connection, when it needs one: one connection
+  /// joins a room's channel only once, and both games sit in the same room.
   SupabaseClient? _connection;
 
-  TankGame _join(TankGame host) {
+  /// Whether the second game talks to the first on this device only.
+  bool? _local;
+
+  TankGame _join(TankGame host, {required bool local}) {
     final client = Supabase.instance.client;
-    // Only for the room's channel: no sign-in, nothing kept.
-    final connection = SupabaseClient(
-      Env.supabaseUrl,
-      Env.supabaseKey,
-      authOptions: const AuthClientOptions(
-        autoRefreshToken: false,
-        authFlowType: AuthFlowType.implicit,
-      ),
-    );
-    _connection = connection;
     final random = Random();
     final id = [
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
-    return TankGame(
-      net: NetService(
+    final NetService net;
+    final RoomDirectory directory;
+    if (local) {
+      // On this device only: costs no messages and takes no room slot.
+      net = NetService(myId: id, room: host.net.room, isHost: false);
+      LocalLink(host.net, net);
+      directory = _NoDirectory(room: host.net.room);
+    } else {
+      // Only for the room's channel: no sign-in, nothing kept.
+      final connection = SupabaseClient(
+        Env.supabaseUrl,
+        Env.supabaseKey,
+        authOptions: const AuthClientOptions(
+          autoRefreshToken: false,
+          authFlowType: AuthFlowType.implicit,
+        ),
+      );
+      _connection = connection;
+      net = NetService(
         myId: id,
         room: host.net.room,
         isHost: false,
         client: connection,
-      ),
-      directory: RoomDirectory(room: host.net.room, client: connection),
-      myId: id,
-      scoreService: UnrankedScores(client),
-      profiles: _NoProfile(client),
-      accounts: AccountService(client),
-    )..myName = tr('SPIELER 2', 'PLAYER 2');
+      );
+      directory = RoomDirectory(room: host.net.room, client: connection);
+    }
+    return TankGame(
+        net: net,
+        directory: directory,
+        myId: id,
+        scoreService: UnrankedScores(client),
+        profiles: _NoProfile(client),
+        accounts: AccountService(client),
+      )
+      ..myName = tr('SPIELER 2', 'PLAYER 2')
+      // Steered by a controller or a phone, never by touch.
+      ..touchMode.value = false;
   }
 
   /// Each seat steers its game: a controller by its number, a phone by the
@@ -145,6 +183,7 @@ class SecondPlayer extends ChangeNotifier {
       return;
     }
     guest = null;
+    _local = null;
     PadScreen.instance.clearRoutes();
     final connection = _connection;
     _connection = null;
@@ -160,6 +199,21 @@ class UnrankedScores extends ScoreService {
 
   @override
   bool get isGuest => true;
+}
+
+/// The room list is the first player's business: the second game on this
+/// device joins no list channel.
+class _NoDirectory extends RoomDirectory {
+  _NoDirectory({required super.room});
+
+  @override
+  void connect() {}
+
+  @override
+  Future<void> advertise(RoomListing? listing) async {}
+
+  @override
+  Future<void> dispose() async {}
 }
 
 /// The second player keeps no profile: the account's call sign and look

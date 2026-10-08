@@ -71,7 +71,9 @@ class _GameAppState extends State<GameApp> {
   }
 
   /// A second player on the Apple TV, with a game of their own.
-  late final SecondPlayer? _second = onTv ? SecondPlayer(() => game) : null;
+  late final SecondPlayer? _second = padsSupported
+      ? SecondPlayer(() => game)
+      : null;
 
   /// Between rounds the second player may come or go.
   void _phaseChanged() => _second?.update();
@@ -117,7 +119,10 @@ class _GameAppState extends State<GameApp> {
         accounts: AccountService(client),
       )
       ..phase.addListener(_reclaimFocus)
-      ..phase.addListener(_phaseChanged);
+      ..phase.addListener(_phaseChanged)
+      // Somebody from another device came or went: the second player may
+      // need a connection of their own, or no longer.
+      ..roster.addListener(_phaseChanged);
   }
 
   /// The apps' stand-in for loading another room's address: the old game
@@ -127,6 +132,7 @@ class _GameAppState extends State<GameApp> {
     old.phase
       ..removeListener(_reclaimFocus)
       ..removeListener(_phaseChanged);
+    old.roster.removeListener(_phaseChanged);
     _liveActivity.detach();
     unawaited(old.leave());
     setState(() => game = _createGame(room, host: host));
@@ -159,6 +165,7 @@ class _GameAppState extends State<GameApp> {
     game.phase
       ..removeListener(_reclaimFocus)
       ..removeListener(_phaseChanged);
+    game.roster.removeListener(_phaseChanged);
     _second?.dispose();
     _gameFocus.dispose();
     super.dispose();

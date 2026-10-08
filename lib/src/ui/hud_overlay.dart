@@ -184,7 +184,7 @@ class _HudOverlayState extends State<HudOverlay> {
                   : const Alignment(-1, 0.1),
               child: _HudButtons(
                 game: game,
-                child: onTv
+                child: steeredByPad(game)
                     ? ValueListenableBuilder<TvPadKind>(
                         valueListenable: TvInput.instance.kind,
                         builder: (context, kind, _) => InventoryBar(
@@ -708,8 +708,8 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${onTv ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
-          '${(game.round?.duel ?? false) ? tr('   ·   ${onTv ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${onTv ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
+          '${steeredByPad(game) ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
+          '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
             color: BwColors.amber,
             fontWeight: FontWeight.w800,

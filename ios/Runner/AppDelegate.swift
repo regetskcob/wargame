@@ -15,5 +15,8 @@ import UIKit
     if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "LiveActivityPlugin") {
       LiveActivityPlugin.register(with: registrar)
     }
+    if let registrar = engineBridge.pluginRegistry.registrar(forPlugin: "GamepadPlugin") {
+      GamepadPlugin.register(with: registrar)
+    }
   }
 }

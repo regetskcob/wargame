@@ -9,6 +9,7 @@ import '../game/tank_game.dart';
 import '../net/room.dart';
 import '../tv/seats.dart';
 import '../net/pad_link.dart';
+import '../tv/local_duo_panel.dart';
 import '../tv/tv_controllers.dart';
 import '../tv/tv_input.dart';
 import 'theme.dart';
@@ -144,6 +145,19 @@ class LaunchView extends StatelessWidget {
         listenable: Listenable.merge([ServerStatus.available, RoomSlots.live]),
         builder: (context, _) => _modes(ServerStatus.available.value),
       ),
+      // In the browser and on a tablet: two on this screen, and their duel.
+      if (!onTv && padsSupported) ...[
+        ListenableBuilder(
+          listenable: TvInputSeats.listenable,
+          builder: (context, _) => duelSeats().length >= 2
+              ? Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: _DuelCard(game: game),
+                )
+              : const SizedBox.shrink(),
+        ),
+        const LocalDuoPanel(),
+      ],
       ValueListenableBuilder<bool>(
         valueListenable: ServerStatus.available,
         builder: (context, online, _) =>

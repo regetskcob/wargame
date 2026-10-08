@@ -498,15 +498,26 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Two players:** with two controllers in (or phones, the Siri Remote counting
-as one, handed out controllers first, then phones, the remote last), the second
-player gets a game of their own (`lib/src/tv/second_player.dart`) that joins the
-first player's room over a Supabase connection of its own, as a pilot from
-another device would. Rounds then play on a split screen, each half from its own
-tank (`lib/src/tv/split_view.dart`), the menus stay with the first player:
-single player puts both against the CPU tanks, multiplayer and defense take both
-pilots along. Two pilots in a room send their states to each other, so a round
-of two costs Realtime messages like an online round of two.
+**Two players** on the Apple TV, in the browser and on an iPad: with two
+controllers in (or phones, the Siri Remote counting as one, handed out
+controllers first, then phones, the remote last), or with one of them and the
+switch "player 1 plays with keyboard and mouse / touch" on the start page, the
+second player gets a game of their own (`lib/src/tv/second_player.dart`) that
+joins the first player's room. Rounds then play on a split screen, side by side
+or, on a tablet held upright, one above the other, each half from its own tank
+(`lib/src/tv/split_view.dart`); the menus stay with the first player. Single
+player puts both against the CPU tanks, multiplayer and defense take both
+pilots along. The browser reads controllers through its Gamepad API
+(`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
+pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`).
+Phones are too small for two halves.
+
+The two games talk on the device (`LocalLink` in `net_service.dart`): nothing
+goes over Realtime and the room takes no slot. The first player's presence
+carries the second's, so people on other devices count them, and a room of two
+is full for them. Only with somebody from another device in the room does the
+second player join over a Supabase connection of their own, between rounds,
+and the room costs what any room of that many pilots costs.
 
 **Duel** (fourth card on the start page with two players): a defense round with
 a base at either end of the road of a common layout
@@ -866,8 +877,8 @@ messages a second, a fifth kept in reserve:
 | One room of 2 pilots and a phone controller | ~76/s | fits, just |
 | Two rooms of 2 pilots | ~88/s | below 100, no reserve |
 | One room of 3 pilots | ~98/s | only on its own, at the limit |
-| Apple TV, two players (split screen or duel) | ~70/s | fits, takes the room |
-| Apple TV, two players on two phones | ~135/s | does not fit |
+| Two players on one screen (split screen or duel) | 0 | fits, takes no room |
+| Two players on one screen, each on a phone | ~64/s | fits |
 | One room of 3 pilots with CPU tanks | ~138/s | does not fit |
 | One room of 4 pilots | ~174/s | does not fit |
 
@@ -910,7 +921,7 @@ plan with:
 | 4 pilots | ~174/s | none | 2 | 14, safely 11 |
 | 4 pilots with CPU tanks | ~227/s | none | 2, safely 1 | 11, safely 8 |
 | Phone controller, per pair | ~32/s | on top of its room | | |
-| Apple TV, two players (split screen or duel) | ~70/s | 1 | 7, safely 5 | 35, safely 28 |
+| Two players on one screen (split screen or duel) | 0 | any | any | any |
 
 Rooms of different sizes add up. Combinations that still fit, with the
 reserve:
@@ -936,18 +947,19 @@ reserve:
 | 4 pilots | ~630,000 | ~3 h | ~8 h | ~$1.57 |
 | 4 pilots with CPU tanks | ~820,000 | ~2.5 h | ~6 h | ~$2.04 |
 | Phone controller, on top | ~115,000 | ~17 h | ~43 h | ~$0.29 |
-| Apple TV, two players (split screen or duel) | ~250,000 | ~8 h | ~20 h | ~$0.63 |
+| Two players on one screen, with controllers | ~0 | unlimited | unlimited | $0 |
 
 The hours are for the whole project and month, shared by all rooms: two
 rooms of two playing for an hour use two hours of the "2 pilots" row.
 
-Two players on one Apple TV, on a split screen or in a duel, share one
-room: the second player's game is a pilot like any other, so it costs
-what a room of two pilots with CPU tanks costs and takes one of the room
-slots. Phones as their controllers come on top, about 32 a second each.
-Two phones share one pad channel with the television, so every input and
-status reaches both other ends, the other phone included: that third is
-wasted, and a pad channel per phone would save it.
+Two players on one screen, on a split screen or in a duel, cost nothing:
+their two games talk on the device and the room takes no slot. Phones as
+their controllers cost about 32 a second each. Two phones share one pad
+channel with the screen, so every input and status reaches both other
+ends, the other phone included: that third is wasted, and a pad channel
+per phone would save it. Only when somebody from another device joins,
+which a room of two on the free plan turns away, does the second player
+connect for themselves and the room cost what its pilots cost.
 
 The other Realtime limits do not bind before these: every client holds
 one connection however many channels it joins (200 at once on the free
@@ -1015,16 +1027,15 @@ at once whether a change still fits the plan.
   of our own instead of Broadcast. See
   [Rooms and room sizes](#rooms-and-room-sizes).
 - Room slots only cover rooms. Phone controllers talk on their own pad
-  channels and take no slot. Two players on one Apple TV share a room and
-  take its slot like any other room of two.
+  channels and take no slot, nor do two players on one screen.
 - Clients from before migration 0015 take no slot and do not know the
   room limit of two.
 - Shots, hits and the other events are not counted against a budget yet;
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
-- Two players on one Apple TV cost about 70 a second, with two phones as
-  controllers about 135, more than the free plan carries.
+- Two players on one screen with two phones as their controllers cost
+  about 64 a second, nearly what the free plan carries next to one room.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they

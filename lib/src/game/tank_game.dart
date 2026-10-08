@@ -178,7 +178,7 @@ class TankGame extends FlameGame
 
   /// Which controller of the Apple TV steers here: the first, in a duel
   /// the one of the half, -1 for none when a phone steers the half.
-  int tvPlayer = 0;
+  int tvPlayer = onTv ? 0 : -1;
 
   /// Mouse position in widget pixels, null until a mouse is seen. The turret
   /// follows it.

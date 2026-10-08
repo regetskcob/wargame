@@ -39,9 +39,17 @@ class TabletScale extends StatelessWidget {
             FixedScale(scale: box.maxWidth < 900 ? 0.8 : 1, child: child),
       );
     }
-    return FixedScale(
-      scale: hudScaleFor(MediaQuery.sizeOf(context)),
-      child: child,
+    // Half the screen, when two play side by side: a bit smaller instead
+    // of the tablet's magnifying, so the field shows.
+    final screen = MediaQuery.sizeOf(context);
+    return LayoutBuilder(
+      builder: (context, box) => FixedScale(
+        scale:
+            box.maxWidth < screen.width - 1 || box.maxHeight < screen.height - 1
+            ? 0.85
+            : hudScaleFor(box.biggest),
+        child: child,
+      ),
     );
   }
 }
