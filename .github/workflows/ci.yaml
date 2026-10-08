@@ -17,6 +17,8 @@ jobs:
       - run: dart pub get
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze packages/game
+      - run: flutter test --exclude-tags supabase
+        working-directory: packages/game
       - run: flutter build web
         working-directory: packages/game
 

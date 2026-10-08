@@ -1,7 +1,11 @@
 // Integration smoke test against a running local Supabase stack.
-// Start it first with `supabase start` from the repository root.
+// Start it first with `supabase start` from the repository root. CI has no
+// stack and leaves it out with `--exclude-tags supabase`.
 
 // ignore_for_file: experimental_member_use
+
+@Tags(['supabase'])
+library;
 
 import 'dart:async';
 

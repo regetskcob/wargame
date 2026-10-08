@@ -1,0 +1,91 @@
+name: testflight
+
+# Builds the signed iOS app and uploads it to TestFlight, optionally the
+# store texts and screenshots too. Started by hand from the Actions tab, see
+# packages/game/store/ios/README.md for the secrets.
+on:
+  workflow_dispatch:
+    inputs:
+      build:
+        description: Build and upload to TestFlight
+        type: boolean
+        default: true
+      metadata:
+        description: Upload the store texts and screenshots too
+        type: boolean
+        default: false
+
+concurrency:
+  group: testflight
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: packages/game
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: 3.47.0
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "4.0"
+          bundler-cache: true
+          working-directory: packages/game/ios
+      - run: dart pub get
+      - name: Write the App Store Connect key
+        run: echo "$ASC_KEY" | base64 --decode > "$RUNNER_TEMP/asc.p8"
+        env:
+          ASC_KEY: ${{ secrets.ASC_KEY_P8_BASE64 }}
+      - name: Prepare the Xcode build
+        if: inputs.build
+        # The build number has to grow with every upload. The run number
+        # plus one stays above the manual first upload with +1.
+        run: |
+          args=(--build-number=$((GITHUB_RUN_NUMBER + 1)))
+          if [ -n "$SUPABASE_URL" ]; then args+=(--dart-define=SUPABASE_URL="$SUPABASE_URL"); fi
+          if [ -n "$SUPABASE_KEY" ]; then args+=(--dart-define=SUPABASE_KEY="$SUPABASE_KEY"); fi
+          if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
+          flutter build ios --config-only --release "${args[@]}"
+        env:
+          SUPABASE_URL: ${{ vars.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
+          ACCOUNTS: ${{ vars.ACCOUNTS }}
+      - name: Upload to TestFlight
+        if: inputs.build
+        run: bundle exec fastlane beta
+        working-directory: packages/game/ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/asc.p8
+          IOS_DIST_P12_BASE64: ${{ secrets.IOS_DIST_P12_BASE64 }}
+          IOS_DIST_P12_PASSWORD: ${{ secrets.IOS_DIST_P12_PASSWORD }}
+          FASTLANE_SKIP_UPDATE_CHECK: "1"
+          FASTLANE_OPT_OUT_USAGE: "1"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+      - name: Upload the store texts and screenshots
+        if: inputs.metadata
+        run: bundle exec fastlane metadata
+        working-directory: packages/game/ios
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_KEY_PATH: ${{ runner.temp }}/asc.p8
+          IOS_DIST_P12_BASE64: ${{ secrets.IOS_DIST_P12_BASE64 }}
+          IOS_DIST_P12_PASSWORD: ${{ secrets.IOS_DIST_P12_PASSWORD }}
+          FASTLANE_SKIP_UPDATE_CHECK: "1"
+          FASTLANE_OPT_OUT_USAGE: "1"
+          LC_ALL: en_US.UTF-8
+          LANG: en_US.UTF-8
+      - name: Keep the IPA
+        if: inputs.build
+        uses: actions/upload-artifact@v4
+        with:
+          name: panzergefecht-ios-${{ github.run_number }}
+          path: packages/game/build/ios/ipa/*.ipa

@@ -27,6 +27,9 @@ jobs:
           channel: stable
           flutter-version: 3.47.0
       - run: dart pub get
+      # Red tests stop the deploy.
+      - run: flutter test --exclude-tags supabase
+        working-directory: packages/game
       - name: Build the game
         run: |
           args=()
