@@ -76,6 +76,10 @@ bool prefersGuest() => _store?.getBool(_guestKey) ?? false;
 /// ask again.
 void rememberGuest() => unawaited(_store?.setBool(_guestKey, true));
 
+/// Forgets the guest choice, so the welcome page asks again, as after
+/// signing out.
+void forgetGuest() => unawaited(_store?.remove(_guestKey));
+
 var _tutorialSeen = false;
 
 /// Whether this device has been through the tutorial, or skipped it.

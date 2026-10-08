@@ -152,6 +152,7 @@ class _AccountSheetState extends State<AccountSheet> {
                       accounts: accounts,
                       onCallSign: _game.claimCallSign,
                       callSign: _game.myName,
+                      onSignedOut: () => Navigator.of(context).pop(),
                     )
                   else
                     Text(

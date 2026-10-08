@@ -73,6 +73,16 @@ void rememberGuest() {
   }
 }
 
+/// Forgets the guest choice, so the welcome page asks again, as after
+/// signing out.
+void forgetGuest() {
+  try {
+    web.window.localStorage.removeItem(_guestKey);
+  } on Object {
+    // Without storage there is nothing remembered.
+  }
+}
+
 const _tutorialKey = 'panzergefecht.tutorial';
 
 /// Whether this browser has been through the tutorial, or skipped it.
