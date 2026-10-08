@@ -105,10 +105,6 @@ class TvInput {
   TvPadState player(int index) =>
       index >= 0 && index < pads.length ? pads[index] : const TvPadState();
 
-  /// Off the Apple TV: the first player keeps their own keyboard, mouse or
-  /// touch screen, and the first controller or phone is the second player.
-  final ownInput = ValueNotifier<bool>(false);
-
   StreamSubscription<Object?>? _sub;
   Object? _web;
   final _awake = <Object>{};

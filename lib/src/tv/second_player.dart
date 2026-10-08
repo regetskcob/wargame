@@ -75,9 +75,14 @@ class SecondPlayer extends ChangeNotifier {
     }
     if (!two) {
       _drop();
+      // One player: a controller of their own steers their tank, as a
+      // paired phone does.
+      final pads = TvInput.instance.pads;
       host
         ..localGuest = false
-        ..tvPlayer = onTv ? 0 : -1;
+        ..tvPlayer = onTv
+            ? 0
+            : pads.indexWhere((pad) => pad.kind == TvPadKind.gamepad);
       return;
     }
     _seats = seats.take(2).toList();

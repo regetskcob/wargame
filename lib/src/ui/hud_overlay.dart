@@ -164,11 +164,15 @@ class _HudOverlayState extends State<HudOverlay> {
               ),
             ),
           EnemyIndicators(game: game),
-          // A paired phone brings its own sticks.
+          // A paired phone or a controller brings its own sticks.
           if (touch)
-            ValueListenableBuilder<String?>(
-              valueListenable: PadScreen.instance.paired,
-              builder: (context, paired, _) => paired != null
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                PadScreen.instance.paired,
+                TvInput.instance.count,
+              ]),
+              builder: (context, _) =>
+                  PadScreen.instance.paired.value != null || steeredByPad(game)
                   ? const SizedBox.shrink()
                   : TouchControls(
                       input: game.touch,
