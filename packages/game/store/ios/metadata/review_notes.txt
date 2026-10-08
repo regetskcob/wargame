@@ -1,0 +1,7 @@
+Anmeldung ist nicht nötig: Auf dem Startbildschirm „ALS GAST SPIELEN“ wählen, dann eine Spielart. Für eine kurze Runde „Einzelspieler“, Schwierigkeit „Leicht“, „ÜBUNG STARTEN“.
+
+Das freiwillige Konto mit E-Mail-Adresse wird über den Code aus der Anmeldemail bestätigt, der Link in der Mail öffnet die Webversion des Spiels.
+
+Mehrspieler läuft über Supabase Realtime. Mit nur einem Gerät füllt die Option „Mit CPU auffüllen“ das Feld mit CPU-Panzern.
+
+Das Spiel ist privat und nicht kommerziell, ohne Werbung, ohne Käufe und ohne Tracking. Es steht in keiner Verbindung zur Bundeswehr oder zu den Fahrzeugherstellern.

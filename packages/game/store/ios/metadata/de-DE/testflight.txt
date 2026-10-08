@@ -1,0 +1,12 @@
+BETA-BESCHREIBUNG
+Wargame ist ein Panzergefecht von oben für iPhone und iPad: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum und Verteidigung gegen acht Wellen.
+
+WAS TESTEN
+• Steuerung: Fahren mit dem linken Daumen, Zielen und Feuern mit dem rechten, Zielhilfe an und aus
+• Hoch- und Querformat im laufenden Spiel und in den Menüs
+• Verteidigung: Geschütze bauen, aufrüsten, Upgrades kaufen
+• Konto: als Gast spielen, App beenden und neu starten, Konto mit E-Mail sichern (Code aus der Mail eingeben)
+• Ton: folgt dem Stummschalter und den Lautstärketasten
+
+FEEDBACK
+Per Screenshot aus TestFlight oder an regetskcob@icloud.com.
