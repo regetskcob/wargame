@@ -821,6 +821,29 @@ Two limits decide what can be played, independently of each other:
   not only the one that tipped it over.
 - **Messages per month** decide how much **playing time** there is in all.
 
+**On the free plan, which the project is on**, plan with 80 of the 100
+messages a second, a fifth kept in reserve:
+
+| At the same time | Load | Free plan |
+|---|---:|---|
+| Any number of solo rounds | 0 | fits |
+| One room of 2 pilots | ~44/s | fits |
+| One room of 2 pilots with CPU tanks | ~70/s | fits |
+| One room of 2 pilots and a phone controller | ~76/s | fits, just |
+| Two rooms of 2 pilots | ~88/s | below 100, no reserve |
+| One room of 3 pilots | ~98/s | only on its own, at the limit |
+| Apple TV duel with two phones | ~95/s | only on its own, at the limit |
+| One room of 3 pilots with CPU tanks | ~138/s | does not fit |
+| One room of 4 pilots | ~174/s | does not fit |
+
+So on the free plan **one small room plays at a time**: two pilots, with
+or without CPU tanks, next to any number of solo rounds. The room limit
+of four does not help there, a full room of four is already too much for
+the free plan; it is sized for Pro. The monthly quota adds up to about
+12 hours of a room of two, shared by all rooms.
+
+The same for every plan:
+
 Single player costs nothing of either: alone nothing goes over Realtime,
 so any number of solo rounds can run. A room holds at most four pilots,
 spectators included; the game enforces that. **How many rooms play at
@@ -841,6 +864,7 @@ plan with:
 | 4 pilots | ~174/s | none | 2 | 14, safely 11 |
 | 4 pilots with CPU tanks | ~227/s | none | 2, safely 1 | 11, safely 8 |
 | Phone controller, per pair | ~32/s | on top of its room | | |
+| Apple TV duel with two phones | ~95/s | 1, at the limit | 5, safely 4 | 26, safely 21 |
 
 Rooms of different sizes add up. Combinations that still fit, with the
 reserve:
@@ -866,9 +890,17 @@ reserve:
 | 4 pilots | ~630,000 | ~3 h | ~8 h | ~$1.57 |
 | 4 pilots with CPU tanks | ~820,000 | ~2.5 h | ~6 h | ~$2.04 |
 | Phone controller, on top | ~115,000 | ~17 h | ~43 h | ~$0.29 |
+| Apple TV duel with two phones | ~340,000 | ~6 h | ~15 h | ~$0.86 |
 
 The hours are for the whole project and month, shared by all rooms: two
 rooms of two playing for an hour use two hours of the "2 pilots" row.
+
+An Apple TV duel plays both halves in private rooms of their own, which
+cost nothing; with controllers or the Siri Remote the duel is free. Two
+phones share one pad channel with the television, so every input and
+status reaches both other ends, the other phone included: that third is
+wasted, and a pad channel per phone would bring the duel down to about
+63 a second.
 
 The other Realtime limits do not bind before these: every client holds
 one connection however many channels it joins (200 at once on the free
@@ -935,6 +967,9 @@ at once whether a change still fits the plan.
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
+- An Apple TV duel with two phones costs about 95 a second, nearly the
+  whole free plan, because both phones share one pad channel. A channel
+  per phone would bring it to about 63.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they
