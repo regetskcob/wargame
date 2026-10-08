@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../env.dart';
@@ -193,10 +192,7 @@ class _AccountSheetState extends State<AccountSheet> {
                       onSignedOut: () => Navigator.of(context).pop(),
                     )
                   else
-                    Text(
-                      'Du spielst als Gast. Dein Fortschritt hängt an diesem '
-                      '${kIsWeb ? 'Browser' : 'Gerät'}.',
-                    ),
+                    Text('Du spielst als Gast, ohne Wertung.'),
                   const SizedBox(height: 20),
                   Text(
                     'KONTO LÖSCHEN',

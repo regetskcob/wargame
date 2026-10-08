@@ -30,6 +30,9 @@ class PilotProgress {
   final newBadges = ValueNotifier<List<Achievement>>(const []);
   final rankedUp = ValueNotifier<bool>(false);
 
+  /// The last round went unrecorded because the pilot plays as a guest.
+  final unranked = ValueNotifier<bool>(false);
+
   int _rounds = 0;
 
   /// Whether the pilot's rank allows driving [type].
@@ -56,6 +59,7 @@ class PilotProgress {
     lastRecord.value = null;
     newBadges.value = const [];
     rankedUp.value = false;
+    unranked.value = false;
   }
 
   /// Records the round and hands out the badges it earned.
@@ -73,6 +77,11 @@ class PilotProgress {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
   }) async {
+    // Only accounts are ranked: no experience, rating or badges for guests.
+    if (scores.isGuest) {
+      unranked.value = true;
+      return;
+    }
     final record = await scores.recordRound(
       name: name,
       stats: stats,

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../db/account_service.dart';
@@ -41,9 +40,9 @@ class WelcomeView extends StatelessWidget {
         children: [
           const SizedBox(height: 14),
           const Text(
-            'Sofort los, ohne E-Mail. Dein Fortschritt hängt an diesem '
-            '${kIsWeb ? 'Browser' : 'Gerät'}. Im Warteraum kannst du dein Gastkonto jederzeit '
-            'sichern.',
+            'Sofort los, ohne E-Mail, aber ohne Wertung: EP, Rang, '
+            'Abzeichen und neue Fahrzeuge gibt es nur mit Konto. Im '
+            'Warteraum kannst du jederzeit eins anlegen.',
             style: TextStyle(color: BwColors.text, fontSize: 14, height: 1.35),
           ),
           if (stretched) const Spacer(),
