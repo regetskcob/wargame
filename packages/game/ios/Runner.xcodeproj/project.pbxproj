@@ -18,6 +18,8 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */; };
 		4F0E1A052E9A000100A1B2C3 /* OnlineWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
+		4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +84,8 @@
 		4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineWidget.swift; sourceTree = "<group>"; };
 		4F0E1A022E9A000100A1B2C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlineWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
+		4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLiveActivity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -129,6 +133,7 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				4F0E1A062E9A000100A1B2C3 /* OnlineWidget */,
+				4F0E1A272E9A000100A1B2C3 /* Shared */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
 			);
@@ -164,9 +169,18 @@
 			isa = PBXGroup;
 			children = (
 				4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */,
+				4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */,
 				4F0E1A022E9A000100A1B2C3 /* Info.plist */,
 			);
 			path = OnlineWidget;
+			sourceTree = "<group>";
+		};
+		4F0E1A272E9A000100A1B2C3 /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */,
+			);
+			path = Shared;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -363,6 +377,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */,
+				4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */,
+				4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

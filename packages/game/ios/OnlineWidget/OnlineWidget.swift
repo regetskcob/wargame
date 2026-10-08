@@ -9,12 +9,13 @@ private enum Backend {
 }
 
 /// Colours of the training ground, as `BwColors` in `lib/src/theme.dart`.
-private enum Bw {
+enum Bw {
   static let background = Color(red: 0x16 / 255, green: 0x1C / 255, blue: 0x0F / 255)
   static let surface = Color(red: 0x2A / 255, green: 0x35 / 255, blue: 0x20 / 255)
   static let olive = Color(red: 0x8A / 255, green: 0x9A / 255, blue: 0x5B / 255)
   static let sand = Color(red: 0xC2 / 255, green: 0xA8 / 255, blue: 0x78 / 255)
   static let amber = Color(red: 1, green: 0xB3 / 255, blue: 0)
+  static let danger = Color(red: 0xD1 / 255, green: 0x49 / 255, blue: 0x2E / 255)
   static let text = Color(red: 0xE6 / 255, green: 0xE2 / 255, blue: 0xD3 / 255)
   static let textDim = Color(red: 0xBF / 255, green: 0xC6 / 255, blue: 0xAA / 255)
 }
@@ -220,6 +221,7 @@ struct OnlineWidget: Widget {
 struct OnlineWidgetBundle: WidgetBundle {
   var body: some Widget {
     OnlineWidget()
+    MatchLiveActivity()
   }
 }
 
