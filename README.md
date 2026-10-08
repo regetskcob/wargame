@@ -46,9 +46,10 @@ Everything resolves from pub.dev. There are no git dependencies and no
   The browser remembers the guest choice.
 - A start page that picks single player, multiplayer or defense, with the
   call sign at the top to see and change it.
-- Guests keep their progress in the browser and can secure it as an account
-  at any time, the account keeps the guest's id and with it everything
-  earned so far.
+- Guests play unranked: no experience, rating, badges or vehicles beyond
+  the first three, and they do not show up in the leaderboards. They can
+  create an account at any time, the account keeps the guest's id and with
+  it anything recorded before guests were left out.
 - A tutorial behind a button on the welcome page, the start page and in
   the waiting room. It never opens by itself, the button stands out until
   the player went through it once. It explains the controls of the device
@@ -255,6 +256,12 @@ still a win.
 - Ranks, rating, badges and the leaderboards.
 - The start page, the welcome page and accounts by e-mail, live since
   October 2026.
+- Day and night take turns during a round, defense rounds can be extended
+  past wave 8 with higher levels, rockets and a citadel.
+- Security review, October 2026: scores are written only through
+  `record_round`, which checks opponents and limits rounds per hour; badges,
+  names and round results are locked down; guests are not ranked;
+  messages that do not parse are dropped (migrations 0011 and 0012).
 
 ### Next
 
@@ -265,6 +272,23 @@ still a win.
   (the defense mode has its base already, fuel comes in canisters).
 - Replays for defense rounds, and replays to share through Supabase
   Storage.
+- Trust in the room channels. Every message names its sender itself, so a
+  player can still pose as another: fake deaths, item uses or round starts,
+  or close a room in the owner's name. Fix with private channels and
+  Realtime Authorization that bind a presence to its account, and a
+  server-side owner per room.
+- Round results checked on the server through an Edge Function, from the
+  messages of the round, instead of trusting what each client reports.
+  Until then kills, damage and wins are only clamped.
+- Tests for what is not covered yet (about 20 % of the code):
+  - the defense rules as a pure function out of `space_game.dart`, with an
+    injected clock: the decision after wave 8, extending, pulling out, the
+    wave bonus counted once, only the host deciding;
+  - `record_round` and the policies with pgTAP in CI (`supabase test db`),
+    which also runs the `supabase` tagged smoke test;
+  - widget and golden tests for the HUD, the shop, the lobby and the
+    leaderboards;
+  - coverage in CI with a floor, counting every file.
 
 ### Ideas
 
@@ -275,8 +299,6 @@ still a win.
   armour against speed.
 - Seasons and weekly challenges on top of `round_results`.
 - With accounts: friends, clans and shared replays.
-- Round results checked on the server through an Edge Function instead of
-  the plausibility check alone.
 - Settings for key bindings and colour blindness, and the web version as an
   installable app (PWA).
 

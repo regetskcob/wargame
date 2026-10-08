@@ -1,10 +1,11 @@
 BETA-BESCHREIBUNG
-Panzergefecht ist ein Panzerduell von oben für iPhone und iPad: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum und Verteidigung gegen acht Wellen.
+Panzergefecht ist ein Panzerduell von oben für iPhone und iPad: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum und Verteidigung gegen acht Wellen und mehr.
 
 WAS TESTEN
 • Steuerung: Fahren mit dem linken Daumen, Zielen und Feuern mit dem rechten, Zielhilfe an und aus
 • Hoch- und Querformat im laufenden Spiel und in den Menüs
-• Verteidigung: Geschütze bauen, aufrüsten, Upgrades kaufen
+• Verteidigung: Geschütze bauen, aufrüsten, Upgrades kaufen, nach Welle 8 verlängern
+• Tag und Nacht wechseln sich im Gefecht ab
 • Konto: als Gast spielen, App beenden und neu starten, Konto mit E-Mail sichern (Code aus der Mail eingeben)
 • Ton: folgt dem Stummschalter und den Lautstärketasten
 

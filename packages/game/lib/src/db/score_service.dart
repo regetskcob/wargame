@@ -30,6 +30,9 @@ class ScoreService {
   /// Id of the signed in player, to find their own row in the leaderboard.
   String? get myId => _client.auth.currentUser?.id;
 
+  /// Guests play unranked: the database refuses their rounds.
+  bool get isGuest => _client.auth.currentUser?.isAnonymous ?? true;
+
   /// The pilots with at least one round, the highest rating first. A plain
   /// query: the start page asks again every so often instead of holding a
   /// live channel open.

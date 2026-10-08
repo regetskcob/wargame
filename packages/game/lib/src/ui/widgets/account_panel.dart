@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -366,9 +365,8 @@ class _AccountPanelState extends State<AccountPanel> {
           'Lege ein Konto mit deiner E-Mail an. Rang, Wertung und Abzeichen '
               'bleiben dann auf jedem Gerät erhalten.',
         (false, false) =>
-          'Als Gast hängt dein Fortschritt an diesem '
-              '${kIsWeb ? 'Browser' : 'Gerät'}. Sichere dein '
-              'Konto, damit Rang, Wertung und Abzeichen bleiben.',
+          'Als Gast spielst du ohne Wertung. Lege ein Konto an, um EP, Rang, '
+              'Wertung und Abzeichen zu sammeln und Fahrzeuge freizuschalten.',
       }, style: dim),
       SizedBox(height: fresh ? 16 : 10),
       if (_step == _Step.idle) ...[
