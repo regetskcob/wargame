@@ -19,7 +19,7 @@ List<Map<String, dynamic>> _phone(
   fakeAsync((async) {
     final remote = PadRemote('ABCDEFGH')
       ..screenOnline.value = true
-      ..onSend = (event, payload) {
+      ..onSend = (event, payload, lane) {
         if (event == 'pad') {
           sent.add(payload);
         }
@@ -113,6 +113,18 @@ void main() {
       'once a second at rest', () {
     expect(_statusPerSecond(changing: true), lessThanOrEqualTo(4));
     expect(_statusPerSecond(changing: false), lessThanOrEqualTo(1));
+  });
+
+  test('a duel with two phones on their own lanes costs two pairs, not '
+      'three ends on one channel', () {
+    final phone = _phone(sweeping).length / _seconds;
+    final status = _statusPerSecond(changing: true);
+    // Each lane: the phone and the screen, sent once and delivered once.
+    final lanes = 2 * (phone + status) * 2;
+    // One shared channel: every message reached both other ends.
+    final shared = (2 * phone + 2 * status) * 3;
+    expect(lanes, lessThanOrEqualTo(65), reason: '$lanes/s');
+    expect(shared, greaterThan(90), reason: '$shared/s');
   });
 
   test('a pair of phone and screen costs at most 35 messages a second', () {

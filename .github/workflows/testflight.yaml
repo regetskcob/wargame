@@ -48,14 +48,14 @@ jobs:
           if [ -n "$SUPABASE_KEY" ]; then args+=(--dart-define=SUPABASE_KEY="$SUPABASE_KEY"); fi
           if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
           if [ -n "$MAX_PILOTS" ]; then args+=(--dart-define=MAX_PILOTS="$MAX_PILOTS"); fi
-          if [ -n "$MAX_ROOMS" ]; then args+=(--dart-define=MAX_ROOMS="$MAX_ROOMS"); fi
+          if [ -n "$REALTIME_BUDGET" ]; then args+=(--dart-define=REALTIME_BUDGET="$REALTIME_BUDGET"); fi
           flutter build ios --config-only --release "${args[@]}"
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
           ACCOUNTS: ${{ vars.ACCOUNTS }}
           MAX_PILOTS: ${{ vars.MAX_PILOTS }}
-          MAX_ROOMS: ${{ vars.MAX_ROOMS }}
+          REALTIME_BUDGET: ${{ vars.REALTIME_BUDGET }}
       - name: Upload to TestFlight
         if: inputs.build
         run: bundle exec fastlane beta

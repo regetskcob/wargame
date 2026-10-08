@@ -7,23 +7,36 @@ import 'package:wargame/src/net/payloads/lobby_presence.dart';
 
 import '../helpers/fakes.dart';
 
-LobbyPresence _pilot(String id, {int? joined, bool owner = false}) =>
-    LobbyPresence(
-      id: id,
-      name: id,
-      colorIndex: 0,
-      phase: 'lobby',
-      owner: owner,
-      joinedAt: joined,
-    );
+LobbyPresence _pilot(
+  String id, {
+  int? joined,
+  bool owner = false,
+  bool pad = false,
+}) => LobbyPresence(
+  id: id,
+  name: id,
+  colorIndex: 0,
+  phase: 'lobby',
+  owner: owner,
+  joinedAt: joined,
+  pad: pad,
+);
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('by default a room holds two pilots and one room plays at a time, '
-      'what the free plan carries', () {
+  test('by default a room holds two pilots within a budget of 80 messages '
+      'a second, what the free plan carries', () {
     expect(GameConfig.maxPilots, 2);
-    expect(GameConfig.maxRooms, 1);
+    expect(GameConfig.realtimeBudget, 80);
+    expect(GameConfig.roomLoad(1, cpu: true), 0);
+    expect(GameConfig.roomLoad(2, cpu: false), 44);
+    expect(GameConfig.roomLoad(2, cpu: true), 70);
+    expect(
+      GameConfig.roomLoad(2, cpu: false) + GameConfig.padLoad,
+      lessThanOrEqualTo(GameConfig.realtimeBudget),
+      reason: 'a room of two and a phone fit without CPU tanks',
+    );
   });
 
   group('who stays in a full room', () {
@@ -175,6 +188,66 @@ void main() {
       await settle();
       expect(game.phase.value, GamePhase.lobby);
       expect(net.disposes, 0);
+    });
+
+    test(
+      'a room of two claims what it costs, less with a phone in it',
+      () async {
+        final slots = FakeSlots();
+        final net = FakeNet(isHost: true);
+        final game = await loadedGame(net: net, slots: slots);
+        game.chooseMode(GameMode.multi);
+        net.onRosterChanged!([
+          _pilot('me', joined: 1, owner: true),
+          _pilot('friend', joined: 2),
+        ]);
+        await settle();
+        expect(slots.claimed.last.$2, 70);
+
+        // The friend pairs a phone: no CPU tanks, room for the phone.
+        net.onRosterChanged!([
+          _pilot('me', joined: 1, owner: true),
+          _pilot('friend', joined: 2, pad: true),
+        ]);
+        await settle();
+        expect(slots.claimed.last.$2, 44);
+        expect(game.roomHasPhone, isTrue);
+      },
+    );
+
+    test(
+      'an own phone counts as well, and travels with the presence',
+      () async {
+        final slots = FakeSlots();
+        final net = FakeNet(isHost: true);
+        final game = await loadedGame(net: net, slots: slots);
+        game.chooseMode(GameMode.multi);
+        net.onRosterChanged!([
+          _pilot('me', joined: 1, owner: true),
+          _pilot('friend', joined: 2),
+        ]);
+        await settle();
+        game.padSteered.value = true;
+        await settle();
+        expect(slots.claimed.last.$2, 44);
+        expect(
+          LobbyPresence.fromJson(_pilot('x', pad: true).toJson()).pad,
+          true,
+        );
+      },
+    );
+
+    test('in defense the enemies stay CPU tanks, phone or not', () async {
+      final slots = FakeSlots();
+      final net = FakeNet(isHost: true);
+      final game = await loadedGame(net: net, slots: slots);
+      game.chooseMode(GameMode.defense);
+      net.onRosterChanged!([
+        _pilot('me', joined: 1, owner: true),
+        _pilot('friend', joined: 2, pad: true),
+      ]);
+      await settle();
+      expect(slots.claimed.last.$2, 70);
     });
 
     test('a room that held its slot keeps playing when a pilot drops out '

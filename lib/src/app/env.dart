@@ -25,11 +25,15 @@ class Env {
   /// Build with `--dart-define=ACCOUNTS=true` to switch it on.
   static const accounts = bool.fromEnvironment('ACCOUNTS');
 
-  /// Pilots a room holds, and how many rooms with more than one pilot play
-  /// at once. Both follow the Supabase plan, whose Realtime limits count for
-  /// the whole project: the free plan carries one room of two (README,
+  /// Pilots a room holds, and the Realtime messages a second all rooms and
+  /// phone controllers of the project may use together. Both follow the
+  /// Supabase plan, whose limits count for the whole project: the free plan
+  /// allows 100, planned with 80, which carries one room of two (README,
   /// "Rooms and room sizes", which also lists the values for Pro, such as
-  /// `MAX_PILOTS=4`).
+  /// `MAX_PILOTS=4` and `REALTIME_BUDGET=400`).
   static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 2);
-  static const maxRooms = int.fromEnvironment('MAX_ROOMS', defaultValue: 1);
+  static const realtimeBudget = int.fromEnvironment(
+    'REALTIME_BUDGET',
+    defaultValue: 80,
+  );
 }

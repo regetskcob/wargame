@@ -47,9 +47,20 @@ class GameConfig {
   /// turned away. Set by the build, see [Env.maxPilots].
   static const maxPilots = Env.maxPilots;
 
-  /// Rooms with more than one pilot that play at the same time, project
-  /// wide. See [Env.maxRooms] and `RoomSlots`.
-  static const maxRooms = Env.maxRooms;
+  /// Realtime messages a second for the whole project, kept by `RoomSlots`.
+  /// See [Env.realtimeBudget].
+  static const realtimeBudget = Env.realtimeBudget;
+
+  /// Messages a second Realtime counts for a room of [pilots], sent plus
+  /// delivered, as `message_budget_test.dart` measures them: about 11 per
+  /// pilot and receiver, and 13 more for the host's CPU tanks. A pilot alone
+  /// sends nothing.
+  static int roomLoad(int pilots, {required bool cpu}) =>
+      pilots < 2 ? 0 : (11 * pilots + (cpu ? 13 : 0)) * pilots;
+
+  /// The same for one phone controller and its screen, on a channel of
+  /// their own (`pad_budget_test.dart`).
+  static const padLoad = 32;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;

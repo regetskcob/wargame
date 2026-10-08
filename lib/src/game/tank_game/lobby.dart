@@ -161,6 +161,7 @@ extension TankGameLobby on TankGame {
       defense: round?.defense ?? false,
       botHost: round?.defense ?? false ? round?.botHost : null,
       joinedAt: net.joinedAt,
+      pad: padSteered.value,
     );
   }
 
@@ -516,8 +517,25 @@ extension TankGameLobby on TankGame {
     _watchSlot();
   }
 
-  /// With somebody else in the room messages flow, and the room needs one
-  /// of the project's few slots. Everybody in it keeps the slot fresh.
+  /// A phone steers somebody's tank in this room, this game's included.
+  bool get roomHasPhone =>
+      padSteered.value || roster.value.any((member) => member.pad);
+
+  /// Realtime messages a second this room costs. With a phone in it there
+  /// are no CPU tanks, except in defense, where the enemies are CPU tanks.
+  int get _roomLoad => GameConfig.roomLoad(
+    roster.value.length,
+    cpu: !roomHasPhone || mode.value == GameMode.defense,
+  );
+
+  void _onPadSteered() {
+    unawaited(pushPresence());
+    _watchSlot();
+  }
+
+  /// With somebody else in the room messages flow, and the room needs a
+  /// slot of the project's Realtime budget. Everybody in it keeps the slot
+  /// fresh, and claims again at once when the room's load changes.
   void _watchSlot() {
     final shared = roster.value.length > 1 && phase.value != GamePhase.closed;
     if (!shared) {
@@ -525,27 +543,30 @@ extension TankGameLobby on TankGame {
       // keeps counting as one when the others come back.
       _slotTimer?.cancel();
       _slotTimer = null;
+      _claimedLoad = null;
       return;
     }
-    if (_slotTimer != null) {
+    if (_slotTimer != null && _claimedLoad == _roomLoad) {
       return;
     }
-    _slotTimer = async.Timer.periodic(
+    _slotTimer ??= async.Timer.periodic(
       const Duration(minutes: 1),
       (_) => unawaited(_claimSlot()),
     );
     unawaited(_claimSlot());
   }
 
-  /// Out of the room: the slot runs out by itself on the server.
   void _dropSlot() {
     _slotTimer?.cancel();
     _slotTimer = null;
     _slotHeld = false;
+    _claimedLoad = null;
   }
 
   Future<void> _claimSlot() async {
-    final ok = await slots.claim(net.room);
+    final load = _roomLoad;
+    _claimedLoad = load;
+    final ok = await slots.claim(net.room, load);
     if (_slotTimer == null) {
       return;
     }
@@ -553,7 +574,7 @@ extension TankGameLobby on TankGame {
       _slotHeld = true;
       return;
     }
-    // Every slot belongs to another room. Who just came in leaves again;
+    // The budget has no room for this one. Who just came in leaves again;
     // the room's owner stays and waits, and a room that already played
     // keeps playing.
     if (_slotHeld || net.isHost || phase.value == GamePhase.closed) {

@@ -3,28 +3,42 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../game/game_config.dart';
 
-/// The few slots for rooms that play with more than one pilot (migration
-/// 0015). Realtime's limit counts for the whole project, so the plan only
-/// carries so many such rooms at once: [GameConfig.maxRooms].
+/// Shares the project's Realtime budget between rooms and phone controllers
+/// (migrations 0015 and 0016). Realtime's limit counts for the whole
+/// project, so every room with more than one pilot and every paired phone
+/// takes a slot with the messages a second it costs, and a new one only
+/// gets in while all of them together stay within
+/// [GameConfig.realtimeBudget].
 class RoomSlots {
   RoomSlots(this._client);
 
   final SupabaseClient _client;
 
-  /// Rooms holding a slot, as the last count found. Null until counted.
-  static final live = ValueNotifier<int?>(null);
+  /// The loads of all slots together, as the last count found. Null until
+  /// counted.
+  static final load = ValueNotifier<int?>(null);
 
-  /// Whether every slot is taken, as far as the last count knew.
-  static bool get allTaken => (live.value ?? 0) >= GameConfig.maxRooms;
+  /// Whether another room of two, CPU tanks included, would still fit, as
+  /// far as the last count knew.
+  static bool get allTaken =>
+      (load.value ?? 0) + GameConfig.roomLoad(2, cpu: true) >
+      GameConfig.realtimeBudget;
 
-  /// Takes or refreshes the slot of [room]. False only when the server
-  /// said every slot belongs to another room; when it cannot tell (offline,
-  /// a database without the migration) nothing is held back.
-  Future<bool> claim(String room) async {
+  /// Takes or refreshes the slot [key] with [messages] a second. False only
+  /// when the server said the budget has no room for it; when it cannot
+  /// tell (offline, a database without the migration) nothing is held
+  /// back. [force] takes the slot regardless, for a phone whose room drops
+  /// its CPU tanks to make room for it.
+  Future<bool> claim(String key, int messages, {bool force = false}) async {
     try {
       return await _client.rpc<bool>(
-            'claim_room',
-            params: {'p_room': room, 'p_max': GameConfig.maxRooms},
+            'claim_load',
+            params: {
+              'p_room': key,
+              'p_load': messages,
+              'p_budget': GameConfig.realtimeBudget,
+              'p_force': force,
+            },
           ) !=
           false;
     } on Object {
@@ -32,10 +46,10 @@ class RoomSlots {
     }
   }
 
-  /// Counts the rooms holding a slot into [live].
+  /// Counts the loads of all slots into [load].
   Future<void> count() async {
     try {
-      live.value = await _client.rpc<int>('live_room_count');
+      load.value = await _client.rpc<int>('live_load');
     } on Object {
       return;
     }

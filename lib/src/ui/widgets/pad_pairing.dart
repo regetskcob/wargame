@@ -49,6 +49,37 @@ class ControllerSection extends StatelessWidget {
   }
 }
 
+/// Says so while the Realtime budget leaves no room for the paired phones,
+/// and nothing otherwise.
+class PadBusyNotice extends StatelessWidget {
+  const PadBusyNotice({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: PadScreen.instance.busy,
+      builder: (context, busy, _) => busy
+          ? Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Text(
+                tr(
+                  'Gerade ist kein Platz für Handy-Controller: Der Server ist '
+                      'mit anderen Gefechten ausgelastet. Das Handy steuert, '
+                      'sobald wieder Platz ist; Controller und Tastatur gehen '
+                      'immer.',
+                  'There is no room for phone controllers right now: the '
+                      'server is busy with other battles. The phone steers '
+                      'once there is room again; controllers and keyboard '
+                      'always work.',
+                ),
+                style: const TextStyle(color: BwColors.amber, fontSize: 13),
+              ),
+            )
+          : const SizedBox.shrink(),
+    );
+  }
+}
+
 /// The screen's side: a button that shows the code, or the paired phone.
 class _ScreenPairing extends StatelessWidget {
   const _ScreenPairing({required this.game});
@@ -81,6 +112,7 @@ class _ScreenPairing extends StatelessWidget {
                   ),
             style: const TextStyle(color: BwColors.textDim, fontSize: 13),
           ),
+          const PadBusyNotice(),
           const SizedBox(height: 10),
           Wrap(
             spacing: 8,

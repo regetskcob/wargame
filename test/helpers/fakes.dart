@@ -120,18 +120,22 @@ class FakeNet extends NetService {
   Future<void> dispose() async => disposes++;
 }
 
-/// Room slots without a server: every claim gets one unless told
-/// otherwise, and counting changes nothing.
+/// The Realtime budget without a server: every claim gets in unless told
+/// otherwise, a forced one always, and counting changes nothing.
 class FakeSlots implements RoomSlots {
   FakeSlots({this.free = true});
 
   bool free;
-  final claims = <String>[];
+
+  /// Every claim: its key, load and whether it was forced.
+  final claimed = <(String, int, bool)>[];
+
+  List<String> get claims => [for (final c in claimed) c.$1];
 
   @override
-  Future<bool> claim(String room) async {
-    claims.add(room);
-    return free;
+  Future<bool> claim(String key, int messages, {bool force = false}) async {
+    claimed.add((key, messages, force));
+    return free || force;
   }
 
   @override

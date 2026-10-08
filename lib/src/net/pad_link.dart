@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../game/bot_level.dart';
+import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../game/touch_input.dart';
@@ -93,7 +94,11 @@ String spacedPadCode(String code) =>
 enum _Event { pad, act, status }
 
 /// The side both ends share: one Broadcast channel per code, with presence
-/// to see the other end.
+/// to see the other end. Every phone that knows it also gets a lane of its
+/// own, `pad-<code>-<phone>`, for its sticks and the screen's status: on the
+/// shared channel every message also reached the other phones of a duel,
+/// and Realtime counts each delivery. Ends without lanes stay on the shared
+/// channel.
 abstract class _PadChannel {
   _PadChannel(this.role, [this._ownClient]);
 
@@ -106,6 +111,11 @@ abstract class _PadChannel {
 
   RealtimeChannel? _channel;
   final _subscriptions = <StreamSubscription<void>>[];
+  final _lanes = <String, RealtimeChannel>{};
+  final _laneSubscriptions = <String, List<StreamSubscription<void>>>{};
+
+  /// Ids of the other ends that talk on lanes.
+  var _laneIds = <String>{};
   Timer? _retry;
   String? _code;
   String _name = '';
@@ -137,19 +147,28 @@ abstract class _PadChannel {
         }),
       );
     }
-    void sync() => _peersChanged([
-      for (final state in channel.presenceState())
-        for (final presence in state.presences)
-          if (presence.payload['role'] is String &&
-              presence.payload['role'] != role &&
-              presence.payload['id'] is String)
-            (
-              presence.payload['id'] as String,
-              presence.payload['name'] is String
-                  ? presence.payload['name'] as String
-                  : '',
-            ),
-    ]);
+    void sync() {
+      final others = [
+        for (final state in channel.presenceState())
+          for (final presence in state.presences)
+            if (presence.payload['role'] is String &&
+                presence.payload['role'] != role &&
+                presence.payload['id'] is String)
+              presence.payload,
+      ];
+      _laneIds = {
+        for (final other in others)
+          if (other['lane'] == true) other['id'] as String,
+      };
+      _peersChanged([
+        for (final other in others)
+          (
+            other['id'] as String,
+            other['name'] is String ? other['name'] as String : '',
+          ),
+      ]);
+    }
+
     _subscriptions
       ..add(channel.onPresenceSync.listen((_) => sync()))
       ..add(channel.onPresenceJoin.listen((_) => sync()))
@@ -157,7 +176,12 @@ abstract class _PadChannel {
       ..add(
         channel.onStatusChange.listen((change) async {
           if (change.status == RealtimeSubscribeStatus.subscribed) {
-            await channel.track({'role': role, 'id': id, 'name': _name});
+            await channel.track({
+              'role': role,
+              'id': id,
+              'name': _name,
+              'lane': true,
+            });
           } else if (change.status == RealtimeSubscribeStatus.channelError ||
               change.status == RealtimeSubscribeStatus.closed) {
             _scheduleRetry();
@@ -180,13 +204,53 @@ abstract class _PadChannel {
     });
   }
 
-  /// Sees every message this end sends, for the tests.
-  @visibleForTesting
-  void Function(String event, Map<String, dynamic> payload)? onSend;
+  /// Opens the lane [lane] next to the shared channel, once connected.
+  void _openLane(String lane) {
+    final code = _code;
+    if (_channel == null || code == null || _lanes.containsKey(lane)) {
+      return;
+    }
+    final channel = _client.channel(
+      'pad-$code-$lane',
+      options: const RealtimeChannelConfig(self: false),
+    );
+    _lanes[lane] = channel;
+    _laneSubscriptions[lane] = [
+      for (final event in _Event.values)
+        channel.onBroadcast(event: event.name).listen((json) {
+          // A screen hears only the lane's own phone on it.
+          if (role == 'screen' && json['id'] != lane) {
+            return;
+          }
+          try {
+            _receive(event, json);
+          } on Object catch (error) {
+            debugPrint('Dropped pad ${event.name}: $error');
+          }
+        }),
+    ];
+    channel.subscribe();
+  }
 
-  void _send(_Event event, Map<String, dynamic> payload) {
-    onSend?.call(event.name, payload);
-    final channel = _channel;
+  Future<void> _closeLane(String lane) async {
+    for (final subscription in _laneSubscriptions.remove(lane) ?? const []) {
+      await subscription.cancel();
+    }
+    final channel = _lanes.remove(lane);
+    if (channel != null) {
+      await _client.removeChannel(channel);
+    }
+  }
+
+  /// Sees every message this end sends and the lane it is meant for (null
+  /// for the shared channel), for the tests.
+  @visibleForTesting
+  void Function(String event, Map<String, dynamic> payload, String? lane)?
+  onSend;
+
+  void _send(_Event event, Map<String, dynamic> payload, {String? lane}) {
+    onSend?.call(event.name, payload, lane);
+    final channel = (lane == null ? null : _lanes[lane]) ?? _channel;
     if (channel != null) {
       unawaited(
         channel.sendBroadcastMessage(event: event.name, payload: payload),
@@ -197,6 +261,9 @@ abstract class _PadChannel {
   Future<void> _leave() async {
     _retry?.cancel();
     _retry = null;
+    for (final lane in _lanes.keys.toList()) {
+      await _closeLane(lane);
+    }
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
@@ -244,7 +311,22 @@ class PadScreen extends _PadChannel {
 
   /// The game the first phone steers. Set by the app shell, also for a new
   /// room.
-  TankGame? game;
+  TankGame? get game => _game;
+  set game(TankGame? value) {
+    if (identical(value, _game)) {
+      return;
+    }
+    _game?.padSteered.value = false;
+    _game = value;
+    _updateSteered();
+  }
+
+  TankGame? _game;
+
+  /// The Realtime budget had no room for the phones: they wait and steer
+  /// nothing until a slot is free. Asked again once a minute.
+  final busy = ValueNotifier<bool>(false);
+  Timer? _slotTimer;
 
   final _routes = <String, TankGame>{};
   final _lastInput = <String, DateTime>{};
@@ -262,18 +344,84 @@ class PadScreen extends _PadChannel {
   static const _silence = Duration(milliseconds: 900);
 
   /// The game the phone [padId] steers, null while it waits.
-  TankGame? gameOf(String padId) =>
+  TankGame? gameOf(String padId) => busy.value ? null : _targetOf(padId);
+
+  /// The game the phone [padId] is meant for, budget or not.
+  TankGame? _targetOf(String padId) =>
       _routes[padId] ??
-      (phones.value.firstOrNull?.$1 == padId && _routes.isEmpty ? game : null);
+      (phones.value.firstOrNull?.$1 == padId && _routes.isEmpty ? _game : null);
+
+  /// Tells every game whether a phone steers it, so a room with a phone
+  /// plays without CPU tanks.
+  void _updateSteered() {
+    for (final target in {?_game, ..._routes.values}) {
+      target.padSteered.value = steers(target);
+    }
+  }
+
+  /// Takes the phones' slot of the Realtime budget: a phone and its screen
+  /// cost [GameConfig.padLoad] messages a second, each on its own lane.
+  Future<void> _claimSlot() async {
+    final pairing = code.value;
+    final slots = (_game ?? _routes.values.firstOrNull)?.slots;
+    if (pairing == null || slots == null) {
+      return;
+    }
+    final steering = [
+      for (final (padId, _) in phones.value)
+        if (_targetOf(padId) != null) padId,
+    ];
+    var ok = true;
+    if (steering.isNotEmpty) {
+      // A phone in a room of the main game makes room for itself: that
+      // room drops its CPU tanks for it, except in defense.
+      final main = _game;
+      final force =
+          main != null &&
+          main.roster.value.length > 1 &&
+          main.mode.value != GameMode.defense &&
+          steering.any((padId) => identical(_targetOf(padId), main));
+      ok = await slots.claim(
+        'pad-$pairing',
+        steering.length * GameConfig.padLoad,
+        force: force,
+      );
+    }
+    if (busy.value != !ok) {
+      busy.value = !ok;
+      if (!ok) {
+        for (final padId in steering) {
+          _release(_targetOf(padId));
+        }
+      }
+      _updateSteered();
+    }
+  }
+
+  /// Lets a test play the presences of phones, [lanes] those that talk on
+  /// lanes of their own.
+  @visibleForTesting
+  void debugPeers(
+    List<(String, String)> peers, {
+    Set<String> lanes = const {},
+  }) {
+    _laneIds = lanes;
+    _peersChanged(peers);
+  }
+
+  /// Lets a test claim the phones' slot at once.
+  @visibleForTesting
+  Future<void> debugClaimSlot() => _claimSlot();
+
+  /// Lets a test run one tick of the status to the phones.
+  @visibleForTesting
+  void debugTick() => _onTick();
 
   /// Whether a phone steers [target] right now.
   bool steers(TankGame target) =>
       phones.value.any((phone) => identical(gameOf(phone.$1), target));
 
-  /// Lets a test play the presences and the messages of phones.
-  @visibleForTesting
-  void debugPeers(List<(String, String)> peers) => _peersChanged(peers);
-
+  /// Lets a test play the messages of phones.
   @visibleForTesting
   void debugPadInput(Map<String, dynamic> json) => _receive(_Event.pad, json);
 
@@ -282,15 +430,20 @@ class PadScreen extends _PadChannel {
     _release(gameOf(padId));
     _routes[padId] = target;
     _statusGates.remove(padId);
+    _updateSteered();
+    unawaited(_claimSlot());
   }
 
   /// Every phone back to the way without a duel: the first steers [game].
   void clearRoutes() {
     for (final target in _routes.values) {
       _release(target);
+      target.padSteered.value = false;
     }
     _routes.clear();
     _statusGates.clear();
+    _updateSteered();
+    unawaited(_claimSlot());
   }
 
   /// Opens a pairing, or takes up the one from before a reload.
@@ -300,6 +453,10 @@ class PadScreen extends _PadChannel {
     rememberPadCode(fresh);
     code.value = fresh;
     _tick ??= Timer.periodic(tickInterval, (_) => _onTick());
+    _slotTimer ??= Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(_claimSlot()),
+    );
     await _connect(fresh, 'screen');
   }
 
@@ -316,13 +473,20 @@ class PadScreen extends _PadChannel {
     code.value = null;
     _tick?.cancel();
     _tick = null;
+    _slotTimer?.cancel();
+    _slotTimer = null;
     for (final phone in phones.value) {
       _release(gameOf(phone.$1));
+    }
+    for (final target in _routes.values) {
+      target.padSteered.value = false;
     }
     _routes.clear();
     _statusGates.clear();
     phones.value = const [];
     paired.value = null;
+    busy.value = false;
+    _updateSteered();
     await _close();
   }
 
@@ -345,10 +509,22 @@ class PadScreen extends _PadChannel {
     }
     if (next.firstOrNull?.$1 != before.firstOrNull?.$1) {
       // Another phone steers the game now: it starts from rest.
-      _release(game);
+      _release(_game);
     }
     phones.value = next;
     paired.value = next.firstOrNull?.$2;
+    for (final (padId, _) in next) {
+      if (_laneIds.contains(padId)) {
+        _openLane(padId);
+      }
+    }
+    for (final lane in _lanes.keys.toList()) {
+      if (!next.any((phone) => phone.$1 == lane)) {
+        unawaited(_closeLane(lane));
+      }
+    }
+    _updateSteered();
+    unawaited(_claimSlot());
   }
 
   @override
@@ -422,7 +598,11 @@ class PadScreen extends _PadChannel {
         () => SendGate(gap: statusGap, keepalive: statusKeepalive),
       );
       if (gate.shouldSend(status.toString())) {
-        _send(_Event.status, status);
+        _send(
+          _Event.status,
+          status,
+          lane: _laneIds.contains(padId) ? padId : null,
+        );
       }
     }
   }
@@ -494,8 +674,14 @@ class PadRemote extends _PadChannel {
     await _close();
   }
 
-  void act(PadActionKind kind, [int slot = 0]) =>
-      _send(_Event.act, PadAction(id: id, kind: kind, slot: slot).toJson());
+  /// The own lane, once the screen talks on lanes.
+  String? get _lane => _laneIds.isEmpty ? null : id;
+
+  void act(PadActionKind kind, [int slot = 0]) => _send(
+    _Event.act,
+    PadAction(id: id, kind: kind, slot: slot).toJson(),
+    lane: _lane,
+  );
 
   /// Reads the sticks and sends them when it is time.
   @visibleForTesting
@@ -517,7 +703,7 @@ class PadRemote extends _PadChannel {
       assist: input.assist,
     ).toJson();
     if (_inputGate.shouldSend(pad.toString())) {
-      _send(_Event.pad, pad);
+      _send(_Event.pad, pad, lane: _lane);
     }
   }
 
@@ -527,6 +713,18 @@ class PadRemote extends _PadChannel {
   @override
   void _peersChanged(List<(String, String)> peers) {
     screenOnline.value = peers.isNotEmpty;
+    if (_laneIds.isEmpty) {
+      unawaited(_closeLane(id));
+    } else {
+      _openLane(id);
+    }
+  }
+
+  /// Lets a test play the screen's presence, with or without lanes.
+  @visibleForTesting
+  void debugScreen({required bool lanes}) {
+    _laneIds = lanes ? {'screen'} : {};
+    _peersChanged([('screen', '')]);
   }
 
   @override

@@ -196,6 +196,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.fillWithBots.value = v ?? false,
                 ),
               ),
+              ListenableBuilder(
+                listenable: Listenable.merge([game.roster, game.padSteered]),
+                builder: (context, _) => game.roomHasPhone
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          tr(
+                            'Mit Handy-Controller im Raum ohne CPU-Panzer, '
+                                'damit der Server beides trägt.',
+                            'With a phone controller in the room there are no '
+                                'CPU tanks, so the server carries both.',
+                          ),
+                          style: const TextStyle(
+                            color: BwColors.textDim,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
             if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),

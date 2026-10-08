@@ -141,7 +141,7 @@ class LaunchView extends StatelessWidget {
       const ServerNotice(),
       RoomsBusyNotice(slots: game.slots),
       ListenableBuilder(
-        listenable: Listenable.merge([ServerStatus.available, RoomSlots.live]),
+        listenable: Listenable.merge([ServerStatus.available, RoomSlots.load]),
         builder: (context, _) => _modes(ServerStatus.available.value),
       ),
       ValueListenableBuilder<bool>(
