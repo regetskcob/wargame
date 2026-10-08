@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -487,6 +487,8 @@
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -670,6 +672,8 @@
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -694,6 +698,8 @@
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_BITCODE = NO;
 				INFOPLIST_FILE = Runner/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.simulation-games";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
