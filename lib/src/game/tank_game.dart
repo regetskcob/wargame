@@ -10,11 +10,14 @@ import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show KeyEventResult;
+import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 
 import '../app/overlay_ids.dart';
 import '../audio/audio_service.dart';
 import '../db/account_service.dart';
 import '../db/profile_service.dart';
+import '../db/room_slots.dart';
+
 import '../db/score_service.dart';
 import '../app/env.dart';
 import '../haptics.dart';
@@ -117,6 +120,7 @@ class TankGame extends FlameGame
     required this.profiles,
     required this.accounts,
     this._directory,
+    this._slots,
   }) : super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
@@ -304,6 +308,12 @@ class TankGame extends FlameGame
   /// The public list of rooms.
   late final directory = _directory ?? RoomDirectory(room: net.room);
   final RoomDirectory? _directory;
+
+  /// The project-wide slots for rooms with more than one pilot.
+  late final slots = _slots ?? RoomSlots(Supabase.instance.client);
+  final RoomSlots? _slots;
+  async.Timer? _slotTimer;
+  var _slotHeld = false;
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;

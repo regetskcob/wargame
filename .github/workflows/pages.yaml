@@ -35,12 +35,16 @@ jobs:
           if [ -n "$SUPABASE_URL" ]; then args+=(--dart-define=SUPABASE_URL="$SUPABASE_URL"); fi
           if [ -n "$SUPABASE_KEY" ]; then args+=(--dart-define=SUPABASE_KEY="$SUPABASE_KEY"); fi
           if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
+          if [ -n "$MAX_PILOTS" ]; then args+=(--dart-define=MAX_PILOTS="$MAX_PILOTS"); fi
+          if [ -n "$MAX_ROOMS" ]; then args+=(--dart-define=MAX_ROOMS="$MAX_ROOMS"); fi
           flutter build web --base-href "/${REPO_NAME}/" "${args[@]}"
         env:
           REPO_NAME: ${{ github.event.repository.name }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
           ACCOUNTS: ${{ vars.ACCOUNTS }}
+          MAX_PILOTS: ${{ vars.MAX_PILOTS }}
+          MAX_ROOMS: ${{ vars.MAX_ROOMS }}
       - run: cp build/web/index.html build/web/404.html
       - name: Write the Impressum and privacy pages
         run: dart run tool/legal_pages.dart build/web

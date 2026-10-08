@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../db/room_slots.dart';
 import '../db/server_status.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
@@ -19,6 +20,7 @@ import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
+import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
 import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
@@ -137,9 +139,10 @@ class LaunchView extends StatelessWidget {
       PilotCard(progress: game.progress),
       const SizedBox(height: 20),
       const ServerNotice(),
-      ValueListenableBuilder<bool>(
-        valueListenable: ServerStatus.available,
-        builder: (context, online, _) => _modes(online),
+      RoomsBusyNotice(slots: game.slots),
+      ListenableBuilder(
+        listenable: Listenable.merge([ServerStatus.available, RoomSlots.live]),
+        builder: (context, _) => _modes(ServerStatus.available.value),
       ),
       ValueListenableBuilder<bool>(
         valueListenable: ServerStatus.available,
@@ -165,7 +168,9 @@ class LaunchView extends StatelessWidget {
             _ModeCard(
               icon: option.icon,
               title: option.title,
-              kicker: option.kicker,
+              kicker: option.mode == GameMode.multi && RoomSlots.allTaken
+                  ? tr('ALLE RÄUME BELEGT', 'ALL ROOMS TAKEN')
+                  : option.kicker,
               onTap: start(option.mode),
             ),
           if (onTv) const _DuelCard(),

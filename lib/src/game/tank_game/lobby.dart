@@ -448,6 +448,7 @@ extension TankGameLobby on TankGame {
   }
 
   void _enterClosed(String reason) {
+    _dropSlot();
     _clearWorld();
     round = null;
     myTeam = 0;
@@ -469,6 +470,7 @@ extension TankGameLobby on TankGame {
       }
     }
     _noticeTimer?.cancel();
+    _dropSlot();
     pauseEngine();
     L10n.lang.removeListener(_saveLanguage);
     accounts.dispose();
@@ -511,5 +513,60 @@ extension TankGameLobby on TankGame {
       _lastActivity = DateTime.now();
     }
     roster.value = members;
+    _watchSlot();
+  }
+
+  /// With somebody else in the room messages flow, and the room needs one
+  /// of the project's few slots. Everybody in it keeps the slot fresh.
+  void _watchSlot() {
+    final shared = roster.value.length > 1 && phase.value != GamePhase.closed;
+    if (!shared) {
+      // Alone again, for now: no refresh, but a room that held its slot
+      // keeps counting as one when the others come back.
+      _slotTimer?.cancel();
+      _slotTimer = null;
+      return;
+    }
+    if (_slotTimer != null) {
+      return;
+    }
+    _slotTimer = async.Timer.periodic(
+      const Duration(minutes: 1),
+      (_) => unawaited(_claimSlot()),
+    );
+    unawaited(_claimSlot());
+  }
+
+  /// Out of the room: the slot runs out by itself on the server.
+  void _dropSlot() {
+    _slotTimer?.cancel();
+    _slotTimer = null;
+    _slotHeld = false;
+  }
+
+  Future<void> _claimSlot() async {
+    final ok = await slots.claim(net.room);
+    if (_slotTimer == null) {
+      return;
+    }
+    if (ok) {
+      _slotHeld = true;
+      return;
+    }
+    // Every slot belongs to another room. Who just came in leaves again;
+    // the room's owner stays and waits, and a room that already played
+    // keeps playing.
+    if (_slotHeld || net.isHost || phase.value == GamePhase.closed) {
+      return;
+    }
+    _enterClosed(
+      tr(
+        'Alle Räume sind gerade belegt. Versuch es in ein paar Minuten '
+            'noch einmal, Einzelspieler geht immer.',
+        'All rooms are taken right now. Try again in a few minutes, '
+            'single player always works.',
+      ),
+    );
+    unawaited(net.dispose());
   }
 }

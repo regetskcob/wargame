@@ -38,7 +38,9 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 7. **Realtime-Budget:** Jede Nachricht zählt einmal gesendet und einmal pro
    Empfänger, projektweit 100/s und 2 Mio./Monat im Free-Plan. Darum
    `state` mit 10/s, CPU-Panzer gebündelt in `states`, allein im Raum wird
-   nichts gesendet, Räume halten 4 Piloten, Presence gedrosselt. Ohne
+   nichts gesendet, Presence gedrosselt. Raumgröße `MAX_PILOTS` (Standard
+   2) und gleichzeitige Mehrspieler-Räume `MAX_ROOMS` (Standard 1, Plätze
+   über `claim_room`, Migration 0015) folgen dem Supabase-Plan. Ohne
    Server startet das Spiel trotzdem (`ServerStatus`). Zahlen und Tests:
    README „Realtime limits“.
 

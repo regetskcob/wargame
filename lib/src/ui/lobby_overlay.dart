@@ -15,6 +15,7 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
@@ -728,7 +729,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ],
             ),
             const SizedBox(height: 18),
-            if (mode.withOthers) const ServerNotice(),
+            if (mode.withOthers) ...[
+              const ServerNotice(),
+              ValueListenableBuilder(
+                valueListenable: widget.game.roster,
+                builder: (context, roster, _) => roster.length < 2
+                    ? RoomsBusyNotice(slots: widget.game.slots, waiting: true)
+                    : const SizedBox.shrink(),
+              ),
+            ],
             if (room.isEmpty)
               _tankSection(context)
             else
