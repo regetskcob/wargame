@@ -9,8 +9,8 @@ import 'tutorial_steps.dart';
 /// training ground with a thumb on the sticks or with keys and mouse. Then
 /// a quick tour through everything the game has, which plays on by itself.
 ///
-/// It opens by itself for new players and again from the start page and
-/// the waiting room, always with the controls of the device it runs on.
+/// A button opens it on the welcome page, the start page and in the
+/// waiting room, always with the controls of the device it runs on.
 class TutorialOverlay extends StatefulWidget {
   const TutorialOverlay({
     required this.touch,
@@ -230,6 +230,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     );
   }
 
+  /// [child] when [shown], else an empty space of its size.
+  static Widget _keep(bool shown, Widget child) => Visibility(
+    visible: shown,
+    maintainSize: true,
+    maintainAnimation: true,
+    maintainState: true,
+    child: child,
+  );
+
   Widget _header() {
     return Row(
       children: [
@@ -288,15 +297,20 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final buttons = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (step.quick)
+        // Hidden buttons keep their place, so WEITER never moves.
+        _keep(
+          step.quick,
           IconButton(
             tooltip: _playing ? 'Anhalten' : 'Weiterlaufen',
             visualDensity: VisualDensity.compact,
             onPressed: _togglePlay,
             icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
           ),
-        if (_index > 0)
+        ),
+        _keep(
+          _index > 0,
           TextButton(onPressed: _back, child: const Text('ZURÜCK')),
+        ),
         const SizedBox(width: 4),
         FilledButton.icon(
           onPressed: _next,
@@ -307,7 +321,14 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ),
           ),
           icon: Icon(_last ? Icons.check : Icons.chevron_right),
-          label: Text(_last ? "LOS GEHT'S" : 'WEITER'),
+          // As wide for both labels, so the button stays put on the last card.
+          label: Stack(
+            alignment: Alignment.center,
+            children: [
+              _keep(!_last, const Text('WEITER')),
+              _keep(_last, const Text("LOS GEHT'S")),
+            ],
+          ),
         ),
       ],
     );
@@ -323,66 +344,84 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       ),
       child: Padding(
         padding: EdgeInsets.fromLTRB(14, compact ? 8 : 12, 14, 8),
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 200),
-          alignment: Alignment.topCenter,
-          onEnd: _measureCard,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    kicker,
+                    style: const TextStyle(
+                      color: BwColors.amber,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.5,
+                    ),
+                  ),
+                ),
+                if (compact) ...[
+                  const SizedBox(width: 12),
+                  _Dots(count: _steps.length, index: _index),
+                ],
+              ],
+            ),
+            const SizedBox(height: 4),
+            if (compact)
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      kicker,
-                      style: const TextStyle(
-                        color: BwColors.amber,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
+                  Expanded(child: title),
+                  buttons,
+                ],
+              )
+            else
+              title,
+            SizedBox(height: compact ? 2 : 6),
+            // Every text of the tutorial is laid out, only this step's
+            // shows: the card is as tall as for the longest text and keeps
+            // its height from step to step.
+            Stack(
+              children: [
+                for (final (i, other) in _steps.indexed)
+                  _keep(
+                    i == _index,
+                    Text(
+                      other.text,
+                      style: TextStyle(
+                        color: BwColors.text,
+                        fontSize: compact ? 13 : 14,
+                        height: 1.35,
                       ),
                     ),
                   ),
-                  if (compact) _Dots(count: _steps.length, index: _index),
+              ],
+            ),
+            SizedBox(height: compact ? 6 : 8),
+            _keep(
+              step.quick,
+              AnimatedBuilder(
+                animation: _auto,
+                builder: (context, _) =>
+                    LinearProgressIndicator(value: _auto.value, minHeight: 3),
+              ),
+            ),
+            if (!compact) ...[
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _Dots(count: _steps.length, index: _index),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  buttons,
                 ],
               ),
-              const SizedBox(height: 4),
-              if (compact)
-                Row(
-                  children: [
-                    Expanded(child: title),
-                    buttons,
-                  ],
-                )
-              else
-                title,
-              SizedBox(height: compact ? 2 : 6),
-              Text(
-                step.text,
-                style: TextStyle(
-                  color: BwColors.text,
-                  fontSize: compact ? 13 : 14,
-                  height: 1.35,
-                ),
-              ),
-              SizedBox(height: compact ? 6 : 8),
-              if (step.quick)
-                AnimatedBuilder(
-                  animation: _auto,
-                  builder: (context, _) =>
-                      LinearProgressIndicator(value: _auto.value, minHeight: 3),
-                ),
-              if (!compact)
-                Row(
-                  children: [
-                    _Dots(count: _steps.length, index: _index),
-                    const Spacer(),
-                    buttons,
-                  ],
-                ),
             ],
-          ),
+          ],
         ),
       ),
     );
@@ -398,14 +437,17 @@ class _Dots extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Wrap(
-        spacing: 4,
-        runSpacing: 4,
+    // Always one line: on a narrow card the row shrinks instead of wrapping.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.centerLeft,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
           for (var i = 0; i < count; i++)
             AnimatedContainer(
               duration: const Duration(milliseconds: 200),
+              margin: EdgeInsets.only(left: i == 0 ? 0 : 4),
               width: i == index ? 14 : 6,
               height: 6,
               color: i == index

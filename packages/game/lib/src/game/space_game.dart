@@ -505,30 +505,16 @@ class SpaceGame extends FlameGame
       notifier.addListener(_updateListing);
     }
     overlays.add(OverlayIds.lobby);
-    _offerTutorial();
+    _refreshTutorialDone();
+    touchMode.addListener(_refreshTutorialDone);
   }
 
-  /// New players get the tutorial once they are past the welcome page.
-  /// The welcome page may sign into an account, so the account is asked
-  /// only once the player is past it.
-  void _offerTutorial() {
-    if (welcomed.value) {
-      if (!_tutorialSeen()) {
-        showTutorial();
-      }
-      return;
-    }
-    void onWelcomed() {
-      if (welcomed.value) {
-        welcomed.removeListener(onWelcomed);
-        if (!_tutorialSeen()) {
-          showTutorial();
-        }
-      }
-    }
+  /// Whether the player went through the tutorial for the current
+  /// controls. It never opens by itself, the buttons that open it stand out
+  /// until then.
+  final tutorialDone = ValueNotifier<bool>(true);
 
-    welcomed.addListener(onWelcomed);
-  }
+  void _refreshTutorialDone() => tutorialDone.value = _tutorialSeen();
 
   /// Seen in this browser, or on the account for the current controls. A
   /// browser that saw it before accounts kept the marker hands it on.
@@ -537,20 +523,32 @@ class SpaceGame extends FlameGame
       unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
       return true;
     }
+    if (accounts.olderThanTutorial) {
+      // Players from before the tutorial get the marker right away, for
+      // both kinds of controls.
+      rememberTutorialSeen();
+      unawaited(() async {
+        await accounts.rememberTutorialSeen(touch: true);
+        await accounts.rememberTutorialSeen(touch: false);
+      }());
+      return true;
+    }
     return accounts.tutorialSeen(touch: touchMode.value);
   }
 
-  /// Opens the tutorial over everything else. The start page and the
-  /// waiting room offer it again at any time.
+  /// Opens the tutorial over everything else, from the welcome page, the
+  /// start page or the waiting room.
   void showTutorial() {
     if (!overlays.isActive(OverlayIds.tutorial)) {
       overlays.add(OverlayIds.tutorial);
     }
   }
 
-  /// Closes the tutorial for good: it no longer opens by itself.
+  /// Closes the tutorial and marks it as seen, whether it was finished or
+  /// skipped.
   void closeTutorial() {
     rememberTutorialSeen();
+    tutorialDone.value = true;
     unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
     overlays.remove(OverlayIds.tutorial);
   }
@@ -621,6 +619,7 @@ class SpaceGame extends FlameGame
     if (!accounts.isGuest) {
       welcomed.value = true;
     }
+    _refreshTutorialDone();
     final id = accounts.user.value?.id;
     if (id == null || id == _accountId) {
       return;

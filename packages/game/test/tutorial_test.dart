@@ -18,7 +18,11 @@ void main() {
     final closed = <int>[];
     await tester.pumpWidget(
       MaterialApp(
-        home: TutorialOverlay(touch: touch, onClose: () => closed.add(1)),
+        home: TutorialOverlay(
+          key: UniqueKey(),
+          touch: touch,
+          onClose: () => closed.add(1),
+        ),
       ),
     );
     await tester.pump();
@@ -68,10 +72,11 @@ void main() {
   testWidgets('each device gets its own controls', (tester) async {
     await pump(tester, touch: true);
     expect(find.textContaining('STEUERUNG TOUCH'), findsOneWidget);
-    expect(find.textContaining('Daumen'), findsOneWidget);
+    expect(find.text('ZIELHILFE'), findsNothing);
+    expect(find.text('FAHREN'), findsOneWidget);
     await pump(tester, touch: false);
     expect(find.textContaining('STEUERUNG TASTATUR & MAUS'), findsOneWidget);
-    expect(find.textContaining('W fährt'), findsOneWidget);
+    expect(find.text('FAHREN'), findsOneWidget);
   });
 
   testWidgets('the quick tour plays on by itself', (tester) async {
@@ -117,6 +122,31 @@ void main() {
         await next(tester);
       }
     }
+  });
+
+  testWidgets('the card keeps its height and WEITER its place', (tester) async {
+    for (final size in const [Size(1280, 720), Size(740, 360)]) {
+      await pump(tester, touch: true, size: size);
+      final weiter = tester.getCenter(find.text('WEITER'));
+      final card = tester.getSize(find.byType(DecoratedBox).first);
+      final steps = tutorialSteps(touch: true);
+      for (var i = 1; i < steps.length; i++) {
+        await tester.tap(find.text('WEITER'));
+        await tester.pump(const Duration(milliseconds: 300));
+        final button = i == steps.length - 1 ? "LOS GEHT'S" : 'WEITER';
+        expect(tester.getCenter(find.text(button)), weiter, reason: '$i');
+        expect(tester.getSize(find.byType(DecoratedBox).first), card);
+      }
+    }
+  });
+
+  testWidgets('skipping marks the tutorial as done like finishing', (
+    tester,
+  ) async {
+    final closed = await pump(tester, touch: false);
+    await tester.tap(find.text('ÜBERSPRINGEN'));
+    await tester.pump();
+    expect(closed, hasLength(1));
   });
 
   test('the tutorial is remembered once seen', () {

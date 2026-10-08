@@ -49,12 +49,13 @@ Everything resolves from pub.dev. There are no git dependencies and no
 - Guests keep their progress in the browser and can secure it as an account
   at any time, the account keeps the guest's id and with it everything
   earned so far.
-- A tutorial that opens for new players and again from the start page or
-  the waiting room. It explains the controls of the device it runs on, two
-  touch sticks with an animated thumb on phones and tablets, keys and mouse
-  on a desktop, each acted out on a small training ground, then plays a
-  quick tour through modes, vehicles, crates, gems, weather, levels, the
-  defense mode and what comes after the round.
+- A tutorial behind a button on the welcome page, the start page and in
+  the waiting room. It never opens by itself, the button stands out until
+  the player went through it once. It explains the controls of the device
+  it runs on, two touch sticks with an animated thumb on phones and
+  tablets, keys and mouse on a desktop, each acted out on a small training
+  ground, then plays a quick tour through modes, vehicles, crates, gems,
+  weather, levels, the defense mode and what comes after the round.
 
 ### Ways to play
 
