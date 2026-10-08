@@ -420,6 +420,10 @@ class SpaceGame extends FlameGame
     showHit(at, amount, mine: true, color: const Color(0xFFFF6B5A));
   }
 
+  /// Draws one weather layer. render() calls this per layer instead of
+  /// looping over [?_passingWeather, ?_weather]: that list crashed the
+  /// Android release build with SIGSEGV on the first frame of a round,
+  /// while debug builds ran fine.
   void _renderWeather(
     Canvas canvas,
     WeatherLayer layer,
@@ -2474,11 +2478,14 @@ class SpaceGame extends FlameGame
     }
   }
 
-  Iterable<ShipBase> get _allTanks => [
-    ?myShip,
-    ...remoteShips.values,
-    ...botShips.values,
-  ];
+  // Built without null-aware list elements: such a list literal crashed
+  // the Android release build in render(), see _renderWeather.
+  Iterable<ShipBase> get _allTanks sync* {
+    final ship = myShip;
+    if (ship != null) yield ship;
+    yield* remoteShips.values;
+    yield* botShips.values;
+  }
 
   ShipBase? _nearest(Vector2 from, double range, bool Function(int) team) {
     ShipBase? best;
@@ -3107,7 +3114,9 @@ class SpaceGame extends FlameGame
   /// the caller's client knock down what stands in the circle.
   void artilleryImpact(ArtilleryStrike strike) {
     AudioService.play('explosion', distance: _distanceToView(strike.position));
-    final ships = [?myShip, ...botShips.values];
+    final ships = <PlayerShip>[...botShips.values];
+    final mine = myShip;
+    if (mine != null) ships.insert(0, mine);
     for (final ship in ships) {
       if (ship.playerId == strike.ownerId ||
           sameTeam(ship.playerId, strike.ownerId)) {
