@@ -1,6 +1,6 @@
 # App Store und TestFlight
 
-Alles, was App Store Connect für Wargame braucht. Die Ordner folgen dem
+Alles, was App Store Connect für Panzergefecht braucht. Die Ordner folgen dem
 Aufbau von `fastlane deliver`, die Dateien lassen sich aber genauso von Hand
 in App Store Connect einfügen.
 
@@ -22,8 +22,9 @@ in App Store Connect einfügen.
 | iPad 13" (2752 × 2064) | `screenshots/de-DE/ipad-*.png` |
 
 Apple skaliert die 6,9"- und 13"-Screenshots für alle kleineren Geräte, mehr
-Größen braucht es nicht. Der Name „Wargame“ allein ist im App Store sehr
-wahrscheinlich vergeben, deshalb „Wargame – Panzergefecht“. Die
+Größen braucht es nicht. Ist der Name „Panzergefecht“ im App Store
+schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
+„Panzergefecht – Panzerduell“ nehmen. Die
 Schlüsselwörter enthalten bewusst keine geschützten Namen wie Bundeswehr oder
 Leopard, das verbietet Apple (Richtlinie 2.3.7).
 
@@ -68,3 +69,21 @@ voraussichtlich 12+.
 
 In der App Privacy bleibt alles wie oben: Die Kamera liest nur QR-Codes auf
 dem Gerät, dabei wird nichts erhoben.
+
+## Universal Links
+
+Room links (`https://www.regetskcob.de/wargame/?room=CODE`) open the app when
+it is installed, also from the iPhone camera. The app asks for
+`applinks:www.regetskcob.de` (`ios/Runner/Runner.entitlements`, team
+86HB5U6788). Apple only reads the association file at the root of the
+domain, so `apple-app-site-association` from this folder belongs into the
+website repository `regetskcob.github.io` at
+`static/.well-known/apple-app-site-association`. Check after the deploy:
+
+```sh
+curl -s https://www.regetskcob.de/.well-known/apple-app-site-association
+curl -s https://app-site-association.cdn-apple.com/a/v1/www.regetskcob.de
+```
+
+Apple's CDN can take a day to pick up a change. iOS fetches the file when the
+app is installed or updated.

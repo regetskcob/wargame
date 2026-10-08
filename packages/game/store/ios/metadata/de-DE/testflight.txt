@@ -1,5 +1,5 @@
 BETA-BESCHREIBUNG
-Wargame ist ein Panzergefecht von oben für iPhone und iPad: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum und Verteidigung gegen acht Wellen.
+Panzergefecht ist ein Panzerduell von oben für iPhone und iPad: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum und Verteidigung gegen acht Wellen.
 
 WAS TESTEN
 • Steuerung: Fahren mit dem linken Daumen, Zielen und Feuern mit dem rechten, Zielhilfe an und aus

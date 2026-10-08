@@ -16,6 +16,10 @@ String _newCode() {
 
 bool _hosting = true;
 
+/// The apps follow room links opened on the device. In the browser the link
+/// is the address itself.
+void listenForRoomLinks() {}
+
 /// Used by the apps to swap the game for another room. The browser loads
 /// the room's address instead, so this stays unset here.
 void Function(String room, {required bool host})? onRoomSwitch;
@@ -66,6 +70,16 @@ void rememberGuest() {
     web.window.localStorage.setItem(_guestKey, '1');
   } on Object {
     // Without storage the welcome page simply asks again next time.
+  }
+}
+
+/// Forgets the guest choice, so the welcome page asks again, as after
+/// signing out.
+void forgetGuest() {
+  try {
+    web.window.localStorage.removeItem(_guestKey);
+  } on Object {
+    // Without storage there is nothing remembered.
   }
 }
 

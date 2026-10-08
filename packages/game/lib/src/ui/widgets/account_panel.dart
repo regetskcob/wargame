@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../db/account_service.dart';
+import '../../net/room.dart';
 import '../../theme.dart';
 import 'choice_row.dart';
 
@@ -16,6 +17,7 @@ class AccountPanel extends StatefulWidget {
     this.embedded = false,
     this.onCallSign,
     this.callSign,
+    this.onSignedOut,
     super.key,
   });
 
@@ -27,6 +29,10 @@ class AccountPanel extends StatefulWidget {
 
   /// The current call sign, to start the field with.
   final String? callSign;
+
+  /// Called after signing out, right before the game starts over on the
+  /// welcome page. A dialog closes itself here.
+  final VoidCallback? onSignedOut;
 
   /// On the welcome page: always open, without the status line, and signing
   /// in comes first. Securing the fresh guest account there means creating
@@ -124,6 +130,18 @@ class _AccountPanelState extends State<AccountPanel> {
     if (mounted) {
       setState(() => _busy = false);
     }
+  }
+
+  /// Signs out and starts over on the welcome page, with nothing of the
+  /// account left in the game: no name, no progress, no open dialog.
+  Future<void> _signOut() async {
+    await _run(widget.accounts.signOut, 'Abgemeldet.');
+    if (_error) {
+      return;
+    }
+    forgetGuest();
+    widget.onSignedOut?.call();
+    openFreshRoom();
   }
 
   void _sendMail() {
@@ -289,12 +307,7 @@ class _AccountPanelState extends State<AccountPanel> {
                         )
                       else
                         TextButton(
-                          onPressed: _busy
-                              ? null
-                              : () => _run(
-                                  widget.accounts.signOut,
-                                  'Abgemeldet, du spielst jetzt als Gast.',
-                                ),
+                          onPressed: _busy ? null : _signOut,
                           child: const Text('ABMELDEN'),
                         ),
                     ],

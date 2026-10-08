@@ -102,7 +102,7 @@ class _RoomScannerState extends State<RoomScanner> {
               child: Text(
                 _rejected == null
                     ? 'Halte die Kamera auf den QR-Code im Warteraum.'
-                    : 'Das ist kein Raum-Code von Wargame.',
+                    : 'Das ist kein Raum-Code von Panzergefecht.',
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),

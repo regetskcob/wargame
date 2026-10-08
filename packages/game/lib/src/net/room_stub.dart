@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:math';
 import 'dart:ui' show Rect;
 
+import 'package:app_links/app_links.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../env.dart';
+import 'room_code.dart';
 
 const _guestKey = 'panzergefecht.guest';
 const _tutorialKey = 'panzergefecht.tutorial';
@@ -43,9 +45,29 @@ var _hosting = true;
 /// Set by the app shell, takes the room and whether this player hosts it.
 void Function(String room, {required bool host})? onRoomSwitch;
 
+/// The room the game is in right now, so a link to it changes nothing.
+String? _current;
+
 /// Room of this session: the fixed test room, else a fresh private one this
 /// player hosts, like the start page in the browser.
-String resolveRoom() => Env.room.isNotEmpty ? Env.room : _newCode();
+String resolveRoom() => _current = Env.room.isNotEmpty ? Env.room : _newCode();
+
+StreamSubscription<Uri>? _links;
+
+/// Room links opened on this device, from the camera, a message or the
+/// browser, lead straight into their room, also when they start the app.
+void listenForRoomLinks() {
+  void open(Uri? uri) {
+    final code = uri == null ? null : roomCodeFrom(uri.toString());
+    if (code != null && code != _current) {
+      joinRoom(code);
+    }
+  }
+
+  final links = AppLinks();
+  _links ??= links.uriLinkStream.listen(open, onError: (Object _) {});
+  unawaited(links.getInitialLink().then(open, onError: (Object _) {}));
+}
 
 /// Whether this device chose to play as a guest before.
 bool prefersGuest() => _store?.getBool(_guestKey) ?? false;
@@ -53,6 +75,10 @@ bool prefersGuest() => _store?.getBool(_guestKey) ?? false;
 /// Remembers that this device plays as a guest, so the welcome page does not
 /// ask again.
 void rememberGuest() => unawaited(_store?.setBool(_guestKey, true));
+
+/// Forgets the guest choice, so the welcome page asks again, as after
+/// signing out.
+void forgetGuest() => unawaited(_store?.remove(_guestKey));
 
 var _tutorialSeen = false;
 
@@ -101,7 +127,8 @@ bool joinRoom(String room) {
     return false;
   }
   _hosting = false;
-  switcher(room.trim().toUpperCase(), host: false);
+  _current = room.trim().toUpperCase();
+  switcher(_current!, host: false);
   return true;
 }
 
@@ -112,6 +139,7 @@ bool openFreshRoom() {
     return false;
   }
   _hosting = true;
-  switcher(_newCode(), host: true);
+  _current = _newCode();
+  switcher(_current!, host: true);
   return true;
 }

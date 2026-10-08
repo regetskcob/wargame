@@ -9,6 +9,7 @@ environment:
   flutter: ">=3.47.0"
 
 dependencies:
+  app_links: ^7.2.2
   audioplayers: ^6.8.1
   flame: ^2.0.0-dev.1
   flutter:
@@ -25,6 +26,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
+  shared_preferences_platform_interface: ^2.4.1
   supabase: ^3.0.0-dev.9
   supabase_typegen: ^0.5.1
 

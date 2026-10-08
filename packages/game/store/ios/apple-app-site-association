@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["86HB5U6788.de.regetskcob.wargame"],
+        "components": [
+          {
+            "/": "/wargame/*",
+            "?": { "room": "?*" },
+            "comment": "Room links of the game open the Panzergefecht app"
+          }
+        ]
+      }
+    ]
+  }
+}

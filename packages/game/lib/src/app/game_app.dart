@@ -40,6 +40,7 @@ class _GameAppState extends State<GameApp> {
     super.initState();
     game = _createGame(resolveRoom(), host: isRoomHost());
     onRoomSwitch = _switchRoom;
+    listenForRoomLinks();
   }
 
   SpaceGame _createGame(String room, {required bool host}) {

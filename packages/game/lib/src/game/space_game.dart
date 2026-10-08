@@ -83,6 +83,16 @@ import 'touch_input.dart';
 import 'upgrades.dart';
 import 'round_state.dart';
 
+/// Whether the welcome page asks how to play: accounts are switched on,
+/// nobody is signed in, and this device did not choose the guest before,
+/// or a mail link failed to sign in here.
+bool needsWelcome({
+  required bool accounts,
+  required bool guest,
+  required bool prefersGuest,
+  bool mailLinkFailed = false,
+}) => accounts && guest && (!prefersGuest || mailLinkFailed);
+
 class SpaceGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
   SpaceGame({
@@ -207,9 +217,12 @@ class SpaceGame extends FlameGame
   /// choosing to play as a guest. Without accounts there is nothing to pick,
   /// and a browser that chose the guest once is not asked again.
   late final welcomed = ValueNotifier<bool>(
-    !Env.accounts ||
-        !accounts.isGuest ||
-        (prefersGuest() && !AccountService.mailLinkFailed),
+    !needsWelcome(
+      accounts: Env.accounts,
+      guest: accounts.isGuest,
+      prefersGuest: prefersGuest(),
+      mailLinkFailed: AccountService.mailLinkFailed,
+    ),
   );
 
   /// Welcome page: go on without an account.
