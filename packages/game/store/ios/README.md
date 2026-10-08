@@ -68,3 +68,21 @@ voraussichtlich 12+.
 
 In der App Privacy bleibt alles wie oben: Die Kamera liest nur QR-Codes auf
 dem Gerät, dabei wird nichts erhoben.
+
+## Universal Links
+
+Room links (`https://www.regetskcob.de/wargame/?room=CODE`) open the app when
+it is installed, also from the iPhone camera. The app asks for
+`applinks:www.regetskcob.de` (`ios/Runner/Runner.entitlements`, team
+86HB5U6788). Apple only reads the association file at the root of the
+domain, so `apple-app-site-association` from this folder belongs into the
+website repository `regetskcob.github.io` at
+`static/.well-known/apple-app-site-association`. Check after the deploy:
+
+```sh
+curl -s https://www.regetskcob.de/.well-known/apple-app-site-association
+curl -s https://app-site-association.cdn-apple.com/a/v1/www.regetskcob.de
+```
+
+Apple's CDN can take a day to pick up a change. iOS fetches the file when the
+app is installed or updated.

@@ -16,6 +16,10 @@ String _newCode() {
 
 bool _hosting = true;
 
+/// The apps follow room links opened on the device. In the browser the link
+/// is the address itself.
+void listenForRoomLinks() {}
+
 /// Used by the apps to swap the game for another room. The browser loads
 /// the room's address instead, so this stays unset here.
 void Function(String room, {required bool host})? onRoomSwitch;
