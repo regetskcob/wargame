@@ -121,6 +121,12 @@ class SpaceGame extends FlameGame
 
   /// Account ids of the players in the current round, for the rating.
   final _uids = <String, String>{};
+
+  /// What an account id looks like. Anything else in a presence would make
+  /// the database refuse the whole round for the player who records it.
+  static final _accountIdPattern = RegExp(
+    r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
+  );
   async.Timer? _saveTimer;
 
   final phase = ValueNotifier<GamePhase>(GamePhase.lobby);
@@ -979,8 +985,10 @@ class SpaceGame extends FlameGame
         ..clear()
         ..addAll({
           for (final member in roster.value)
-            if (member.uid != null && payload.participants.contains(member.id))
-              member.id: member.uid!,
+            if (member.uid case final uid?
+                when _accountIdPattern.hasMatch(uid) &&
+                    payload.participants.contains(member.id))
+              member.id: uid,
         });
       roundStats = RoundStats();
     }
@@ -1999,7 +2007,12 @@ class SpaceGame extends FlameGame
   }
 
   void _onDefense(DefensePayload payload) {
-    if (round?.defense ?? false) {
+    final activeRound = round;
+    // Only the player who runs the waves says how the base stands.
+    if (activeRound != null &&
+        activeRound.defense &&
+        payload.id == activeRound.botHost &&
+        !net.duplicateIds.contains(payload.id)) {
       _applyDefense(payload);
     }
   }
@@ -4558,6 +4571,15 @@ class SpaceGame extends FlameGame
   void _onClose(String id) {
     final sender = _rosterMember(id);
     if (sender == null || !sender.host || phase.value == GamePhase.closed) {
+      return;
+    }
+    // Anybody can claim to be host in their own presence. While the owner
+    // is in the room only the owner closes it, and an id two presences
+    // claim is somebody posing as another.
+    final owners = roster.value.where((m) => m.owner).toList();
+    if (net.duplicateIds.contains(id) ||
+        owners.length > 1 ||
+        (owners.length == 1 && owners.single.id != id)) {
       return;
     }
     _enterClosed('Der Gastgeber hat den Warteraum geschlossen.');

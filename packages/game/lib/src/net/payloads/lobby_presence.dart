@@ -17,7 +17,7 @@ class LobbyPresence {
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
     return LobbyPresence(
       id: json['id'] as String,
-      name: json['name'] as String,
+      name: _cut(json['name'] as String),
       colorIndex: json['color'] as int,
       phase: json['phase'] as String,
       team: json['team'] as int? ?? 0,
@@ -29,6 +29,26 @@ class LobbyPresence {
       defense: json['defense'] as bool? ?? false,
       botHost: json['botHost'] as String?,
     );
+  }
+
+  /// Longest call sign the game shows. Longer ones come only from clients
+  /// that do not play by the rules and are cut.
+  static const maxName = 16;
+
+  /// Null when [json] is not a presence of this game, for example one with
+  /// wrong types from a client that does not play by the rules.
+  static LobbyPresence? tryParse(Map<String, dynamic> json) {
+    if (json['id'] is! String ||
+        json['name'] is! String ||
+        json['color'] is! int ||
+        json['phase'] is! String) {
+      return null;
+    }
+    try {
+      return LobbyPresence.fromJson(json);
+    } on Object {
+      return null;
+    }
   }
 
   final String id;
@@ -74,3 +94,7 @@ class LobbyPresence {
     };
   }
 }
+
+String _cut(String name) => name.length > LobbyPresence.maxName
+    ? name.substring(0, LobbyPresence.maxName)
+    : name;

@@ -19,7 +19,11 @@ class DefensePayload {
       hp: (json['hp'] as num).toDouble(),
       wave: json['wave'] as int,
       nextWaveAt: json['next'] as int? ?? 0,
-      result: DefenseResult.values[json['result'] as int? ?? 0],
+      result:
+          DefenseResult.values[(json['result'] as int? ?? 0).clamp(
+            0,
+            DefenseResult.values.length - 1,
+          )],
       hq: json['hq'] as int? ?? 1,
       extended: json['ext'] as bool? ?? false,
     );
