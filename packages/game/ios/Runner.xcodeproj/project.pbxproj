@@ -18,7 +18,9 @@
 		97C147011CF9000F007C117D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000F007C117D /* LaunchScreen.storyboard */; };
 		4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */; };
 		4F0E1A052E9A000100A1B2C3 /* OnlineWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
 		4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
+		4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */; };
 		4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */; };
 /* End PBXBuildFile section */
 
@@ -85,6 +87,7 @@
 		4F0E1A022E9A000100A1B2C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlineWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
+		4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPlugin.swift; sourceTree = "<group>"; };
 		4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLiveActivity.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -160,6 +163,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
+				4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -369,6 +373,8 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
+				4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */,
+				4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
