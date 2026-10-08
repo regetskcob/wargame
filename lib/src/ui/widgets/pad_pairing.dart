@@ -12,6 +12,7 @@ import 'panel.dart';
 import 'room_scanner.dart';
 import 'tablet_scale.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// Part of the account sheet: pair a phone as the gamepad of this screen,
 /// or, on a phone, become the gamepad of another one.
@@ -22,8 +23,10 @@ class ControllerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The Apple TV is a screen like the browser.
     final phoneApp =
         !kIsWeb &&
+        !onTv &&
         (defaultTargetPlatform == TargetPlatform.iOS ||
             defaultTargetPlatform == TargetPlatform.android);
     // The browser and the tablets show the game, phones in the app steer

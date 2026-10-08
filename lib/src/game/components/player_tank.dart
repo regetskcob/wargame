@@ -17,6 +17,7 @@ import '../inventory.dart';
 import '../special_weapon.dart';
 import '../tank_damage.dart';
 import '../touch_input.dart';
+import '../../tv/tv_input.dart';
 import '../tank_game.dart';
 import 'tree.dart';
 import 'mine.dart';
@@ -142,7 +143,9 @@ class PlayerTank extends TankBase
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (isBot) {
+    // The Apple TV turns swipes and the controller's pad into arrow keys
+    // for the menus. In the round the raw sticks steer, see TvSteering.
+    if (isBot || onTv) {
       return true;
     }
     _thrust =

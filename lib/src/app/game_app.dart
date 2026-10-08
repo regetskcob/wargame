@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart'
     show PointerDeviceKind, kPrimaryMouseButton;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -27,6 +28,8 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
+import '../tv/tv_focus_frame.dart';
+import '../tv/tv_input.dart';
 import '../ui/widgets/tablet_scale.dart';
 import '../watch/watch_lobby.dart';
 import '../watch/watch_overlays.dart';
@@ -161,94 +164,141 @@ class _GameAppState extends State<GameApp> {
       supportedLocales: [for (final l in AppLang.values) l.locale],
       debugShowCheckedModeBanner: false,
       theme: buildBundeswehrTheme(),
-      home: Scaffold(
-        backgroundColor: BwColors.background,
-        body: Listener(
-          behavior: HitTestBehavior.translucent,
-          onPointerDown: (event) {
-            // A click on a button must not take the keyboard from the tank.
-            if (game.phase.value != GamePhase.lobby) {
-              _reclaimFocus();
+      // Seen from the sofa: everything a good deal larger.
+      builder: onTv
+          ? (context, child) => TvFocusFrame(
+              holdFocus: () =>
+                  game.phase.value == GamePhase.countdown ||
+                  game.phase.value == GamePhase.playing,
+              // Up and down walk the menus in reading order, so a swipe
+              // never skips a button that is not straight below. Set in
+              // here, below the text editing keys, so a text field lets go
+              // of them too.
+              child: Shortcuts(
+                shortcuts: const {
+                  SingleActivator(LogicalKeyboardKey.arrowDown):
+                      NextFocusIntent(),
+                  SingleActivator(LogicalKeyboardKey.arrowUp):
+                      PreviousFocusIntent(),
+                },
+                child: FixedScale(scale: tvScale, child: child!),
+              ),
+            )
+          : null,
+      home: onTv ? _TvBack(game: game, child: _home()) : _home(),
+    );
+  }
+
+  Widget _home() {
+    return Scaffold(
+      backgroundColor: BwColors.background,
+      body: Listener(
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (event) {
+          // A click on a button must not take the keyboard from the tank.
+          if (game.phase.value != GamePhase.lobby) {
+            _reclaimFocus();
+          }
+          if (event.kind == PointerDeviceKind.touch) {
+            game.touchMode.value = true;
+          } else if (event.kind == PointerDeviceKind.mouse) {
+            _aimWithMouse(event.localPosition);
+            if (event.buttons & kPrimaryMouseButton != 0 &&
+                !game.pointerOnHud) {
+              game.touch.fire = true;
             }
-            if (event.kind == PointerDeviceKind.touch) {
-              game.touchMode.value = true;
-            } else if (event.kind == PointerDeviceKind.mouse) {
-              _aimWithMouse(event.localPosition);
-              if (event.buttons & kPrimaryMouseButton != 0 &&
-                  !game.pointerOnHud) {
-                game.touch.fire = true;
-              }
-            }
-          },
-          onPointerUp: (event) {
-            if (event.kind == PointerDeviceKind.mouse) {
-              game.touch.fire = false;
-            }
-          },
-          onPointerCancel: (_) => game.touch.fire = false,
-          onPointerMove: (event) {
-            if (event.kind == PointerDeviceKind.mouse) {
-              _aimWithMouse(event.localPosition);
-            }
-          },
-          onPointerHover: (event) => _aimWithMouse(event.localPosition),
-          child: ValueListenableBuilder<GamePhase>(
-            valueListenable: game.phase,
-            builder: (context, phase, child) => MouseRegion(
-              cursor: phase == GamePhase.playing
-                  ? SystemMouseCursors.precise
-                  : MouseCursor.defer,
-              onExit: (_) => game.touch.fire = false,
-              child: child,
-            ),
-            child: GameWidget<TankGame>(
-              // A new room brings a new game, which needs a fresh widget.
-              key: ObjectKey(game),
-              game: game,
-              focusNode: _gameFocus,
-              autofocus: true,
-              overlayBuilderMap: onWatch
-                  ? {
-                      OverlayIds.lobby: (context, game) =>
-                          WatchLobby(game: game),
-                      OverlayIds.countdown: (context, game) =>
-                          WatchCountdown(game: game),
-                      OverlayIds.hud: (context, game) => WatchHud(game: game),
-                      OverlayIds.spectator: (context, game) =>
-                          WatchSpectator(game: game),
-                      OverlayIds.roundOver: (context, game) =>
-                          WatchRoundOver(game: game),
-                      OverlayIds.closed: (context, game) =>
-                          WatchClosed(game: game),
-                      OverlayIds.tutorial: (context, game) =>
-                          const SizedBox.shrink(),
-                    }
-                  : {
-                      OverlayIds.lobby: (context, game) =>
-                          LobbyOverlay(game: game),
-                      OverlayIds.countdown: (context, game) =>
-                          CountdownOverlay(game: game),
-                      OverlayIds.hud: (context, game) =>
-                          TabletScale(child: HudOverlay(game: game)),
-                      OverlayIds.spectator: (context, game) =>
-                          SpectatorOverlay(game: game),
-                      OverlayIds.roundOver: (context, game) =>
-                          RoundOverOverlay(game: game),
-                      OverlayIds.closed: (context, game) =>
-                          ClosedOverlay(game: game),
-                      OverlayIds.tutorial: (context, game) =>
-                          ValueListenableBuilder<bool>(
-                            valueListenable: game.touchMode,
-                            builder: (context, touch, _) => TutorialOverlay(
-                              touch: touch,
-                              onClose: game.closeTutorial,
-                            ),
+          }
+        },
+        onPointerUp: (event) {
+          if (event.kind == PointerDeviceKind.mouse) {
+            game.touch.fire = false;
+          }
+        },
+        onPointerCancel: (_) => game.touch.fire = false,
+        onPointerMove: (event) {
+          if (event.kind == PointerDeviceKind.mouse) {
+            _aimWithMouse(event.localPosition);
+          }
+        },
+        onPointerHover: (event) => _aimWithMouse(event.localPosition),
+        child: ValueListenableBuilder<GamePhase>(
+          valueListenable: game.phase,
+          builder: (context, phase, child) => MouseRegion(
+            cursor: phase == GamePhase.playing
+                ? SystemMouseCursors.precise
+                : MouseCursor.defer,
+            onExit: (_) => game.touch.fire = false,
+            child: child,
+          ),
+          child: GameWidget<TankGame>(
+            // A new room brings a new game, which needs a fresh widget.
+            key: ObjectKey(game),
+            game: game,
+            focusNode: _gameFocus,
+            autofocus: true,
+            overlayBuilderMap: onWatch
+                ? {
+                    OverlayIds.lobby: (context, game) => WatchLobby(game: game),
+                    OverlayIds.countdown: (context, game) =>
+                        WatchCountdown(game: game),
+                    OverlayIds.hud: (context, game) => WatchHud(game: game),
+                    OverlayIds.spectator: (context, game) =>
+                        WatchSpectator(game: game),
+                    OverlayIds.roundOver: (context, game) =>
+                        WatchRoundOver(game: game),
+                    OverlayIds.closed: (context, game) =>
+                        WatchClosed(game: game),
+                    OverlayIds.tutorial: (context, game) =>
+                        const SizedBox.shrink(),
+                  }
+                : {
+                    OverlayIds.lobby: (context, game) =>
+                        LobbyOverlay(game: game),
+                    OverlayIds.countdown: (context, game) =>
+                        CountdownOverlay(game: game),
+                    OverlayIds.hud: (context, game) =>
+                        TabletScale(child: HudOverlay(game: game)),
+                    OverlayIds.spectator: (context, game) =>
+                        SpectatorOverlay(game: game),
+                    OverlayIds.roundOver: (context, game) =>
+                        RoundOverOverlay(game: game),
+                    OverlayIds.closed: (context, game) =>
+                        ClosedOverlay(game: game),
+                    OverlayIds.tutorial: (context, game) =>
+                        ValueListenableBuilder<bool>(
+                          valueListenable: game.touchMode,
+                          builder: (context, touch, _) => TutorialOverlay(
+                            touch: touch,
+                            onClose: game.closeTutorial,
                           ),
-                    },
-            ),
+                        ),
+                  },
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The Menu button of the Siri Remote, and B on a controller, step back
+/// through the menus and leave the app only from the start page, as tvOS
+/// expects. In a round they do nothing.
+class _TvBack extends StatelessWidget {
+  const _TvBack({required this.game, required this.child});
+
+  final TankGame game;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop && !tvBack(game)) {
+          unawaited(SystemNavigator.pop());
+        }
+      },
+      child: child,
     );
   }
 }

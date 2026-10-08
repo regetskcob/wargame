@@ -8,6 +8,7 @@ import '../../net/room_directory.dart';
 import '../theme.dart';
 import 'room_scanner.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// Public rooms to join, and a field for the code of a private one.
 class RoomList extends StatefulWidget {
@@ -97,8 +98,9 @@ class _RoomListState extends State<RoomList> {
           ],
         ),
         // The apps read the QR code of a waiting room with the camera. In
-        // the browser the phone camera opens the room link by itself.
-        if (!kIsWeb) ...[
+        // the browser the phone camera opens the room link by itself, and
+        // the Apple TV has no camera.
+        if (!kIsWeb && !onTv) ...[
           const SizedBox(height: 8),
           OutlinedButton.icon(
             onPressed: _scan,

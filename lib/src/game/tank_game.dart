@@ -18,6 +18,7 @@ import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../app/env.dart';
 import '../haptics.dart';
+import '../tv/tv_input.dart';
 import '../watch/watch_support.dart';
 import 'game_config.dart';
 import '../net/net_events.dart';
@@ -138,12 +139,15 @@ class TankGame extends FlameGame
   final aliveCount = ValueNotifier<int>(0);
 
   /// On-screen controls: shown on phones and tablets, or after the first touch.
+  /// The Apple TV counts as iOS but has no touch screen.
   final touchMode = ValueNotifier<bool>(
-    defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.android,
+    !onTv &&
+        (defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.android),
   );
   final touch = TouchInput();
   late final _watchSteering = WatchSteering(touch);
+  late final _tvSteering = TvSteering(this);
 
   /// Mouse position in widget pixels, null until a mouse is seen. The turret
   /// follows it.
@@ -620,6 +624,14 @@ class TankGame extends FlameGame
       stopReplay();
       return KeyEventResult.handled;
     }
+    // The Apple TV sends swipes and clicks as arrows and enter as well.
+    // While the tank drives they must not walk the focus off to the HUD
+    // and press its buttons.
+    if (onTv &&
+        (phase.value == GamePhase.countdown ||
+            phase.value == GamePhase.playing)) {
+      return KeyEventResult.handled;
+    }
     return super.onKeyEvent(event, keysPressed);
   }
 
@@ -653,6 +665,7 @@ class TankGame extends FlameGame
       tankAngle: myTank?.angle ?? 0,
       hard: difficulty == BotLevel.hard,
     );
+    _tvSteering.update();
     _playReplay();
     _updatePowerUps();
     _updateRespawn(dt);

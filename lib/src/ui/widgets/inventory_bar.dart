@@ -13,12 +13,17 @@ class InventoryBar extends StatelessWidget {
     required this.inventory,
     required this.onUse,
     this.compact = false,
+    this.labels,
     super.key,
   });
 
   final Inventory inventory;
   final ValueChanged<int> onUse;
   final bool compact;
+
+  /// What sets off each slot, in place of the number keys: the buttons of a
+  /// controller on the Apple TV. An empty label shows nothing.
+  final List<String>? labels;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +43,9 @@ class InventoryBar extends StatelessWidget {
               child: i < slots.length
                   ? _Slot(
                       slot: slots[i],
-                      number: i + 1,
+                      label: labels == null
+                          ? '${i + 1}'
+                          : (i < labels!.length ? labels![i] : ''),
                       compact: compact,
                       onTap: () => onUse(i),
                     )
@@ -53,13 +60,13 @@ class InventoryBar extends StatelessWidget {
 class _Slot extends StatelessWidget {
   const _Slot({
     required this.slot,
-    required this.number,
+    required this.label,
     required this.compact,
     required this.onTap,
   });
 
   final InventorySlot slot;
-  final int number;
+  final String label;
   final bool compact;
   final VoidCallback onTap;
 
@@ -103,7 +110,7 @@ class _Slot extends StatelessWidget {
                 left: 3,
                 top: 1,
                 child: Text(
-                  '$number',
+                  label,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,

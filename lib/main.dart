@@ -12,11 +12,13 @@ import 'src/app/env.dart';
 import 'src/l10n/l10n.dart';
 import 'src/net/pad_link.dart';
 import 'src/net/room.dart';
+import 'src/tv/tv_input.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb &&
+      !onTv &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
     // Phones play upright or sideways, tablets any way up, without system
@@ -43,6 +45,8 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     publishableKey: Env.supabaseKey,
+    // Nothing opens links on the Apple TV, and app_links has no tvOS side.
+    authOptions: FlutterAuthClientOptions(detectSessionInUri: !onTv),
   );
   final auth = Supabase.instance.client.auth;
   if (auth.currentSession == null) {
@@ -68,5 +72,6 @@ Future<void> main() async {
     return;
   }
   unawaited(AudioService.init());
+  TvInput.instance.start();
   runApp(const GameApp());
 }
