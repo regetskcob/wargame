@@ -50,3 +50,7 @@ app.*.map.json
 # Supabase CLI
 supabase/.temp/
 supabase/.branches/
+
+# Claude Code: worktrees and personal settings stay local
+.claude/worktrees/
+.claude/settings.local.json

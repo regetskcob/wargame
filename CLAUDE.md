@@ -1,0 +1,93 @@
+# Panzergefecht – Leitfaden für Claude
+
+Bundeswehr-Panzerspiel (Flutter 3.47 + Flame 2.0, Supabase als einziges
+Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/>,
+dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
+Die README ist die ausführliche Referenz (Features, Netcode, Deploy); diese
+Datei ist der Schnelleinstieg.
+
+Beim Sitzungsstart zeigt der Hook `tool/session_context.sh` Branch, Abstand zu
+`origin/main`, letzte Commits und die neueste Migration. Erst lesen, dann
+vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
+(README → Features, Roadmap "Done").
+
+## Spielmodi in einem Satz
+
+- `GameMode.solo` – allein gegen CPU-Panzer (Bot-Stufen leicht/mittel/schwer
+  steuern Mechanik: Hügel, Treibstoff, Munition, Gems).
+- `GameMode.multi` – Last Tank Standing gegen Menschen (+ Bots zum Auffüllen,
+  Teams möglich).
+- `GameMode.defense` – Tower Defense im Trupp gegen Wellen (Host ist
+  Autorität), Stützpunkt wächst, nach Welle 8 Verlängerung.
+
+## Architektur in 6 Punkten
+
+1. **Eine Runde = `{seed, startedAt}`.** Welt, Wetter, Tag/Nacht, Fallschirm-
+   wellen folgen deterministisch aus dem Seed. Nur Ereignisse gehen übers Netz.
+2. **Peer-autoritativ:** Jeder simuliert seinen Panzer und seine Geschosse,
+   das Opfer wendet Schaden selbst an. Im Verteidigungsmodus ist der Host
+   Autorität über Wellen, Stützpunkt und Geschütz-HP.
+3. **Ein Realtime-Kanal pro Raum** (`game-arena-<room>`), Events in
+   `lib/src/net/net_events.dart`, Payloads in `lib/src/net/payloads/`.
+   Presence für Lobby, Host-Rolle, Raumliste (`game-rooms`), Handy-Controller
+   (`pad-<CODE>`).
+4. **`plausibility.dart`** prüft fremde Nachrichten (kein Anti-Cheat).
+5. **Wertung nur über RPC `record_round`** (Elo, EP, Abzeichen); Gäste ohne
+   Wertung. RLS ist gehärtet (Migration 0011/0012).
+6. **Replays** = aufgezeichnete Nachrichten + Seed, rein lokal.
+
+## Wo finde ich was
+
+| Thema | Ort |
+| --- | --- |
+| Herzstück, ~5000 Zeilen | `lib/src/game/tank_game.dart` (`TankGame`). Per Methodenname greppen, z. B. `_enterRound`, `_onShoot`, `_onHit`, `_checkRoundEnd`, `_applyDefense`, `collectPowerUp`, `_applyItem`, `fireFrom`, `_playReplay` |
+| Balancing-Zahlen | `lib/src/game/game_config.dart`, `tank_stats.dart`, `upgrades.dart`, `bot_level.dart` |
+| Bots | `bot_brain.dart`, `bot_items.dart`, `defense/defense_brain.dart`, `defense/ally_brain.dart` |
+| Verteidigung | `lib/src/game/defense/` (`defense_director.dart` = Wellen, `tower.dart`, `aircraft.dart`, `defense_map.dart`) |
+| Flame-Komponenten | `lib/src/game/components/` (`player_tank.dart`, `tank_painter.dart`, `soldier.dart`, …) |
+| Netz | `lib/src/net/net_service.dart` (Kanal, `_listen`), `room_web.dart`/`room_stub.dart`, `pad_link.dart` |
+| UI / Overlays | `lib/src/ui/` (`hud_overlay.dart`, `lobby_overlay.dart`, `launch_view.dart`, `welcome_view.dart`), Overlay-IDs in `app/overlay_ids.dart` |
+| Watch | `lib/src/watch/`, verzweigen nur mit `FlutterWatchosPlatform.isWatch` |
+| Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
+| DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
+| Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
+| Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell) |
+| Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
+
+## Befehle
+
+```sh
+flutter pub get
+tool/verify.sh --quick        # format, analyze, test (ohne supabase-Tag)
+tool/verify.sh                # + web, iOS (no-codesign), Android appbundle
+flutter run -d chrome --dart-define=ROOM=dev   # zweimal starten = 2 Spieler
+```
+
+Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
+
+## Arbeitsweise (vom Nutzer festgelegt)
+
+- **Direkt auf `main`**, keine PRs: Branch mit `origin/main` mergen, prüfen,
+  pushen. Push auf `main` deployt sofort per GitHub Pages.
+- **Vor jedem Push alle drei Builds grün**: Web, iOS, Android
+  (`tool/verify.sh`), im Abschluss nennen, was lief. Skill `/ship`.
+- Code, Kommentare, Commit-Messages und README auf **Englisch**; Commits als
+  ganzer Satz im Imperativ ohne Präfix ("Put leave on the left …").
+  Mit dem Nutzer auf Deutsch sprechen.
+- Kommentare erklären das *Warum*; README-Abschnitte (Features, Netcode,
+  Roadmap) mitpflegen, wenn sich Verhalten ändert.
+- `dart format` ist in CI Pflicht.
+- Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
+
+## Stolperfallen
+
+- `supabase db push` aus einem Worktree: vorher
+  `/Users/regetskcob/wargame/supabase/.temp` in den Worktree kopieren.
+- Nach `supabase_typegen` die Default-Fallbacks für nachträglich ergänzte
+  Spalten in `supabase_schema.g.dart` wiederherstellen (siehe README).
+- SQL ohne Docker prüfen: PGlite (npm) im Scratchpad mit auth-Stub.
+- Live-Auth-Einstellungen (SMTP, Redirects, OAuth) setzt der Nutzer im
+  Supabase-Dashboard, nicht Claude.
+- Die Repo ist **öffentlich**: keine Secrets, keine `key.properties`.
+- Plugins ohne `*_watchos`-Paket (`app_links`, `share_plus`,
+  `mobile_scanner`) werfen auf der Uhr `MissingPluginException`.
