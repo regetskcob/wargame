@@ -80,7 +80,7 @@ class TankChoice extends StatelessWidget {
             _line(
               locked ? 'ab Stufe ${type.level}' : type.role,
               TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 color: locked ? BwColors.amber : BwColors.textDim,
               ),
               14,

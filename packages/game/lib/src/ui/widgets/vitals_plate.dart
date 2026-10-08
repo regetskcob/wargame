@@ -101,7 +101,7 @@ class VitalsPlate extends StatelessWidget {
               label,
               textAlign: TextAlign.end,
               style: TextStyle(
-                fontSize: 10,
+                fontSize: 11,
                 fontWeight: FontWeight.w800,
                 color: value <= 0 ? BwColors.danger : null,
               ),

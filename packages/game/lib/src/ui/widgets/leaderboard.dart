@@ -297,7 +297,7 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   static const _head = TextStyle(
-    fontSize: 10,
+    fontSize: 11,
     letterSpacing: 1.4,
     color: BwColors.textDim,
     fontWeight: FontWeight.w800,
