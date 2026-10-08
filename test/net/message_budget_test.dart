@@ -78,6 +78,11 @@ Future<_Measured> _playRound({
       ..drive = (cos(t), sin(t))
       ..aim = t * 2
       ..fire = frame % 30 == 0;
+    // Nobody falls, so the round runs the whole time whatever the dice:
+    // the measurement is about sending, not about who wins.
+    for (final tank in [?game.myTank, ...game.botTanks.values]) {
+      tank.hp = tank.stats.maxHp;
+    }
     game.update(dt);
   }
   expect(
