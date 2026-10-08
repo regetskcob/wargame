@@ -70,7 +70,16 @@ PLAY_SHOTS = [
     if size == IPAD
 ]
 
-SHOTS = [(IOS / name, *rest) for name, *rest in IOS_SHOTS] + [
+# App Store Connect asks for the 6.3" iPhone as its own required size and
+# does not take the 6.9" shots there.
+IPHONE_63 = (1206, 2622)
+IOS_63_SHOTS = [
+    (name.replace("iphone-", "iphone63-"), raw, IPHONE_63, head, sub)
+    for name, raw, size, head, sub in IOS_SHOTS
+    if size == IPHONE
+]
+
+SHOTS = [(IOS / name, *rest) for name, *rest in IOS_SHOTS + IOS_63_SHOTS] + [
     (PLAY / name, *rest) for name, *rest in PLAY_SHOTS
 ]
 
