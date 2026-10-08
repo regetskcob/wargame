@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../game_config.dart';
@@ -663,6 +664,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return Panel(padding: EdgeInsets.all(narrow ? 14 : 24), child: child);
   }
 
+  /// Phones and the apps on tablets show the menu without the outer plate:
+  /// the screen edge already frames it.
+  bool _frameless(BuildContext context) =>
+      MediaQuery.sizeOf(context).width < 600 ||
+      (!kIsWeb &&
+          (defaultTargetPlatform == TargetPlatform.iOS ||
+              defaultTargetPlatform == TargetPlatform.android));
+
   Widget _build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -671,19 +680,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ]),
       builder: (context, _) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
-        color: MediaQuery.sizeOf(context).width < 600
-            ? BwColors.panel
-            : const Color(0xAA000000),
+        color: _frameless(context) ? BwColors.panel : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         // Phones scroll the page up to the lower screen edge instead of
         // cutting it off above the home indicator.
         child: SafeArea(
-          bottom: MediaQuery.sizeOf(context).width >= 600,
+          bottom: !_frameless(context),
           child: LayoutBuilder(
             builder: (context, constraints) {
               final narrow = constraints.maxWidth < 820;
-              final phone = constraints.maxWidth < 600;
+              final phone = _frameless(context);
               final page = !widget.game.welcomed.value
                   ? 0
                   : widget.game.choosingMode.value && widget.game.isHost.value
