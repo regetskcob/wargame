@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'src/app/game_app.dart';
 import 'src/audio/audio_service.dart';
 import 'src/db/account_service.dart';
+import 'src/db/server_status.dart';
 import 'src/app/env.dart';
 import 'src/l10n/l10n.dart';
 import 'src/net/pad_link.dart';
@@ -45,9 +46,9 @@ Future<void> main() async {
     publishableKey: Env.supabaseKey,
   );
   final auth = Supabase.instance.client.auth;
-  if (auth.currentSession == null) {
-    await auth.signInAnonymously();
-  }
+  // Without a server (offline, or the project over its quota) the game
+  // still starts: solo rounds need none, the heartbeat tries again.
+  ServerStatus.available.value = await ServerStatus.ensureSession(auth);
   if (auth.currentUser?.newEmail != null) {
     // The stored account still waits for its address. It may have been
     // confirmed in another tab since, which only shows after a refresh.

@@ -3,10 +3,13 @@ import 'dart:async';
 import 'package:flutter/widgets.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'server_status.dart';
+
 /// Tells the database once a minute that this game is running, so the home
 /// screen widget can count the pilots online. Pauses while the app sits in
-/// the background. Every call fails quietly, so the game keeps working
-/// against a database without migration 0011.
+/// the background. Every call fails quietly; whether it got through tells
+/// [ServerStatus] if the server is there, and a game that started without
+/// a session gets one here once the server answers again.
 class OnlineService {
   OnlineService(this._client, {required this.inMatch});
 
@@ -41,14 +44,11 @@ class OnlineService {
   }
 
   Future<void> ping() async {
-    if (_client.auth.currentUser == null) {
-      return;
-    }
-    try {
-      await _client.rpc<void>('ping_online', params: {'p_in_match': inMatch()});
-    } on Object {
-      return;
-    }
+    ServerStatus.available.value = await ServerStatus.check(
+      session: () => ServerStatus.ensureSession(_client.auth),
+      heartbeat: () =>
+          _client.rpc<void>('ping_online', params: {'p_in_match': inMatch()}),
+    );
   }
 
   void dispose() {

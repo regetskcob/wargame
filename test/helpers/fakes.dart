@@ -4,6 +4,7 @@ import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/db/account_service.dart';
 import 'package:wargame/src/db/profile_service.dart';
 import 'package:wargame/src/db/score_service.dart';
+import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/net_service.dart';
@@ -86,6 +87,19 @@ class FakeProfiles implements ProfileService {
 class FakeScores implements ScoreService {
   @override
   String? get myId => null;
+
+  @override
+  Future<List<ScoresRow>> topScores({int limit = 20}) async => const [];
+
+  @override
+  Future<List<WeeklyScoresRow>> weeklyScores({int limit = 20}) async =>
+      const [];
+
+  @override
+  Future<List<TankScoresRow>> myTankScores() async => const [];
+
+  @override
+  Future<ScoresRow?> myScore() async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
