@@ -1,6 +1,6 @@
 ---
 name: ship
-description: Bring the current branch onto main and push it - merge origin/main, run format, analyze, tests and the web, iOS and Android builds, then push and watch CI. Use when the user says "auf main", "pushen", "mergen", "ausliefern", "ship it" or a feature is done.
+description: Bring the current branch onto main and push it - merge origin/main, run format, analyze and tests (plus the web, iOS and Android builds when the change needs them), then push and watch CI. Use when the user says "auf main", "pushen", "mergen", "ausliefern", "ship it" or a feature is done.
 ---
 
 # Ship to main
@@ -14,9 +14,13 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
 2. Merge `origin/main` into the branch (in an app-made worktree use the
    `sync_with_base_branch` tool). Resolve conflicts; the files under `lib/src/game/tank_game/`,
    `l10n.dart` and `README.md` are the usual hot spots, keep both sides.
-3. Run `tool/verify.sh` (format, analyze, tests, web, iOS, Android). It takes
-   a few minutes; run it in the background and wait for it. Fix and rerun
-   until it ends with "All green".
+3. Pick the check by the size of the change. Small changes to Dart code or
+   docs only: `tool/verify.sh --quick` (format, analyze, tests); the `pages`
+   workflow builds the web app anyway. The full `tool/verify.sh` (plus web,
+   iOS, Android, several minutes) is for changes to `pubspec.*`, `ios/`,
+   `android/`, `tvos/`, the watch app, assets, plugins or the version, for
+   larger refactors and before store releases; run it in the background and
+   wait for "All green". Fix and rerun until green.
 4. If a migration is part of the change, push it to the hosted project
    before the game, without asking (standing go-ahead; see
    `/db-migration`, it must have passed the PGlite check), because the
