@@ -23,6 +23,7 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
+import '../ui/widgets/tablet_scale.dart';
 import 'live_activity.dart';
 import 'overlay_ids.dart';
 
@@ -159,7 +160,8 @@ class _GameAppState extends State<GameApp> {
                 OverlayIds.lobby: (context, game) => LobbyOverlay(game: game),
                 OverlayIds.countdown: (context, game) =>
                     CountdownOverlay(game: game),
-                OverlayIds.hud: (context, game) => HudOverlay(game: game),
+                OverlayIds.hud: (context, game) =>
+                    TabletScale(child: HudOverlay(game: game)),
                 OverlayIds.spectator: (context, game) =>
                     SpectatorOverlay(game: game),
                 OverlayIds.roundOver: (context, game) =>

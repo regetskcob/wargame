@@ -10,16 +10,23 @@ import 'src/audio_service.dart';
 import 'src/db/account_service.dart';
 import 'src/env.dart';
 import 'src/net/room.dart';
+import 'src/ui/widgets/tablet_scale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (!kIsWeb &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
-    // Phones play upright or sideways, without system bars. The camera
-    // shows the same stretch of the world along the shorter side either way.
-    await SystemChrome.setPreferredOrientations(const [
+    // Phones play upright or sideways, tablets any way up, without system
+    // bars. The camera shows the same stretch of the world along the shorter
+    // side either way.
+    final view = WidgetsBinding.instance.platformDispatcher.views.first;
+    final tablet =
+        view.physicalSize.shortestSide / view.devicePixelRatio >=
+        tabletShortSide;
+    await SystemChrome.setPreferredOrientations([
       DeviceOrientation.portraitUp,
+      if (tablet) DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);
