@@ -1,0 +1,12 @@
+# Copy to key.properties (git ignores it) and fill in. storeFile is relative
+# to android/app. Create the upload key once with:
+#
+#   keytool -genkey -v -keystore ~/upload-keystore.jks -keyalg RSA \
+#     -keysize 2048 -validity 10000 -alias upload
+#
+# Keep the .jks and the passwords safe: losing them means asking Google to
+# reset the upload key.
+storePassword=
+keyPassword=
+keyAlias=upload
+storeFile=/Users/<you>/upload-keystore.jks

@@ -315,8 +315,8 @@ separate rooms to stay under the Realtime message limits.
 `packages/game` carries `ios/` and `android/` next to `macos/` and `web/`. The
 iOS app is called Wargame: bundle id `de.regetskcob.wargame`, display name
 and `Wargame.app` as the product (the Xcode target and scheme stay `Runner`,
-which `flutter build ios` expects). Android keeps the app id
-`de.regetskcob.game` and the name Panzergefecht. On phones
+which `flutter build ios` expects). The Android app is called Wargame too,
+with the same app id `de.regetskcob.wargame`. On phones
 and tablets the game plays upright or sideways, hides the system bars, and
 shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and
@@ -337,16 +337,20 @@ melos run build:game:ios     # iOS, set your signing team in Xcode first
 ```
 
 Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
-for the web build. CI builds the iOS app without signing on every push
-(`flutter build ios --release --no-codesign`). To sign, add your Apple ID in
+for the web build. CI builds the iOS app without signing
+(`flutter build ios --release --no-codesign`) and the Android App Bundle with
+the debug key on every push. To sign, add your Apple ID in
 Xcode (Settings > Accounts), open `ios/Runner.xcworkspace` and pick your team
 under Signing & Capabilities. The app declares that it uses no non-exempt
 encryption, so App Store Connect skips the export compliance question. On
 iOS and Android sign-in mails are confirmed with the code from the mail, the
-link in it opens the web game. To play a local stack from an Android emulator use
-`http://10.0.2.2:54621`, from a real phone the LAN address of your Mac. Before
-publishing, change the app id and add your own launcher icon and signing
-configuration.
+link in it opens the web game. To sign the Android release, copy
+`android/key.properties.example` to `android/key.properties` and point it at
+your upload key; without it Gradle signs with the debug key, which Google Play
+rejects. Store texts, icons and screenshots for both stores live in
+`store/ios` and `store/android`, each with a README of what goes where. To play
+a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
+phone the LAN address of your Mac.
 
 ## Tests
 
