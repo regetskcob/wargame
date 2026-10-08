@@ -4569,13 +4569,15 @@ class SpaceGame extends FlameGame
     await net.dispose();
   }
 
-  /// Leaves the closed screen for a new room, hosted by this player.
-  Future<void> openNewRoom() async {
+  /// Leaves the closed screen for the start page of a new room, hosted by
+  /// this player.
+  Future<void> backToStart() async {
     if (phase.value != GamePhase.closed || openFreshRoom()) {
       return;
     }
     // No address bar to start over from: meet in the same room again.
     _setHost(true);
+    choosingMode.value = true;
     _lastActivity = DateTime.now();
     closedReason.value = null;
     _setPhase(GamePhase.lobby);

@@ -4,7 +4,7 @@ import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
 
-/// The waiting room is gone: say why and offer a fresh one.
+/// The waiting room is gone: say why and lead back to the start page.
 class ClosedOverlay extends StatelessWidget {
   const ClosedOverlay({required this.game, super.key});
 
@@ -39,9 +39,9 @@ class ClosedOverlay extends StatelessWidget {
                   ),
                   const SizedBox(height: 24),
                   FilledButton.icon(
-                    onPressed: game.openNewRoom,
-                    icon: const Icon(Icons.add_home),
-                    label: const Text('NEUEN WARTERAUM ÖFFNEN'),
+                    onPressed: game.backToStart,
+                    icon: const Icon(Icons.home),
+                    label: const Text('ZUR STARTSEITE'),
                   ),
                 ],
               ),

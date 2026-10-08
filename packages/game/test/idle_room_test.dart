@@ -47,4 +47,22 @@ void main() {
     expect(game.phase.value, GamePhase.closed);
     expect(game.closedReason.value, contains('ohne Aktivität'));
   });
+
+  test('the closed screen leads back to the start page', () async {
+    final net = FakeNet();
+    final game = offlineGame(net: net)
+      ..onGameResize(Vector2(1280, 720))
+      ..chooseMode(GameMode.multi);
+    game.overlays
+      ..addEntry(OverlayIds.closed, (_, _) => const SizedBox())
+      ..addEntry(OverlayIds.lobby, (_, _) => const SizedBox());
+    game.closeWhenIdle(now: later);
+    expect(game.phase.value, GamePhase.closed);
+
+    await game.backToStart();
+    expect(game.phase.value, GamePhase.lobby);
+    expect(game.isHost.value, isTrue);
+    expect(game.choosingMode.value, isTrue);
+    expect(game.closedReason.value, isNull);
+  });
 }
