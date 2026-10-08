@@ -15,7 +15,6 @@ import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
 import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
-import 'widgets/language_button.dart';
 
 /// Start page of the host: alone, with others or together against waves.
 /// Everything else is set in the waiting room that follows.
@@ -52,7 +51,6 @@ class LaunchView extends StatelessWidget {
                     children: [
                       title,
                       AccountButton(game: game),
-                      const LanguageButton(),
                       const MuteButton(),
                     ],
                   ),
@@ -67,7 +65,6 @@ class LaunchView extends StatelessWidget {
                 const SizedBox(width: 12),
                 CallSign(game: game),
                 AccountButton(game: game),
-                const LanguageButton(),
                 const MuteButton(),
               ],
             );

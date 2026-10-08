@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../env.dart';
@@ -5,6 +7,7 @@ import '../../game/space_game.dart';
 import '../../net/room.dart';
 import '../../theme.dart';
 import 'account_panel.dart';
+import 'choice_row.dart';
 import 'legal.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
@@ -40,7 +43,11 @@ class AccountSheet extends StatefulWidget {
         insetPadding: const EdgeInsets.all(16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 560, maxHeight: 760),
-          child: AccountSheet(game: game),
+          // Picking another language below redraws the whole sheet in it.
+          child: ValueListenableBuilder<AppLang>(
+            valueListenable: L10n.lang,
+            builder: (context, _, _) => AccountSheet(game: game),
+          ),
         ),
       ),
     );
@@ -190,6 +197,26 @@ class _AccountSheetState extends State<AccountSheet> {
                     onChanged: _rename,
                   ),
                   const SizedBox(height: 12),
+                  Text(
+                    tr('SPRACHE', 'LANGUAGE'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 8),
+                  // The game keeps the choice with the account, so it
+                  // comes along to every device.
+                  ChoiceRow<AppLang>(
+                    options: [
+                      for (final lang in AppLang.values)
+                        (lang, lang.label.toUpperCase(), null),
+                    ],
+                    selected: L10n.current,
+                    onSelected: (lang) {
+                      if (lang != null) {
+                        unawaited(L10n.set(lang));
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   if (Env.accounts)
                     AccountPanel(
                       accounts: accounts,

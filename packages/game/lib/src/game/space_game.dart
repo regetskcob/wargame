@@ -524,6 +524,8 @@ class SpaceGame extends FlameGame
     _accountId = scoreService.myId;
     await _loadPilot();
     accounts.user.addListener(_onAccountChanged);
+    _adoptLanguage();
+    L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;
     await net.connect(_presencePayload());
     directory.connect();
@@ -658,12 +660,26 @@ class SpaceGame extends FlameGame
       return;
     }
     _accountId = id;
+    _adoptLanguage();
     unawaited(() async {
       await _loadPilot();
       pilotVersion.value++;
       await pushPresence();
     }());
   }
+
+  /// Speaks the language kept with the account. An account without one
+  /// takes the language in use on this device.
+  void _adoptLanguage() {
+    final kept = accounts.language;
+    if (kept == null) {
+      _saveLanguage();
+    } else if (kept != L10n.current) {
+      unawaited(L10n.set(kept));
+    }
+  }
+
+  void _saveLanguage() => unawaited(accounts.rememberLanguage(L10n.current));
 
   /// Name, look and progress from the last visit. Gives up after a few
   /// seconds so a slow network never holds up the lobby.
@@ -4731,6 +4747,7 @@ class SpaceGame extends FlameGame
     }
     _noticeTimer?.cancel();
     pauseEngine();
+    L10n.lang.removeListener(_saveLanguage);
     accounts.dispose();
     await directory.dispose();
     await net.dispose();

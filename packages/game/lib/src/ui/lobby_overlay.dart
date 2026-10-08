@@ -25,7 +25,6 @@ import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 import 'widgets/tutorial_button.dart';
 import '../l10n/l10n.dart';
-import 'widgets/language_button.dart';
 
 class LobbyOverlay extends StatefulWidget {
   const LobbyOverlay({required this.game, super.key});
@@ -102,7 +101,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
             ),
             AccountButton(game: game),
-            const LanguageButton(),
             const MuteButton(),
           ],
         ),

@@ -3,6 +3,7 @@ import 'package:game/src/db/account_service.dart';
 import 'package:game/src/db/profile_service.dart';
 import 'package:game/src/db/score_service.dart';
 import 'package:game/src/game/space_game.dart';
+import 'package:game/src/l10n/l10n.dart';
 import 'package:game/src/net/net_service.dart';
 import 'package:game/src/net/payloads/lobby_presence.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -37,6 +38,12 @@ class FakeAccounts implements AccountService {
 
   @override
   String? get email => user.value?.email;
+
+  @override
+  AppLang? language;
+
+  @override
+  Future<void> rememberLanguage(AppLang lang) async => language = lang;
 
   @override
   Future<void> signOut() async {

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../env.dart';
+import '../l10n/l10n.dart';
 import '../net/room.dart';
 
 /// Turns the anonymous guest account every player starts with into a lasting
@@ -119,6 +120,32 @@ class AccountService {
       user.value = _client.auth.currentUser;
     } on Object {
       // The browser still remembers it, the account asks again elsewhere.
+    }
+  }
+
+  /// Marker on the account for the language the player chose.
+  static const _languageKey = 'language';
+
+  /// The language kept with the account, so it comes along to every
+  /// device. Null until the player had one.
+  AppLang? get language {
+    final code = user.value?.userMetadata[_languageKey];
+    return AppLang.values.where((l) => l.code == code).firstOrNull;
+  }
+
+  /// Keeps [lang] with the account. Guests get it too: it stays when they
+  /// register.
+  Future<void> rememberLanguage(AppLang lang) async {
+    if (user.value == null || language == lang) {
+      return;
+    }
+    try {
+      await _client.auth.updateUser(
+        UserAttributes(data: {_languageKey: lang.code}),
+      );
+      user.value = _client.auth.currentUser;
+    } on Object {
+      // The device still remembers it, the account learns it next time.
     }
   }
 
