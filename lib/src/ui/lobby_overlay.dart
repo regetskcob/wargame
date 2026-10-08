@@ -20,7 +20,6 @@ import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
-import 'widgets/tutorial_button.dart';
 import '../l10n/l10n.dart';
 
 class LobbyOverlay extends StatefulWidget {
@@ -79,7 +78,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Title, what the round is about and the sound switch.
-  Widget _header(BuildContext context, String title, {Widget? extra}) {
+  Widget _header(
+    BuildContext context,
+    String title, {
+    List<Widget> extra = const [],
+  }) {
     final game = widget.game;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -97,7 +100,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ),
             ),
-            ?extra,
+            ...extra,
             AccountButton(game: game),
             const MuteButton(),
           ],
@@ -481,62 +484,62 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// How to steer, folded away until asked for.
-  Widget _controls() {
+  /// How to steer, behind the question mark in the heading, with the way
+  /// into the briefing.
+  void _showControls(BuildContext context) {
     final game = widget.game;
-    return ValueListenableBuilder<bool>(
-      valueListenable: game.touchMode,
-      builder: (context, touch, _) => Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.zero,
-          leading: const Icon(Icons.sports_esports, color: BwColors.amber),
-          title: Text(
-            tr('STEUERUNG', 'CONTROLS'),
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.5,
-            ),
-          ),
-          childrenPadding: const EdgeInsets.only(bottom: 8),
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _hint(
-              touch
-                  ? tr(
-                      'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
-                          'Rechter Stick richtet den Turm aus und feuert, sobald '
-                          'du über den Ring schiebst. Kisten und Gems landen im '
-                          'Inventar am linken Rand, ein Tipp setzt sie ein. '
-                          'Waffen wie Granatwerfer, Mörser und Drohne löst du '
-                          'danach mit dem runden Knopf über dem rechten Stick aus.',
-                      'The left stick drives: up for forward, sideways to '
-                          'steer. The right stick aims the turret and fires '
-                          'as soon as you push past the ring. Crates and gems '
-                          'land in the inventory on the left edge, a tap uses '
-                          'them. Weapons such as grenade launcher, mortar and '
-                          'drone are then fired with the round button above '
-                          'the right stick.',
-                    )
-                  : tr(
-                      'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
-                          'Maus (oder Q und E), Feuer mit Leertaste oder '
-                          'Linksklick. Kisten und Gems wandern ins Inventar am '
-                          'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
-                          'ein. Waffen löst du danach mit F aus. In der '
-                          'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
-                      'Drive with WASD or the arrow keys, the turret aims at '
-                          'the mouse (or Q and E), fire with space or left '
-                          'click. Crates and gems go to the inventory on the '
-                          'left edge, use them with 1 to 6 or a click. '
-                          'Weapons are then fired with F. In defense, B builds '
-                          'a turret and V switches the type.',
-                    ),
-            ),
-            const SizedBox(height: 4),
-            TutorialButton(game: game),
-          ],
+    final touch = game.touchMode.value;
+    showDialog<void>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        backgroundColor: BwColors.surface,
+        title: Text(tr('STEUERUNG', 'CONTROLS')),
+        content: Text(
+          touch
+              ? tr(
+                  'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
+                      'Rechter Stick richtet den Turm aus und feuert, sobald '
+                      'du über den Ring schiebst. Kisten und Gems landen im '
+                      'Inventar am linken Rand, ein Tipp setzt sie ein. '
+                      'Waffen wie Granatwerfer, Mörser und Drohne löst du '
+                      'danach mit dem runden Knopf über dem rechten Stick aus.',
+                  'The left stick drives: up for forward, sideways to '
+                      'steer. The right stick aims the turret and fires '
+                      'as soon as you push past the ring. Crates and gems '
+                      'land in the inventory on the left edge, a tap uses '
+                      'them. Weapons such as grenade launcher, mortar and '
+                      'drone are then fired with the round button above '
+                      'the right stick.',
+                )
+              : tr(
+                  'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
+                      'Maus (oder Q und E), Feuer mit Leertaste oder '
+                      'Linksklick. Kisten und Gems wandern ins Inventar am '
+                      'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
+                      'ein. Waffen löst du danach mit F aus. In der '
+                      'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
+                  'Drive with WASD or the arrow keys, the turret aims at '
+                      'the mouse (or Q and E), fire with space or left '
+                      'click. Crates and gems go to the inventory on the '
+                      'left edge, use them with 1 to 6 or a click. '
+                      'Weapons are then fired with F. In defense, B builds '
+                      'a turret and V switches the type.',
+                ),
         ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.of(dialog).pop();
+              game.showTutorial();
+            },
+            icon: const Icon(Icons.school, size: 18),
+            label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialog).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -668,13 +671,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               mode.withOthers
                   ? tr('WARTERAUM', 'WAITING ROOM')
                   : tr('BEREITSTELLUNG', 'GET READY'),
-              extra: host
-                  ? IconButton(
-                      tooltip: tr('Einstellungen', 'Settings'),
-                      onPressed: widget.game.editSettings,
-                      icon: const Icon(Icons.settings_outlined),
-                    )
-                  : null,
+              extra: [
+                IconButton(
+                  tooltip: tr('Steuerung', 'Controls'),
+                  onPressed: () => _showControls(context),
+                  icon: const Icon(Icons.help_outline),
+                ),
+                if (host)
+                  IconButton(
+                    tooltip: tr('Einstellungen', 'Settings'),
+                    onPressed: widget.game.editSettings,
+                    icon: const Icon(Icons.settings_outlined),
+                  ),
+              ],
             ),
             const SizedBox(height: 18),
             if (room.isEmpty)
@@ -683,8 +692,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               _columns(room, [_tankSection(context)], narrow: narrow),
             const SizedBox(height: 18),
             _actions(),
-            const SizedBox(height: 8),
-            _controls(),
           ],
         );
       },
