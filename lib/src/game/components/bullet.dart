@@ -84,9 +84,11 @@ class Bullet extends PositionComponent
       removeFromParent();
     } else if (other is Tower) {
       // Enemy shells wear the guns down, the defenders shoot over them.
-      if (gameRef.round?.isEnemy(ownerId) ?? false) {
+      if (gameRef.hurtsTower(ownerId, other.ownerId)) {
         _impact(const Color(0xFF8A8A80));
-        if (gameRef.runsShooter(ownerId)) {
+        // The player who runs the waves keeps the score of every gun, also
+        // of the other player's shots in a duel.
+        if (gameRef.round?.botHost == gameRef.myId) {
           gameRef.damageTower(other, damage);
         }
         removeFromParent();
@@ -114,8 +116,8 @@ class Bullet extends PositionComponent
     } else if (other is Headquarters) {
       // Players shoot over their own base, enemy shells wear it down. The
       // player who runs the enemies keeps the score.
-      if (gameRef.round?.isEnemy(ownerId) ?? false) {
-        gameRef.damageBase(damage);
+      if (gameRef.hurtsBase(ownerId, other.lane)) {
+        gameRef.damageBase(damage, lane: other.lane);
         removeFromParent();
       }
     } else if (other is Obstacle) {

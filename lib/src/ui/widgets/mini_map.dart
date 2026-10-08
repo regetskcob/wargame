@@ -237,14 +237,14 @@ class _MiniMapPainter extends CustomPainter {
         ..color = const Color(0xAA3B7194),
     );
     canvas.restore();
-    final road = Path()
-      ..moveTo(
-        toMap(map.road.first.x, map.road.first.y).dx,
-        toMap(map.road.first.x, map.road.first.y).dy,
-      );
-    for (final point in map.road.skip(1)) {
-      final p = toMap(point.x, point.y);
-      road.lineTo(p.dx, p.dy);
+    final road = Path();
+    for (final line in map.roads) {
+      final start = toMap(line.first.x, line.first.y);
+      road.moveTo(start.dx, start.dy);
+      for (final point in line.skip(1)) {
+        final p = toMap(point.x, point.y);
+        road.lineTo(p.dx, p.dy);
+      }
     }
     canvas.drawPath(
       road,
@@ -253,20 +253,26 @@ class _MiniMapPainter extends CustomPainter {
         ..strokeWidth = max(2.0, DefenseMap.roadHalfWidth * 2 * scale)
         ..color = BwColors.sand.withValues(alpha: 0.5),
     );
-    canvas.drawCircle(
-      toMap(map.base.x, map.base.y),
-      max(3.0, DefenseMap.baseRadius * scale),
-      Paint()..color = GameConfig.teamColors[1],
-    );
-    // The enemy's outpost at the start of the road.
-    canvas.drawRect(
-      Rect.fromCenter(
-        center: toMap(map.outpost.x, map.outpost.y),
-        width: 6,
-        height: 6,
-      ),
-      Paint()..color = GameConfig.teamColors[2],
-    );
+    // A duel's bases in the colour of their side.
+    for (final (lane, base) in map.bases.indexed) {
+      canvas.drawCircle(
+        toMap(base.x, base.y),
+        max(3.0, DefenseMap.baseRadius * scale),
+        Paint()..color = GameConfig.teamColors[lane + 1],
+      );
+    }
+    // The enemy's outpost at the start of the road, in a duel the other
+    // side's base.
+    if (!map.duel) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: toMap(map.outpost.x, map.outpost.y),
+          width: 6,
+          height: 6,
+        ),
+        Paint()..color = GameConfig.teamColors[2],
+      );
+    }
     for (final bridge in map.bridges) {
       canvas.drawCircle(
         toMap(bridge.centre.x, bridge.centre.y),

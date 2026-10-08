@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'bot_level.dart';
 import 'game_config.dart';
 import 'defense/defense_map.dart';
@@ -13,6 +15,7 @@ class RoundState {
     this.botHost,
     this.botLevel = BotLevel.normal,
     this.defense = false,
+    this.lanes = const [],
   }) : alive = participants.toSet();
 
   final int seed;
@@ -30,6 +33,14 @@ class RoundState {
 
   /// Everybody together against waves of enemies, see [isEnemy].
   final bool defense;
+
+  /// A defense duel: who defends the base of each side. Empty otherwise.
+  final List<String> lanes;
+
+  bool get duel => lanes.length > 1;
+
+  /// The side [id] defends in a duel, the left one for anybody else.
+  int laneOf(String id) => max(0, lanes.indexOf(id));
 
   /// Real people play against each other, so every tank gets its own colour.
   bool get distinctColors => bots.isEmpty;
@@ -85,8 +96,13 @@ class RoundState {
   /// Look of an enemy, which follows from its wave and number.
   int enemyStyle(String id) {
     final parts = id.split('-');
-    final wave = int.tryParse(parts.length > 1 ? parts[1] : '') ?? 1;
-    final n = int.tryParse(parts.last) ?? 0;
+    // A troop sent in a duel, `td-s<lane>-<wave>-<n>`, is a tank of the wave
+    // it was sent in.
+    final at = laneOfUnit(id) != null ? 2 : 1;
+    final wave = int.tryParse(parts.length > at ? parts[at] : '') ?? 1;
+    // The right road's units of a duel end in `b`: the same tank as the
+    // left one's.
+    final n = int.tryParse(parts.last.replaceAll('b', '')) ?? 0;
     return GameConfig.styleOf(DefenseMap.enemyType(wave, n).index, 1);
   }
 
@@ -99,6 +115,9 @@ class RoundState {
 
   /// In a defense round every player is on team 1 and every enemy on 2.
   int teamOf(String id) {
+    if (duel) {
+      return _duelTeamOf(id);
+    }
     // The red and blue squads of a team round, `inf-1` and `inf-2`.
     if (!defense && id.startsWith('inf-')) {
       return int.tryParse(id.substring(4)) ?? 0;
@@ -110,6 +129,35 @@ class RoundState {
     }
     return teams[id] ?? 0;
   }
+
+  /// The two sides of a defense duel: the player of the left base with
+  /// everything that is theirs is red (1), the other blue (2). Troops a
+  /// player sends are `td-s<lane>-…`, the infantry of a base `ally-L<lane>-…`.
+  /// The waves belong to the side they attack the other one for: those on
+  /// the way to the right base end in `b` and are red.
+  int _duelTeamOf(String id) {
+    final lane = lanes.indexOf(id);
+    if (lane >= 0) {
+      return lane + 1;
+    }
+    final sent = laneOfUnit(id);
+    if (sent != null) {
+      return sent + 1;
+    }
+    if (isEnemy(id)) {
+      return id.endsWith('b') ? 1 : 2;
+    }
+    return 0;
+  }
+
+  /// The side a sent troop or a base's infantry of a duel belongs to, null
+  /// for everything else.
+  int? laneOfUnit(String id) {
+    final match = _unit.firstMatch(id);
+    return match == null ? null : int.parse(match.group(1)!);
+  }
+
+  static final _unit = RegExp(r'^(?:td-s|ally-L)([01])-');
 
   /// True when at least two teams were actually formed.
   late final bool teamMode =

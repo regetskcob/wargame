@@ -31,9 +31,16 @@ class TabletScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (onTv) {
+      // The Apple TV scales the whole app already. Half a screen, as on a
+      // split screen, takes the plates a bit smaller, so the field shows.
+      return LayoutBuilder(
+        builder: (context, box) =>
+            FixedScale(scale: box.maxWidth < 900 ? 0.8 : 1, child: child),
+      );
+    }
     return FixedScale(
-      // The Apple TV scales the whole app already.
-      scale: onTv ? 1 : hudScaleFor(MediaQuery.sizeOf(context)),
+      scale: hudScaleFor(MediaQuery.sizeOf(context)),
       child: child,
     );
   }

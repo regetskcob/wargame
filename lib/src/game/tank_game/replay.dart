@@ -105,6 +105,7 @@ extension TankGameReplay on TankGame {
             NetEvent.roundStart ||
             NetEvent.defense ||
             NetEvent.tower ||
+            NetEvent.troops ||
             NetEvent.close:
           break;
       }

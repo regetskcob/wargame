@@ -165,6 +165,17 @@ class TankGame extends FlameGame
   late final _watchSteering = WatchSteering(touch);
   late final _tvSteering = TvSteering(this);
 
+  /// The next defense round is a duel: two players, a base each at either
+  /// end of the road, each side's waves against the other.
+  final duelNext = ValueNotifier<bool>(false);
+
+  /// Troops this player sent in a defense duel, for their ids.
+  int _troopCounter = 0;
+
+  /// A second player on the same Apple TV joined this room with a game of
+  /// their own: single player rounds take them along.
+  bool localGuest = false;
+
   /// Which controller of the Apple TV steers here: the first, in a duel
   /// the one of the half, -1 for none when a phone steers the half.
   int tvPlayer = 0;
@@ -451,6 +462,7 @@ class TankGame extends FlameGame
       ..onArtillery = _onArtillery
       ..onDefense = _onDefense
       ..onTower = _onTower
+      ..onTroops = _onTroops
       ..onGrenade = _onGrenade
       ..onDrone = _onDrone
       ..onBlast = _onBlast

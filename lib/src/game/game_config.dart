@@ -198,6 +198,9 @@ class GameConfig {
   static const startCredits = 150;
   static const creditsPerKill = 20;
   static const waveBonus = 50;
+
+  /// What a tank sent against the other side of a defense duel costs.
+  static const troopCost = 120;
   static const towerCost = 100;
   static const maxTowers = 6;
 

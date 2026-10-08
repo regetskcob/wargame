@@ -10,19 +10,79 @@ import '../../l10n/l10n.dart';
 /// The fixed battlefield of a defense round: a rectangle, one road the enemy
 /// follows and the base at its end. Which of the layouts is used follows from
 /// the round seed, so every client draws the same one.
+///
+/// A duel has two roads, one to each player's base. Each is a [lanes] map of
+/// its own, with its [road] and [base], sharing the river, the bridges and
+/// [roads], so the enemies, the soldiers and the aircraft of a lane follow
+/// it as they follow the one road of a common round.
 class DefenseMap {
-  DefenseMap._(this.road, this.river, List<Vector2> extraBridges) {
-    bridges = [
-      ..._crossings(),
-      for (final at in extraBridges)
-        Bridge(centre: at, along: _riverNormalAt(at), halfLength: _bridgeHalf),
-    ];
+  DefenseMap._(
+    this.road,
+    this.river,
+    List<Vector2> extraBridges, {
+    List<List<Vector2>>? roads,
+    List<Bridge>? bridges,
+  }) : roads = roads ?? [road] {
+    this.bridges =
+        bridges ??
+        [
+          ..._crossings(),
+          for (final at in extraBridges)
+            Bridge(
+              centre: at,
+              along: _riverNormalAt(at),
+              halfLength: _bridgeHalf,
+            ),
+        ];
   }
 
   factory DefenseMap.forSeed(int seed) {
     final layout = _layouts[layoutFor(seed)];
     return DefenseMap._(layout.road, layout.river, layout.bridges);
   }
+
+  /// The duel's field: a layout of a common round, with a base at either
+  /// end of its road. Every road runs from the left to the right of the
+  /// field: the left player's base stands where the enemy used to roll in,
+  /// the right player's where the base always stands. Each side's waves
+  /// roll along the road to the other's base, so they meet on the way.
+  factory DefenseMap.duelForSeed(int seed) {
+    final layout = _layouts[layoutFor(seed)];
+    final whole = DefenseMap._(layout.road, layout.river, layout.bridges);
+    // The far end comes in off the edge, so the base stands on the field.
+    final (start, _) = whole.alongRoad(_duelInset);
+    final (_, segment) = whole.pointAlong(_duelInset);
+    final toRight = [start, ...layout.road.skip(segment + 1)];
+    final toLeft = toRight.reversed.toList();
+    DefenseMap side(List<Vector2> road) => DefenseMap._(
+      road,
+      layout.river,
+      const [],
+      roads: [toRight],
+      bridges: whole.bridges,
+    );
+    // Lane 0 is the road to the left base, the red player's.
+    final left = side(toLeft);
+    final right = side(toRight);
+    left.lanes = [left, right];
+    right.lanes = left.lanes;
+    return left;
+  }
+
+  /// How far in from the edge the left player's base stands in a duel.
+  static const _duelInset = 230.0;
+
+  /// Every road on the field: one, or one per side in a duel.
+  final List<List<Vector2>> roads;
+
+  /// The map of each side's road and base, in the order of the players the
+  /// round start names. Just this one outside a duel.
+  late List<DefenseMap> lanes = [this];
+
+  bool get duel => lanes.length > 1;
+
+  /// Every base on the field, one per lane.
+  List<Vector2> get bases => [for (final lane in lanes) lane.base];
 
   /// Which of the layouts a round seed picks.
   static int layoutFor(int seed) => (seed ~/ 4).abs() % _layouts.length;
@@ -143,11 +203,13 @@ class DefenseMap {
   Vector2 get entry => road.first;
   Vector2 get base => road.last;
 
-  /// Shortest distance from [point] to the road's centre line.
+  /// Shortest distance from [point] to the centre line of any road.
   double distanceToRoad(Vector2 point) {
     var best = double.infinity;
-    for (var i = 0; i < road.length - 1; i++) {
-      best = min(best, _distanceToSegment(point, road[i], road[i + 1]));
+    for (final road in roads) {
+      for (var i = 0; i < road.length - 1; i++) {
+        best = min(best, _distanceToSegment(point, road[i], road[i + 1]));
+      }
     }
     return best;
   }
@@ -179,9 +241,16 @@ class DefenseMap {
     return null;
   }
 
-  /// The road's crossings of the river, each with a bridge along the road.
+  /// The roads' crossings of the river, each with a bridge along the road.
   List<Bridge> _crossings() {
     final found = <Bridge>[];
+    for (final road in roads) {
+      _crossingsOf(road, found);
+    }
+    return found;
+  }
+
+  void _crossingsOf(List<Vector2> road, List<Bridge> found) {
     for (var i = 0; i < road.length - 1; i++) {
       for (var j = 0; j < river.length - 1; j++) {
         final at = _intersect(road[i], road[i + 1], river[j], river[j + 1]);
@@ -196,7 +265,6 @@ class DefenseMap {
         }
       }
     }
-    return found;
   }
 
   /// Direction across the river at [at], for a bridge that is not on the road.
@@ -276,7 +344,7 @@ class DefenseMap {
         bridges.any((b) => b.centre.distanceTo(point) < b.halfLength + 30)) {
       return tr('Nicht im Fluss', 'Not in the river');
     }
-    if (point.distanceTo(base) < baseRadius + 50) {
+    if (bases.any((base) => point.distanceTo(base) < baseRadius + 50)) {
       return tr('Zu nah am Stützpunkt', 'Too close to the base');
     }
     if (towers.any((t) => t.distanceTo(point) < GameConfig.towerSpacing)) {

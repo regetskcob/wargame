@@ -22,4 +22,7 @@ enum NetEvent {
   squad,
   use,
   close,
+
+  /// A player of a defense duel sends troops against the other side.
+  troops,
 }

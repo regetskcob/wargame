@@ -170,6 +170,8 @@ class PlayerTank extends TankBase
         gameRef.buildTower();
       } else if (key == LogicalKeyboardKey.keyV) {
         gameRef.cycleTowerKind();
+      } else if (key == LogicalKeyboardKey.keyT) {
+        gameRef.sendTroops();
       } else {
         final slot = _itemKeys.indexOf(key);
         if (slot >= 0) {

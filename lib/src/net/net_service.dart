@@ -21,7 +21,16 @@ import 'presence_throttle.dart';
 import 'replay.dart';
 
 class NetService {
-  NetService({required this.myId, required this.room, this.isHost = true});
+  NetService({
+    required this.myId,
+    required this.room,
+    this.isHost = true,
+    SupabaseClient? client,
+  }) : _ownClient = client;
+
+  /// A connection of its own, for a second player on the same device: one
+  /// connection joins a room's channel only once.
+  final SupabaseClient? _ownClient;
 
   final String myId;
 
@@ -45,6 +54,7 @@ class NetService {
   void Function(ArtilleryPayload payload)? onArtillery;
   void Function(DefensePayload payload)? onDefense;
   void Function(TowerPayload payload)? onTower;
+  void Function(TroopsPayload payload)? onTroops;
   void Function(GrenadePayload payload)? onGrenade;
   void Function(DronePayload payload)? onDrone;
   void Function(BlastPayload payload)? onBlast;
@@ -86,7 +96,7 @@ class NetService {
   bool _disposed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
 
   Future<void> connect(LobbyPresence me) async {
     _disposed = false;
@@ -192,6 +202,12 @@ class NetService {
       NetEvent.tower,
       (json) => onTower?.call(TowerPayload.fromJson(json)),
     );
+    _listen(channel, NetEvent.troops, (json) {
+      final payload = TroopsPayload.tryParse(json);
+      if (payload != null) {
+        onTroops?.call(payload);
+      }
+    });
     _listen(
       channel,
       NetEvent.close,

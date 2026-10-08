@@ -16,7 +16,10 @@ extension TankGameRound on TankGame {
     if (phase.value != GamePhase.lobby || !canStart) {
       return;
     }
-    final solo = mode.value == GameMode.solo;
+    // Single player with a second player on the same Apple TV: both
+    // together against the CPU tanks, in a round the other one hears of.
+    final together = mode.value == GameMode.solo && localGuest;
+    final solo = mode.value == GameMode.solo && !together;
     final defending = mode.value == GameMode.defense;
     // Players still looking at the last end screen come along as well.
     final ids = <String>{
@@ -29,7 +32,7 @@ extension TankGameRound on TankGame {
     }.toList();
     final random = Random();
     final botCount = botsFor(
-      solo: solo,
+      solo: solo || together,
       humans: ids.length,
       // A phone in the room leaves no Realtime room for CPU tanks.
       fill: fillWithBots.value && !defending && !roomHasPhone,
@@ -43,6 +46,14 @@ extension TankGameRound on TankGame {
     ids
       ..addAll(bots.keys)
       ..sort();
+    // A duel takes exactly two players, the host on the left.
+    final humans = [
+      for (final id in ids)
+        if (!bots.containsKey(id)) id,
+    ];
+    final lanes = defending && duelNext.value && humans.length == 2
+        ? [myId, humans.firstWhere((id) => id != myId)]
+        : const <String>[];
     final payload = RoundStartPayload(
       seed:
           seed ??
@@ -55,10 +66,15 @@ extension TankGameRound on TankGame {
           DateTime.now().millisecondsSinceEpoch +
               GameConfig.countdownSeconds * 1000,
       participants: ids,
-      teams: defending ? const {} : _assignTeams(ids),
+      teams: defending
+          ? const {}
+          : together
+          ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
+          : _assignTeams(ids),
       bots: bots,
       botHost: bots.isEmpty && !defending ? null : myId,
       defense: defending,
+      lanes: lanes,
       // Also without CPU tanks: the level sets fuel, ammo and terrain.
       botLevel: botLevel.value.index,
     );
@@ -141,6 +157,7 @@ extension TankGameRound on TankGame {
       botHost: payload.botHost,
       botLevel: BotLevel.of(payload.botLevel),
       defense: payload.defense,
+      lanes: payload.defense ? payload.lanes : const [],
     );
     myTeam = activeRound.teamOf(myId);
     guard.reset();
@@ -387,16 +404,19 @@ extension TankGameRound on TankGame {
       return;
     }
     final activeRound = round;
-    final map = defenseMap;
+    // In a duel back at the base of the own side.
+    final map = myLaneMap;
     if (activeRound == null ||
         map == null ||
         phase.value != GamePhase.playing) {
       return;
     }
-    final at = map.spawnFor(
-      activeRound.participants.indexOf(myId),
-      activeRound.participants.length,
-    );
+    final at = activeRound.duel
+        ? map.spawnFor(0, 1)
+        : map.spawnFor(
+            activeRound.participants.indexOf(myId),
+            activeRound.participants.length,
+          );
     _spawnLocalTank(
       at,
       TankGame._headingFrom(at, map.road[map.road.length - 2]),
@@ -412,7 +432,8 @@ extension TankGameRound on TankGame {
   /// magazine refilled bit by bit, since no gems lie on this map.
   void _resupply(double dt) {
     final tank = myTank;
-    final map = defenseMap;
+    // In a duel only the own base hands out ammunition.
+    final map = myLaneMap;
     if (tank == null || map == null || phase.value != GamePhase.playing) {
       nearTower.value = null;
       return;
@@ -586,7 +607,9 @@ extension TankGameRound on TankGame {
         world.add(KillMarker(position: victim.position.clone()));
         shake(4);
       }
-      if (activeRound.isEnemy(victimId)) {
+      // In a duel the other player's tank pays as well.
+      if (activeRound.isEnemy(victimId) ||
+          (activeRound.duel && activeRound.lanes.contains(victimId))) {
         credits.value += aircraft.containsKey(victimId)
             ? GameConfig.creditsPerAircraft
             : GameConfig.creditsPerKill;

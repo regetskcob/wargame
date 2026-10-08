@@ -13,11 +13,20 @@ import 'defense_map.dart';
 /// shoots at the defenders' tanks and guns near the way and rams the base at
 /// the end.
 class DefenseBrain extends Component with HasGameRef<TankGame> {
-  DefenseBrain({required this.tank, required this.controls, required this.map});
+  DefenseBrain({
+    required this.tank,
+    required this.controls,
+    required this.map,
+    this.lane = 0,
+  });
 
   final PlayerTank tank;
   final TouchInput controls;
+
+  /// The road it follows and the base at its end: in a duel the [lane] of
+  /// the side it attacks.
   final DefenseMap map;
+  final int lane;
 
   final _random = Random();
   int _next = 1;
@@ -38,7 +47,7 @@ class DefenseBrain extends Component with HasGameRef<TankGame> {
       return;
     }
     if (tank.position.distanceTo(map.base) < DefenseMap.baseRadius + 10) {
-      gameRef.raidBase(tank);
+      gameRef.raidBase(tank, lane: lane);
       return;
     }
     _think -= dt;
@@ -47,8 +56,8 @@ class DefenseBrain extends Component with HasGameRef<TankGame> {
       _aimError = (_random.nextDouble() * 2 - 1) * 0.15;
       // Tanks first, else the guns and trenches along the way.
       _target =
-          gameRef.nearestDefender(tank.position, 360) ??
-          gameRef.nearestTower(tank.position, 320);
+          gameRef.nearestDefender(tank.position, 360, of: tank.playerId) ??
+          gameRef.nearestTower(tank.position, 320, of: tank.playerId);
     }
     _drive();
     _shoot(dt);

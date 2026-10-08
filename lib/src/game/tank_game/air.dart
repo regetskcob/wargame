@@ -4,16 +4,19 @@ part of '../tank_game.dart';
 extension TankGameAir on TankGame {
   /// Host of a defense round: a helicopter or a jet comes in over the edge
   /// of the field. A jet heads for the base or for one of the defenders.
-  void spawnAircraft(String id, AirKind kind) {
-    final map = defenseMap;
+  void spawnAircraft(String id, AirKind kind, {int lane = 0}) {
+    final map = laneMap(lane);
     if (map == null) {
       return;
     }
+    // In a duel a jet of the waves goes for the side whose road it came
+    // down.
+    final duel = round?.duel ?? false;
     final Vector2 goal;
     if (kind == AirKind.jet) {
       final defenders = [
         for (final tank in _allTanks)
-          if (tank.team == 1 && tank.hp > 0) tank.position,
+          if (tank.team == (duel ? lane + 1 : 1) && tank.hp > 0) tank.position,
       ];
       goal = defenders.isNotEmpty && random.nextDouble() < 0.4
           ? defenders[random.nextInt(defenders.length)].clone()
@@ -43,11 +46,14 @@ extension TankGameAir on TankGame {
       position: from,
       angle: TankGame._headingFrom(from, goal),
       goal: goal,
+      lane: lane,
     );
     aircraft[id] = plane;
     _extras.add(plane);
     world.add(plane);
-    _announceAircraft(kind);
+    if (!duel || lane == myLane) {
+      _announceAircraft(kind);
+    }
   }
 
   /// Host of a defense round: the base sends a helicopter of its own, or a
@@ -117,8 +123,8 @@ extension TankGameAir on TankGame {
 
   /// Host of a defense round: a kamikaze drone sets off from the start of
   /// the road after the defenders.
-  void spawnEnemyDrone(String id) {
-    final map = defenseMap;
+  void spawnEnemyDrone(String id, {int lane = 0}) {
+    final map = laneMap(lane);
     if (map == null) {
       return;
     }

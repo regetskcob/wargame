@@ -5,7 +5,9 @@ extension TankGameDefense on TankGame {
   /// The fixed map of a defense round: road, base and the players in front
   /// of it. The player who runs the enemies also gets the director.
   void _setUpDefense(RoundState activeRound) {
-    final map = DefenseMap.forSeed(activeRound.seed);
+    final map = activeRound.duel
+        ? DefenseMap.duelForSeed(activeRound.seed)
+        : DefenseMap.forSeed(activeRound.seed);
     defenseMap = map;
     final field = DefenseField(seed: activeRound.seed, map: map);
     _defenseField = field;
@@ -27,7 +29,7 @@ extension TankGameDefense on TankGame {
       activeRound,
       field.theme,
       area: DefenseMap.bounds,
-      keepClear: [map.base],
+      keepClear: map.bases,
     );
     soldierField = SoldierField(
       seed: activeRound.seed,
@@ -40,16 +42,23 @@ extension TankGameDefense on TankGame {
     defense.value = DefensePayload(
       id: activeRound.botHost ?? '',
       hp: GameConfig.baseHp,
+      hp2: activeRound.duel ? GameConfig.baseHp : null,
       wave: 0,
       nextWaveAt: activeRound.startedAt + GameConfig.firstWaveSeconds * 1000,
     );
     final players = activeRound.participants;
     for (var i = 0; i < players.length; i++) {
       final id = players[i];
-      final spawn = map.spawnFor(i, players.length);
+      // In a duel everybody starts at the base of their side.
+      final lane = map.lanes[activeRound.laneOf(id) % map.lanes.length];
+      final side = [
+        for (final other in players)
+          if (activeRound.laneOf(other) == activeRound.laneOf(id)) other,
+      ];
+      final spawn = lane.spawnFor(side.indexOf(id), side.length);
       final facing = TankGame._headingFrom(
         spawn,
-        map.road[map.road.length - 2],
+        lane.road[lane.road.length - 2],
       );
       if (id == myId) {
         _spawnLocalTank(spawn, facing);
@@ -60,7 +69,10 @@ extension TankGameDefense on TankGame {
     if (activeRound.botHost == myId) {
       final director = DefenseDirector(
         startedAt: activeRound.startedAt,
-        allies: max(1, GameConfig.defenseSquad - players.length),
+        // A duel is fought by the two players alone.
+        allies: activeRound.duel
+            ? 0
+            : max(1, GameConfig.defenseSquad - players.length),
       );
       _extras.add(director);
       world.add(director);
@@ -68,26 +80,44 @@ extension TankGameDefense on TankGame {
     _enterRound(activeRound);
   }
 
-  /// Host of a defense round: an enemy rolls in at the start of the road.
-  void spawnEnemy(String id) {
-    final activeRound = round;
+  /// The side the local player defends in a duel, else the only one.
+  int get myLane => round?.laneOf(myId) ?? 0;
+
+  /// The road and base of [lane], the only ones outside a duel.
+  DefenseMap? laneMap(int lane) {
     final map = defenseMap;
+    return map?.lanes[lane.clamp(0, map.lanes.length - 1)];
+  }
+
+  /// The local player's road and base.
+  DefenseMap? get myLaneMap => laneMap(myLane);
+
+  /// Host of a defense round: an enemy rolls in at the start of the road of
+  /// [lane]. A troop a player sent fights for the side of [team].
+  void spawnEnemy(String id, {int lane = 0, int team = 2}) {
+    final activeRound = round;
+    final map = laneMap(lane);
     if (activeRound == null || map == null) {
       return;
     }
     final style = activeRound.enemyStyle(id);
     final controls = TouchInput();
+    // In a duel the road starts at the other side's base: out in front of
+    // it, not in it.
+    final (at, _) = map.duel
+        ? map.alongRoad(DefenseMap.baseRadius + 40)
+        : (map.entry, map.road[1]);
     final tank =
         PlayerTank(
             playerId: id,
             playerName: activeRound.botName(id),
             tankColor: GameConfig.colorOf(style),
             tankType: GameConfig.typeOf(style),
-            position: map.entry.clone(),
-            angle: TankGame._headingFrom(map.entry, map.road[1]),
+            position: at.clone(),
+            angle: TankGame._headingFrom(at, map.road[1]),
             controls: controls,
           )
-          ..team = 2
+          ..team = team
           ..endlessAmmo = true
           ..speedFactor = GameConfig.enemySpeed
           ..fireFactor = GameConfig.enemyFireFactor
@@ -97,7 +127,12 @@ extension TankGameDefense on TankGame {
     aliveCount.value = activeRound.alive.length;
     botTanks[id] = tank;
     world.add(tank);
-    final brain = DefenseBrain(tank: tank, controls: controls, map: map);
+    final brain = DefenseBrain(
+      tank: tank,
+      controls: controls,
+      map: map,
+      lane: lane,
+    );
     _extras.add(brain);
     world.add(brain);
   }
@@ -153,8 +188,8 @@ extension TankGameDefense on TankGame {
   }
 
   /// Host of a defense round: a squad on foot marches in down the road.
-  void spawnEnemySquad(String id, int wave) {
-    final map = defenseMap;
+  void spawnEnemySquad(String id, int wave, {int lane = 0}) {
+    final map = laneMap(lane);
     if (map == null) {
       return;
     }
@@ -169,6 +204,7 @@ extension TankGameDefense on TankGame {
         rifles: 4,
         rockets: wave >= 3 ? 1 : 0,
         road: true,
+        lane: lane,
       ),
       send: true,
     );
@@ -177,14 +213,16 @@ extension TankGameDefense on TankGame {
   /// Host of a defense round: the base sends [count] squads on foot up the
   /// road against wave [wave], a few seconds apart. They hold a line and
   /// fight what comes.
-  void spawnBaseSquads(int wave, int count) {
-    final map = defenseMap;
+  void spawnBaseSquads(int wave, int count, {int lane = 0}) {
+    final map = laneMap(lane);
     if (map == null) {
       return;
     }
+    final duel = round?.duel ?? false;
     final now = DateTime.now().millisecondsSinceEpoch;
     for (var i = 0; i < count; i++) {
-      final id = 'ally-q$wave-$i';
+      // In a duel the infantry fights for the side of its base.
+      final id = duel ? 'ally-L$lane-q$wave-$i' : 'ally-q$wave-$i';
       _addSquad(
         SquadPayload(
           id: myId,
@@ -197,11 +235,14 @@ extension TankGameDefense on TankGame {
           rockets: count >= 3 ? 2 : 1,
           road: true,
           back: true,
+          lane: lane,
         ),
         send: true,
       );
     }
-    showNotice(tr('EIGENE INFANTERIE RÜCKT AUS', 'OWN INFANTRY MOVING OUT'));
+    if (lane == myLane) {
+      showNotice(tr('EIGENE INFANTERIE RÜCKT AUS', 'OWN INFANTRY MOVING OUT'));
+    }
   }
 
   /// Enemies of a defense round on the field: tanks, aircraft and soldiers.
@@ -241,21 +282,51 @@ extension TankGameDefense on TankGame {
   }
 
   /// Host: an enemy made it to the base and blows itself up there.
-  void raidBase(PlayerTank enemy) {
+  void raidBase(PlayerTank enemy, {int lane = 0}) {
     if (enemy.hp <= 0) {
       return;
     }
-    damageBase(GameConfig.raidDamage * enemy.stats.maxHp / 100);
+    damageBase(GameConfig.raidDamage * enemy.stats.maxHp / 100, lane: lane);
     enemy.applyDamage(enemy.hp, killerId: null);
   }
 
-  /// Host: enemy fire or a raid wore the base down.
-  void damageBase(double amount) {
+  /// Host: enemy fire or a raid wore the base of [lane] down.
+  void damageBase(double amount, {int lane = 0}) {
     final state = defense.value;
     if (state == null || round?.botHost != myId) {
       return;
     }
-    publishDefense(state.copyWith(hp: max(0.0, state.hp - amount)));
+    publishDefense(
+      state.withBase(lane, hp: max(0.0, state.hpOf(lane) - amount)),
+    );
+  }
+
+  /// Whether a shot of [ownerId] wears down a gun of [towerOwner]: the
+  /// enemy's in a common round, the other side's and the waves' in a duel.
+  bool hurtsTower(String ownerId, String towerOwner) {
+    final activeRound = round;
+    if (activeRound == null) {
+      return false;
+    }
+    if (!activeRound.duel) {
+      return activeRound.isEnemy(ownerId);
+    }
+    final team = activeRound.teamOf(ownerId);
+    return team != 0 && team != activeRound.teamOf(towerOwner);
+  }
+
+  /// Whether a shot of [ownerId] hurts the base of [lane]: the enemy's in a
+  /// common round, the other side's and the waves' in a duel.
+  bool hurtsBase(String ownerId, int lane) {
+    final activeRound = round;
+    if (activeRound == null) {
+      return false;
+    }
+    if (!activeRound.duel) {
+      return activeRound.isEnemy(ownerId);
+    }
+    final team = activeRound.teamOf(ownerId);
+    return team != 0 && team != lane + 1;
   }
 
   /// Whether the defenders went on past the last regular wave.
@@ -309,26 +380,31 @@ extension TankGameDefense on TankGame {
 
   void _applyDefense(DefensePayload state) {
     final before = defense.value;
-    final base = _defenseField?.headquarters;
-    if (before != null && base != null && state.hp < before.hp) {
-      base.flash();
-      shakeAt(base.position, 4);
-      AudioService.play(
-        'hit',
-        volume: 0.8,
-        distance: _distanceToView(base.position),
-      );
+    for (final base in _defenseField?.bases ?? const <Headquarters>[]) {
+      final hp = state.hpOf(base.lane);
+      if (before != null && hp < before.hpOf(base.lane)) {
+        base.flash();
+        shakeAt(base.position, 4);
+        AudioService.play(
+          'hit',
+          volume: 0.8,
+          distance: _distanceToView(base.position),
+        );
+      }
+      base
+        ..hp = hp
+        ..level = state.hqOf(base.lane);
     }
-    base
-      ?..hp = state.hp
-      ..level = state.hq;
     defense.value = state;
-    if (before != null && state.hq > before.hq) {
+    // In a duel only the own base's growth is news.
+    final lane = myLane;
+    if (before != null && state.hqOf(lane) > before.hqOf(lane)) {
+      final hq = state.hqOf(lane);
       showNotice(
         tr(
-          'STÜTZPUNKT AUSGEBAUT: ${GameConfig.hqName(state.hq)}  '
+          'STÜTZPUNKT AUSGEBAUT: ${GameConfig.hqName(hq)}  '
               '+${GameConfig.hqTowerStep} GESCHÜTZE',
-          'BASE UPGRADED: ${GameConfig.hqName(state.hq)}  '
+          'BASE UPGRADED: ${GameConfig.hqName(hq)}  '
               '+${GameConfig.hqTowerStep} TURRETS',
         ),
       );
@@ -367,7 +443,12 @@ extension TankGameDefense on TankGame {
       AudioService.play('go', volume: 0.6);
     }
     if (state.result != DefenseResult.running) {
-      _endDefense(won: state.result == DefenseResult.won);
+      // A duel is won by the side whose base still stands.
+      _endDefense(
+        won: state.duel
+            ? state.fell != myLane && state.fell != 2
+            : state.result == DefenseResult.won,
+      );
     }
   }
 
@@ -420,6 +501,59 @@ extension TankGameDefense on TankGame {
     AudioService.play('go', volume: 0.5);
   }
 
+  /// A defense duel: pays for a tank that rolls down the other side's road
+  /// against its base. The player who runs the waves sends it.
+  void sendTroops() {
+    final activeRound = round;
+    if (activeRound == null ||
+        !activeRound.duel ||
+        phase.value != GamePhase.playing) {
+      return;
+    }
+    if (credits.value < GameConfig.troopCost) {
+      showNotice(tr('ZU WENIG MITTEL', 'NOT ENOUGH FUNDS'));
+      return;
+    }
+    credits.value -= GameConfig.troopCost;
+    final payload = TroopsPayload(id: myId, serial: _troopCounter++);
+    if (activeRound.botHost == myId) {
+      _launchTroops(payload);
+    } else {
+      net.send(NetEvent.troops, payload.toJson());
+    }
+    showNotice(tr('PANZER IN MARSCH', 'TANK ON ITS WAY'));
+    AudioService.play('go', volume: 0.5);
+  }
+
+  void _onTroops(TroopsPayload payload) {
+    final activeRound = round;
+    // Only a player of the duel sends troops, and only the player who runs
+    // the waves sends them on their way.
+    if (activeRound == null ||
+        !activeRound.duel ||
+        activeRound.botHost != myId ||
+        !activeRound.lanes.contains(payload.id) ||
+        net.duplicateIds.contains(payload.id)) {
+      return;
+    }
+    _launchTroops(payload);
+  }
+
+  void _launchTroops(TroopsPayload payload) {
+    final activeRound = round;
+    if (activeRound == null) {
+      return;
+    }
+    final from = activeRound.laneOf(payload.id);
+    final wave = max(1, defense.value?.wave ?? 1);
+    final tag = payload.id.length > 4 ? payload.id.substring(0, 4) : payload.id;
+    spawnEnemy(
+      'td-s$from-$wave-$tag${payload.serial}',
+      lane: 1 - from,
+      team: from + 1,
+    );
+  }
+
   /// B builds this kind of gun next.
   void cycleTowerKind() {
     if (defenseMap == null) {
@@ -440,15 +574,19 @@ extension TankGameDefense on TankGame {
   /// How many guns a player may have: more as the base grows.
   int get towerLimit =>
       GameConfig.maxTowers +
-      GameConfig.hqTowerStep * ((defense.value?.hq ?? 1) - 1);
+      GameConfig.hqTowerStep * ((defense.value?.hqOf(myLane) ?? 1) - 1);
 
   /// Host: the base grew to [level] and gets guns of its own, a cannon on
   /// the barracks and flak on the fortress besides.
-  void armBase(int level) {
-    final map = defenseMap;
-    if (map == null) {
+  void armBase(int level, {int lane = 0}) {
+    final map = laneMap(lane);
+    final activeRound = round;
+    if (map == null || activeRound == null) {
       return;
     }
+    // In a duel the guns of a base belong to the player of its side, and
+    // fight for that side.
+    final owner = activeRound.duel ? activeRound.lanes[lane] : myId;
     final guns = [
       if (level >= 2)
         (Tower.hqIndex, TowerKind.cannon, map.base, min(level - 1, 3)),
@@ -464,7 +602,7 @@ extension TankGameDefense on TankGame {
     ];
     for (final (index, kind, at, gunLevel) in guns) {
       final payload = TowerPayload(
-        id: myId,
+        id: owner,
         index: index,
         x: at.x,
         y: at.y,
@@ -524,10 +662,10 @@ extension TankGameDefense on TankGame {
   /// Host: a blast of the enemy at [at] wears down the guns and trenches
   /// around it.
   void _blastTowers(String ownerId, Vector2 at, double radius, double damage) {
-    if (!(round?.isEnemy(ownerId) ?? false)) {
-      return;
-    }
     for (final tower in towers.values.toList()) {
+      if (!hurtsTower(ownerId, tower.ownerId)) {
+        continue;
+      }
       final distance = tower.position.distanceTo(at);
       if (distance <= radius + 26) {
         damageTower(tower, damage * (1 - 0.5 * (distance / (radius + 26))));
@@ -537,10 +675,21 @@ extension TankGameDefense on TankGame {
 
   /// The closest gun or trench of the defenders within [range] of [from],
   /// for the enemy to shoot at when no tank is near.
-  Tower? nearestTower(Vector2 from, double range) => _nearestOf(from, range, [
-    for (final tower in towers.values)
-      if (!tower.isHq && tower.hp > 0) tower,
-  ]);
+  /// In a duel only the guns of the side other than that of [of], the
+  /// guns of a base included.
+  Tower? nearestTower(Vector2 from, double range, {String? of}) {
+    final activeRound = round;
+    final duel = activeRound != null && activeRound.duel && of != null;
+    final own = duel ? activeRound.teamOf(of) : 0;
+    return _nearestOf(from, range, [
+      for (final tower in towers.values)
+        // The guns of a base cannot be destroyed: no use shooting at them.
+        if (tower.hp > 0 &&
+            !tower.isHq &&
+            (!duel || activeRound.teamOf(tower.ownerId) != own))
+          tower,
+    ]);
+  }
 
   /// Whether a tank at [at] stands in a trench, any player's.
   bool inTrench(Vector2 at) => towers.values.any(
@@ -721,26 +870,33 @@ extension TankGameDefense on TankGame {
   PositionComponent? towerTarget(Tower tower) {
     final at = tower.position;
     final range = tower.range;
+    // In a duel a gun fights everything not of its own side: the waves, the
+    // other player and their troops and guns.
+    final activeRound = round;
+    final duel = activeRound?.duel ?? false;
+    final own = duel ? activeRound!.teamOf(tower.ownerId) : 1;
+    TankBase? tanks() =>
+        duel ? nearestHostile(at, range, own) : nearestEnemy(at, range);
+    final soldiers = duel ? _hostileSoldiers(own) : _enemySoldiers;
+    Soldier? soldier() => _nearestOf(at, range, soldiers);
+    Tower? guns() => duel ? nearestTower(at, range, of: tower.ownerId) : null;
+    bool hostile(String id) => duel
+        ? activeRound!.teamOf(id) != 0 && activeRound.teamOf(id) != own
+        : activeRound?.isEnemy(id) ?? false;
+    PositionComponent? air() => _nearestOf(at, range, [
+      for (final plane in aircraft.values)
+        if (plane.hp > 0 && (duel ? hostile(plane.unitId) : !plane.friendly))
+          plane,
+      for (final drone in drones.values)
+        if (hostile(drone.ownerId)) drone,
+    ]);
     switch (tower.kind) {
       case TowerKind.flak:
-        return _nearestOf(at, range, [
-              for (final plane in aircraft.values)
-                if (plane.hp > 0 && !plane.friendly) plane,
-              for (final drone in drones.values)
-                if (round?.isEnemy(drone.ownerId) ?? false) drone,
-            ]) ??
-            nearestEnemy(at, range);
+        return air() ?? tanks();
       case TowerKind.cannon:
-        return nearestEnemy(at, range) ?? _nearestEnemySoldier(at, range);
+        return tanks() ?? soldier() ?? guns();
       case TowerKind.rockets:
-        return nearestEnemy(at, range) ??
-            _nearestOf(at, range, [
-              for (final plane in aircraft.values)
-                if (plane.hp > 0 && !plane.friendly) plane,
-              for (final drone in drones.values)
-                if (round?.isEnemy(drone.ownerId) ?? false) drone,
-            ]) ??
-            _nearestEnemySoldier(at, range);
+        return tanks() ?? air() ?? soldier() ?? guns();
       case TowerKind.trench:
         return null;
       case TowerKind.mortar || TowerKind.howitzer:
@@ -748,13 +904,18 @@ extension TankGameDefense on TankGame {
             c.position.distanceTo(at) >= tower.kind.minRange;
         final target = _nearestOf(at, range, [
           for (final tank in _allTanks)
-            if (tank.team == 2 && tank.hp > 0 && outside(tank)) tank,
+            if ((duel ? tank.team != 0 && tank.team != own : tank.team == 2) &&
+                tank.hp > 0 &&
+                outside(tank))
+              tank,
         ]);
+        final gun = guns();
         return target ??
             _nearestOf(at, range, [
-              for (final soldier in _enemySoldiers)
+              for (final soldier in soldiers)
                 if (outside(soldier)) soldier,
-            ]);
+            ]) ??
+            (gun != null && outside(gun) ? gun : null);
     }
   }
 
@@ -771,27 +932,36 @@ extension TankGameDefense on TankGame {
     roundStats.finish(_secondsIntoRound);
     winnerName.value = won ? tr('Stützpunkt', 'Base') : null;
     if (activeRound.participants.contains(myId)) {
-      unawaited(
-        progress.recordRound(
-          name: myName,
-          stats: roundStats,
-          won: won,
-          tankType: GameConfig.typeOf(myColorIndex),
-          hpLeft: max(0, myTank?.hp ?? 0),
-          soldiers: 0,
-          night: false,
-          beaten: const [],
-          beatenBy: const [],
-        ),
-      );
+      // A duel is fought by two players on one account: it counts for
+      // nobody.
+      if (!activeRound.duel) {
+        unawaited(
+          progress.recordRound(
+            name: myName,
+            stats: roundStats,
+            won: won,
+            tankType: GameConfig.typeOf(myColorIndex),
+            hpLeft: max(0, myTank?.hp ?? 0),
+            soldiers: 0,
+            night: false,
+            beaten: const [],
+            beatenBy: const [],
+          ),
+        );
+      }
       outcome.value = won ? RoundOutcome.won : RoundOutcome.lost;
       AudioService.play(won ? 'win' : 'lose');
       Haptics.roundOver(won: won);
     }
-    final base = _defenseField?.headquarters;
+    final state = defense.value;
+    final fell = state?.fell ?? -1;
+    // In a duel the base that fell goes up, whoever looks at it.
+    final base = activeRound.duel && fell >= 0
+        ? _defenseField?.baseOf(fell == 2 ? myLane : fell)
+        : _defenseField?.headquarters;
     if (base != null) {
       // An extended round is won even when the base falls at last.
-      if (won && (defense.value?.hp ?? 1) > 0) {
+      if (!activeRound.duel && won && (state?.hp ?? 1) > 0) {
         final fireworks = Fireworks(centre: () => base.position);
         _extras.add(fireworks);
         world.add(fireworks);

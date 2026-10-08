@@ -11,7 +11,8 @@ extension TankGameLobby on TankGame {
   }
 
   /// Start page: take [value] and move on to the waiting room.
-  void chooseMode(GameMode value) {
+  void chooseMode(GameMode value, {bool duel = false}) {
+    duelNext.value = duel && value == GameMode.defense;
     mode.value = value;
     configuring.value = false;
     choosingMode.value = false;

@@ -498,18 +498,27 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Duel:** with two players in, each with a controller, a phone or the Siri
-Remote (handed out in that order, the remote last), the start page offers a
-duel, one against one in defense on a split screen
-(`lib/src/tv/duel_view.dart`). Each half is a game of its own in a private room,
-both start from the same seed at the same moment, so both players face the same
-map and the same waves with a base of their own. After the last regular wave
-both go on by themselves, and whose base falls first loses. A frame in the
-player's colour and another paint on the second tank tell the halves apart.
-Two phones scan the same pairing code, the screen routes each to its half and
-talks to each on a lane of its own, so neither phone hears the other. Duels are unranked:
-both players share the account of the Apple TV. Menu or B asks whether to end
-the duel, at the end come rematch or back.
+**Two players:** with two controllers in (or phones, the Siri Remote counting
+as one, handed out controllers first, then phones, the remote last), the second
+player gets a game of their own (`lib/src/tv/second_player.dart`) that joins the
+first player's room over a Supabase connection of its own, as a pilot from
+another device would. Rounds then play on a split screen, each half from its own
+tank (`lib/src/tv/split_view.dart`), the menus stay with the first player:
+single player puts both against the CPU tanks, multiplayer and defense take both
+pilots along. Two pilots in a room send their states to each other, so a round
+of two costs Realtime messages like an online round of two.
+
+**Duel** (fourth card on the start page with two players): a defense round with
+a base at either end of the road of a common layout
+(`DefenseMap.duelForSeed`), red on the left, blue on the right. The waves stay
+as they are, but each side's roll along the road against the other's base, so
+they meet on the way, and every gun, tank and squad fights the other side. Y on
+a controller, T on a keyboard, sends an extra tank against the other base for
+120 funds (`troops` event, run by the host). Bases grow on their
+own, the HUD shows both, whose base falls first loses, and the waves go on past
+wave 8 by themselves. Duels are unranked. The host runs the waves and keeps the
+score of every base and gun, also of the other player's shots. Phones as
+the two players' controllers talk to the television on a lane each.
 
 ```sh
 export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
@@ -654,7 +663,8 @@ flutter build web --base-href /your-repo/ \
 - One Realtime channel per room carries the broadcast events `state`,
   `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
-  `defense`, `tower`, and `close`.
+  `defense`, `tower`, `troops` (a duel's extra tank, sent by a player and run
+  by the host), and `close`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.
@@ -820,8 +830,10 @@ What changed:
    when phones have to wait.
 8. **A phone makes room for itself.** A room with a phone controller in it
    plays without CPU tanks filling it up (except in defense, where the
-   enemies are CPU tanks), so a room of two and a phone fit the free plan
-   (~44 + 32 = 76).
+   enemies are CPU tanks): the room lowers its slot first, then the phone
+   claims its share like anything else, and waits if it still does not
+   fit. So a room of two and a phone fit the free plan (~44 + 32 = 76),
+   two phones on top of a room of two do not.
 9. **A lane per phone.** Sticks and status run on a channel per phone,
    so in an Apple TV duel neither phone hears the other: ~63 a second
    instead of ~95.
@@ -873,22 +885,23 @@ messages a second, a fifth kept in reserve:
 | One room of 2 pilots | ~44/s | fits |
 | One room of 2 pilots with CPU tanks | ~70/s | fits |
 | One phone controller | ~32/s | fits |
-| Apple TV duel with two phones | ~63/s | fits on its own |
 | One room of 2 pilots and a phone controller | ~76/s | fits, the room plays without CPU tanks |
+| Apple TV, two players on a split screen | ~44/s, ~70/s with CPU tanks | fits, takes the room |
+| Apple TV duel (defense, CPU waves) | ~70/s | fits, takes the room |
+| Apple TV, two players on two phones | ~108–134/s | the phones wait, controllers work |
 | Two rooms of 2 pilots | ~88/s | the second is turned away |
 | A room of 2 pilots and somebody else's phone | ~102/s | the phone waits |
-| A duel and a room of 2 pilots | ~107/s | the room is turned away |
 | One room of 3 or 4 pilots | ~98–227/s | not allowed, `MAX_PILOTS=2` |
 
-So on the free plan **one small room or one Apple TV duel plays at a
-time**, next to any number of solo rounds. That is what the game allows
+So on the free plan **one small room plays at a time**, an Apple TV with
+two players included, next to any number of solo rounds. That is what the game allows
 by default, `MAX_PILOTS=2` and `REALTIME_BUDGET=80`: what does not fit is
 turned away with a notice, phones wait. The monthly quota adds up to
 about 12 hours of a room of two, shared by all rooms.
 
 | Plan | `MAX_PILOTS` | `REALTIME_BUDGET` | Carries, for example |
 |---|---:|---:|---|
-| Free (default) | 2 | 80 | one room of two or one duel |
+| Free (default) | 2 | 80 | one room of two, or a room of two and a phone |
 | Pro, full rooms | 4 | 400 | one room of four with CPU tanks, a room of two and phones |
 | Pro, many small rooms | 2 | 400 | five rooms of two with CPU tanks |
 
@@ -918,13 +931,13 @@ plan with:
 | 4 pilots | ~174/s | none | 2 | 14, safely 11 |
 | 4 pilots with CPU tanks | ~227/s | none | 2, safely 1 | 11, safely 8 |
 | Phone controller, per pair | ~32/s | on top of its room | | |
-| Apple TV duel with two phones | ~63/s | 1 | 7, safely 6 | 39, safely 31 |
+| Apple TV, two players (split screen or duel) | ~70/s | 1 | 7, safely 5 | 35, safely 28 |
 
 Rooms of different sizes add up. Combinations that still fit, with the
 reserve:
 
-- **Free**: one room of two, with or without CPU tanks, or one Apple TV
-  duel, plus any number of solo rounds. A room of two and a phone
+- **Free**: one room of two, with or without CPU tanks, an Apple TV with
+  two players included, plus any number of solo rounds. A room of two and a phone
   controller fit when the room drops its CPU tanks, which the game does.
 - **Pro**: one full room of four with CPU tanks plus two rooms of two
   (~227 + 2 × 70 ≈ 370/s), or two rooms of four without CPU tanks
@@ -943,16 +956,20 @@ reserve:
 | 4 pilots | ~630,000 | ~3 h | ~8 h | ~$1.57 |
 | 4 pilots with CPU tanks | ~820,000 | ~2.5 h | ~6 h | ~$2.04 |
 | Phone controller, on top | ~115,000 | ~17 h | ~43 h | ~$0.29 |
-| Apple TV duel with two phones | ~230,000 | ~9 h | ~22 h | ~$0.57 |
+| Apple TV, two players (split screen or duel) | ~250,000 | ~8 h | ~20 h | ~$0.63 |
 
 The hours are for the whole project and month, shared by all rooms: two
 rooms of two playing for an hour use two hours of the "2 pilots" row.
 
-An Apple TV duel plays both halves in private rooms of their own, which
-cost nothing; with controllers or the Siri Remote the duel is free. With
-phones it costs a pair each, ~63 a second: every phone talks to the
-television on a lane of its own. On one shared pad channel, as before,
-every input and status also reached the other phone, ~95 a second.
+Two players on one Apple TV, on a split screen or in a duel, share one
+room: the second player's game is a pilot like any other, so it costs
+what a room of two costs, with CPU tanks in a duel, and takes its slot
+of the budget. Phones as their controllers come on top, about 32 a
+second each, each on a lane of its own (on one shared pad channel every
+input and status also reached the other phone). On the free plan a room
+of two leaves room for one phone only once it drops its CPU tanks, so
+two players on two phones wait for a bigger plan; controllers and the
+Siri Remote always work.
 
 The other Realtime limits do not bind before these: every client holds
 one connection however many channels it joins (200 at once on the free
@@ -1035,6 +1052,9 @@ at once whether a change still fits the plan.
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
+- Two players on one Apple TV cost about 44 a second, 70 with CPU tanks
+  as in a duel; with two phones as controllers 108 to 134, so on the free
+  plan the phones wait.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they

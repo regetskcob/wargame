@@ -152,6 +152,11 @@ const tvGamepadSlotButtons = ['x', 'y', 'left', 'up', 'right', 'down'];
 /// Labels of [tvGamepadSlotButtons] on the slots in the HUD.
 const tvGamepadSlotLabels = ['X', 'Y', '←', '↑', '→', '↓'];
 
+/// In a defense duel Y sends a tank against the other side, the pad takes
+/// the second slot instead.
+const tvDuelSlotButtons = ['x', 'left', 'up', 'right', 'down'];
+const tvDuelSlotLabels = ['X', '←', '↑', '→', '↓'];
+
 /// Steers the tank with a controller or the Siri Remote.
 ///
 /// A controller plays like the touch sticks: the left stick points where to
@@ -227,10 +232,15 @@ class TvSteering {
         if (aim != null) {
           input.aim = atan2(aim.$1, -aim.$2);
         }
-        for (var slot = 0; slot < tvGamepadSlotButtons.length; slot++) {
-          if (pressed(tvGamepadSlotButtons[slot])) {
+        final duel = game.round?.duel ?? false;
+        final slots = duel ? tvDuelSlotButtons : tvGamepadSlotButtons;
+        for (var slot = 0; slot < slots.length; slot++) {
+          if (pressed(slots[slot])) {
             game.useItem(slot);
           }
+        }
+        if (duel && pressed('y')) {
+          game.sendTroops();
         }
         if (defense && pressed('r1')) {
           game.buildTower();

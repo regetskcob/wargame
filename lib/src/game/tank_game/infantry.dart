@@ -93,7 +93,8 @@ extension TankGameInfantry on TankGame {
     field.addSquad(
       payload,
       tint: team > 0 ? GameConfig.teamColors[team] : _colorFor(payload.owner),
-      map: defenseMap,
+      // A duel's squads march down the road of their side.
+      map: laneMap(payload.lane),
     );
     if (payload.para) {
       AudioService.play(
@@ -133,6 +134,17 @@ extension TankGameInfantry on TankGame {
             !s.airborne &&
             (round?.isEnemy(s.ownerId ?? '') ?? false),
       );
+
+  /// In a duel: soldiers of any side other than [team].
+  Iterable<Soldier> _hostileSoldiers(int team) =>
+      (soldierField?.all ?? const <Soldier>[]).where((s) {
+        final side = round?.teamOf(s.ownerId ?? '') ?? 0;
+        return !s.dead &&
+            s.isMounted &&
+            !s.airborne &&
+            side != 0 &&
+            side != team;
+      });
 
   Soldier? _nearestEnemySoldier(Vector2 from, double range) =>
       _nearestOf(from, range, _enemySoldiers);
@@ -207,7 +219,12 @@ extension TankGameInfantry on TankGame {
         !activeRound.isEnemy(soldier.ownerId ?? '')) {
       return;
     }
-    damageBase(GameConfig.soldierRaidDamage);
+    final map = defenseMap;
+    final march = soldier.march;
+    damageBase(
+      GameConfig.soldierRaidDamage,
+      lane: map == null || march == null ? 0 : max(0, map.lanes.indexOf(march)),
+    );
     _dismiss(soldier);
     net.send(
       NetEvent.soldier,
