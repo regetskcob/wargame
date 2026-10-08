@@ -7,7 +7,7 @@
           {
             "/": "/wargame/*",
             "?": { "room": "?*" },
-            "comment": "Room links of the game open the Wargame app"
+            "comment": "Room links of the game open the Panzergefecht app"
           }
         ]
       }

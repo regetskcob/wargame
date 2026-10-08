@@ -313,10 +313,10 @@ separate rooms to stay under the Realtime message limits.
 ## Mobile apps (iOS and Android)
 
 `packages/game` carries `ios/` and `android/` next to `macos/` and `web/`. The
-iOS app is called Wargame: bundle id `de.regetskcob.wargame`, display name
-and `Wargame.app` as the product (the Xcode target and scheme stay `Runner`,
-which `flutter build ios` expects). The Android app is called Wargame too,
-with the same app id `de.regetskcob.wargame`. On phones
+apps are called Panzergefecht, with the bundle and app id
+`de.regetskcob.wargame` on iOS and Android (kept from an earlier name, store
+ids cannot change). The iOS product is `Panzergefecht.app`, the Xcode target
+and scheme stay `Runner`, which `flutter build ios` expects. On phones
 and tablets the game plays upright or sideways, hides the system bars, and
 shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and

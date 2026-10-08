@@ -1,4 +1,4 @@
-# Uploads Wargame to Google Play. Run from packages/game/android after
+# Uploads Panzergefecht to Google Play. Run from packages/game/android after
 # `flutter build appbundle --release`, see store/android/README.md.
 
 default_platform(:android)

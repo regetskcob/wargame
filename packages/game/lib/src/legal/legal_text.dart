@@ -36,8 +36,8 @@ const privacy = [
   LegalBlock(
     'Verantwortlicher',
     '$_owner\nE-Mail: $_mail\n\n'
-        'Diese Erklärung gilt für das Spiel Panzergefecht im Browser und '
-        'für die Apps, die in den App Stores Wargame heißen. Für die übrige '
+        'Diese Erklärung gilt für das Spiel Panzergefecht im Browser und in '
+        'den Apps für iPhone, iPad und Android. Für die übrige '
         'Website gilt die Datenschutzerklärung unter regetskcob.de/legal.',
   ),
   LegalBlock(

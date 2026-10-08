@@ -1,6 +1,6 @@
 # App Store und TestFlight
 
-Alles, was App Store Connect für Wargame braucht. Die Ordner folgen dem
+Alles, was App Store Connect für Panzergefecht braucht. Die Ordner folgen dem
 Aufbau von `fastlane deliver`, die Dateien lassen sich aber genauso von Hand
 in App Store Connect einfügen.
 
@@ -22,8 +22,9 @@ in App Store Connect einfügen.
 | iPad 13" (2752 × 2064) | `screenshots/de-DE/ipad-*.png` |
 
 Apple skaliert die 6,9"- und 13"-Screenshots für alle kleineren Geräte, mehr
-Größen braucht es nicht. Der Name „Wargame“ allein ist im App Store sehr
-wahrscheinlich vergeben, deshalb „Wargame – Panzergefecht“. Die
+Größen braucht es nicht. Ist der Name „Panzergefecht“ im App Store
+schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
+„Panzergefecht – Panzerduell“ nehmen. Die
 Schlüsselwörter enthalten bewusst keine geschützten Namen wie Bundeswehr oder
 Leopard, das verbietet Apple (Richtlinie 2.3.7).
 
