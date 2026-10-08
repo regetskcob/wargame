@@ -8,10 +8,12 @@ import 'map_theme.dart';
 enum Sky { clear, precipitation, fog }
 
 /// Weather and time of day of a round. Like the map they follow from the
-/// round seed alone, so every client sees the same sky for free.
+/// round seed and the round clock alone, so every client sees the same sky
+/// for free.
 ///
-/// The seed carries them in fixed places: the map in `seed % 4`, the sky in
-/// the next factor of 20 and the time of day in the next factor of 4.
+/// The seed carries the map in `seed % 4` and the opening sky in the next
+/// factor of 20. Day and night take turns at a fixed pace, the seed only
+/// says where in that turn a round begins.
 class Conditions {
   const Conditions({
     required this.sky,
@@ -21,10 +23,9 @@ class Conditions {
 
   factory Conditions.forSeed(int seed) {
     final skyBucket = (seed ~/ _mapFactor) % _skyFactor;
-    final nightBucket = (seed ~/ (_mapFactor * _skyFactor)) % _nightFactor;
     return Conditions(
       sky: _skyOf(skyBucket),
-      night: nightBucket == 0,
+      night: nightAt(seed, 0),
       theme: MapTheme.forSeed(seed),
     );
   }
@@ -35,6 +36,18 @@ class Conditions {
 
   /// How long one spell of weather lasts at least, in seconds.
   static const spell = 70.0;
+
+  /// Length of the day and of the night, in seconds. One whole turn fits
+  /// into a usual round, so most rounds see the light change.
+  static const dayLength = 80.0;
+  static const nightLength = 40.0;
+  static const _cycle = dayLength + nightLength;
+
+  /// Whether it is night [seconds] into a round with [seed].
+  static bool nightAt(int seed, double seconds) {
+    final offset = Random(seed * 13 + 101).nextDouble() * _cycle;
+    return (offset + max(0, seconds)) % _cycle >= dayLength;
+  }
 
   /// The weather [seconds] into a round with [seed]. It starts with the sky
   /// of the seed and may turn after every [spell]: half the time it stays,
@@ -52,12 +65,15 @@ class Conditions {
     return sky;
   }
 
-  Conditions withSky(Sky value) =>
-      Conditions(sky: value, night: night, theme: theme);
+  /// Sky and time of day [seconds] into a round with [seed].
+  static Conditions at(int seed, double seconds, MapTheme theme) => Conditions(
+    sky: skyAt(seed, seconds),
+    night: nightAt(seed, seconds),
+    theme: theme,
+  );
 
   static const _mapFactor = 4;
   static const _skyFactor = 20;
-  static const _nightFactor = 4;
 
   /// 11 of 20 rounds are clear, 5 have rain, snow or sand, 4 fog.
   static Sky _skyOf(int bucket) => bucket < 11
@@ -65,26 +81,6 @@ class Conditions {
       : bucket < 16
       ? Sky.precipitation
       : Sky.fog;
-
-  static const _skyBuckets = {Sky.clear: 0, Sky.precipitation: 11, Sky.fog: 16};
-
-  /// Rewrites [seed] so that it brings [sky] and [night] where given and
-  /// keeps everything else, the map included.
-  static int seedWith(int seed, {Sky? sky, bool? night}) {
-    final map = seed % _mapFactor;
-    var skyBucket = (seed ~/ _mapFactor) % _skyFactor;
-    var nightBucket = (seed ~/ (_mapFactor * _skyFactor)) % _nightFactor;
-    final rest = seed ~/ (_mapFactor * _skyFactor * _nightFactor);
-    if (sky != null && _skyOf(skyBucket) != sky) {
-      skyBucket = _skyBuckets[sky]!;
-    }
-    if (night != null && (nightBucket == 0) != night) {
-      nightBucket = night ? 0 : 1;
-    }
-    return ((rest * _nightFactor + nightBucket) * _skyFactor + skyBucket) *
-            _mapFactor +
-        map;
-  }
 
   bool get snow => sky == Sky.precipitation && theme == MapTheme.winter;
   bool get sand => sky == Sky.precipitation && theme == MapTheme.desert;

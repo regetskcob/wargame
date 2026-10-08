@@ -362,10 +362,6 @@ class SpaceGame extends FlameGame
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
 
-  /// Time of day picked in the lobby, null for a random one. The weather is
-  /// always rolled from the seed and turns during long rounds.
-  final nightChoice = ValueNotifier<bool?>(null);
-
   /// Weather and time of day of the current round.
   Conditions? conditions;
   final conditionsLabel = ValueNotifier<String?>(null);
@@ -879,10 +875,10 @@ class SpaceGame extends FlameGame
       ..addAll(bots.keys)
       ..sort();
     final payload = RoundStartPayload(
-      seed: Conditions.seedWith(switch (mapChoice.value) {
+      seed: switch (mapChoice.value) {
         final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
         null => Random().nextInt(1 << 30),
-      }, night: nightChoice.value),
+      },
       startedAt:
           DateTime.now().millisecondsSinceEpoch +
           GameConfig.countdownSeconds * 1000,
@@ -1256,12 +1252,7 @@ class SpaceGame extends FlameGame
     final field = DefenseField(seed: activeRound.seed, map: map);
     _defenseField = field;
     _setGround(field.theme, plain: true);
-    // Defense is fought by day, but the weather comes and goes as well.
-    conditions = Conditions(
-      sky: Conditions.forSeed(activeRound.seed).sky,
-      night: false,
-      theme: field.theme,
-    );
+    conditions = Conditions.at(activeRound.seed, 0, field.theme);
     conditionsLabel.value = conditions!.label;
     _weather = WeatherLayer(conditions!);
     world.add(field);
@@ -1319,8 +1310,9 @@ class SpaceGame extends FlameGame
   static double _headingFrom(Vector2 from, Vector2 to) =>
       atan2(to.x - from.x, -(to.y - from.y));
 
-  /// Lets the weather turn when the seed says so, and fades the old sky out
-  /// while the new one comes in.
+  /// Lets the weather turn and day and night take turns when the seed and
+  /// the round clock say so, and fades the old sky out while the new one
+  /// comes in.
   void _turnWeather(double dt) {
     final current = _weather;
     if (current != null && current.opacity < 1) {
@@ -1342,17 +1334,20 @@ class SpaceGame extends FlameGame
       return;
     }
     _weatherCheck = 1;
-    final sky = Conditions.skyAt(activeRound.seed, _secondsIntoRound);
-    if (sky == now.sky) {
+    final next = Conditions.at(activeRound.seed, _secondsIntoRound, now.theme);
+    if (next.sky == now.sky && next.night == now.night) {
       return;
     }
-    final next = now.withSky(sky);
     conditions = next;
     conditionsLabel.value = next.label;
     _passingWeather = current;
     _weather = WeatherLayer(next)..opacity = 0;
     if (phase.value == GamePhase.playing) {
-      showNotice('WETTERUMSCHWUNG: ${next.label.toUpperCase()}');
+      showNotice(switch ((next.sky == now.sky, next.night)) {
+        (true, true) => 'DIE NACHT BRICHT HEREIN',
+        (true, false) => 'DER TAG BRICHT AN',
+        _ => 'WETTERUMSCHWUNG: ${next.label.toUpperCase()}',
+      });
     }
   }
 

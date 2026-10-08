@@ -78,9 +78,10 @@ Everything resolves from pub.dev. There are no git dependencies and no
   come with ranks 2, 3, 4, 5 and 8, and every later one is stronger than the
   ones before. The lobby lists the unlocked ones first. Four free paint
   schemes and four more that come with higher ranks.
-- Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather and a
-  time of day: clear, rain, snow, a sandstorm or fog, by day or at night.
-  Night, fog and sand limit the view to a circle around the tank.
+- Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
+  (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
+  day and night taking turns at a fixed pace: 80 seconds of day, 40 of
+  night. Night, fog and sand limit the view to a circle around the tank.
 - Buildings, barriers and trees that can be shot down, and soldiers on foot
   that fight: in a team round the squads are red or blue and shoot at tanks
   and at each other. They can be shot or run over.

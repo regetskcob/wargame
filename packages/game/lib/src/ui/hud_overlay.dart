@@ -526,6 +526,29 @@ class _DefensePanelState extends State<_DefensePanel> {
   TextStyle get _small =>
       TextStyle(fontSize: touch ? 10 : 11, letterSpacing: 0.5);
 
+  /// What can be bought now is filled in [color] and bright, what cannot is
+  /// only a faint outline, so the two never look alike.
+  ButtonStyle _buyStyle(Color color) => _buttonStyle.copyWith(
+    backgroundColor: WidgetStateProperty.resolveWith(
+      (states) => states.contains(WidgetState.disabled)
+          ? Colors.transparent
+          : color.withValues(alpha: 0.28),
+    ),
+    foregroundColor: WidgetStateProperty.resolveWith(
+      (states) => states.contains(WidgetState.disabled)
+          ? BwColors.textDim.withValues(alpha: 0.45)
+          : BwColors.text,
+    ),
+    side: WidgetStateProperty.resolveWith(
+      (states) => BorderSide(
+        color: states.contains(WidgetState.disabled)
+            ? color.withValues(alpha: 0.3)
+            : color,
+        width: 1.5,
+      ),
+    ),
+  );
+
   Widget _nearTower(Tower near, int credits) {
     return FilledButton.icon(
       style: _buttonStyle,
@@ -563,7 +586,9 @@ class _DefensePanelState extends State<_DefensePanel> {
                 (kind == game.towerChoice.value
                 ? FilledButton.new
                 : OutlinedButton.new)(
-                  style: _buttonStyle,
+                  style: kind == game.towerChoice.value
+                      ? _buttonStyle
+                      : _buyStyle(BwColors.oliveLight),
                   onPressed: credits >= kind.cost && kind.unlockedIn(wave)
                       ? () => game.buildTower(kind)
                       : null,
@@ -668,12 +693,11 @@ class _DefensePanelState extends State<_DefensePanel> {
     return Tooltip(
       message: '${kind.label}: ${kind.effect} je Stufe',
       child: OutlinedButton(
-        style: _buttonStyle.copyWith(
+        style: _buyStyle(kind.color).copyWith(
           padding: WidgetStatePropertyAll(
             EdgeInsets.symmetric(horizontal: touch ? 6 : 8, vertical: 2),
           ),
           minimumSize: WidgetStatePropertyAll(Size(0, touch ? 32 : 28)),
-          side: WidgetStatePropertyAll(BorderSide(color: kind.color)),
         ),
         onPressed: !maxed && credits >= cost
             ? () => game.buyUpgrade(kind)
@@ -681,7 +705,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         child: Text(
           '${kind.label} ${'●' * level}${'○' * (GameConfig.upgradeMaxLevel - level)}'
           '${maxed ? '' : ' $cost'}',
-          style: TextStyle(fontSize: 10, color: kind.color),
+          style: const TextStyle(fontSize: 10),
         ),
       ),
     );

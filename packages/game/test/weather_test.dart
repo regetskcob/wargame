@@ -3,26 +3,6 @@ import 'package:game/src/game/map_theme.dart';
 import 'package:game/src/game/weather.dart';
 
 void main() {
-  test('weather and time of day can be forced without moving the map', () {
-    for (var seed = 0; seed < 2000; seed += 37) {
-      for (final sky in Sky.values) {
-        for (final night in [true, false]) {
-          final forced = Conditions.seedWith(seed, sky: sky, night: night);
-          final conditions = Conditions.forSeed(forced);
-          expect(conditions.sky, sky);
-          expect(conditions.night, night);
-          expect(MapTheme.forSeed(forced), MapTheme.forSeed(seed));
-        }
-      }
-    }
-  });
-
-  test('a seed without a wish keeps its weather', () {
-    for (var seed = 0; seed < 500; seed += 7) {
-      expect(Conditions.seedWith(seed), seed);
-    }
-  });
-
   test('random seeds bring every kind of weather', () {
     final skies = {for (var s = 0; s < 400; s++) Conditions.forSeed(s).sky};
     final nights = {for (var s = 0; s < 400; s++) Conditions.forSeed(s).night};
@@ -59,5 +39,30 @@ void main() {
       }
     }
     expect(turned, greaterThan(100));
+  });
+
+  test('day and night take turns at a fixed pace', () {
+    const cycle = Conditions.dayLength + Conditions.nightLength;
+    for (var seed = 0; seed < 200; seed++) {
+      expect(Conditions.nightAt(seed, 0), Conditions.forSeed(seed).night);
+      // Every client works out the same light for the same moment.
+      expect(Conditions.nightAt(seed, 95), Conditions.nightAt(seed, 95));
+      var night = 0;
+      var turns = 0;
+      var before = Conditions.nightAt(seed, 0);
+      for (var t = 0.0; t < cycle * 3; t += 1) {
+        final now = Conditions.nightAt(seed, t);
+        if (now) {
+          night++;
+        }
+        if (now != before) {
+          turns++;
+        }
+        before = now;
+        expect(Conditions.nightAt(seed, t + cycle), now);
+      }
+      expect(night, closeTo(Conditions.nightLength * 3, 3));
+      expect(turns, inInclusiveRange(5, 6));
+    }
   });
 }

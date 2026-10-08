@@ -308,12 +308,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Ground, weather and time of day. Host only.
+  /// The ground. Host only.
   Widget _fieldSection(BuildContext context) {
     final game = widget.game;
     return _Section(
       icon: Icons.landscape_outlined,
-      title: 'GELÄNDE & TAGESZEIT',
+      title: 'GELÄNDE',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -330,22 +330,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               onSelected: (v) => game.mapChoice.value = v,
             ),
           ),
-          const SizedBox(height: 14),
-          _label(context, 'TAGESZEIT'),
-          ValueListenableBuilder<bool?>(
-            valueListenable: game.nightChoice,
-            builder: (context, choice, _) => ChoiceRow<bool>(
-              allowNone: true,
-              options: const [(false, 'TAG', null), (true, 'NACHT', null)],
-              selected: choice,
-              onSelected: (v) => game.nightChoice.value = v,
-            ),
-          ),
           const SizedBox(height: 6),
           _hint(
-            'Ohne Auswahl wird zufällig bestimmt. Das Wetter würfelt jede '
-            'Runde selbst aus, in langen Runden schlägt es um. Nachts, im '
-            'Nebel und im Sandsturm siehst du nur, was nah ist.',
+            'Ohne Auswahl wird zufällig bestimmt. Tag und Nacht wechseln '
+            'sich regelmäßig ab, das Wetter würfelt jede Runde selbst aus und '
+            'schlägt in langen Runden um. Nachts, im Nebel und im Sandsturm '
+            'siehst du nur, was nah ist.',
           ),
         ],
       ),

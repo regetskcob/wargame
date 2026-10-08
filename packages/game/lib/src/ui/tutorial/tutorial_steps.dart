@@ -229,9 +229,9 @@ final _tour = [
     title: 'GELÄNDE UND WETTER',
     icon: Icons.terrain,
     text:
-        'Vier Gelände bei Tag oder Nacht, mit Regen, Schnee, Sandsturm oder '
-        'Nebel, die die Sicht begrenzen. Häuser, Sperren und Bäume lassen '
-        'sich zerschießen.',
+        'Vier Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
+        'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Häuser, '
+        'Sperren und Bäume lassen sich zerschießen.',
     chips: [
       TutorialChip(Icons.park, 'GEFECHTSPLATZ'),
       TutorialChip(Icons.wb_sunny, 'WÜSTE'),
