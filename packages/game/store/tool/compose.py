@@ -152,7 +152,7 @@ def feature_graphic():
     canvas = backdrop((w, h), "feature")
     # Only the tank with its shadow, without the terrain of the icon.
     layer = app_icon.tank()
-    box = (200, 290, 960, 760)
+    box = (138, 290, 898, 760)
     size = (round((box[2] - box[0]) * 0.46), round((box[3] - box[1]) * 0.46))
     tank = layer.crop(box).resize(size, Image.LANCZOS)
     canvas.paste(tank, (70, (h - tank.height) // 2), tank)
