@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/net/pad_link.dart';
 
 /// A phone paired as controller talks to the screen on a channel of its
@@ -125,6 +126,19 @@ void main() {
     final shared = (2 * phone + 2 * status) * 3;
     expect(lanes, lessThanOrEqualTo(65), reason: '$lanes/s');
     expect(shared, greaterThan(90), reason: '$shared/s');
+  });
+
+  test('the budget never counts a phone as cheaper than it is', () {
+    // GameConfig.padLoad is what a phone claims of the Realtime budget.
+    final load =
+        (_phone(sweeping).length / _seconds +
+            _statusPerSecond(changing: true)) *
+        2;
+    expect(
+      load,
+      lessThanOrEqualTo(GameConfig.padLoad * 1.1),
+      reason: 'a phone and its screen send $load/s',
+    );
   });
 
   test('a pair of phone and screen costs at most 35 messages a second', () {

@@ -20,7 +20,9 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    iOS, Android, several minutes) is for changes to `pubspec.*`, `ios/`,
    `android/`, `tvos/`, the watch app, assets, plugins or the version, for
    larger refactors and before store releases; run it in the background and
-   wait for "All green". Fix and rerun until green.
+   wait for "All green". Fix and rerun until green. Judge it by its exit
+   code or its last line; piped into `tail`, a failed run still looks
+   successful to `&&`.
 4. If a migration is part of the change, push it to the hosted project
    before the game, without asking (standing go-ahead; see
    `/db-migration`, it must have passed the PGlite check), because the
