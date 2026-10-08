@@ -261,7 +261,8 @@ final _tour = [
     text:
         'Geschütze, Gräben und Upgrades für den Panzer. Hält der Stützpunkt '
         'gut, wächst er vom Wachturm zur Festung und schickt eigene '
-        'Hubschrauber und Jets.',
+        'Hubschrauber und Jets. Nach Welle ${GameConfig.defenseWaves} könnt '
+        'ihr verlängern: höhere Stufen, Raketenwerfer, zähere Gegner.',
     chips: [
       for (final kind in TowerKind.values)
         TutorialChip(_towerIcon(kind), kind.label),
@@ -299,6 +300,7 @@ IconData _towerIcon(TowerKind kind) => switch (kind) {
   TowerKind.mortar => Icons.vertical_align_top,
   TowerKind.howitzer => Icons.gps_fixed,
   TowerKind.trench => Icons.horizontal_rule,
+  TowerKind.rockets => Icons.rocket_launch,
 };
 
 /// Small numbers spelled out, as on the cards.

@@ -126,7 +126,18 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
     _keepAllies(dt);
     var next = state;
     if (state.hp <= 0) {
-      gameRef.publishDefense(state.copyWith(hp: 0, result: DefenseResult.lost));
+      // Once extended the win is safe, however the base ends.
+      gameRef.publishDefense(
+        state.copyWith(
+          hp: 0,
+          result: state.extended ? DefenseResult.won : DefenseResult.lost,
+        ),
+      );
+      return;
+    }
+    if (state.deciding && _now >= state.nextWaveAt) {
+      // Nobody asked for more: the round ends with the regular waves.
+      gameRef.publishDefense(state.copyWith(result: DefenseResult.won));
       return;
     }
     if (state.nextWaveAt > 0 && _now >= state.nextWaveAt) {
@@ -166,11 +177,12 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
         next.nextWaveAt == 0 &&
         _queue.isEmpty &&
         !gameRef.enemyForcesLeft) {
-      next = next.wave >= GameConfig.defenseWaves
-          ? next.copyWith(result: DefenseResult.won)
-          : _grow(
-              next,
-            ).copyWith(nextWaveAt: _now + GameConfig.waveBreakSeconds * 1000);
+      // After the last regular wave the host gets a longer break to decide
+      // whether to go on.
+      final pause = next.wave >= GameConfig.defenseWaves && !next.extended
+          ? GameConfig.extendDecisionSeconds
+          : GameConfig.waveBreakSeconds;
+      next = _grow(next).copyWith(nextWaveAt: _now + pause * 1000);
     }
     _keepalive += dt;
     if (!identical(next, state) || _keepalive >= 1) {

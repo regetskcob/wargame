@@ -59,6 +59,16 @@ enum TowerKind {
     damage: 0,
     shotSpeed: 0,
     fromWave: 2,
+  ),
+  rockets(
+    'RAKETEN',
+    cost: 260,
+    range: 640,
+    cooldown: 1.4,
+    damage: 42,
+    shotSpeed: 640,
+    antiAir: true,
+    extension: true,
   );
 
   const TowerKind(
@@ -72,6 +82,7 @@ enum TowerKind {
     this.minRange = 0,
     this.blast = 1,
     this.fromWave = 0,
+    this.extension = false,
   });
 
   final String label;
@@ -95,15 +106,29 @@ enum TowerKind {
   /// Wave from which it can be built, 0 from the start.
   final int fromWave;
 
+  /// Only to be had once the defenders extend past the last regular wave.
+  final bool extension;
+
   /// Fires shells in a high arc that burst where they land.
   bool get lobs => this == mortar || this == howitzer;
 
   bool get isGun => this != trench;
   bool get upgradable => isGun;
 
-  bool unlockedIn(int wave) => wave >= fromWave;
+  bool unlockedIn(int wave, {bool extended = false}) =>
+      extension ? extended : wave >= fromWave;
 
-  static const maxLevel = 3;
+  /// What keeps it locked, null when it can be built.
+  String? lockedIn(int wave, {bool extended = false}) =>
+      unlockedIn(wave, extended: extended)
+      ? null
+      : extension
+      ? 'in der Verlängerung'
+      : 'ab Welle $fromWave';
+
+  /// Three steps, two more in the extension.
+  static const maxLevel = 5;
+  static int levelLimit({required bool extended}) => extended ? 5 : 3;
 
   /// What the step from [level] to the next costs.
   int upgradeCost(int level) => (cost * 0.75 * level).round();
@@ -120,6 +145,7 @@ enum TowerKind {
         TowerKind.mortar => 200.0,
         TowerKind.howitzer => 300.0,
         TowerKind.trench => 360.0,
+        TowerKind.rockets => 260.0,
       } *
       (1 + 0.3 * (level - 1));
 
@@ -129,6 +155,7 @@ enum TowerKind {
     TowerKind.mortar => 'Flächenfeuer',
     TowerKind.howitzer => 'Flächenfeuer auf große Entfernung',
     TowerKind.trench => 'halber Schaden für den Panzer darin',
+    TowerKind.rockets => 'gegen Panzer und Luftziele',
   };
 }
 
@@ -307,6 +334,7 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
       TowerKind.mortar => const Color(0xFF6B5E48),
       TowerKind.howitzer => const Color(0xFF4A4F3A),
       TowerKind.trench => const Color(0xFF3B2E20),
+      TowerKind.rockets => const Color(0xFF5A4A44),
     };
     final pad = Rect.fromCenter(center: c, width: 34, height: 34);
     if (kind.lobs) {
@@ -394,6 +422,19 @@ class Tower extends PositionComponent with HasGameRef<SpaceGame> {
           Offset(6, -48 + recoil),
           barrel..strokeWidth = 5,
         );
+      case TowerKind.rockets:
+        // A box of four tubes, the rockets' tips showing.
+        final box = Rect.fromLTWH(-13, -34 + recoil / 2, 26, 30);
+        canvas.drawRect(box, barrel);
+        for (final x in const [-6.5, 6.5]) {
+          for (final y in const [-28.0, -16.0]) {
+            canvas.drawCircle(
+              Offset(x, y + recoil / 2),
+              4,
+              Paint()..color = const Color(0xFFD1492E),
+            );
+          }
+        }
       case TowerKind.trench:
         break;
     }

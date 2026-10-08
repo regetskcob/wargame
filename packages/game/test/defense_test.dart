@@ -4,6 +4,7 @@ import 'package:game/src/game/components/artillery_strike.dart';
 import 'package:game/src/game_config.dart';
 import 'package:game/src/game/defense/defense_map.dart';
 import 'package:game/src/game/defense/tower.dart';
+import 'package:game/src/game/upgrades.dart';
 import 'package:game/src/game/round_state.dart';
 import 'package:game/src/net/payloads/defense_payload.dart';
 import 'package:game/src/net/payloads/lobby_presence.dart';
@@ -211,12 +212,47 @@ void main() {
     expect(TowerKind.trench.upgradable, isFalse);
   });
 
+  test('the extension unlocks the rockets and higher steps', () {
+    expect(TowerKind.rockets.unlockedIn(20), isFalse);
+    expect(TowerKind.rockets.unlockedIn(8, extended: true), isTrue);
+    expect(TowerKind.rockets.lockedIn(9), 'in der Verlängerung');
+    expect(TowerKind.cannon.lockedIn(0), isNull);
+    expect(TowerKind.levelLimit(extended: false), 3);
+    expect(TowerKind.levelLimit(extended: true), TowerKind.maxLevel);
+    expect(GameConfig.upgradeLimit(extended: false), 3);
+    expect(GameConfig.upgradeLimit(extended: true), GameConfig.upgradeMaxLevel);
+    // Armour keeps letting some damage through at the top step.
+    expect(UpgradeKind.armor.factorAt(3), closeTo(0.55, 1e-9));
+    expect(UpgradeKind.armor.factorAt(5), closeTo(0.35, 1e-9));
+    // Enemies only get tougher past the regular waves.
+    expect(GameConfig.enemyArmorIn(GameConfig.defenseWaves), 1);
+    expect(GameConfig.enemyArmorIn(GameConfig.defenseWaves + 5), lessThan(1));
+  });
+
+  test('after the last regular wave the host decides', () {
+    const last = GameConfig.defenseWaves;
+    const deciding = DefensePayload(id: 'a', hp: 1, wave: last, nextWaveAt: 5);
+    expect(deciding.deciding, isTrue);
+    expect(deciding.copyWith(extended: true).deciding, isFalse);
+    expect(deciding.copyWith(nextWaveAt: 0).deciding, isFalse);
+    expect(deciding.copyWith(wave: last - 1).deciding, isFalse);
+    final sent = DefensePayload.fromJson(
+      deciding.copyWith(extended: true).toJson(),
+    );
+    expect(sent.extended, isTrue);
+    expect(DefensePayload.fromJson(deciding.toJson()).extended, isFalse);
+  });
+
   test('the base grows with waves held without heavy losses', () {
     expect(GameConfig.hqLevelFor(0), 1);
     expect(GameConfig.hqLevelFor(1), 1);
     expect(GameConfig.hqLevelFor(2), 2);
     expect(GameConfig.hqLevelFor(4), 3);
-    expect(GameConfig.hqLevelFor(9), 3);
+    expect(GameConfig.hqLevelFor(6), 3);
+    expect(GameConfig.hqLevelFor(7), 4);
+    expect(GameConfig.hqLevelFor(20), 4);
+    expect(GameConfig.hqName(4), 'ZITADELLE');
+    expect(GameConfig.hqName(9), 'ZITADELLE');
     expect(GameConfig.baseMaxHp(3), greaterThan(GameConfig.baseMaxHp(1)));
     expect(GameConfig.hqName(2), 'KASERNE');
     final state = DefensePayload.fromJson(

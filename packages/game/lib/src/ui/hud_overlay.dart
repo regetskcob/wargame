@@ -88,6 +88,11 @@ class _HudOverlayState extends State<HudOverlay> {
     final now = DateTime.now().millisecondsSinceEpoch;
     if (state.nextWaveAt > 0) {
       final seconds = ((state.nextWaveAt - now) / 1000).ceil().clamp(0, 999);
+      if (state.deciding) {
+        return compact
+            ? 'Sieg! Ende in $seconds s'
+            : 'Sieg gesichert: Ende in $seconds s';
+      }
       return compact
           ? 'Welle ${state.wave + 1} in $seconds s'
           : 'Nächste Welle in $seconds s';
@@ -95,12 +100,20 @@ class _HudOverlayState extends State<HudOverlay> {
     return compact ? 'Welle läuft' : 'Welle läuft: Haltet die Straße';
   }
 
+  /// The wave out of the regular ones, or how far into the extension.
+  static String _wave(DefensePayload? state) {
+    final wave = state?.wave ?? 0;
+    return state != null && state.extended
+        ? 'WELLE $wave · VERLÄNGERUNG'
+        : 'WELLE $wave/${GameConfig.defenseWaves}';
+  }
+
   /// Wave, enemies and comrades in one short line, for the phone panel.
   String _waveCounts() {
     final game = widget.game;
     final round = game.round;
     final allies = round == null ? 0 : round.alive.where(round.isAlly).length;
-    return 'WELLE ${game.defense.value?.wave ?? 0}/${GameConfig.defenseWaves}'
+    return '${_wave(game.defense.value)}'
         ' · FEINDE ${game.enemiesOnField} · KAM. $allies';
   }
 
@@ -168,8 +181,7 @@ class _HudOverlayState extends State<HudOverlay> {
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
             builder: (context, state, _) => Text(
-              'WELLE ${state?.wave ?? 0}/${GameConfig.defenseWaves}'
-              '   FEINDE $enemies   KAMERADEN $allies',
+              '${_wave(state)}   FEINDE $enemies   KAMERADEN $allies',
               style: style,
             ),
           );
@@ -554,7 +566,7 @@ class _DefensePanelState extends State<_DefensePanel> {
       style: _buttonStyle,
       onPressed:
           near.kind.upgradable &&
-              near.level < TowerKind.maxLevel &&
+              near.level < _towerLimit &&
               credits >= near.kind.upgradeCost(near.level)
           ? () => game.upgradeTower(near)
           : null,
@@ -564,6 +576,8 @@ class _DefensePanelState extends State<_DefensePanel> {
             ? '${near.kind.label} BESETZT'
             : near.level >= TowerKind.maxLevel
             ? '${near.kind.label} HÖCHSTE STUFE'
+            : near.level >= _towerLimit
+            ? '${near.kind.label} STUFE ${near.level + 1} IN VERLÄNGERUNG'
             : '${near.kind.label} AUFRÜSTEN  '
                   '${near.kind.upgradeCost(near.level)}',
         style: _small,
@@ -571,35 +585,42 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
   }
 
+  int get _towerLimit => TowerKind.levelLimit(extended: game.extended);
+
   Widget _towers(int credits) {
     final wave = game.defense.value?.wave ?? 0;
+    final extended = game.extended;
     return Wrap(
       spacing: 6,
       runSpacing: 4,
       children: [
         for (final kind in TowerKind.values)
-          Tooltip(
-            message: kind.unlockedIn(wave)
-                ? kind.hint
-                : '${kind.hint}, ab Welle ${kind.fromWave}',
-            child:
-                (kind == game.towerChoice.value
-                ? FilledButton.new
-                : OutlinedButton.new)(
-                  style: kind == game.towerChoice.value
-                      ? _buttonStyle
-                      : _buyStyle(BwColors.oliveLight),
-                  onPressed: credits >= kind.cost && kind.unlockedIn(wave)
-                      ? () => game.buildTower(kind)
-                      : null,
-                  child: Text(
-                    kind.unlockedIn(wave)
-                        ? '${kind.label} ${kind.cost}'
-                        : '${kind.label} AB W${kind.fromWave}',
-                    style: _small,
+          if (!kind.extension || extended)
+            Tooltip(
+              message: switch (kind.lockedIn(wave, extended: extended)) {
+                final locked? => '${kind.hint}, $locked',
+                null => kind.hint,
+              },
+              child:
+                  (kind == game.towerChoice.value
+                  ? FilledButton.new
+                  : OutlinedButton.new)(
+                    style: kind == game.towerChoice.value
+                        ? _buttonStyle
+                        : _buyStyle(BwColors.oliveLight),
+                    onPressed:
+                        credits >= kind.cost &&
+                            kind.unlockedIn(wave, extended: extended)
+                        ? () => game.buildTower(kind)
+                        : null,
+                    child: Text(
+                      kind.unlockedIn(wave, extended: extended)
+                          ? '${kind.label} ${kind.cost}'
+                          : '${kind.label} AB W${kind.fromWave}',
+                      style: _small,
+                    ),
                   ),
-                ),
-          ),
+            ),
       ],
     );
   }
@@ -688,7 +709,8 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _upgrade(UpgradeKind kind, int credits) {
     final level = game.upgrades.value[kind] ?? 0;
-    final maxed = level >= GameConfig.upgradeMaxLevel;
+    final limit = GameConfig.upgradeLimit(extended: game.extended);
+    final maxed = level >= limit;
     final cost = kind.costFrom(level);
     return Tooltip(
       message: '${kind.label}: ${kind.effect} je Stufe',
@@ -703,11 +725,99 @@ class _DefensePanelState extends State<_DefensePanel> {
             ? () => game.buyUpgrade(kind)
             : null,
         child: Text(
-          '${kind.label} ${'●' * level}${'○' * (GameConfig.upgradeMaxLevel - level)}'
+          '${kind.label} ${'●' * level}${'○' * (limit - level)}'
           '${maxed ? '' : ' $cost'}',
           style: const TextStyle(fontSize: 10),
         ),
       ),
+    );
+  }
+
+  /// After the last regular wave: the host extends or pulls out, everybody
+  /// else learns what is at stake. In the extension the host may pull out
+  /// between waves.
+  Widget _decision() {
+    return ValueListenableBuilder<DefensePayload?>(
+      valueListenable: game.defense,
+      builder: (context, state, _) {
+        if (state == null ||
+            state.result != DefenseResult.running ||
+            state.nextWaveAt == 0 ||
+            !(state.deciding || state.extended)) {
+          return const SizedBox.shrink();
+        }
+        final host = game.round?.botHost == game.myId;
+        final withdraw = OutlinedButton.icon(
+          style: _buyStyle(BwColors.sand),
+          onPressed: game.withdrawDefense,
+          icon: const Icon(Icons.flag, size: 16),
+          label: Text('ABZIEHEN', style: _small),
+        );
+        final children = <Widget>[];
+        if (state.deciding) {
+          children
+            ..add(
+              Text(
+                'ALLE ${GameConfig.defenseWaves} WELLEN ABGEWEHRT · SIEG GESICHERT',
+                style: TextStyle(
+                  color: BwColors.amber,
+                  fontSize: touch ? 11 : 13,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+            )
+            ..add(const SizedBox(height: 4))
+            ..add(
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Text(
+                  'Verlängerung: Wellen ohne Ende mit zäheren Gegnern, Stufe 4 '
+                  'und 5 für Geschütze und Panzer, Raketenwerfer und eine '
+                  'Zitadelle. Fällt der Stützpunkt, bleibt der Sieg.',
+                  style: TextStyle(fontSize: touch ? 10 : 11),
+                ),
+              ),
+            )
+            ..add(const SizedBox(height: 6))
+            ..add(
+              host
+                  ? Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      children: [
+                        FilledButton.icon(
+                          style: _buttonStyle,
+                          onPressed: game.extendDefense,
+                          icon: const Icon(Icons.all_inclusive, size: 16),
+                          label: Text('VERLÄNGERN', style: _small),
+                        ),
+                        withdraw,
+                      ],
+                    )
+                  : Text(
+                      'Der Host entscheidet, ob es weitergeht.',
+                      style: TextStyle(
+                        fontSize: touch ? 10 : 11,
+                        color: BwColors.textDim,
+                      ),
+                    ),
+            );
+        } else if (host) {
+          children.add(withdraw);
+        } else {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: EdgeInsets.only(bottom: touch ? 6 : 10),
+          child: Column(
+            crossAxisAlignment: touch
+                ? CrossAxisAlignment.end
+                : CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: children,
+          ),
+        );
+      },
     );
   }
 
@@ -784,6 +894,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             ),
             const SizedBox(height: 3),
           ],
+          _decision(),
           _base(),
           SizedBox(height: touch ? 5 : 8),
           ListenableBuilder(

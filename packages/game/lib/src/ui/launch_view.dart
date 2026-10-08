@@ -167,7 +167,8 @@ const List<_Option> _options = [
     kicker: 'TOWER DEFENSE',
     text:
         'Haltet gemeinsam den Stützpunkt gegen ${GameConfig.defenseWaves} '
-        'Wellen. Abschüsse bringen Mittel für Geschütze.',
+        'Wellen, danach nach Wunsch weiter. Abschüsse bringen Mittel für '
+        'Geschütze.',
   ),
 ];
 

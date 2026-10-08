@@ -1398,6 +1398,7 @@ class SpaceGame extends FlameGame
           ..endlessAmmo = true
           ..speedFactor = GameConfig.enemySpeed
           ..fireFactor = GameConfig.enemyFireFactor
+          ..armorFactor = GameConfig.enemyArmorIn(defense.value?.wave ?? 0)
           ..syncInterval = GameConfig.enemySyncInterval;
     activeRound.alive.add(id);
     aliveCount.value = activeRound.alive.length;
@@ -1959,6 +1960,38 @@ class SpaceGame extends FlameGame
     publishDefense(state.copyWith(hp: max(0.0, state.hp - amount)));
   }
 
+  /// Whether the defenders went on past the last regular wave.
+  bool get extended => defense.value?.extended ?? false;
+
+  /// Host, after the last regular wave: go on with the waves.
+  void extendDefense() {
+    final state = defense.value;
+    if (state == null || round?.botHost != myId || !state.deciding) {
+      return;
+    }
+    publishDefense(
+      state.copyWith(
+        extended: true,
+        nextWaveAt:
+            DateTime.now().millisecondsSinceEpoch +
+            GameConfig.waveBreakSeconds * 1000,
+      ),
+    );
+  }
+
+  /// Host, between waves once the win is safe: end the round as a win.
+  void withdrawDefense() {
+    final state = defense.value;
+    if (state == null ||
+        round?.botHost != myId ||
+        state.result != DefenseResult.running ||
+        state.nextWaveAt == 0 ||
+        !(state.deciding || state.extended)) {
+      return;
+    }
+    publishDefense(state.copyWith(result: DefenseResult.won));
+  }
+
   /// Host: applies a new state of the base and the waves and sends it.
   void publishDefense(DefensePayload state) {
     _applyDefense(state);
@@ -1994,13 +2027,21 @@ class SpaceGame extends FlameGame
       );
       AudioService.play('win', volume: 0.5);
     }
+    if (before != null && state.extended && !before.extended) {
+      showNotice('VERLÄNGERUNG: STUFE 4 UND 5, RAKETENWERFER');
+      AudioService.play('go', volume: 0.6);
+    }
     if (before != null &&
         state.wave > 0 &&
         state.nextWaveAt > 0 &&
         before.nextWaveAt == 0) {
       // A wave was beaten off.
       credits.value += GameConfig.waveBonus;
-      showNotice('WELLE ${state.wave} ABGEWEHRT  +${GameConfig.waveBonus}');
+      showNotice(
+        state.deciding
+            ? 'ALLE ${state.wave} WELLEN ABGEWEHRT  +${GameConfig.waveBonus}'
+            : 'WELLE ${state.wave} ABGEWEHRT  +${GameConfig.waveBonus}',
+      );
     } else if (before != null && state.wave > before.wave) {
       showNotice('WELLE ${state.wave} ROLLT AN');
       AudioService.play('go', volume: 0.6);
@@ -2032,8 +2073,9 @@ class SpaceGame extends FlameGame
         )
         .length;
     final limit = build.isGun ? towerLimit : GameConfig.maxTrenches;
-    final reason = !build.unlockedIn(defense.value?.wave ?? 0)
-        ? '${build.label} ab Welle ${build.fromWave}'
+    final locked = build.lockedIn(defense.value?.wave ?? 0, extended: extended);
+    final reason = locked != null
+        ? '${build.label} $locked'
         : credits.value < build.cost
         ? 'Zu wenig Mittel'
         : mine >= limit
@@ -2067,7 +2109,7 @@ class SpaceGame extends FlameGame
     var next = towerChoice.value;
     for (var i = 0; i < TowerKind.values.length; i++) {
       next = TowerKind.values[(next.index + 1) % TowerKind.values.length];
-      if (next.unlockedIn(wave)) {
+      if (next.unlockedIn(wave, extended: extended)) {
         break;
       }
     }
@@ -2089,9 +2131,16 @@ class SpaceGame extends FlameGame
     }
     final guns = [
       if (level >= 2)
-        (Tower.hqIndex, TowerKind.cannon, map.base, level >= 3 ? 2 : 1),
+        (Tower.hqIndex, TowerKind.cannon, map.base, min(level - 1, 3)),
       if (level >= 3)
-        (Tower.hqIndex + 1, TowerKind.flak, map.base + Vector2(-34, 30), 1),
+        (
+          Tower.hqIndex + 1,
+          TowerKind.flak,
+          map.base + Vector2(-34, 30),
+          level - 2,
+        ),
+      if (level >= 4)
+        (Tower.hqIndex + 2, TowerKind.rockets, map.base + Vector2(34, 30), 1),
     ];
     for (final (index, kind, at, gunLevel) in guns) {
       final payload = TowerPayload(
@@ -2195,8 +2244,12 @@ class SpaceGame extends FlameGame
       showNotice('${tower.kind.label}: NICHTS AUSZUBAUEN');
       return;
     }
-    if (tower.level >= TowerKind.maxLevel) {
-      showNotice('HÖCHSTE STUFE');
+    if (tower.level >= TowerKind.levelLimit(extended: extended)) {
+      showNotice(
+        tower.level >= TowerKind.maxLevel
+            ? 'HÖCHSTE STUFE'
+            : 'STUFE ${tower.level + 1} IN DER VERLÄNGERUNG',
+      );
       return;
     }
     final cost = tower.kind.upgradeCost(tower.level);
@@ -2327,7 +2380,8 @@ class SpaceGame extends FlameGame
   }
 
   /// What [tower] should shoot at now. Flak goes for aircraft and drones
-  /// first, the cannon for tanks, the mortar for tanks and soldiers out of
+  /// first, the cannon for tanks, the rockets for tanks and then aircraft,
+  /// the mortar for tanks and soldiers out of
   /// its short range.
   PositionComponent? towerTarget(Tower tower) {
     final at = tower.position;
@@ -2343,6 +2397,15 @@ class SpaceGame extends FlameGame
             nearestEnemy(at, range);
       case TowerKind.cannon:
         return nearestEnemy(at, range) ?? _nearestEnemySoldier(at, range);
+      case TowerKind.rockets:
+        return nearestEnemy(at, range) ??
+            _nearestOf(at, range, [
+              for (final plane in aircraft.values)
+                if (plane.hp > 0 && !plane.friendly) plane,
+              for (final drone in drones.values)
+                if (round?.isEnemy(drone.ownerId) ?? false) drone,
+            ]) ??
+            _nearestEnemySoldier(at, range);
       case TowerKind.trench:
         return null;
       case TowerKind.mortar || TowerKind.howitzer:
@@ -2441,8 +2504,12 @@ class SpaceGame extends FlameGame
       return;
     }
     final level = _level(kind);
-    if (level >= GameConfig.upgradeMaxLevel) {
-      showNotice('HÖCHSTE STUFE');
+    if (level >= GameConfig.upgradeLimit(extended: extended)) {
+      showNotice(
+        level >= GameConfig.upgradeMaxLevel
+            ? 'HÖCHSTE STUFE'
+            : 'STUFE ${level + 1} IN DER VERLÄNGERUNG',
+      );
       return;
     }
     final cost = kind.costFrom(level);
@@ -3363,7 +3430,8 @@ class SpaceGame extends FlameGame
       weapon: weapon,
       power: payload.power.clamp(
         1.0,
-        TowerKind.howitzer.blast * TowerKind.howitzer.damageFactor(3),
+        TowerKind.howitzer.blast *
+            TowerKind.howitzer.damageFactor(TowerKind.maxLevel),
       ),
     );
   }
@@ -4424,7 +4492,8 @@ class SpaceGame extends FlameGame
     }
     final base = _defenseField?.headquarters;
     if (base != null) {
-      if (won) {
+      // An extended round is won even when the base falls at last.
+      if (won && (defense.value?.hp ?? 1) > 0) {
         final fireworks = Fireworks(centre: () => base.position);
         _extras.add(fireworks);
         world.add(fireworks);

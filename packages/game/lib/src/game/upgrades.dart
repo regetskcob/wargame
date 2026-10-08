@@ -1,9 +1,11 @@
+import 'dart:math';
 import 'dart:ui';
 
 import '../game_config.dart';
 
-/// What credits buy for the tank in a defense round. Each comes in
-/// [GameConfig.upgradeMaxLevel] steps and is gone when the round ends.
+/// What credits buy for the tank in a defense round. Each comes in three
+/// steps, up to [GameConfig.upgradeMaxLevel] in the extension, and is gone
+/// when the round ends.
 enum UpgradeKind {
   /// Thicker armour: every hit does less damage.
   armor('PANZERUNG', Color(0xFF90A4AE)),
@@ -27,7 +29,9 @@ enum UpgradeKind {
 
   /// Factor on damage taken, damage dealt, top speed or magazine size.
   double factorAt(int level) => switch (this) {
-    UpgradeKind.armor => 1 - 0.15 * level,
+    // The steps of the extension shield less, so a tank never shrugs off
+    // everything.
+    UpgradeKind.armor => 1 - 0.15 * min(level, 3) - 0.1 * max(0, level - 3),
     UpgradeKind.gun => 1 + 0.15 * level,
     UpgradeKind.engine => 1 + 0.08 * level,
     UpgradeKind.magazine => 1 + 0.3 * level,

@@ -90,16 +90,29 @@ class GameConfig {
   static const bombDamage = artilleryDamage * 1.1;
   static const artilleryRange = 360.0;
 
-  /// Defense: the base, the waves and the guns the players put down.
+  /// Defense: the base, the waves and the guns the players put down. After
+  /// [defenseWaves] the win is safe and the host may extend: the waves go
+  /// on until the base falls or the defenders pull out, with higher steps
+  /// for guns and tank, the rocket launcher and tougher enemies.
   static const defenseWaves = 8;
+
+  /// How long the defenders have to decide whether to extend.
+  static const extendDecisionSeconds = 25;
+
+  /// Every wave of the extension makes enemy tanks this much tougher.
+  static const extensionToughness = 0.12;
+
+  /// Factor on the damage an enemy tank takes in [wave].
+  static double enemyArmorIn(int wave) =>
+      1 / (1 + extensionToughness * max(0, wave - defenseWaves));
   static const baseHp = 1500.0;
 
   /// The base grows from a watchtower to barracks to a fortress after waves
   /// beaten off while losing at most [hqCleanLoss] of its hit points. Each
   /// step adds hit points, a comrade, room for two more guns and a gun on
   /// the base itself.
-  static const hqNames = ['WACHTURM', 'KASERNE', 'FESTUNG'];
-  static const hqCleanWaves = [0, 2, 4];
+  static const hqNames = ['WACHTURM', 'KASERNE', 'FESTUNG', 'ZITADELLE'];
+  static const hqCleanWaves = [0, 2, 4, 7];
   static const hqCleanLoss = 0.15;
   static const hqHpStep = 500.0;
   static const hqTowerStep = 2;
@@ -115,7 +128,8 @@ class GameConfig {
   }
 
   static double baseMaxHp(int hq) => baseHp + hqHpStep * (hq - 1);
-  static String hqName(int hq) => hqNames[(hq - 1).clamp(0, 2)];
+  static String hqName(int hq) =>
+      hqNames[(hq - 1).clamp(0, hqNames.length - 1)];
   static const raidDamage = 120.0;
   static const firstWaveSeconds = 8;
   static const waveBreakSeconds = 12;
@@ -262,9 +276,11 @@ class GameConfig {
   /// long.
   static const enemyDroneSeconds = 18.0;
 
-  /// Upgrades of the tank in a defense round.
+  /// Upgrades of the tank in a defense round: three steps, two more in the
+  /// extension.
   static const upgradeBaseCost = 80;
-  static const upgradeMaxLevel = 3;
+  static const upgradeMaxLevel = 5;
+  static int upgradeLimit({required bool extended}) => extended ? 5 : 3;
 
   /// Fuel, from the middle difficulty on. A full tank lasts about this many
   /// seconds at full throttle, standing still burns a little. Empty, the

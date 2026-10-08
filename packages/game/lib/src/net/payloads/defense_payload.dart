@@ -1,3 +1,5 @@
+import '../../game_config.dart';
+
 /// State of a defense round. Only the player who runs the enemies sends it,
 /// everybody else mirrors it.
 class DefensePayload {
@@ -8,6 +10,7 @@ class DefensePayload {
     this.nextWaveAt = 0,
     this.result = DefenseResult.running,
     this.hq = 1,
+    this.extended = false,
   });
 
   factory DefensePayload.fromJson(Map<String, dynamic> json) {
@@ -18,6 +21,7 @@ class DefensePayload {
       nextWaveAt: json['next'] as int? ?? 0,
       result: DefenseResult.values[json['result'] as int? ?? 0],
       hq: json['hq'] as int? ?? 1,
+      extended: json['ext'] as bool? ?? false,
     );
   }
 
@@ -37,12 +41,25 @@ class DefensePayload {
   /// grows with waves beaten off without heavy losses.
   final int hq;
 
+  /// The defenders chose to go on after the last regular wave. The win is
+  /// safe from then on, even if the base falls.
+  final bool extended;
+
+  /// The last regular wave is beaten off and the host has yet to say
+  /// whether to go on.
+  bool get deciding =>
+      !extended &&
+      result == DefenseResult.running &&
+      wave >= GameConfig.defenseWaves &&
+      nextWaveAt > 0;
+
   DefensePayload copyWith({
     double? hp,
     int? wave,
     int? nextWaveAt,
     DefenseResult? result,
     int? hq,
+    bool? extended,
   }) {
     return DefensePayload(
       id: id,
@@ -51,6 +68,7 @@ class DefensePayload {
       nextWaveAt: nextWaveAt ?? this.nextWaveAt,
       result: result ?? this.result,
       hq: hq ?? this.hq,
+      extended: extended ?? this.extended,
     );
   }
 
@@ -62,6 +80,7 @@ class DefensePayload {
       'next': nextWaveAt,
       'result': result.index,
       if (hq != 1) 'hq': hq,
+      if (extended) 'ext': true,
     };
   }
 }

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../game/round_stats.dart';
 import '../game_config.dart';
+import '../net/payloads/defense_payload.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
@@ -98,9 +99,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                             valueListenable: game.winnerName,
                             builder: (context, winner, _) => Text(
                               game.round?.defense ?? false
-                                  ? won
-                                        ? 'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!'
-                                        : 'Der Stützpunkt ist in Welle ${game.defense.value?.wave ?? 0} gefallen.'
+                                  ? _defenseLine(game.defense.value, won)
                                   : winner == null
                                   ? 'Unentschieden. Das Sperrgebiet gewinnt.'
                                   : won
@@ -303,4 +302,22 @@ class _StatsRow extends StatelessWidget {
       ],
     );
   }
+}
+
+/// How a defense round ended, with or without an extension.
+String _defenseLine(DefensePayload? state, bool won) {
+  final wave = state?.wave ?? 0;
+  if (!won) {
+    return 'Der Stützpunkt ist in Welle $wave gefallen.';
+  }
+  if (state == null || !state.extended) {
+    return 'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!';
+  }
+  // A wave that is still running when the base falls or the defenders pull
+  // out does not count.
+  final held = state.nextWaveAt > 0 ? wave : wave - 1;
+  return state.hp <= 0
+      ? '$held Wellen gehalten, in Welle $wave fiel der Stützpunkt. '
+            'Der Sieg bleibt!'
+      : '$held Wellen abgewehrt. Der Stützpunkt steht!';
 }

@@ -68,6 +68,9 @@ Everything resolves from pub.dev. There are no git dependencies and no
   base sends aircraft of its own. Kills bring money for guns (key B), the
   base hands out ammunition, and destroyed tanks return after a short time.
   A base that holds well grows from a watchtower to barracks to a fortress.
+  After wave 8 the win is safe and the host may extend: endless waves with
+  tougher enemies, a fifth step for guns and tank, a rocket launcher and a
+  citadel, until the base falls (still a win) or the host pulls out.
   See [Defense thresholds](#defense-thresholds) for the numbers.
 
 ### On the battlefield
@@ -186,6 +189,7 @@ count of such waves decides how far the base has grown:
 | Watchtower | 0 | 1500 | start value | 6 | none |
 | Barracks | 2 | 2000 | +1 | 8 | cannon |
 | Fortress | 4 | 2500 | +2 | 10 | cannon (level 2) and flak |
+| Citadel | 7 | 3000 | +3 | 12 | cannon (level 3), flak (level 2), rockets |
 
 The 500 hit points of each step are added right away. The count is not
 reset by a bad wave, the base only waits longer for the next step.
@@ -210,12 +214,21 @@ and bombs the enemy closest to the base.
 | Mortar | 150 | 1 | 200 | area fire up to 620 |
 | Howitzer | 220 | 4 | 300 | heavy area fire up to 1050 |
 | Trench | 60 | 2 | 360 | a tank in it takes half damage |
+| Rockets | 260 | extension | 260 | tanks and aircraft, range 640 |
 
 Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
 player, they do not count as guns.
+
+**The extension.** After the last of the 8 regular waves the host has 25
+seconds to extend; without an answer the round ends as a win. Extended, the
+waves go on without end and the host may pull out in any break. Guns and the
+tank's upgrades go up to level 5 instead of 3 (armour steps 4 and 5 shield
+10 % each instead of 15 %), the rocket launcher can be built, and every wave
+past the 8th makes enemy tanks 12 % tougher. If the base falls, the round is
+still a win.
 
 ### After the round
 
@@ -255,7 +268,7 @@ player, they do not count as guns.
 
 ### Ideas
 
-- Defense: difficulty levels and an endless mode with its own leaderboard.
+- Defense: difficulty levels and a leaderboard for the extension.
 - Single player missions: escort, hold the position, take the flag.
 - Capture the flag and king of the hill for multiplayer.
 - Loadouts that unlock with experience, for example ammunition types or
