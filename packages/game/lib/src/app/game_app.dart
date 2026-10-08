@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
+import '../db/online_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
@@ -22,6 +23,7 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
+import 'live_activity.dart';
 import 'overlay_ids.dart';
 
 class GameApp extends StatefulWidget {
@@ -33,12 +35,19 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> {
   late SpaceGame game;
+  late LiveActivityBridge _liveActivity;
   final _gameFocus = FocusNode(debugLabel: 'game');
+  late final _online = OnlineService(
+    Supabase.instance.client,
+    inMatch: () => game.phase.value != GamePhase.lobby,
+  );
 
   @override
   void initState() {
     super.initState();
     game = _createGame(resolveRoom(), host: isRoomHost());
+    _liveActivity = LiveActivityBridge(game)..attach();
+    _online.start();
     onRoomSwitch = _switchRoom;
     listenForRoomLinks();
   }
@@ -63,8 +72,10 @@ class _GameAppState extends State<GameApp> {
   void _switchRoom(String room, {required bool host}) {
     final old = game;
     old.phase.removeListener(_reclaimFocus);
+    _liveActivity.detach();
     unawaited(old.leave());
     setState(() => game = _createGame(room, host: host));
+    _liveActivity = LiveActivityBridge(game)..attach();
   }
 
   // The lobby's text field and buttons own the keyboard focus. Once their
@@ -85,6 +96,8 @@ class _GameAppState extends State<GameApp> {
   @override
   void dispose() {
     onRoomSwitch = null;
+    _online.dispose();
+    _liveActivity.detach();
     game.phase.removeListener(_reclaimFocus);
     _gameFocus.dispose();
     super.dispose();
