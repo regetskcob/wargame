@@ -128,28 +128,47 @@ void main() {
       throwsA(isA<PostgrestApiException>()),
     );
 
-    final rows = await clientA.rpc<List<dynamic>>(
-      'record_round',
-      params: {
-        'p_name': 'SmokeTestPilot',
-        'p_tank': 0,
-        'p_won': true,
-        'p_kills': 1,
-        'p_damage': 100,
-        'p_shots': 3,
-        'p_hits': 2,
-        'p_survival': 30,
-        // A made up opponent does not count.
-        'p_beaten': ['00000000-0000-0000-0000-000000000001'],
-      },
+    Future<List<dynamic>> record(SupabaseClient client) =>
+        client.rpc<List<dynamic>>(
+          'record_round',
+          params: {
+            'p_name': 'SmokeTestPilot',
+            'p_tank': 0,
+            'p_won': true,
+            'p_kills': 1,
+            'p_damage': 100,
+            'p_shots': 3,
+            'p_hits': 2,
+            'p_survival': 30,
+            // A made up opponent does not count.
+            'p_beaten': ['00000000-0000-0000-0000-000000000001'],
+          },
+        );
+
+    // Guests are not ranked since migration 0012.
+    await expectLater(record(clientA), throwsA(isA<PostgrestApiException>()));
+
+    // A pilot with an account is. The local stack confirms mails at once.
+    final account = SupabaseClient(
+      _url,
+      _key,
+      authOptions: AuthClientOptions(asyncStorage: MemoryAuthAsyncStorage()),
     );
+    addTearDown(account.dispose);
+    final signUp = await account.auth.signUp(
+      email: 'smoke-${DateTime.now().microsecondsSinceEpoch}@example.com',
+      password: 'smoke-test-password',
+    );
+    final accountId = signUp.user!.id;
+
+    final rows = await record(account);
     final row = rows.single as Map<String, dynamic>;
     expect(row['rating_change'], 0);
 
-    final after = await clientA
+    final after = await account
         .table(Scores.table)
         .select()
-        .where(Scores.id.eq(id))
+        .where(Scores.id.eq(accountId))
         .single();
     expect(after.name, 'SmokeTestPilot');
     expect(after.wins, greaterThanOrEqualTo(1));
