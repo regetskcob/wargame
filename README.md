@@ -460,7 +460,8 @@ sharing and no QR scanning on the watch.
 
 `test/net/message_budget_test.dart` plays real rounds on a `TankGame` and
 counts what would go onto the channel, then works out the load of a room
-the way Realtime counts it. `test/net/presence_throttle_test.dart` checks
+the way Realtime counts it. `test/net/pad_budget_test.dart` does the same
+for a paired phone controller on a fake clock. `test/net/presence_throttle_test.dart` checks
 on a fake clock that no burst of presence updates gets near Realtime's
 limit. Both run without a server; see [Realtime limits](#realtime-limits).
 
@@ -582,6 +583,9 @@ flutter build web --base-href /your-repo/ \
   gaps with dead reckoning. The host sends the states of all its CPU tanks
   together as one `states` message. A client alone in its room sends
   nothing at all. See [Realtime limits](#realtime-limits).
+- A room holds four pilots, spectators included. Presences carry when the
+  pilot joined; every client keeps the owner and then the earliest
+  arrivals, and whoever comes later sees that the room is full and leaves.
 - Presence updates are spaced out to at most four per channel in 30 seconds
   (`presence_throttle.dart`); faster changes wait and only the latest goes
   out.
@@ -607,9 +611,10 @@ flutter build web --base-href /your-repo/ \
   `game-rooms` channel and vanish when their host leaves.
 - A phone controller pairs on a channel of its own, `pad-<CODE>`, with an
   eight character code from the screen's QR code. The phone sends its
-  sticks as `pad` about twenty times a second and single presses as `act`,
-  the screen plays them as its touch controls and answers with `status`
-  (health, ammunition, items, phase). Presence shows either end whether the
+  sticks as `pad` at most twelve and a half times a second, rounded so a
+  resting thumb's tremor is no change, and single presses as `act`; the
+  screen plays them as its touch controls and answers with `status`
+  (health, ammunition, items, phase) at most about three times a second. Presence shows either end whether the
   other is there; the first phone steers, and when it falls silent for a
   moment the tank lets go. The room never sees the phone. The pairing code
   is kept for the browser tab, so a new room keeps the phone.
@@ -661,7 +666,12 @@ Room totals are what Realtime counts, sent plus delivered.
 | 3 pilots with CPU tanks | ~386/s | ~138/s | Pro |
 | 4 pilots | ~331/s | ~174/s | Pro |
 | 4 pilots with CPU tanks | ~597/s | ~227/s | Pro |
-| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither |
+| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither, rooms now hold 4 |
+
+| Phone controller, one pair | Before | After |
+|---|---:|---:|
+| Thumbs moving, in a fight | ~60/s | ~32/s |
+| Thumbs resting | ~9/s, up to ~40/s with tremor | ~9/s |
 
 Before, a single player in a solo round with CPU tanks used more than the
 whole free plan on their own: that was most of the
@@ -683,18 +693,28 @@ What changed:
    `states` and do not see the CPU tanks of a host that sends them.
 4. **Presence is throttled.** At most four updates per channel in 30
    seconds, the last one always arrives.
+5. **Rooms hold four pilots.** Eight would need about 800 a second, more
+   than the Pro plan allows; four with CPU tanks fit within it. The room
+   list shows full rooms without a join button.
+6. **The phone controller is spaced out.** The phone reads its sticks every
+   40 ms and sends a change at most every 80 ms, rounded to sixteenths of
+   the stick and sixty-fourths of a radian of aim; the screen sends the
+   status at most every 250 ms. A quick tap on the aim stick shorter than
+   80 ms can now go unnoticed; items and building go out at once as
+   before.
 
 ### Still open
 
 - Three pilots on the free plan only work as long as no other room plays,
-  and four or more need the Pro plan. Rooms of eight are too much for both:
-  that would need a relay of our own instead of Broadcast.
+  and full rooms of four need the Pro plan. Bigger rooms would need a relay
+  of our own instead of Broadcast.
 - Shots, hits and the other events are not counted against a budget yet;
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
-- The phone controller sends its sticks about twenty times a second on its
-  own channel, roughly 40 counted messages a second for every paired phone.
-- Clients older than the `states` message still run in TestFlight builds.
+- A paired phone still costs about 32 a second, on top of its room.
+- Clients older than these changes still run in TestFlight builds: they
+  do not see the CPU tanks of a newer host, and they do not know the room
+  limit, so a fifth older client is not turned away by itself.
 
 ### Other log findings
 
