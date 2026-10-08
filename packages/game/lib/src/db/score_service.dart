@@ -30,6 +30,9 @@ class ScoreService {
   /// Id of the signed in player, to find their own row in the leaderboard.
   String? get myId => _client.auth.currentUser?.id;
 
+  /// Guests play unranked: the database refuses their rounds.
+  bool get isGuest => _client.auth.currentUser?.isAnonymous ?? true;
+
   /// The pilots with at least one round, the highest rating first. A plain
   /// query: the start page asks again every so often instead of holding a
   /// live channel open.
@@ -90,9 +93,8 @@ class ScoreService {
 
   /// Records one finished round. The database adds it to the totals, grants
   /// experience and moves the rating against the human opponents the player
-  /// outlasted ([beaten], by account id) or fell before ([beatenBy]). On a
-  /// database without that function the round is added up directly and
-  /// null comes back.
+  /// outlasted ([beaten], by account id) or fell before ([beatenBy]). Null
+  /// when the database refused the round.
   /// Calls `record_round`. A database without migration 0007 does not know
   /// the CPU parameters: then the round goes in without them.
   Future<List<dynamic>> _call(Map<String, dynamic> params) async {
@@ -150,74 +152,11 @@ class ScoreService {
         xp: row['xp'] as int,
         xpGained: row['xp_gained'] as int,
       );
-    } on PostgrestApiException catch (error) {
-      // The function exists but refused the round, for example because it
-      // came too soon after the last one: do not count it twice.
-      if (error.errorCode == 'P0001') {
-        return null;
-      }
     } on Object {
-      // Fall through to the old way below.
+      // Refused, for example because it came too soon after the last one,
+      // or the database is out of reach. Scores are only written through
+      // record_round, so the round simply goes unrecorded.
+      return null;
     }
-    await _addUp(name: name, stats: stats, won: won);
-    return null;
-  }
-
-  /// Adds the round to the totals without the database function. When the
-  /// database has no statistics columns yet, only the win is recorded.
-  Future<void> _addUp({
-    required String name,
-    required RoundStats stats,
-    required bool won,
-  }) async {
-    final id = _client.auth.currentUser!.id;
-    try {
-      final existing = await _client
-          .table(Scores.table)
-          .select()
-          .where(Scores.id.eq(id))
-          .maybeSingle();
-      await _client
-          .table(Scores.table)
-          .upsert(
-            ScoresInsert(
-              id: id,
-              name: name,
-              wins: (existing?.wins ?? 0) + (won ? 1 : 0),
-              updatedAt: DateTime.now(),
-              rounds: (existing?.rounds ?? 0) + 1,
-              kills: (existing?.kills ?? 0) + stats.kills,
-              damage: (existing?.damage ?? 0) + stats.damage.round(),
-              shots: (existing?.shots ?? 0) + stats.shots,
-              hits: (existing?.hits ?? 0) + stats.hits,
-              survivalSeconds:
-                  (existing?.survivalSeconds ?? 0) +
-                  (stats.survived ?? 0).round(),
-            ),
-          );
-    } on Object {
-      if (won) {
-        await recordWin(name: name);
-      }
-    }
-  }
-
-  Future<void> recordWin({required String name}) async {
-    final id = _client.auth.currentUser!.id;
-    final existing = await _client
-        .table(Scores.table)
-        .select()
-        .where(Scores.id.eq(id))
-        .maybeSingle();
-    await _client
-        .table(Scores.table)
-        .upsert(
-          ScoresInsert(
-            id: id,
-            name: name,
-            wins: (existing?.wins ?? 0) + 1,
-            updatedAt: DateTime.now(),
-          ),
-        );
   }
 }
