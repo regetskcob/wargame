@@ -10,7 +10,7 @@ import 'panel.dart';
 
 /// Round profile button in the corner of the start page and the waiting
 /// room. Opens the account: who you play as, securing or signing in, and
-/// deleting the account.
+/// deleting a lasting account.
 class AccountButton extends StatelessWidget {
   const AccountButton({required this.game, super.key});
 
@@ -91,14 +91,10 @@ class _AccountSheetState extends State<AccountSheet> {
         backgroundColor: BwColors.surface,
         title: const Text('KONTO LÖSCHEN?'),
         content: Text(
-          _game.accounts.isGuest
-              ? 'Dein Gastkonto wird mit Rang, Wertung, Abzeichen, allen '
-                    'Spielständen und deinem Rufnamen endgültig gelöscht. '
-                    'Das lässt sich nicht rückgängig machen.'
-              : 'Dein Konto ${_game.accounts.email ?? ''} wird mit Rang, '
-                    'Wertung, Abzeichen, allen Spielständen und deinem '
-                    'Rufnamen endgültig gelöscht, auf allen Geräten. Das '
-                    'lässt sich nicht rückgängig machen.',
+          'Dein Konto ${_game.accounts.email ?? ''} wird mit Rang, Wertung, '
+          'Abzeichen, allen Spielständen und deinem Rufnamen endgültig '
+          'gelöscht, auf allen Geräten. Das lässt sich nicht rückgängig '
+          'machen.',
         ),
         actions: [
           TextButton(
@@ -190,44 +186,66 @@ class _AccountSheetState extends State<AccountSheet> {
                       onCallSign: _game.claimCallSign,
                       callSign: _game.myName,
                       onSignedOut: () => Navigator.of(context).pop(),
+                      initiallyOpen: true,
                     )
                   else
                     Text('Du spielst als Gast, ohne Wertung.'),
-                  const SizedBox(height: 20),
-                  Text(
-                    'KONTO LÖSCHEN',
-                    style: Theme.of(context).textTheme.titleMedium,
+                  // A guest has nothing lasting to delete, signing in or
+                  // securing the account above is what they are offered.
+                  ValueListenableBuilder(
+                    valueListenable: accounts.user,
+                    builder: (context, _, _) => accounts.isGuest
+                        ? const SizedBox.shrink()
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 20),
+                              Text(
+                                'KONTO LÖSCHEN',
+                                style: Theme.of(context).textTheme.titleMedium,
+                              ),
+                              const SizedBox(height: 6),
+                              const Text(
+                                'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
+                                'Spielständen und deinem Rufnamen. Danach spielst du als '
+                                'neuer Gast weiter.',
+                                style: TextStyle(
+                                  color: BwColors.textDim,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: BwColors.danger,
+                                  side: const BorderSide(
+                                    color: BwColors.danger,
+                                  ),
+                                ),
+                                onPressed: _busy ? null : _delete,
+                                icon: _busy
+                                    ? const SizedBox(
+                                        width: 16,
+                                        height: 16,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      )
+                                    : const Icon(Icons.delete_forever),
+                                label: const Text('KONTO LÖSCHEN'),
+                              ),
+                              if (_error != null) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  _error!,
+                                  style: const TextStyle(
+                                    color: BwColors.danger,
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
                   ),
-                  const SizedBox(height: 6),
-                  const Text(
-                    'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
-                    'Spielständen und deinem Rufnamen. Danach spielst du als '
-                    'neuer Gast weiter.',
-                    style: TextStyle(color: BwColors.textDim, fontSize: 13),
-                  ),
-                  const SizedBox(height: 10),
-                  OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: BwColors.danger,
-                      side: const BorderSide(color: BwColors.danger),
-                    ),
-                    onPressed: _busy ? null : _delete,
-                    icon: _busy
-                        ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.delete_forever),
-                    label: const Text('KONTO LÖSCHEN'),
-                  ),
-                  if (_error != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      _error!,
-                      style: const TextStyle(color: BwColors.danger),
-                    ),
-                  ],
                   const SizedBox(height: 12),
                   const LegalLinks(),
                 ],
