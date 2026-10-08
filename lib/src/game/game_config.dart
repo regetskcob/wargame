@@ -43,8 +43,9 @@ class GameConfig {
   /// Pilots a room holds, spectators included. Every message counts once
   /// per receiver, so the load of a room grows with the square of its
   /// pilots: two with CPU tanks need about 70 a second, within the free
-  /// plan's 100, four about 230, within Pro's 500. Whoever comes later is
-  /// turned away. Set by the build, see [Env.maxPilots].
+  /// plan's 100, four about 230, within Pro's 500, the plan the project is
+  /// on. Whoever comes later is turned away. Set by the build, see
+  /// [Env.maxPilots].
   static const maxPilots = Env.maxPilots;
 
   /// Realtime messages a second for the whole project, kept by `RoomSlots`.

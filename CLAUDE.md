@@ -39,7 +39,8 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
    Empfänger, projektweit 100/s und 2 Mio./Monat im Free-Plan. Darum
    `state` mit 10/s, CPU-Panzer gebündelt in `states`, allein im Raum wird
    nichts gesendet, Presence gedrosselt. Raumgröße `MAX_PILOTS` (Standard
-   2) und ein Last-Budget `REALTIME_BUDGET` (Standard 80/s) folgen dem
+   4) und ein Last-Budget `REALTIME_BUDGET` (Standard 400/s, Pro-Plan;
+   im Free-Plan 2 und 80) folgen dem
    Supabase-Plan: Räume ab zwei Piloten und Handy-Controller belegen ihre
    Last über `claim_load` (Migrationen 0015/0016, `RoomSlots`), mit Handy
    im Raum keine CPU-Auffüllung, jedes Handy auf eigener Spur

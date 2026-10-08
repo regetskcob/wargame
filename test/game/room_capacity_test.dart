@@ -25,17 +25,23 @@ LobbyPresence _pilot(
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('by default a room holds two pilots within a budget of 80 messages '
-      'a second, what the free plan carries', () {
-    expect(GameConfig.maxPilots, 2);
-    expect(GameConfig.realtimeBudget, 80);
+  test('by default a room holds four pilots within a budget of 400 messages '
+      'a second, what the Pro plan carries with a fifth in reserve', () {
+    expect(GameConfig.maxPilots, 4);
+    expect(GameConfig.realtimeBudget, 400);
+    expect(
+      GameConfig.roomLoad(4, cpu: true),
+      lessThanOrEqualTo(GameConfig.realtimeBudget),
+      reason: 'a full room with CPU tanks fits',
+    );
     expect(GameConfig.roomLoad(1, cpu: true), 0);
     expect(GameConfig.roomLoad(2, cpu: false), 44);
     expect(GameConfig.roomLoad(2, cpu: true), 70);
     expect(
       GameConfig.roomLoad(2, cpu: false) + GameConfig.padLoad,
-      lessThanOrEqualTo(GameConfig.realtimeBudget),
-      reason: 'a room of two and a phone fit without CPU tanks',
+      lessThanOrEqualTo(80),
+      reason: 'on the free plan a room of two and a phone fit without CPU '
+          'tanks',
     );
   });
 
