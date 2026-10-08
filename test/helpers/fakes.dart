@@ -121,21 +121,21 @@ class FakeNet extends NetService {
 }
 
 /// The Realtime budget without a server: every claim gets in unless told
-/// otherwise, a forced one always, and counting changes nothing.
+/// otherwise, and counting changes nothing.
 class FakeSlots implements RoomSlots {
   FakeSlots({this.free = true});
 
   bool free;
 
-  /// Every claim: its key, load and whether it was forced.
-  final claimed = <(String, int, bool)>[];
+  /// Every claim: its key and load.
+  final claimed = <(String, int)>[];
 
   List<String> get claims => [for (final c in claimed) c.$1];
 
   @override
-  Future<bool> claim(String key, int messages, {bool force = false}) async {
-    claimed.add((key, messages, force));
-    return free || force;
+  Future<bool> claim(String key, int messages) async {
+    claimed.add((key, messages));
+    return free;
   }
 
   @override

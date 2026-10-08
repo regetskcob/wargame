@@ -78,7 +78,7 @@ void main() {
     test('a phone takes its share and tells the game it steers', () async {
       screen.debugPeers(const [('a', 'Anna')]);
       await screen.debugClaimSlot();
-      expect(slots.claimed.last, ('pad-ABCDEFGH', 32, false));
+      expect(slots.claimed.last, ('pad-ABCDEFGH', 32));
       expect(main.padSteered.value, isTrue);
     });
 
@@ -101,7 +101,8 @@ void main() {
       await screen.debugClaimSlot();
       expect(screen.busy.value, isTrue);
       expect(screen.gameOf('a'), isNull);
-      expect(main.padSteered.value, isFalse);
+      // Still paired: the room keeps playing without CPU tanks for it.
+      expect(main.padSteered.value, isTrue);
 
       slots.free = true;
       await screen.debugClaimSlot();
@@ -109,19 +110,40 @@ void main() {
       expect(screen.gameOf('a'), same(main));
     });
 
-    test('a phone in a room with others makes room for itself', () async {
-      main
-        ..chooseMode(GameMode.multi)
-        ..roster.value = const [
-          LobbyPresence(id: 'me', name: 'me', colorIndex: 0, phase: 'lobby'),
-          LobbyPresence(id: 'x', name: 'x', colorIndex: 0, phase: 'lobby'),
-        ];
-      slots.free = false;
-      screen.debugPeers(const [('a', 'Anna')]);
-      await screen.debugClaimSlot();
-      expect(slots.claimed.last.$3, isTrue, reason: 'forced');
-      expect(screen.busy.value, isFalse);
-    });
+    test(
+      'a room with others lowers its slot before the phone claims',
+      () async {
+        main
+          ..chooseMode(GameMode.multi)
+          ..roster.value = const [
+            LobbyPresence(id: 'me', name: 'me', colorIndex: 0, phase: 'lobby'),
+            LobbyPresence(id: 'x', name: 'x', colorIndex: 0, phase: 'lobby'),
+          ];
+        screen.debugPeers(const [('a', 'Anna')]);
+        await screen.debugClaimSlot();
+        final room = slots.claimed.lastIndexWhere((c) => c.$1 == main.net.room);
+        final pad = slots.claimed.lastIndexWhere((c) => c.$1 == 'pad-ABCDEFGH');
+        expect(slots.claimed[room].$2, 44, reason: 'no CPU tanks with a phone');
+        expect(room, lessThan(pad));
+        expect(slots.claimed[pad].$2, 32);
+      },
+    );
+
+    test(
+      'in defense the room keeps its CPU tanks and the phone may wait',
+      () async {
+        main
+          ..chooseMode(GameMode.defense)
+          ..roster.value = const [
+            LobbyPresence(id: 'me', name: 'me', colorIndex: 0, phase: 'lobby'),
+            LobbyPresence(id: 'x', name: 'x', colorIndex: 0, phase: 'lobby'),
+          ];
+        screen.debugPeers(const [('a', 'Anna')]);
+        await screen.debugClaimSlot();
+        final room = slots.claimed.lastWhere((c) => c.$1 == main.net.room);
+        expect(room.$2, 70);
+      },
+    );
   });
 
   group('lanes', () {

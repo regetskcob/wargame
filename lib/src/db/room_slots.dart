@@ -27,9 +27,8 @@ class RoomSlots {
   /// Takes or refreshes the slot [key] with [messages] a second. False only
   /// when the server said the budget has no room for it; when it cannot
   /// tell (offline, a database without the migration) nothing is held
-  /// back. [force] takes the slot regardless, for a phone whose room drops
-  /// its CPU tanks to make room for it.
-  Future<bool> claim(String key, int messages, {bool force = false}) async {
+  /// back.
+  Future<bool> claim(String key, int messages) async {
     try {
       return await _client.rpc<bool>(
             'claim_load',
@@ -37,7 +36,6 @@ class RoomSlots {
               'p_room': key,
               'p_load': messages,
               'p_budget': GameConfig.realtimeBudget,
-              'p_force': force,
             },
           ) !=
           false;

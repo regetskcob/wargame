@@ -351,11 +351,13 @@ class PadScreen extends _PadChannel {
       _routes[padId] ??
       (phones.value.firstOrNull?.$1 == padId && _routes.isEmpty ? _game : null);
 
-  /// Tells every game whether a phone steers it, so a room with a phone
-  /// plays without CPU tanks.
+  /// Tells every game whether a phone is paired for it, budget or not, so a
+  /// room with a phone plays without CPU tanks and makes room for it.
   void _updateSteered() {
     for (final target in {?_game, ..._routes.values}) {
-      target.padSteered.value = steers(target);
+      target.padSteered.value = phones.value.any(
+        (phone) => identical(_targetOf(phone.$1), target),
+      );
     }
   }
 
@@ -373,18 +375,14 @@ class PadScreen extends _PadChannel {
     ];
     var ok = true;
     if (steering.isNotEmpty) {
-      // A phone in a room of the main game makes room for itself: that
-      // room drops its CPU tanks for it, except in defense.
-      final main = _game;
-      final force =
-          main != null &&
-          main.roster.value.length > 1 &&
-          main.mode.value != GameMode.defense &&
-          steering.any((padId) => identical(_targetOf(padId), main));
+      // A room with a phone drops its CPU tanks for it, except in defense:
+      // its lower slot first, so the phones find the room it makes.
+      for (final target in {for (final padId in steering) _targetOf(padId)}) {
+        await target?.refreshRoomSlot();
+      }
       ok = await slots.claim(
         'pad-$pairing',
         steering.length * GameConfig.padLoad,
-        force: force,
       );
     }
     if (busy.value != !ok) {

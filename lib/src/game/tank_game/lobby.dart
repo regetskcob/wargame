@@ -557,6 +557,14 @@ extension TankGameLobby on TankGame {
     unawaited(_claimSlot());
   }
 
+  /// Claims the room's slot again at once, as the pairing does before the
+  /// phones claim theirs. Nothing while the pilot is alone.
+  Future<void> refreshRoomSlot() async {
+    if (roster.value.length > 1 && phase.value != GamePhase.closed) {
+      await _claimSlot();
+    }
+  }
+
   void _dropSlot() {
     _slotTimer?.cancel();
     _slotTimer = null;
