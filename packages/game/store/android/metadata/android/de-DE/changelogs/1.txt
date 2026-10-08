@@ -1,0 +1,1 @@
+Die erste Version für Android: Einzelspieler, Mehrspieler und Verteidigung, acht Fahrzeuge, Touch-Steuerung mit Zielhilfe, Hoch- und Querformat.

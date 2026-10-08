@@ -1,4 +1,4 @@
-package de.regetskcob.game
+package de.regetskcob.wargame
 
 import io.flutter.embedding.android.FlutterActivity
 

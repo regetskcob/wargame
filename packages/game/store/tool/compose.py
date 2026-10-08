@@ -1,9 +1,11 @@
-"""Builds the App Store screenshots: a caption over a framed simulator shot.
+"""Builds the store screenshots: a caption over a framed simulator shot.
 
     python3 store/tool/compose.py <raw dir>
 
 Reads the raw simulator screenshots named in SHOTS from <raw dir> and writes
-the finished images to store/ios/screenshots/de-DE/. Needs Pillow.
+the finished images to store/ios/screenshots/de-DE/ for the App Store and to
+store/android/metadata/android/de-DE/images/ for Google Play, plus the Play
+feature graphic. Needs Pillow.
 """
 
 import random
@@ -14,7 +16,8 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 ROOT = Path(__file__).resolve().parents[2]
 FONTS = ROOT / "assets" / "fonts"
-OUT = ROOT / "store" / "ios" / "screenshots" / "de-DE"
+IOS = ROOT / "store" / "ios" / "screenshots" / "de-DE"
+PLAY = ROOT / "store" / "android" / "metadata" / "android" / "de-DE" / "images"
 
 BACKGROUND = (22, 28, 15)
 BLOB = (42, 53, 32)
@@ -25,7 +28,7 @@ AMBER = (255, 179, 0)
 # (output name, raw file, canvas size, headline, subline)
 IPHONE = (1320, 2868)
 IPAD = (2752, 2064)
-SHOTS = [
+IOS_SHOTS = [
     ("iphone-01-gefecht", "i_b6", IPHONE, "PANZERGEFECHT",
      "Der letzte Panzer im Feld gewinnt"),
     ("iphone-02-verteidigung", "i_d4", IPHONE, "VERTEIDIGUNG",
@@ -44,6 +47,23 @@ SHOTS = [
      "Kameraden, Geschütze und Wetter, das die Sicht nimmt"),
     ("ipad-03-warteraum", "p_2b", IPAD, "DEIN EINSATZ",
      "Gelände, Tageszeit, Schwierigkeit und Fahrzeug wählen"),
+]
+
+# Google Play wants no side longer than twice the other, which rules out the
+# 6.9" iPhone canvas. Phones get 9:16, tablets 16:10, from the same raw shots.
+PHONE = (1080, 1920)
+TABLET = (2560, 1600)
+
+
+PLAY_SHOTS = [
+    ("phoneScreenshots/" + name.removeprefix("iphone-"), raw, PHONE, head, sub)
+    if size == IPHONE else
+    ("tenInchScreenshots/" + name.removeprefix("ipad-"), raw, TABLET, head, sub)
+    for name, raw, size, head, sub in IOS_SHOTS
+]
+
+SHOTS = [(IOS / name, *rest) for name, *rest in IOS_SHOTS] + [
+    (PLAY / name, *rest) for name, *rest in PLAY_SHOTS
 ]
 
 
@@ -92,10 +112,10 @@ def frame(shot, height):
     return out
 
 
-def compose(name, raw, size, headline, subline, raw_dir):
+def compose(out, raw, size, headline, subline, raw_dir):
     w, h = size
     portrait = h > w
-    canvas = backdrop(size, name)
+    canvas = backdrop(size, out.name)
     draw = ImageDraw.Draw(canvas)
     head = font("Roboto-Black.ttf", round(w * (0.085 if portrait else 0.04)))
     sub = font("Roboto-Medium.ttf", round(w * (0.042 if portrait else 0.02)))
@@ -115,12 +135,46 @@ def compose(name, raw, size, headline, subline, raw_dir):
         framed = frame(shot, round((w * 0.94) * shot.height / shot.width))
     canvas.paste(framed, ((w - framed.width) // 2, shot_top), framed)
 
-    OUT.mkdir(parents=True, exist_ok=True)
-    canvas.save(OUT / f"{name}.png", optimize=True)
-    print(f"{name}.png {canvas.size[0]}x{canvas.size[1]}")
+    save(canvas, out)
+
+
+def feature_graphic():
+    """The 1024 x 500 banner Google Play shows above the screenshots."""
+    w, h = 1024, 500
+    canvas = backdrop((w, h), "feature")
+    icon = Image.open(ROOT / "store" / "ios" / "icon" / "AppIcon-1024.png")
+    # Only the tank, without the flat background of the icon.
+    icon = icon.convert("RGB")
+    flat = icon.getpixel((0, 0))
+    mask = Image.eval(icon.convert("L"), lambda _: 0)
+    mask.putdata([0 if sum(abs(a - b) for a, b in zip(p, flat)) < 12 else 255
+                  for p in icon.getdata()])
+    mask = mask.filter(ImageFilter.GaussianBlur(2))
+    box = (200, 290, 944, 734)
+    size = (round((box[2] - box[0]) * 0.46), round((box[3] - box[1]) * 0.46))
+    tank = icon.crop(box).resize(size, Image.LANCZOS)
+    mask = mask.crop(box).resize(size, Image.LANCZOS)
+    canvas.paste(tank, (70, (h - tank.height) // 2), mask)
+    draw = ImageDraw.Draw(canvas)
+    head = font("Roboto-Black.ttf", 92)
+    sub = font("Roboto-Medium.ttf", 34)
+    centre = 70 + tank.width + (w - 70 - tank.width) / 2
+    spaced(draw, (centre, 150), "WARGAME", head, SAND, 7)
+    draw.text((centre, 270), "Panzerduelle und Verteidigung", font=sub,
+              fill=AMBER, anchor="ma")
+    draw.text((centre, 320), "Allein, gegeneinander, gemeinsam", font=sub,
+              fill=EDGE, anchor="ma")
+    save(canvas, PLAY / "featureGraphic")
+
+
+def save(canvas, out):
+    out.parent.mkdir(parents=True, exist_ok=True)
+    canvas.save(out.with_suffix(".png"), optimize=True)
+    print(f"{out.name}.png {canvas.size[0]}x{canvas.size[1]}")
 
 
 if __name__ == "__main__":
     source = Path(sys.argv[1])
     for entry in SHOTS:
         compose(*entry, source)
+    feature_graphic()
