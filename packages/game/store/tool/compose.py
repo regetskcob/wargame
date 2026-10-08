@@ -53,6 +53,7 @@ IOS_SHOTS = [
 # 6.9" iPhone canvas. Phones get 9:16, tablets 16:10, from the same raw shots.
 PHONE = (1080, 1920)
 TABLET = (2560, 1600)
+SMALL_TABLET = (1920, 1200)
 
 
 PLAY_SHOTS = [
@@ -60,6 +61,11 @@ PLAY_SHOTS = [
     if size == IPHONE else
     ("tenInchScreenshots/" + name.removeprefix("ipad-"), raw, TABLET, head, sub)
     for name, raw, size, head, sub in IOS_SHOTS
+] + [
+    ("sevenInchScreenshots/" + name.removeprefix("ipad-"), raw, SMALL_TABLET,
+     head, sub)
+    for name, raw, size, head, sub in IOS_SHOTS
+    if size == IPAD
 ]
 
 SHOTS = [(IOS / name, *rest) for name, *rest in IOS_SHOTS] + [

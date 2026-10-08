@@ -348,7 +348,10 @@ link in it opens the web game. To sign the Android release, copy
 `android/key.properties.example` to `android/key.properties` and point it at
 your upload key; without it Gradle signs with the debug key, which Google Play
 rejects. Store texts, icons and screenshots for both stores live in
-`store/ios` and `store/android`, each with a README of what goes where. To play
+`store/ios` and `store/android`, each with a README of what goes where. The
+`play` workflow (run by hand) builds the signed bundle and uploads it to a
+Google Play track with fastlane, see `store/android/README.md` for the
+secrets. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
 
