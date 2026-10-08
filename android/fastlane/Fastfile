@@ -1,0 +1,60 @@
+# Uploads Panzergefecht to Google Play. Run from android/ after
+# `flutter build appbundle --release`, see store/android/README.md.
+
+default_platform(:android)
+
+METADATA = File.expand_path("../../store/android/metadata/android", __dir__)
+BUNDLE = File.expand_path(
+  "../../build/app/outputs/bundle/release/app-release.aab", __dir__
+)
+
+platform :android do
+  desc "Checks the key and the metadata without changing anything"
+  lane :validate do
+    validate_play_store_json_key
+    upload_to_play_store(
+      track: "internal",
+      aab: BUNDLE,
+      metadata_path: METADATA,
+      validate_only: true
+    )
+  end
+
+  desc "Uploads the bundle to a track (internal, alpha, beta, production)"
+  lane :deploy do |options|
+    upload_to_play_store(
+      track: options.fetch(:track, "internal"),
+      aab: BUNDLE,
+      metadata_path: METADATA,
+      skip_upload_metadata: !options[:metadata],
+      skip_upload_images: !options[:metadata],
+      skip_upload_screenshots: !options[:metadata],
+      # A draft until the store listing, the content rating and Data safety
+      # are complete. Afterwards pass release_status:completed.
+      release_status: options.fetch(:release_status, "draft")
+    )
+  end
+
+  desc "Uploads only the store texts, icon and screenshots"
+  lane :metadata do
+    upload_to_play_store(
+      metadata_path: METADATA,
+      skip_upload_aab: true,
+      skip_upload_apk: true,
+      skip_upload_changelogs: true
+    )
+  end
+
+  desc "Moves the latest release from one track to another"
+  lane :promote do |options|
+    upload_to_play_store(
+      track: options.fetch(:from, "internal"),
+      track_promote_to: options.fetch(:to, "alpha"),
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      skip_upload_changelogs: true
+    )
+  end
+end

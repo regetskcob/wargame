@@ -1,39 +1,50 @@
-name: wargame_workspace
+name: wargame
+description: "Last-tank-standing multiplayer Panzergefecht built with Flame and Supabase."
 publish_to: none
+version: 1.0.0+1
 
 environment:
   sdk: ^3.13.0
   flutter: ">=3.47.0"
 
-workspace:
-  - packages/game
+dependencies:
+  app_links: ^7.2.2
+  audioplayers: ^6.8.1
+  flame: ^2.0.0-dev.1
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.6.0
+  mobile_scanner: ^7.4.2
+  qr_flutter: ^4.1.0
+  share_plus: ^13.3.1
+  shared_preferences: ^2.5.5
+  supabase_flutter: ^3.0.0-dev.9
+  web: ^1.1.1
 
 dev_dependencies:
-  melos: ^8.9.0
+  flutter_lints: ^6.0.0
+  flutter_test:
+    sdk: flutter
+  shared_preferences_platform_interface: ^2.4.1
+  supabase: ^3.0.0-dev.9
+  supabase_typegen: ^0.5.1
 
-melos:
-  scripts:
-    analyze:
-      run: flutter analyze .
-      description: Analyze all packages from the workspace root.
-    format:
-      run: dart format --set-exit-if-changed .
-      description: Verify that all Dart files are formatted.
-    format:fix:
-      run: dart format .
-      description: Format all Dart files.
-    game:
-      run: melos exec --scope=game -- flutter run -d chrome
-      description: Run the game in Chrome.
-    build:game:web:
-      run: melos exec --scope=game -- flutter build web
-      description: Build the game for the web.
-    build:game:apk:
-      run: melos exec --scope=game -- flutter build apk --release
-      description: Build the game as an Android APK.
-    build:game:appbundle:
-      run: melos exec --scope=game -- flutter build appbundle --release
-      description: Build the game as an Android App Bundle for Google Play.
-    build:game:ios:
-      run: melos exec --scope=game -- flutter build ios --release
-      description: Build the game for iOS (needs Xcode and a signing team).
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/audio/
+  # Bundled so every platform draws the same letters. The browser build
+  # cannot reach system fonts and fell back to Roboto, while iOS and macOS
+  # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.
+  fonts:
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/Roboto-Regular.ttf
+        - asset: assets/fonts/Roboto-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Roboto-Black.ttf
+          weight: 900

@@ -1,7 +1,7 @@
 name: play
 
 # Builds the signed App Bundle and uploads it to Google Play. Started by
-# hand from the Actions tab, see packages/game/store/android/README.md for
+# hand from the Actions tab, see store/android/README.md for
 # the secrets and the one manual upload Google needs first.
 on:
   workflow_dispatch:
@@ -28,9 +28,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/game
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -45,7 +42,7 @@ jobs:
         with:
           ruby-version: "4.0"
           bundler-cache: true
-          working-directory: packages/game/android
+          working-directory: android
       - run: dart pub get
       - name: Write the upload key
         run: |
@@ -82,7 +79,7 @@ jobs:
           track:${{ inputs.track }}
           release_status:${{ inputs.release_status }}
           metadata:${{ inputs.metadata }}
-        working-directory: packages/game/android
+        working-directory: android
         env:
           PLAY_JSON_KEY: ${{ runner.temp }}/play.json
           FASTLANE_SKIP_UPDATE_CHECK: "1"
@@ -93,4 +90,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: app-release-${{ github.run_number }}
-          path: packages/game/build/app/outputs/bundle/release/app-release.aab
+          path: build/app/outputs/bundle/release/app-release.aab

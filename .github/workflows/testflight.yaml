@@ -2,7 +2,7 @@ name: testflight
 
 # Builds the signed iOS app and uploads it to TestFlight, optionally the
 # store texts and screenshots too. Started by hand from the Actions tab, see
-# packages/game/store/ios/README.md for the secrets.
+# store/ios/README.md for the secrets.
 on:
   workflow_dispatch:
     inputs:
@@ -22,9 +22,6 @@ concurrency:
 jobs:
   deploy:
     runs-on: macos-latest
-    defaults:
-      run:
-        working-directory: packages/game
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
@@ -35,7 +32,7 @@ jobs:
         with:
           ruby-version: "4.0"
           bundler-cache: true
-          working-directory: packages/game/ios
+          working-directory: ios
       - run: dart pub get
       - name: Write the App Store Connect key
         run: echo "$ASC_KEY" | base64 --decode > "$RUNNER_TEMP/asc.p8"
@@ -58,7 +55,7 @@ jobs:
       - name: Upload to TestFlight
         if: inputs.build
         run: bundle exec fastlane beta
-        working-directory: packages/game/ios
+        working-directory: ios
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -72,7 +69,7 @@ jobs:
       - name: Upload the store texts and screenshots
         if: inputs.metadata
         run: bundle exec fastlane metadata
-        working-directory: packages/game/ios
+        working-directory: ios
         env:
           ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
           ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
@@ -88,4 +85,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: panzergefecht-ios-${{ github.run_number }}
-          path: packages/game/build/ios/ipa/*.ipa
+          path: build/ios/ipa/*.ipa
