@@ -763,7 +763,10 @@ changed because of them.
   with the square of the room. Above the limit Realtime closes **every
   channel of the project**, all rooms at once
   (`MessagePerSecondRateLimitReached`). The clients reconnect after two
-  seconds and are thrown out again until the average has come down.
+  seconds, then wait twice as long after every further drop, up to 30
+  seconds (`RetryBackoff`), so a project over its limit is not kept there
+  by everybody knocking every two seconds. One that got through starts
+  over at two seconds.
 - **Presence per client**: a client may track or untrack at most five times
   in 30 seconds on one channel. One more and Realtime closes that channel
   (`ClientPresenceRateLimitReached`), which threw players out of their room.
