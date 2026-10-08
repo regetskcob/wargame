@@ -676,10 +676,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
+        // Phones scroll the page up to the lower screen edge instead of
+        // cutting it off above the home indicator.
         child: SafeArea(
+          bottom: MediaQuery.sizeOf(context).width >= 600,
           child: LayoutBuilder(
             builder: (context, constraints) {
               final narrow = constraints.maxWidth < 820;
+              final phone = constraints.maxWidth < 600;
               final page = !widget.game.welcomed.value
                   ? 0
                   : widget.game.choosingMode.value && widget.game.isHost.value
@@ -690,13 +694,20 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
                   key: ValueKey(page),
-                  padding: EdgeInsets.all(narrow ? 8 : 16),
+                  padding: phone
+                      ? EdgeInsets.fromLTRB(
+                          8,
+                          8,
+                          8,
+                          8 + MediaQuery.paddingOf(context).bottom,
+                        )
+                      : EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1040),
                     child: _frame(
                       // Phones show the menu without the outer plate: the
                       // screen edge already frames it.
-                      phone: constraints.maxWidth < 600,
+                      phone: phone,
                       narrow: narrow,
                       child: !widget.game.welcomed.value
                           ? WelcomeView(game: widget.game)

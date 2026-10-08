@@ -19,10 +19,12 @@ in App Store Connect einfügen.
 | TestFlight: Beschreibung, Testhinweise | `metadata/de-DE/testflight.txt` |
 | App-Icon 1024 × 1024, ohne Alpha | `icon/AppIcon-1024.png` |
 | iPhone 6,9" (1320 × 2868) | `screenshots/de-DE/iphone-*.png` |
+| iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/de-DE/iphone63-*.png` |
 | iPad 13" (2752 × 2064) | `screenshots/de-DE/ipad-*.png` |
 
-Apple skaliert die 6,9"- und 13"-Screenshots für alle kleineren Geräte, mehr
-Größen braucht es nicht. Ist der Name „Panzergefecht“ im App Store
+App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
+schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert
+Apple selbst. Ist der Name „Panzergefecht“ im App Store
 schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
 „Panzergefecht – Panzerduell“ nehmen. Die
 Schlüsselwörter enthalten bewusst keine geschützten Namen wie Bundeswehr oder
