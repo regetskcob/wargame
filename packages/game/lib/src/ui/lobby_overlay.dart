@@ -82,7 +82,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Title, what the round is about and the sound switch.
-  Widget _header(BuildContext context) {
+  Widget _header(BuildContext context, String title) {
     final game = widget.game;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -94,7 +94,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  tr('WARTERAUM', 'WAITING ROOM'),
+                  title,
                   maxLines: 1,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
@@ -174,10 +174,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     '${GameConfig.maxBots} CPU tanks, rolled anew every round.',
               ),
               GameMode.multi => tr(
-                'Schick den Link weiter. Ein öffentlicher Raum steht '
-                    'außerdem in der Raumliste der Startseite.',
-                'Pass the link on. A public room is also listed in the '
-                    'room list on the start page.',
+                'Den Link zum Einladen gibt es im Warteraum. Ein '
+                    'öffentlicher Raum steht außerdem in der Raumliste der '
+                    'Startseite.',
+                'The link to invite others comes in the waiting room. A '
+                    'public room is also listed in the room list on the '
+                    'start page.',
               ),
               GameMode.defense => tr(
                 'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
@@ -205,10 +207,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.publicRoom.value = v ?? false,
                 ),
               ),
-            ],
-            if (mode.withOthers) ...[
-              const SizedBox(height: 12),
-              RoomInvite(game: game),
             ],
           ],
         ),
@@ -387,6 +385,68 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// What the host set up, in short, with the way back to change it.
+  Widget _summarySection(BuildContext context) {
+    final game = widget.game;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        game.mode,
+        game.botLevel,
+        game.fillWithBots,
+        game.teamMode,
+        game.mapChoice,
+        game.publicRoom,
+      ]),
+      builder: (context, _) {
+        final mode = game.mode.value;
+        final map = game.mapChoice.value;
+        final facts = [
+          switch (mode) {
+            GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
+            GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
+            GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
+          },
+          game.botLevel.value.label,
+          if (mode == GameMode.multi)
+            game.fillWithBots.value
+                ? tr('MIT CPU AUFFÜLLEN', 'FILL WITH CPU')
+                : tr('NUR MENSCHEN', 'HUMANS ONLY'),
+          if (mode != GameMode.defense)
+            game.teamMode.value
+                ? 'TEAMS'
+                : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
+          map == null
+              ? tr('ZUFÄLLIGES GELÄNDE', 'RANDOM TERRAIN')
+              : MapTheme.all[map].name.toUpperCase(),
+          if (mode == GameMode.multi && roomLink(game.net.room).isNotEmpty)
+            game.publicRoom.value
+                ? tr('ÖFFENTLICH', 'PUBLIC')
+                : tr('PRIVAT', 'PRIVATE'),
+        ];
+        return _Section(
+          icon: Icons.tune,
+          title: tr('EINSTELLUNGEN', 'SETTINGS'),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [for (final fact in facts) _Fact(fact)],
+              ),
+              const SizedBox(height: 8),
+              TextButton.icon(
+                onPressed: game.editSettings,
+                icon: const Icon(Icons.edit_outlined),
+                label: Text(tr('ÄNDERN', 'CHANGE')),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   /// Call sign, vehicle and paint: what every player sets. The call sign
   /// and the account are changed behind the profile button.
   Widget _tankSection(BuildContext context) {
@@ -493,22 +553,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   /// Who is in the room, when playing with others.
   Widget _crewSection() {
     final game = widget.game;
-    return ValueListenableBuilder<GameMode>(
-      valueListenable: game.mode,
-      builder: (context, mode, _) => !mode.withOthers
-          ? const SizedBox.shrink()
-          : _Section(
-              // The list brings its own heading.
-              child: ValueListenableBuilder<List<LobbyPresence>>(
-                valueListenable: game.roster,
-                builder: (context, roster, _) => PlayerList(
-                  members: roster,
-                  myId: game.myId,
-                  colorOf: (member) =>
-                      game.lobbyColorOf(member.id, member.colorIndex),
-                ),
-              ),
-            ),
+    return _Section(
+      // The list brings its own heading.
+      child: ValueListenableBuilder<List<LobbyPresence>>(
+        valueListenable: game.roster,
+        builder: (context, roster, _) => PlayerList(
+          members: roster,
+          myId: game.myId,
+          colorOf: (member) => game.lobbyColorOf(member.id, member.colorIndex),
+        ),
+      ),
     );
   }
 
@@ -693,50 +747,121 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// The waiting room: the round on the left, the player's own tank on the
-  /// right, the buttons at the bottom. On a narrow screen one after the
-  /// other.
-  Widget _room(BuildContext context, {required bool narrow}) {
-    final host = widget.game.isHost.value;
-    final settings = <Widget>[
-      if (host) ...[
-        _roundSection(context),
-        _battleSection(context),
-        _fieldSection(context),
-      ] else
-        const _JoinedBanner(),
-    ];
-    final mine = <Widget>[_tankSection(context), _crewSection()];
-    Widget column(List<Widget> parts) => Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+  Widget _column(List<Widget> parts) => Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      for (final (i, part) in parts.indexed) ...[
+        if (i > 0) const SizedBox(height: 14),
+        part,
+      ],
+    ],
+  );
+
+  /// Two columns side by side, or one after the other on a narrow screen.
+  Widget _columns(
+    List<Widget> left,
+    List<Widget> right, {
+    required bool narrow,
+  }) {
+    if (narrow) {
+      return _column([...left, ...right]);
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        for (final (i, part) in parts.indexed) ...[
-          if (i > 0) const SizedBox(height: 14),
-          part,
-        ],
+        Expanded(child: _column(left)),
+        const SizedBox(width: 16),
+        Expanded(child: _column(right)),
       ],
     );
+  }
+
+  /// First step for the host: how the round goes. Nobody sees the room in
+  /// the public list yet.
+  Widget _settings(BuildContext context, {required bool narrow}) {
+    final game = widget.game;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _header(context),
+        _header(context, tr('EINSTELLUNGEN', 'SETTINGS')),
         const SizedBox(height: 18),
         if (narrow)
-          column([...settings, ...mine])
+          _column([
+            _roundSection(context),
+            _battleSection(context),
+            _fieldSection(context),
+          ])
         else
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(child: column(settings)),
-              const SizedBox(width: 16),
-              Expanded(child: column(mine)),
-            ],
+          _columns(
+            [_roundSection(context), _fieldSection(context)],
+            [_battleSection(context)],
+            narrow: narrow,
           ),
         const SizedBox(height: 18),
-        _actions(),
-        const SizedBox(height: 8),
-        _controls(),
+        ValueListenableBuilder<GameMode>(
+          valueListenable: game.mode,
+          builder: (context, mode, _) => Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              FilledButton.icon(
+                onPressed: game.openWaitingRoom,
+                icon: Icon(
+                  mode.withOthers
+                      ? Icons.meeting_room_outlined
+                      : Icons.chevron_right,
+                ),
+                label: Text(
+                  mode.withOthers
+                      ? tr('WARTERAUM ÖFFNEN', 'OPEN WAITING ROOM')
+                      : tr('WEITER', 'CONTINUE'),
+                ),
+              ),
+              OutlinedButton.icon(
+                onPressed: game.changeMode,
+                icon: const Icon(Icons.arrow_back),
+                label: Text(tr('ZURÜCK', 'BACK')),
+              ),
+            ],
+          ),
+        ),
       ],
+    );
+  }
+
+  /// Second step: who is here, the player's own tank and the start. The
+  /// host sees the settings in short, guests that they wait for the host.
+  Widget _room(BuildContext context, {required bool narrow}) {
+    final host = widget.game.isHost.value;
+    return ValueListenableBuilder<GameMode>(
+      valueListenable: widget.game.mode,
+      builder: (context, mode, _) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _header(
+            context,
+            mode.withOthers
+                ? tr('WARTERAUM', 'WAITING ROOM')
+                : tr('BEREITSTELLUNG', 'GET READY'),
+          ),
+          const SizedBox(height: 18),
+          _columns(
+            [
+              if (host) _summarySection(context) else const _JoinedBanner(),
+              if (mode.withOthers) ...[
+                if (host) RoomInvite(game: widget.game),
+                _crewSection(),
+              ],
+            ],
+            [_tankSection(context)],
+            narrow: narrow,
+          ),
+          const SizedBox(height: 18),
+          _actions(),
+          const SizedBox(height: 8),
+          _controls(),
+        ],
+      ),
     );
   }
 
@@ -763,6 +888,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return ListenableBuilder(
       listenable: Listenable.merge([
         widget.game.choosingMode,
+        widget.game.configuring,
         widget.game.welcomed,
       ]),
       builder: (context, _) => ColoredBox(
@@ -778,11 +904,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             builder: (context, constraints) {
               final narrow = constraints.maxWidth < 820;
               final phone = _frameless(context);
+              final host = widget.game.isHost.value;
               final page = !widget.game.welcomed.value
                   ? 0
-                  : widget.game.choosingMode.value && widget.game.isHost.value
+                  : widget.game.choosingMode.value && host
                   ? 1
-                  : 2;
+                  : widget.game.configuring.value && host
+                  ? 2
+                  : 3;
               return Center(
                 child: SingleChildScrollView(
                   // A fresh scroll position per page, so the waiting room
@@ -803,12 +932,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       // screen edge already frames it.
                       phone: phone,
                       narrow: narrow,
-                      child: !widget.game.welcomed.value
-                          ? WelcomeView(game: widget.game)
-                          : widget.game.choosingMode.value &&
-                                widget.game.isHost.value
-                          ? LaunchView(game: widget.game)
-                          : _room(context, narrow: narrow),
+                      child: switch (page) {
+                        0 => WelcomeView(game: widget.game),
+                        1 => LaunchView(game: widget.game),
+                        2 => _settings(context, narrow: narrow),
+                        _ => _room(context, narrow: narrow),
+                      },
                     ),
                   ),
                 ),
@@ -857,6 +986,38 @@ class _Section extends StatelessWidget {
             ],
             child,
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One setting in the summary, as a small framed tag.
+class _Fact extends StatelessWidget {
+  const _Fact(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: const Color(0x33000000),
+        shape: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: const BorderSide(color: BwColors.sand, width: 1),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        child: Text(
+          text,
+          style: const TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1,
+            color: BwColors.sand,
+          ),
         ),
       ),
     );

@@ -105,6 +105,7 @@ class SpaceGame extends FlameGame
   }) : super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
+    configuring.addListener(_wake);
   }
 
   final NetService net;
@@ -245,14 +246,26 @@ class SpaceGame extends FlameGame
   /// play. Players who joined by a link go straight to the waiting room.
   late final choosingMode = ValueNotifier<bool>(net.isHost);
 
-  /// Start page: take [value] and move on to the waiting room.
+  /// Whether the host sets up the round: difficulty, field and who may
+  /// join, before the waiting room opens. Players who joined by a link
+  /// never see it.
+  final configuring = ValueNotifier<bool>(false);
+
+  /// Start page: take [value] and move on to setting up the round.
   void chooseMode(GameMode value) {
     mode.value = value;
+    configuring.value = true;
     choosingMode.value = false;
   }
 
-  /// Back from the waiting room to the start page.
+  /// Back from the settings to the start page.
   void changeMode() => choosingMode.value = true;
+
+  /// The round is set up: open the waiting room.
+  void openWaitingRoom() => configuring.value = false;
+
+  /// Back from the waiting room to the settings of the round.
+  void editSettings() => configuring.value = true;
 
   /// Whether this player runs the room: picks mode and map and starts the
   /// round. The one who opened the room keeps the role for good. Only when
@@ -296,7 +309,10 @@ class SpaceGame extends FlameGame
 
   void _updateListing() {
     final listed =
-        isHost.value && mode.value == GameMode.multi && publicRoom.value;
+        isHost.value &&
+        !beforeWaitingRoom &&
+        mode.value == GameMode.multi &&
+        publicRoom.value;
     final current = phase.value;
     unawaited(
       directory.advertise(
@@ -531,6 +547,9 @@ class SpaceGame extends FlameGame
     directory.connect();
     for (final notifier in <Listenable>[
       publicRoom,
+      choosingMode,
+      configuring,
+      welcomed,
       mode,
       isHost,
       teamMode,
@@ -4706,9 +4725,11 @@ class SpaceGame extends FlameGame
   }
 
   /// Whether the player still looks at the welcome page or, as host, at
-  /// the start page: the room is joined, but no waiting room is shown.
+  /// the start page or the settings: the room is joined, but no waiting
+  /// room is shown.
   bool get beforeWaitingRoom =>
-      !welcomed.value || (choosingMode.value && isHost.value);
+      !welcomed.value ||
+      ((choosingMode.value || configuring.value) && isHost.value);
 
   /// Left the room quietly after a long time on the start or welcome page.
   @visibleForTesting
