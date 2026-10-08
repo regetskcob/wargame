@@ -303,6 +303,10 @@ extension TankGameCombat on TankGame {
       );
     }
 
+    // The player who runs the waves keeps the score of every gun.
+    if (round?.botHost == myId) {
+      _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
+    }
     if (!runsShooter(ownerId)) {
       return;
     }
@@ -323,7 +327,6 @@ extension TankGameCombat on TankGame {
         );
       }
     }
-    _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
     _blastSoldiers(ownerId, at, weapon.radius);
   }
 

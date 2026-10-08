@@ -30,10 +30,15 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   late final _allyLives = List<int>.filled(_allyIds.length, 0);
   late final _allyWait = List<double>.filled(_allyIds.length, 0);
 
-  /// Waves beaten off without heavy losses, and the base's hit points when
-  /// the current wave rolled in.
-  int _cleanWaves = 0;
-  double _hpAtWave = GameConfig.baseHp;
+  /// Per base: waves beaten off without heavy losses, and its hit points
+  /// when the current wave rolled in.
+  final _cleanWaves = [0, 0];
+  final _hpAtWave = [GameConfig.baseHp, GameConfig.baseHp];
+
+  /// A duel: every wave rolls down both roads, one to each player's base.
+  bool get _duel => gameRef.round?.duel ?? false;
+
+  List<int> get _lanes => _duel ? const [0, 1] : const [0];
 
   final _queue = <_Spawn>[];
   int _spawned = 0;
@@ -52,6 +57,7 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
       DefensePayload(
         id: gameRef.myId,
         hp: GameConfig.baseHp,
+        hp2: _duel ? GameConfig.baseHp : null,
         wave: 0,
         nextWaveAt: startedAt + GameConfig.firstWaveSeconds * 1000,
       ),
@@ -64,24 +70,35 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   /// A wave was beaten off. If the base held without heavy losses it may
   /// grow: more hit points, a fresh comrade and a gun of its own.
   DefensePayload _grow(DefensePayload state) {
-    final loss = _hpAtWave - state.hp;
-    if (loss <= GameConfig.baseMaxHp(state.hq) * GameConfig.hqCleanLoss) {
-      _cleanWaves++;
+    var next = state;
+    for (final lane in _lanes) {
+      final hq = next.hqOf(lane);
+      final hp = next.hpOf(lane);
+      final loss = _hpAtWave[lane] - hp;
+      if (loss <= GameConfig.baseMaxHp(hq) * GameConfig.hqCleanLoss) {
+        _cleanWaves[lane]++;
+      }
+      final level = GameConfig.hqLevelFor(_cleanWaves[lane]);
+      if (level <= hq) {
+        continue;
+      }
+      gameRef.armBase(level, lane: lane);
+      next = next.withBase(
+        lane,
+        hq: level,
+        hp: hp + GameConfig.hqHpStep * (level - hq),
+      );
     }
-    final level = GameConfig.hqLevelFor(_cleanWaves);
-    if (level <= state.hq) {
-      return state;
-    }
-    gameRef.armBase(level);
-    return state.copyWith(
-      hq: level,
-      hp: state.hp + GameConfig.hqHpStep * (level - state.hq),
-    );
+    return next;
   }
 
   /// The defenders do not hold out on the ground alone for long: from a few
   /// waves in, the base sends aircraft of its own.
   void _sendSupport(int wave) {
+    // In a duel the bases' aircraft would not know whose side to take.
+    if (_duel) {
+      return;
+    }
     if (wave >= GameConfig.supportFromWave) {
       gameRef.spawnSupport('air-h-$wave', AirKind.helicopter);
     }
@@ -125,7 +142,20 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
     }
     _keepAllies(dt);
     var next = state;
-    if (state.hp <= 0) {
+    if (_duel) {
+      final left = state.hpOf(0) <= 0;
+      final right = state.hpOf(1) <= 0;
+      if (left || right) {
+        // Whose base falls first loses, both at once is a draw.
+        gameRef.publishDefense(
+          state.copyWith(
+            result: DefenseResult.lost,
+            fell: left && right ? 2 : (left ? 0 : 1),
+          ),
+        );
+        return;
+      }
+    } else if (state.hp <= 0) {
       // Once extended the win is safe, however the base ends.
       gameRef.publishDefense(
         state.copyWith(
@@ -142,15 +172,20 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
     }
     if (state.nextWaveAt > 0 && _now >= state.nextWaveAt) {
       next = state.copyWith(wave: state.wave + 1, nextWaveAt: 0);
-      _hpAtWave = next.hp;
+      for (final lane in _lanes) {
+        _hpAtWave[lane] = next.hpOf(lane);
+      }
       _queue
         ..clear()
         ..addAll(_order(DefenseMap.planFor(next.wave)));
       _spawned = 0;
       _spawnTimer = 0;
       _sendSupport(next.wave);
-      // The base sends troops on foot against every wave, more as it grows.
-      gameRef.spawnBaseSquads(next.wave, next.hq);
+      // Every base sends troops on foot against every wave, more as it
+      // grows.
+      for (final lane in _lanes) {
+        gameRef.spawnBaseSquads(next.wave, next.hqOf(lane), lane: lane);
+      }
     }
     final jetIn = _jetIn;
     if (jetIn != null) {
@@ -165,10 +200,13 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
       final spawn = _queue.first;
       final room =
           spawn != _Spawn.tank ||
-          gameRef.enemiesAlive < GameConfig.maxEnemiesAlive;
+          gameRef.enemiesAlive < GameConfig.maxEnemiesAlive * _lanes.length;
       if (room) {
         _queue.removeAt(0);
-        _launch(spawn, next.wave);
+        // The same wave down every road, so neither side has it easier.
+        for (final lane in _lanes) {
+          _launch(spawn, next.wave, lane);
+        }
         _spawned++;
         _spawnTimer = GameConfig.enemySpawnEvery;
       }
@@ -179,10 +217,16 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
         !gameRef.enemyForcesLeft) {
       // After the last regular wave the host gets a longer break to decide
       // whether to go on.
-      final pause = next.wave >= GameConfig.defenseWaves && !next.extended
+      // A duel goes on by itself until a base falls.
+      final pause =
+          next.wave >= GameConfig.defenseWaves && !next.extended && !_duel
           ? GameConfig.extendDecisionSeconds
           : GameConfig.waveBreakSeconds;
-      next = _grow(next).copyWith(nextWaveAt: _now + pause * 1000);
+      next = _grow(next).copyWith(
+        nextWaveAt: _now + pause * 1000,
+        extended:
+            next.extended || (_duel && next.wave >= GameConfig.defenseWaves),
+      );
     }
     _keepalive += dt;
     if (!identical(next, state) || _keepalive >= 1) {
@@ -215,19 +259,23 @@ extension on DefenseDirector {
     return order;
   }
 
-  void _launch(_Spawn spawn, int wave) {
-    final n = _spawned;
+  /// Sends one of the wave down the road of [lane]. The right road's units
+  /// carry a `b` at the end of their id.
+  void _launch(_Spawn spawn, int wave, int lane) {
+    final n = '$_spawned${lane == 1 ? 'b' : ''}';
+    // In a duel the waves on the way to one base fight for the other side.
+    final team = _duel ? 2 - lane : 2;
     switch (spawn) {
       case _Spawn.tank:
-        gameRef.spawnEnemy('td-$wave-$n');
+        gameRef.spawnEnemy('td-$wave-$n', lane: lane, team: team);
       case _Spawn.squad:
-        gameRef.spawnEnemySquad('td-i-$wave-$n', wave);
+        gameRef.spawnEnemySquad('td-i-$wave-$n', wave, lane: lane);
       case _Spawn.helicopter:
-        gameRef.spawnAircraft('td-h-$wave-$n', AirKind.helicopter);
+        gameRef.spawnAircraft('td-h-$wave-$n', AirKind.helicopter, lane: lane);
       case _Spawn.jet:
-        gameRef.spawnAircraft('td-j-$wave-$n', AirKind.jet);
+        gameRef.spawnAircraft('td-j-$wave-$n', AirKind.jet, lane: lane);
       case _Spawn.drone:
-        gameRef.spawnEnemyDrone('td-d-$wave-$n');
+        gameRef.spawnEnemyDrone('td-d-$wave-$n', lane: lane);
     }
   }
 }

@@ -6,7 +6,7 @@ import '../db/server_status.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../net/room.dart';
-import '../tv/duel_view.dart';
+import '../tv/seats.dart';
 import '../net/pad_link.dart';
 import '../tv/tv_controllers.dart';
 import '../tv/tv_input.dart';
@@ -168,7 +168,7 @@ class LaunchView extends StatelessWidget {
               kicker: option.kicker,
               onTap: start(option.mode),
             ),
-          if (onTv) const _DuelCard(),
+          if (onTv) _DuelCard(game: game),
         ];
         // Two by two on the television, with the duel as the fourth.
         // Elsewhere three side by side when there is room, else one per
@@ -308,7 +308,9 @@ class _ModeCard extends StatelessWidget {
 /// The Apple TV's fourth way to play: two players, two controllers, one
 /// screen split in half.
 class _DuelCard extends StatelessWidget {
-  const _DuelCard();
+  const _DuelCard({required this.game});
+
+  final TankGame game;
 
   @override
   Widget build(BuildContext context) {
@@ -326,10 +328,10 @@ class _DuelCard extends StatelessWidget {
       icon: Icons.splitscreen,
       title: tr('DUELL', 'DUEL'),
       kicker: count >= 2
-          ? tr('1 GEGEN 1 VERTEIDIGEN', '1 ON 1 DEFENSE')
+          ? tr('ROT GEGEN BLAU · STÜTZPUNKTE', 'RED AGAINST BLUE · BASES')
           : tr('ZWEITER SPIELER FEHLT', 'NEEDS A SECOND PLAYER'),
       onTap: () => count >= 2
-          ? unawaited(DuelView.open(context))
+          ? game.chooseMode(GameMode.defense, duel: true)
           : unawaited(_explain(context)),
     );
   }

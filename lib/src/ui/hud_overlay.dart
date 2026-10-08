@@ -192,6 +192,8 @@ class _HudOverlayState extends State<HudOverlay> {
                           onUse: game.useItem,
                           labels: kind == TvPadKind.remote
                               ? const ['⏯']
+                              : (game.round?.duel ?? false)
+                              ? tvDuelSlotLabels
                               : tvGamepadSlotLabels,
                         ),
                       )
@@ -706,15 +708,8 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          onTv
-              ? tr(
-                  'MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt',
-                  'FUNDS $credits   ·   R1 builds/upgrades, L1 switches',
-                )
-              : tr(
-                  'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
-                  'FUNDS $credits   ·   B builds/upgrades, V switches',
-                ),
+          '${onTv ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
+          '${(game.round?.duel ?? false) ? tr('   ·   ${onTv ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${onTv ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
             color: BwColors.amber,
             fontWeight: FontWeight.w800,
@@ -907,12 +902,45 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
   }
 
+  /// The other side's base in a duel: how far it is from falling.
+  Widget _rivalBase(DefensePayload state, int lane) {
+    final hp = state.hpOf(lane);
+    final ratio = (hp / GameConfig.baseMaxHp(state.hqOf(lane))).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${tr('GEGNER', 'RIVAL')} · ${GameConfig.hqName(state.hqOf(lane))}'
+          '  ${hp.ceil()}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: GameConfig.teamColors[lane + 1],
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 200,
+          height: 8,
+          child: LinearProgressIndicator(
+            value: ratio,
+            backgroundColor: const Color(0x66000000),
+            color: GameConfig.teamColors[lane + 1],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _base() {
     return ValueListenableBuilder<DefensePayload?>(
       valueListenable: game.defense,
       builder: (context, state, _) {
-        final hq = state?.hq ?? 1;
-        final hp = state?.hp ?? GameConfig.baseHp;
+        // In a duel the own base, and below it the other side's.
+        final lane = game.myLane;
+        final hq = state?.hqOf(lane) ?? 1;
+        final hp = state?.hpOf(lane) ?? GameConfig.baseHp;
         final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
         final bar = SizedBox(
           width: touch ? 70 : 200,
@@ -953,10 +981,19 @@ class _DefensePanelState extends State<_DefensePanel> {
             ],
           );
         }
+        final rival = state != null && state.duel ? 1 - lane : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [label, const SizedBox(height: 4), bar],
+          children: [
+            label,
+            const SizedBox(height: 4),
+            bar,
+            if (rival != null) ...[
+              const SizedBox(height: 6),
+              _rivalBase(state!, rival),
+            ],
+          ],
         );
       },
     );

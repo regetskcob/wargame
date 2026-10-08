@@ -54,6 +54,7 @@ class NetService {
   void Function(ArtilleryPayload payload)? onArtillery;
   void Function(DefensePayload payload)? onDefense;
   void Function(TowerPayload payload)? onTower;
+  void Function(TroopsPayload payload)? onTroops;
   void Function(GrenadePayload payload)? onGrenade;
   void Function(DronePayload payload)? onDrone;
   void Function(BlastPayload payload)? onBlast;
@@ -201,6 +202,12 @@ class NetService {
       NetEvent.tower,
       (json) => onTower?.call(TowerPayload.fromJson(json)),
     );
+    _listen(channel, NetEvent.troops, (json) {
+      final payload = TroopsPayload.tryParse(json);
+      if (payload != null) {
+        onTroops?.call(payload);
+      }
+    });
     _listen(
       channel,
       NetEvent.close,

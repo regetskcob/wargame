@@ -42,6 +42,7 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
     required double angle,
     this.remote = false,
     Vector2? goal,
+    this.lane = 0,
   }) : _target = position.clone(),
        _targetAngle = angle,
        goal = goal ?? Vector2.zero(),
@@ -52,6 +53,10 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
          anchor: Anchor.center,
          priority: 26,
        );
+
+  /// In a duel the side whose road it came down, and whose base it goes
+  /// for when there is nothing else.
+  final int lane;
 
   final String unitId;
   final AirKind kind;
@@ -110,9 +115,18 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
   /// How hard [bullet] hits, 0 when it flies right past. Nobody's shells
   /// touch the aircraft of their own side.
   double damageFrom(Bullet bullet) {
-    final enemyShot = gameRef.round?.isEnemy(bullet.ownerId) ?? false;
-    if (enemyShot != friendly) {
-      return 0;
+    final activeRound = gameRef.round;
+    if (activeRound != null && activeRound.duel) {
+      // In a duel the shells of the other side.
+      final side = activeRound.teamOf(bullet.ownerId);
+      if (side == 0 || side == activeRound.teamOf(unitId)) {
+        return 0;
+      }
+    } else {
+      final enemyShot = activeRound?.isEnemy(bullet.ownerId) ?? false;
+      if (enemyShot != friendly) {
+        return 0;
+      }
     }
     if (bullet.antiAir) {
       return bullet.damage * GameConfig.antiAirFactor;
@@ -211,12 +225,13 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
       // whenever another tank comes a little closer.
       if (!_holds(_prey, 560)) {
         _prey =
-            gameRef.nearestDefender(position, 480) ??
-            gameRef.nearestTower(position, 480);
+            gameRef.nearestDefender(position, 480, of: unitId) ??
+            gameRef.nearestTower(position, 480, of: unitId);
       }
     }
     final prey = _prey;
-    final aimAt = prey != null && prey.isMounted ? prey.position : map.base;
+    final base = map.lanes[lane.clamp(0, map.lanes.length - 1)].base;
+    final aimAt = prey != null && prey.isMounted ? prey.position : base;
     final diff = _fly(dt, aimAt, GameConfig.helicopterHover, face: aimAt);
     final distance = position.distanceTo(aimAt);
     _cooldown -= dt;

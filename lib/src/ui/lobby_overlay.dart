@@ -120,6 +120,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Mehrspieler: Der letzte Panzer im Feld gewinnt.',
               'Multiplayer: The last tank in the field wins.',
             ),
+            GameMode.defense when game.duelNext.value => tr(
+              'Duell: Rot gegen Blau, ein Stützpunkt an jedem Ende der '
+                  'Straße. Eure Wellen rollen zum anderen, wessen Stützpunkt '
+                  'zuerst fällt, verliert.',
+              'Duel: red against blue, a base at either end of the road. '
+                  'Your waves roll to the other one, whose base falls first '
+                  'loses.',
+            ),
             GameMode.defense => tr(
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
               'Defense: Hold the base against all waves.',

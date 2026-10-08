@@ -183,3 +183,27 @@ class TowerPayload {
     };
   }
 }
+
+/// A player of a defense duel paid for troops against the other side. The
+/// player who runs the waves sends them down the other side's road.
+class TroopsPayload {
+  const TroopsPayload({required this.id, required this.serial});
+
+  /// Null when the message is not a troop order.
+  static TroopsPayload? tryParse(Map<String, dynamic> json) {
+    final id = json['id'];
+    final serial = json['n'];
+    if (id is! String || serial is! int || serial < 0) {
+      return null;
+    }
+    return TroopsPayload(id: id, serial: serial);
+  }
+
+  /// The player who sends them.
+  final String id;
+
+  /// Counts up per player, so every troop gets an id of its own.
+  final int serial;
+
+  Map<String, dynamic> toJson() => {'id': id, 'n': serial};
+}

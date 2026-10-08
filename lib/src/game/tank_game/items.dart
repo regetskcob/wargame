@@ -567,13 +567,15 @@ extension TankGameItems on TankGame {
         strike.strikeId,
       );
     }
-    if (runsShooter(strike.ownerId)) {
-      final base = _defenseField?.headquarters;
-      if (base != null &&
-          (round?.isEnemy(strike.ownerId) ?? false) &&
-          base.position.distanceTo(strike.position) <
-              GameConfig.artilleryRadius + DefenseMap.baseRadius) {
-        damageBase(strike.damage);
+    // The player who runs the waves keeps the score of the bases, also of
+    // a strike the other player of a duel called in.
+    if (round?.botHost == myId) {
+      for (final base in _defenseField?.bases ?? const <Headquarters>[]) {
+        if (hurtsBase(strike.ownerId, base.lane) &&
+            base.position.distanceTo(strike.position) <
+                GameConfig.artilleryRadius + DefenseMap.baseRadius) {
+          damageBase(strike.damage, lane: base.lane);
+        }
       }
       _blastTowers(
         strike.ownerId,
@@ -581,6 +583,8 @@ extension TankGameItems on TankGame {
         GameConfig.artilleryRadius,
         strike.damage,
       );
+    }
+    if (runsShooter(strike.ownerId)) {
       _blastSoldiers(
         strike.ownerId,
         strike.position,

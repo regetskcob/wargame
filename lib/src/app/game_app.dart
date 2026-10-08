@@ -28,7 +28,6 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
-import '../tv/duel_view.dart';
 import '../tv/second_player.dart';
 import '../tv/split_view.dart';
 import '../tv/tv_focus_frame.dart';
@@ -186,7 +185,6 @@ class _GameAppState extends State<GameApp> {
       builder: onTv
           ? (context, child) => TvFocusFrame(
               holdFocus: () =>
-                  DuelView.running ||
                   game.phase.value == GamePhase.countdown ||
                   game.phase.value == GamePhase.playing,
               // Up and down walk the menus in reading order, so a swipe

@@ -15,7 +15,7 @@ import '../app/env.dart';
 import '../net/net_service.dart';
 import '../net/room_directory.dart';
 import '../net/pad_link.dart';
-import 'duel_view.dart';
+import 'seats.dart';
 
 /// A second player on the same Apple TV.
 ///
@@ -66,7 +66,7 @@ class SecondPlayer extends ChangeNotifier {
         host.phase.value == GamePhase.lobby ||
         host.phase.value == GamePhase.closed;
     final seats = duelSeats();
-    final two = seats.length >= 2 && !DuelView.running;
+    final two = seats.length >= 2;
     if (!between && guest != null) {
       return;
     }

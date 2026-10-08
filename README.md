@@ -498,18 +498,26 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Duel:** with two players in, each with a controller, a phone or the Siri
-Remote (handed out in that order, the remote last), the start page offers a
-duel, one against one in defense on a split screen
-(`lib/src/tv/duel_view.dart`). Each half is a game of its own in a private room,
-both start from the same seed at the same moment, so both players face the same
-map and the same waves with a base of their own. After the last regular wave
-both go on by themselves, and whose base falls first loses. A frame in the
-player's colour and another paint on the second tank tell the halves apart.
-Two phones scan the same pairing code, the screen routes each to its half and
-tells each about its own tank only. Duels are unranked:
-both players share the account of the Apple TV. Menu or B asks whether to end
-the duel, at the end come rematch or back.
+**Two players:** with two controllers in (or phones, the Siri Remote counting
+as one, handed out controllers first, then phones, the remote last), the second
+player gets a game of their own (`lib/src/tv/second_player.dart`) that joins the
+first player's room over a Supabase connection of its own, as a pilot from
+another device would. Rounds then play on a split screen, each half from its own
+tank (`lib/src/tv/split_view.dart`), the menus stay with the first player:
+single player puts both against the CPU tanks, multiplayer and defense take both
+pilots along. Two pilots in a room send their states to each other, so a round
+of two costs Realtime messages like an online round of two.
+
+**Duel** (fourth card on the start page with two players): a defense round with
+a base at either end of the road of a common layout
+(`DefenseMap.duelForSeed`), red on the left, blue on the right. The waves stay
+as they are, but each side's roll along the road against the other's base, so
+they meet on the way, and every gun, tank and squad fights the other side. Y on
+a controller, T on a keyboard, sends an extra tank against the other base for
+120 funds (`troops` event, run by the host). Bases grow on their
+own, the HUD shows both, whose base falls first loses, and the waves go on past
+wave 8 by themselves. Duels are unranked. The host runs the waves and keeps the
+score of every base and gun, also of the other player's shots.
 
 ```sh
 export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
@@ -641,7 +649,8 @@ flutter build web --base-href /your-repo/ \
 - One Realtime channel per room carries the broadcast events `state`,
   `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
-  `defense`, `tower`, and `close`.
+  `defense`, `tower`, `troops` (a duel's extra tank, sent by a player and run
+  by the host), and `close`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.

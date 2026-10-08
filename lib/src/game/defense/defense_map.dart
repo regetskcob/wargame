@@ -41,44 +41,36 @@ class DefenseMap {
     return DefenseMap._(layout.road, layout.river, layout.bridges);
   }
 
-  /// The duel's field: the enemy rolls in at the top in the middle and
-  /// splits up, one road down each side to a base. Both sides mirror each
-  /// other, so neither player has the shorter way or the easier bends.
-  factory DefenseMap.duel() {
-    final left = [
-      Vector2(0, -halfHeight),
-      Vector2(0, -480),
-      Vector2(-300, -480),
-      Vector2(-300, 460),
-      Vector2(-640, 460),
-      Vector2(-640, -460),
-      Vector2(-900, -460),
-      Vector2(-900, 150),
-    ];
-    final right = [for (final point in left) Vector2(-point.x, point.y)];
-    final river = [
-      Vector2(-halfWidth - 40, 30),
-      Vector2(-500, -20),
-      Vector2(0, 40),
-      Vector2(500, -20),
-      Vector2(halfWidth + 40, 30),
-    ];
-    final whole = DefenseMap._(left, river, const [], roads: [left, right]);
-    whole.lanes = [
-      whole,
-      DefenseMap._(
-        right,
-        river,
-        const [],
-        roads: whole.roads,
-        bridges: whole.bridges,
-      ),
-    ];
-    for (final lane in whole.lanes) {
-      lane.lanes = whole.lanes;
-    }
-    return whole;
+  /// The duel's field: a layout of a common round, with a base at either
+  /// end of its road. Every road runs from the left to the right of the
+  /// field: the left player's base stands where the enemy used to roll in,
+  /// the right player's where the base always stands. Each side's waves
+  /// roll along the road to the other's base, so they meet on the way.
+  factory DefenseMap.duelForSeed(int seed) {
+    final layout = _layouts[layoutFor(seed)];
+    final whole = DefenseMap._(layout.road, layout.river, layout.bridges);
+    // The far end comes in off the edge, so the base stands on the field.
+    final (start, _) = whole.alongRoad(_duelInset);
+    final (_, segment) = whole.pointAlong(_duelInset);
+    final toRight = [start, ...layout.road.skip(segment + 1)];
+    final toLeft = toRight.reversed.toList();
+    DefenseMap side(List<Vector2> road) => DefenseMap._(
+      road,
+      layout.river,
+      const [],
+      roads: [toRight],
+      bridges: whole.bridges,
+    );
+    // Lane 0 is the road to the left base, the red player's.
+    final left = side(toLeft);
+    final right = side(toRight);
+    left.lanes = [left, right];
+    right.lanes = left.lanes;
+    return left;
   }
+
+  /// How far in from the edge the left player's base stands in a duel.
+  static const _duelInset = 230.0;
 
   /// Every road on the field: one, or one per side in a duel.
   final List<List<Vector2>> roads;

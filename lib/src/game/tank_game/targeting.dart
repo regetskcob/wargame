@@ -95,8 +95,23 @@ extension TankGameTargeting on TankGame {
       _nearest(from, range, (team) => team == 2);
 
   /// Closest player tank within [range] of [from], for the enemies to shoot.
-  TankBase? nearestDefender(Vector2 from, double range) =>
-      _nearest(from, range, (team) => team == 1);
+  TankBase? nearestDefender(Vector2 from, double range, {String? of}) {
+    final activeRound = round;
+    if (activeRound == null || !activeRound.duel) {
+      return _nearest(from, range, (team) => team == 1);
+    }
+    // In a duel whatever fights for one side goes for the other.
+    final own = of == null ? 0 : activeRound.teamOf(of);
+    return _nearest(
+      from,
+      range,
+      (team) => (team == 1 || team == 2) && team != own,
+    );
+  }
+
+  /// In a duel: tanks of any side other than [team], the waves included.
+  TankBase? nearestHostile(Vector2 from, double range, int team) =>
+      _nearest(from, range, (other) => other != 0 && other != team);
 
   Vector2 velocityOf(TankBase tank) => switch (tank) {
     final PlayerTank local => local.velocity,

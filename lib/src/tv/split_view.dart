@@ -9,7 +9,7 @@ import '../ui/hud_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/widgets/tablet_scale.dart';
-import 'duel_view.dart';
+import 'seats.dart';
 import 'second_player.dart';
 
 /// The first player's game, and beside it in a round the second player's,

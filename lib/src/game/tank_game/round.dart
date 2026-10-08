@@ -45,6 +45,14 @@ extension TankGameRound on TankGame {
     ids
       ..addAll(bots.keys)
       ..sort();
+    // A duel takes exactly two players, the host on the left.
+    final humans = [
+      for (final id in ids)
+        if (!bots.containsKey(id)) id,
+    ];
+    final lanes = defending && duelNext.value && humans.length == 2
+        ? [myId, humans.firstWhere((id) => id != myId)]
+        : const <String>[];
     final payload = RoundStartPayload(
       seed:
           seed ??
@@ -65,6 +73,7 @@ extension TankGameRound on TankGame {
       bots: bots,
       botHost: bots.isEmpty && !defending ? null : myId,
       defense: defending,
+      lanes: lanes,
       // Also without CPU tanks: the level sets fuel, ammo and terrain.
       botLevel: botLevel.value.index,
     );
@@ -394,16 +403,19 @@ extension TankGameRound on TankGame {
       return;
     }
     final activeRound = round;
-    final map = defenseMap;
+    // In a duel back at the base of the own side.
+    final map = myLaneMap;
     if (activeRound == null ||
         map == null ||
         phase.value != GamePhase.playing) {
       return;
     }
-    final at = map.spawnFor(
-      activeRound.participants.indexOf(myId),
-      activeRound.participants.length,
-    );
+    final at = activeRound.duel
+        ? map.spawnFor(0, 1)
+        : map.spawnFor(
+            activeRound.participants.indexOf(myId),
+            activeRound.participants.length,
+          );
     _spawnLocalTank(
       at,
       TankGame._headingFrom(at, map.road[map.road.length - 2]),
@@ -419,7 +431,8 @@ extension TankGameRound on TankGame {
   /// magazine refilled bit by bit, since no gems lie on this map.
   void _resupply(double dt) {
     final tank = myTank;
-    final map = defenseMap;
+    // In a duel only the own base hands out ammunition.
+    final map = myLaneMap;
     if (tank == null || map == null || phase.value != GamePhase.playing) {
       nearTower.value = null;
       return;
@@ -593,7 +606,9 @@ extension TankGameRound on TankGame {
         world.add(KillMarker(position: victim.position.clone()));
         shake(4);
       }
-      if (activeRound.isEnemy(victimId)) {
+      // In a duel the other player's tank pays as well.
+      if (activeRound.isEnemy(victimId) ||
+          (activeRound.duel && activeRound.lanes.contains(victimId))) {
         credits.value += aircraft.containsKey(victimId)
             ? GameConfig.creditsPerAircraft
             : GameConfig.creditsPerKill;
