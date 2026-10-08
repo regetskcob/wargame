@@ -7,6 +7,7 @@ import '../../game/components/tank_painter.dart';
 import '../../game/game_config.dart';
 import '../theme.dart';
 import '../widgets/touch_controls.dart';
+import '../../tv/tv_input.dart';
 import 'tutorial_steps.dart';
 import '../../l10n/l10n.dart';
 
@@ -22,10 +23,17 @@ class DemoPainter extends CustomPainter {
     required this.touch,
     required this.clock,
     required this.top,
+    this.pad,
   }) : super(repaint: clock);
 
   final DemoScene scene;
   final bool touch;
+
+  /// On the Apple TV: the controller or the remote whose buttons to show,
+  /// instead of keys or thumbs.
+  final TvPadKind? pad;
+
+  bool get _gamepad => pad == TvPadKind.gamepad;
   final Animation<double> clock;
 
   /// Where the card above the stage ends: the scene plays below it.
@@ -91,7 +99,10 @@ class DemoPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(DemoPainter old) =>
-      old.scene != scene || old.touch != touch || old.top != top;
+      old.scene != scene ||
+      old.touch != touch ||
+      old.pad != pad ||
+      old.top != top;
 
   // ---------------------------------------------------------------- scenes
 
@@ -117,7 +128,17 @@ class DemoPainter extends CustomPainter {
     final (pos, vel) = at(_t);
     final heading = _angleOf(vel);
     _tank(canvas, pos, heading, heading);
-    if (touch) {
+    if (pad != null) {
+      final dir = vel / vel.distance;
+      _stick(
+        canvas,
+        _leftStick,
+        _leftStick + dir * _stickRadius * 0.75,
+        _gamepad
+            ? tr('LINKER STICK · FAHREN', 'LEFT STICK · DRIVE')
+            : tr('TOUCHFLÄCHE · FAHREN', 'TOUCH SURFACE · DRIVE'),
+      );
+    } else if (touch) {
       final dir = vel / vel.distance;
       final knob = _leftStick + dir * _stickRadius * 0.75;
       _stick(canvas, _leftStick, knob, tr('FAHREN', 'DRIVE'));
@@ -147,7 +168,21 @@ class DemoPainter extends CustomPainter {
     final reach = min(_tankSize * 3.2, pos.dy - top - 24);
     _dashes(canvas, pos + dir * _tankSize * 0.7, pos + dir * reach);
     _tank(canvas, pos, 0, aim);
-    if (touch) {
+    if (_gamepad) {
+      _stick(
+        canvas,
+        _rightStick,
+        _rightStick + dir * _stickRadius * 0.45,
+        tr('RECHTER STICK · ZIELEN', 'RIGHT STICK · AIM'),
+      );
+    } else if (pad != null) {
+      _crosshair(canvas, pos + dir * reach);
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('DIE ZIELHILFE ZIELT', 'THE AIM ASSIST AIMS'),
+      );
+    } else if (touch) {
       final knob = _rightStick + dir * _stickRadius * 0.45;
       _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
       _stick(
@@ -179,7 +214,22 @@ class DemoPainter extends CustomPainter {
     final aim = target * settle;
     const shots = [0.35, 0.55];
     _duel(canvas, pos, enemy, aim, shots);
-    if (touch) {
+    if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'R2' : tr('KLICK', 'CLICK'),
+        width: _gamepad ? null : 76,
+        lit: _pulse(shots),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        _gamepad
+            ? tr('ODER A', 'OR A')
+            : tr('AUF DIE TOUCHFLÄCHE', 'ON THE TOUCH SURFACE'),
+      );
+    } else if (touch) {
       // Out to the ring to aim, past it to fire, back to rest.
       final reach = _t < 0.25
           ? 0.45 * settle
@@ -286,7 +336,22 @@ class DemoPainter extends CustomPainter {
       _icon(canvas, Offset.lerp(crate, _slot, p)!, type.icon, 22, type.color);
     }
     _inventorySlot(canvas, _t >= 0.5 && !used ? type : null);
-    if (touch) {
+    if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'X' : 'PLAY/PAUSE',
+        width: _gamepad ? null : 120,
+        lit: _between(0.62, 0.7),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        _gamepad
+            ? tr('X, Y UND STEUERKREUZ', 'X, Y AND D-PAD')
+            : tr('OBERSTES FELD', 'TOP SLOT'),
+      );
+    } else if (touch) {
       if (_t > 0.5 && _t < 0.8) {
         final reach = _ease(_seg(0.5, 0.62));
         final finger = Offset.lerp(
@@ -364,7 +429,21 @@ class DemoPainter extends CustomPainter {
       _blast(canvas, enemy, _seg(shot + 0.25, shot + 0.45), big: true);
     }
     final left = 3 - shots.where((s) => _t > s).length;
-    if (touch) {
+    if (pad != null) {
+      _crosshair(canvas, enemy);
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'L2' : 'PLAY/PAUSE',
+        width: _gamepad ? null : 120,
+        lit: _pulse(shots),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('GRANATWERFER  $left', 'GRENADE LAUNCHER  $left'),
+      );
+    } else if (touch) {
       _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
       _stick(
         canvas,
@@ -431,7 +510,8 @@ class DemoPainter extends CustomPainter {
     final pos = Offset(_w * 0.34, roadY + _tankSize * 1.1);
     final gun = Offset(_w * 0.5, roadY + _tankSize * 0.9);
     final built = _t > 0.22;
-    final flak = !touch && _t > 0.52;
+    // The remote builds, but has no button to switch the kind.
+    final flak = !touch && pad != TvPadKind.remote && _t > 0.52;
     // The enemy rolls in from the right and is stopped.
     final enemyX = _w + _tankSize - (_w * 0.38) * _ease(_seg(0.1, 0.55));
     final enemy = Offset(enemyX, roadY);
@@ -456,7 +536,7 @@ class DemoPainter extends CustomPainter {
     final money = built ? 50 : 150;
     // The build bar: what can be built and what it costs.
     final kinds = [(tr('KANONE', 'CANNON'), 100), ('FLAK', 120)];
-    final barLeft = touch ? _w / 2 - 110 : _keys.dx + 140;
+    final barLeft = touch ? _w / 2 - 110 : _keys.dx + (pad == null ? 140 : 160);
     final barTop = _h - 64.0;
     _caption(
       canvas,
@@ -468,7 +548,34 @@ class DemoPainter extends CustomPainter {
       final rect = Rect.fromLTWH(barLeft + i * 112, barTop, 104, 34);
       _button(canvas, rect, '$label $cost', filled: chosen);
     }
-    if (touch) {
+    if (_gamepad) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        'R1',
+        lit: _between(0.16, 0.24),
+      );
+      _key(
+        canvas,
+        _keys + const Offset(40, 40),
+        'L1',
+        lit: _between(0.52, 0.6),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('BAUEN · TYP', 'BUILD · TYPE'),
+      );
+    } else if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        'PLAY/PAUSE',
+        width: 120,
+        lit: _between(0.16, 0.24),
+      );
+      _caption(canvas, _keys + const Offset(0, 84), tr('BAUEN', 'BUILD'));
+    } else if (touch) {
       final button = Offset(barLeft + 52, barTop + 17);
       if (_t < 0.35) {
         final reach = _ease(_seg(0.02, 0.16));
@@ -744,11 +851,11 @@ class DemoPainter extends CustomPainter {
     if (held != null) {
       _icon(canvas, rect.center, held.icon, 26, held.color);
     }
-    if (!touch) {
+    if (!touch && pad != TvPadKind.remote) {
       _text(
         canvas,
         rect.topLeft + const Offset(4, 2),
-        '1',
+        _gamepad ? 'X' : '1',
         size: 10,
         color: BwColors.textDim,
       );
@@ -908,9 +1015,15 @@ class DemoPainter extends CustomPainter {
     );
   }
 
-  void _key(Canvas canvas, Offset at, String label, {bool lit = false}) {
+  void _key(
+    Canvas canvas,
+    Offset at,
+    String label, {
+    bool lit = false,
+    double? width,
+  }) {
     final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), 34, 34),
+      Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), width ?? 34, 34),
       const Radius.circular(5),
     );
     if (!lit) {

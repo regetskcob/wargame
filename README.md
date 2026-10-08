@@ -491,16 +491,23 @@ the screen saver away. The menus take the arrow keys and enter the engine makes
 of swipes and presses: up and down walk them in reading order, an amber frame
 (`lib/src/tv/tv_focus_frame.dart`) shows the focus, and Menu or B steps back
 from the settings to the waiting room to the start page and leaves the app only
-from there. In a round they do nothing. The Apple TV can also pair a phone as
-its controller, like the browser. No camera, so no QR scanning, and no room
-links.
+from there. In a round they do nothing. The Apple TV can also pair phones as
+controllers, like the browser: the first steers the game, a second waits for a
+duel. No camera, so no QR scanning, and no room links. The briefing explains
+the controls of what is in hand, the controller or the Siri Remote, and
+switches when another one is picked up. The menus sit in the middle of the
+screen.
 
-**Duel:** with two controllers in (the Siri Remote counts as one) the start
-page offers a duel, one against one in defense on a split screen
+**Duel:** with two players in, each with a controller, a phone or the Siri
+Remote (handed out in that order, the remote last), the start page offers a
+duel, one against one in defense on a split screen
 (`lib/src/tv/duel_view.dart`). Each half is a game of its own in a private room,
 both start from the same seed at the same moment, so both players face the same
 map and the same waves with a base of their own. After the last regular wave
-both go on by themselves, and whose base falls first loses. Duels are unranked:
+both go on by themselves, and whose base falls first loses. A frame in the
+player's colour and another paint on the second tank tell the halves apart.
+Two phones scan the same pairing code, the screen routes each to its half and
+tells each about its own tank only. Duels are unranked:
 both players share the account of the Apple TV. Menu or B asks whether to end
 the duel, at the end come rematch or back.
 

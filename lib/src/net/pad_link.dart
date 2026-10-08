@@ -220,8 +220,13 @@ abstract class _PadChannel {
   void _peersChanged(List<(String, String)> peers);
 }
 
-/// The computer or tablet the game runs on, waiting for a phone or steered
-/// by one. One for the whole page: the pairing outlives a new room.
+/// The computer, tablet or television the game runs on, waiting for phones
+/// or steered by them. One for the whole page: the pairing outlives a new
+/// room.
+///
+/// The first phone steers [game]. Further phones wait, unless a duel on the
+/// Apple TV hands them a game of their own with [route]: then two phones on
+/// one code steer the two halves.
 class PadScreen extends _PadChannel {
   PadScreen._() : super('screen');
 
@@ -230,28 +235,63 @@ class PadScreen extends _PadChannel {
   /// Code of the open pairing, null while there is none.
   final code = ValueNotifier<String?>(null);
 
-  /// Name of the phone that steers, null while none is paired.
+  /// Name of the first phone, the one that steers [game], null while none
+  /// is paired.
   final paired = ValueNotifier<String?>(null);
 
-  /// The game the phone steers. Set by the app shell, also for a new room.
+  /// Ids and names of every phone on the code, in the order they came.
+  final phones = ValueNotifier<List<(String, String)>>(const []);
+
+  /// The game the first phone steers. Set by the app shell, also for a new
+  /// room.
   TankGame? game;
 
-  String? _padId;
+  final _routes = <String, TankGame>{};
+  final _lastInput = <String, DateTime>{};
+  final _statusGates = <String, SendGate>{};
   Timer? _tick;
-  DateTime _lastInput = DateTime(0);
 
   /// The status changes with every shot and every hit: a few times a second
   /// is plenty for the phone's display.
   static const statusGap = Duration(milliseconds: 250);
   static const statusKeepalive = Duration(seconds: 1);
   static const tickInterval = Duration(milliseconds: 100);
-  var _statusGate = SendGate(gap: statusGap, keepalive: statusKeepalive);
 
   /// The phone stops counting when nothing came from it for this long, so a
   /// tank whose phone dropped out does not drive on by itself.
   static const _silence = Duration(milliseconds: 900);
 
-  TouchInput? get _input => game?.touch;
+  /// The game the phone [padId] steers, null while it waits.
+  TankGame? gameOf(String padId) =>
+      _routes[padId] ??
+      (phones.value.firstOrNull?.$1 == padId && _routes.isEmpty ? game : null);
+
+  /// Whether a phone steers [target] right now.
+  bool steers(TankGame target) =>
+      phones.value.any((phone) => identical(gameOf(phone.$1), target));
+
+  /// Lets a test play the presences and the messages of phones.
+  @visibleForTesting
+  void debugPeers(List<(String, String)> peers) => _peersChanged(peers);
+
+  @visibleForTesting
+  void debugPadInput(Map<String, dynamic> json) => _receive(_Event.pad, json);
+
+  /// Hands the phone [padId] to [target], as a duel does for its halves.
+  void route(String padId, TankGame target) {
+    _release(gameOf(padId));
+    _routes[padId] = target;
+    _statusGates.remove(padId);
+  }
+
+  /// Every phone back to the way without a duel: the first steers [game].
+  void clearRoutes() {
+    for (final target in _routes.values) {
+      _release(target);
+    }
+    _routes.clear();
+    _statusGates.clear();
+  }
 
   /// Opens a pairing, or takes up the one from before a reload.
   Future<void> open() async {
@@ -270,48 +310,65 @@ class PadScreen extends _PadChannel {
     }
   }
 
-  /// Ends the pairing. The phone sees the screen leave.
+  /// Ends the pairing. The phones see the screen leave.
   Future<void> close() async {
     rememberPadCode(null);
     code.value = null;
     _tick?.cancel();
     _tick = null;
-    _release();
-    _padId = null;
+    for (final phone in phones.value) {
+      _release(gameOf(phone.$1));
+    }
+    _routes.clear();
+    _statusGates.clear();
+    phones.value = const [];
     paired.value = null;
     await _close();
   }
 
   @override
   void _peersChanged(List<(String, String)> peers) {
-    final current = peers.where((p) => p.$1 == _padId).firstOrNull;
-    if (current != null) {
-      paired.value = current.$2;
-      return;
+    final before = phones.value;
+    // Who was here keeps the place, newcomers queue up behind.
+    final next = [
+      for (final phone in before) ...peers.where((peer) => peer.$1 == phone.$1),
+      for (final peer in peers)
+        if (!before.any((phone) => phone.$1 == peer.$1)) peer,
+    ];
+    for (final phone in before) {
+      if (!next.any((peer) => peer.$1 == phone.$1)) {
+        _release(gameOf(phone.$1));
+        _routes.remove(phone.$1);
+        _lastInput.remove(phone.$1);
+        _statusGates.remove(phone.$1);
+      }
     }
-    // The first phone takes over, a second one waits until it leaves.
-    _release();
-    final next = peers.firstOrNull;
-    _padId = next?.$1;
-    paired.value = next?.$2;
-    // A new phone hears the status at once.
-    _statusGate = SendGate(gap: statusGap, keepalive: statusKeepalive);
+    if (next.firstOrNull?.$1 != before.firstOrNull?.$1) {
+      // Another phone steers the game now: it starts from rest.
+      _release(game);
+    }
+    phones.value = next;
+    paired.value = next.firstOrNull?.$2;
   }
 
   @override
   void _receive(_Event event, Map<String, dynamic> json) {
-    if (json['id'] != _padId || _padId == null) {
+    final padId = json['id'];
+    if (padId is! String) {
+      return;
+    }
+    final target = gameOf(padId);
+    if (target == null) {
       return;
     }
     switch (event) {
       case _Event.pad:
         final pad = PadInput.tryParse(json);
-        final input = _input;
-        if (pad == null || input == null) {
+        if (pad == null) {
           return;
         }
-        _lastInput = clock.now();
-        input
+        _lastInput[padId] = clock.now();
+        final input = target.touch
           ..drive = pad.drive
           ..aimHeld = pad.aimHeld
           ..aimFire = pad.aimFire
@@ -322,26 +379,25 @@ class PadScreen extends _PadChannel {
         }
       case _Event.act:
         final action = PadAction.tryParse(json);
-        final game = this.game;
-        if (action == null || game == null) {
+        if (action == null) {
           return;
         }
         switch (action.kind) {
           case PadActionKind.item:
-            game.useItem(action.slot);
+            target.useItem(action.slot);
           case PadActionKind.build:
-            game.buildTower();
+            target.buildTower();
           case PadActionKind.cycle:
-            game.cycleTowerKind();
+            target.cycleTowerKind();
         }
       case _Event.status:
     }
   }
 
-  /// Lets go of everything the phone held. The aim stays, as after lifting
-  /// the thumb off the touch stick.
-  void _release() {
-    _input
+  /// Lets go of everything a phone held in [target]. The aim stays, as after
+  /// lifting the thumb off the touch stick.
+  static void _release(TankGame? target) {
+    target?.touch
       ?..drive = null
       ..aimHeld = false
       ..aimFire = false
@@ -349,20 +405,25 @@ class PadScreen extends _PadChannel {
   }
 
   void _onTick() {
-    if (_padId == null) {
-      return;
-    }
     final now = clock.now();
-    if (now.difference(_lastInput) > _silence) {
-      _release();
-    }
-    final game = this.game;
-    if (game == null) {
-      return;
-    }
-    final status = statusOf(game).toJson();
-    if (_statusGate.shouldSend(status.toString())) {
-      _send(_Event.status, status);
+    for (final (padId, _) in phones.value) {
+      final target = gameOf(padId);
+      if (target == null) {
+        continue;
+      }
+      final last = _lastInput[padId] ?? DateTime(0);
+      if (now.difference(last) > _silence) {
+        _release(target);
+      }
+      // Each phone hears about its own tank only.
+      final status = statusOf(target).toJson()..['to'] = padId;
+      final gate = _statusGates.putIfAbsent(
+        padId,
+        () => SendGate(gap: statusGap, keepalive: statusKeepalive),
+      );
+      if (gate.shouldSend(status.toString())) {
+        _send(_Event.status, status);
+      }
     }
   }
 
@@ -471,6 +532,11 @@ class PadRemote extends _PadChannel {
   @override
   void _receive(_Event event, Map<String, dynamic> json) {
     if (event == _Event.status) {
+      // A screen with two phones on the code tells each about its own tank.
+      final to = json['to'];
+      if (to is String && to != id) {
+        return;
+      }
       final parsed = PadStatus.tryParse(json);
       if (parsed != null) {
         status.value = parsed;

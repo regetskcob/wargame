@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tvos/flutter_tvos.dart';
 
+import '../app/overlay_ids.dart';
 import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/game_phase.dart';
@@ -96,7 +97,7 @@ class TvInput {
   /// The controller of [index], the first one for 0. Nothing when there
   /// are fewer.
   TvPadState player(int index) =>
-      index < pads.length ? pads[index] : const TvPadState();
+      index >= 0 && index < pads.length ? pads[index] : const TvPadState();
 
   StreamSubscription<Object?>? _sub;
   final _awake = <Object>{};
@@ -194,9 +195,7 @@ class TvSteering {
     final before = _before;
     _before = state;
     // A paired phone steers instead: its sticks must not be overwritten.
-    final phone =
-        PadScreen.instance.paired.value != null &&
-        identical(PadScreen.instance.game, game);
+    final phone = PadScreen.instance.steers(game);
     if (phase != GamePhase.playing ||
         game.myTank == null ||
         phone ||
@@ -273,6 +272,10 @@ class TvSteering {
 /// What the Menu button of the remote, or B on a controller, does: one step
 /// back. False where there is no step back, and the Apple TV goes home.
 bool tvBack(TankGame game) {
+  if (game.overlays.isActive(OverlayIds.tutorial)) {
+    game.closeTutorial();
+    return true;
+  }
   switch (game.phase.value) {
     case GamePhase.countdown:
     case GamePhase.playing:

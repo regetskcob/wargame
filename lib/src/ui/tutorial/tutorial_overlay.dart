@@ -167,6 +167,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   @override
   Widget build(BuildContext context) {
     final step = _step;
+    // A scope of its own: a remote walks its buttons and never the page
+    // below it.
+    return FocusScope(child: _keys(step));
+  }
+
+  Widget _keys(TutorialStep step) {
     return Focus(
       focusNode: _focus,
       autofocus: true,
@@ -193,6 +199,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               painter: DemoPainter(
                 scene: step.scene,
                 touch: _touch,
+                pad: onTv ? tvPadForTutorial : null,
                 clock: _scene,
                 top: _cardBottom,
               ),
@@ -233,12 +240,16 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   }
 
   /// [child] when [shown], else an empty space of its size.
-  static Widget _keep(bool shown, Widget child) => Visibility(
-    visible: shown,
-    maintainSize: true,
-    maintainAnimation: true,
-    maintainState: true,
-    child: child,
+  /// Hidden it also takes no focus, or a remote would land on nothing.
+  static Widget _keep(bool shown, Widget child) => ExcludeFocus(
+    excluding: !shown,
+    child: Visibility(
+      visible: shown,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: child,
+    ),
   );
 
   Widget _header() {
@@ -271,7 +282,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final kicker = _index < controls
         ? '${tr('STEUERUNG', 'CONTROLS')} '
               '${onTv
-                  ? 'CONTROLLER & REMOTE'
+                  ? (tvPadForTutorial == TvPadKind.gamepad ? 'CONTROLLER' : 'SIRI REMOTE')
                   : _touch
                   ? 'TOUCH'
                   : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '

@@ -7,6 +7,7 @@ import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../net/room.dart';
 import '../tv/duel_view.dart';
+import '../net/pad_link.dart';
 import '../tv/tv_controllers.dart';
 import '../tv/tv_input.dart';
 import 'theme.dart';
@@ -311,18 +312,25 @@ class _DuelCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: TvInput.instance.count,
-      builder: (context, count, _) => _ModeCard(
-        icon: Icons.splitscreen,
-        title: tr('DUELL', 'DUEL'),
-        kicker: count >= 2
-            ? tr('1 GEGEN 1 VERTEIDIGEN', '1 ON 1 DEFENSE')
-            : tr('ZWEITER CONTROLLER NÖTIG', 'NEEDS A SECOND CONTROLLER'),
-        onTap: () => count >= 2
-            ? unawaited(DuelView.open(context))
-            : unawaited(_explain(context)),
-      ),
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        TvInput.instance.count,
+        PadScreen.instance.phones,
+      ]),
+      builder: (context, _) => _card(context, duelSeats().length),
+    );
+  }
+
+  Widget _card(BuildContext context, int count) {
+    return _ModeCard(
+      icon: Icons.splitscreen,
+      title: tr('DUELL', 'DUEL'),
+      kicker: count >= 2
+          ? tr('1 GEGEN 1 VERTEIDIGEN', '1 ON 1 DEFENSE')
+          : tr('ZWEITER SPIELER FEHLT', 'NEEDS A SECOND PLAYER'),
+      onTap: () => count >= 2
+          ? unawaited(DuelView.open(context))
+          : unawaited(_explain(context)),
     );
   }
 
@@ -331,18 +339,20 @@ class _DuelCard extends StatelessWidget {
       context: context,
       builder: (dialog) => AlertDialog(
         backgroundColor: BwColors.surface,
-        title: Text(tr('ZWEI CONTROLLER', 'TWO CONTROLLERS')),
+        title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
         content: Text(
           tr(
             'Im Duell verteidigt jeder seinen eigenen Stützpunkt, auf einem '
-                'geteilten Bildschirm. Dafür braucht es zwei Controller: '
-                'Verbinde einen Controller in den Einstellungen des Apple TV '
-                'unter Fernbedienungen und Geräte > Bluetooth. Die Siri Remote '
-                'zählt als einer.',
+                'geteilten Bildschirm. Jeder braucht etwas zum Steuern: einen '
+                'Controller (in den Einstellungen des Apple TV unter '
+                'Fernbedienungen und Geräte > Bluetooth), ein Handy (rechts '
+                'über Handy koppeln, zwei Handys scannen denselben Code) oder '
+                'die Siri Remote.',
             'In a duel each player defends a base of their own on a split '
-                'screen. That takes two controllers: connect a controller in '
-                'the Apple TV settings under Remotes and Devices > Bluetooth. '
-                'The Siri Remote counts as one.',
+                'screen. Each needs something to steer with: a controller (in '
+                'the Apple TV settings under Remotes and Devices > Bluetooth), '
+                'a phone (with Pair phone on the right, two phones scan the '
+                'same code) or the Siri Remote.',
           ),
         ),
         actions: [

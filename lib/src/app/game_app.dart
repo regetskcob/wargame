@@ -267,10 +267,15 @@ class _GameAppState extends State<GameApp> {
                     OverlayIds.closed: (context, game) =>
                         ClosedOverlay(game: game),
                     OverlayIds.tutorial: (context, game) =>
-                        ValueListenableBuilder<bool>(
-                          valueListenable: game.touchMode,
-                          builder: (context, touch, _) => TutorialOverlay(
-                            touch: touch,
+                        // On the Apple TV the controls follow the controller
+                        // in hand.
+                        ListenableBuilder(
+                          listenable: Listenable.merge([
+                            game.touchMode,
+                            TvInput.instance.kind,
+                          ]),
+                          builder: (context, _) => TutorialOverlay(
+                            touch: game.touchMode.value,
                             onClose: game.closeTutorial,
                           ),
                         ),

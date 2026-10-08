@@ -14,6 +14,7 @@ import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../net/net_service.dart';
+import '../net/pad_link.dart';
 import '../net/payloads/defense_payload.dart';
 import '../ui/countdown_overlay.dart';
 import '../ui/hud_overlay.dart';
@@ -46,8 +47,48 @@ class DuelView extends StatefulWidget {
   State<DuelView> createState() => _DuelViewState();
 }
 
+/// Who steers a half of the duel: a controller of the Apple TV, or a phone
+/// paired with it.
+@immutable
+class DuelSeat {
+  const DuelSeat.pad(this.pad, this.kind) : phone = null, phoneName = '';
+  const DuelSeat.phone(String this.phone, this.phoneName)
+    : pad = -1,
+      kind = TvPadKind.none;
+
+  /// Index into [TvInput.pads], -1 for a phone.
+  final int pad;
+  final TvPadKind kind;
+
+  /// Presence id of the phone, null for a controller.
+  final String? phone;
+  final String phoneName;
+
+  String get label => phone != null
+      ? (phoneName.isEmpty ? tr('Handy', 'phone') : phoneName)
+      : kind == TvPadKind.gamepad
+      ? 'Controller'
+      : 'Siri Remote';
+}
+
+/// Who can play a duel, in the order the halves are handed out: controllers
+/// with two sticks first, then phones, the Siri Remote last, as it is
+/// always there and the clumsiest to fight with.
+List<DuelSeat> duelSeats() {
+  final pads = TvInput.instance.pads;
+  return [
+    for (final (i, pad) in pads.indexed)
+      if (pad.kind == TvPadKind.gamepad) DuelSeat.pad(i, pad.kind),
+    for (final (id, name) in PadScreen.instance.phones.value)
+      DuelSeat.phone(id, name),
+    for (final (i, pad) in pads.indexed)
+      if (pad.kind == TvPadKind.remote) DuelSeat.pad(i, pad.kind),
+  ];
+}
+
 class _DuelViewState extends State<DuelView> {
   late List<TankGame> _games;
+  var _seats = const <DuelSeat>[];
   Timer? _watch;
   final _focus = FocusNode(debugLabel: 'duel');
   final _rematchFocus = FocusNode(debugLabel: 'rematch');
@@ -66,6 +107,7 @@ class _DuelViewState extends State<DuelView> {
   void dispose() {
     DuelView.running = false;
     _watch?.cancel();
+    PadScreen.instance.clearRoutes();
     _focus.dispose();
     _rematchFocus.dispose();
     for (final game in _games) {
@@ -75,6 +117,10 @@ class _DuelViewState extends State<DuelView> {
   }
 
   List<TankGame> _newGames() {
+    // Seats as they are now: a controller or phone that comes later plays
+    // the next duel.
+    _seats = duelSeats().take(2).toList();
+    PadScreen.instance.clearRoutes();
     final games = [for (var player = 0; player < 2; player++) _game(player)];
     unawaited(_begin(games));
     _watch?.cancel();
@@ -88,15 +134,22 @@ class _DuelViewState extends State<DuelView> {
     final id = [
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
-    return TankGame(
-        net: NetService(myId: id, room: _roomCode(random), isHost: true),
-        myId: id,
-        scoreService: _Unranked(client),
-        profiles: ProfileService(client),
-        accounts: AccountService(client),
-      )
-      ..tvPlayer = player
-      ..chooseMode(GameMode.defense);
+    final seat = player < _seats.length ? _seats[player] : null;
+    final game =
+        TankGame(
+            net: NetService(myId: id, room: _roomCode(random), isHost: true),
+            myId: id,
+            scoreService: _Unranked(client),
+            profiles: ProfileService(client),
+            accounts: AccountService(client),
+          )
+          ..tvPlayer = seat?.pad ?? -1
+          ..chooseMode(GameMode.defense);
+    final phone = seat?.phone;
+    if (phone != null) {
+      PadScreen.instance.route(phone, game);
+    }
+    return game;
   }
 
   /// A private room nobody else knows, one per half.
@@ -113,6 +166,13 @@ class _DuelViewState extends State<DuelView> {
     if (!mounted || !identical(games, _games)) {
       return;
     }
+    // Same vehicle, other paint: the two tanks are told apart at a glance.
+    final second = games[1];
+    final style = second.myColorIndex;
+    second.myColorIndex = GameConfig.styleOf(
+      GameConfig.typeOf(style).index,
+      (style % GameConfig.tankColors.length + 2) % 4,
+    );
     final seed = Random().nextInt(1 << 30);
     final startedAt =
         DateTime.now().millisecondsSinceEpoch +
@@ -249,8 +309,21 @@ class _DuelViewState extends State<DuelView> {
   }
 
   Widget _half(int player, TankGame game) {
-    // The game draws its world past its own edges: each half clips it.
-    return ClipRect(child: _halfContent(player, game));
+    // The game draws its world past its own edges: each half clips it. A
+    // frame in the player's colour tells the halves apart.
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        ClipRect(child: _halfContent(player, game)),
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              border: Border.all(color: _playerColors[player], width: 4),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _halfContent(int player, TankGame game) {
@@ -278,13 +351,19 @@ class _DuelViewState extends State<DuelView> {
           alignment: Alignment.bottomCenter,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 10),
-            child: _PlayerTag(player: player),
+            child: _PlayerTag(
+              player: player,
+              seat: player < _seats.length ? _seats[player] : null,
+            ),
           ),
         ),
       ],
     );
   }
 }
+
+/// The colour of each player's half: its frame and its name.
+const _playerColors = [Color(0xFF6FB3E8), Color(0xFFE88A6F)];
 
 /// Rounds of a duel count for nobody: the record of a guest.
 class _Unranked extends ScoreService {
@@ -296,44 +375,39 @@ class _Unranked extends ScoreService {
 
 /// Which player a half belongs to, and what steers it.
 class _PlayerTag extends StatelessWidget {
-  const _PlayerTag({required this.player});
+  const _PlayerTag({required this.player, required this.seat});
 
   final int player;
+  final DuelSeat? seat;
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<int>(
-      valueListenable: TvInput.instance.count,
-      builder: (context, _, _) {
-        final kind = TvInput.instance.player(player).kind;
-        final steer = switch (kind) {
-          TvPadKind.gamepad => tr('Controller', 'controller'),
-          TvPadKind.remote => 'Siri Remote',
-          TvPadKind.none => tr(
-            'Controller ${player + 1} fehlt',
-            'controller ${player + 1} missing',
-          ),
-        };
-        return DecoratedBox(
-          decoration: ShapeDecoration(
-            color: BwColors.panel,
-            shape: BwShapes.chip(
-              edge: kind == TvPadKind.none ? BwColors.danger : BwColors.sand,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Text(
-              '${tr('SPIELER', 'PLAYER')} ${player + 1} · $steer',
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.5,
-                color: BwColors.text,
-              ),
-            ),
-          ),
+    final seat = this.seat;
+    final steer =
+        seat?.label ??
+        tr(
+          'Controller ${player + 1} fehlt',
+          'controller ${player + 1} missing',
         );
-      },
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: BwColors.panel,
+        shape: BwShapes.chip(
+          edge: seat == null ? BwColors.danger : _playerColors[player],
+          width: 2,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        child: Text(
+          '${tr('SPIELER', 'PLAYER')} ${player + 1} · $steer',
+          style: TextStyle(
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.5,
+            color: _playerColors[player],
+          ),
+        ),
+      ),
     );
   }
 }

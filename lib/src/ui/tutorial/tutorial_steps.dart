@@ -71,21 +71,28 @@ List<TutorialStep> tutorialSteps({required bool touch}) => [
 /// How many of the steps for [touch] explain the controls.
 int controlSteps({required bool touch}) => _controls(touch).length;
 
-List<TutorialStep> _controls(bool touch) =>
-    onTv ? _tv : (touch ? _touch : _desktop);
+List<TutorialStep> _controls(bool touch) => !onTv
+    ? (touch ? _touch : _desktop)
+    : tvPadForTutorial == TvPadKind.gamepad
+    ? _gamepad
+    : _remote;
 
-List<TutorialStep> get _tv => [
+/// What the Apple TV explains: the controller in hand, else the remote.
+TvPadKind get tvPadForTutorial =>
+    TvInput.instance.kind.value == TvPadKind.gamepad
+    ? TvPadKind.gamepad
+    : TvPadKind.remote;
+
+List<TutorialStep> get _gamepad => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
     icon: Icons.sports_esports,
     scene: DemoScene.drive,
     text: tr(
-      'Controller: Der linke Stick zeigt, wohin der Panzer soll, er dreht '
-          'sich von selbst und fährt los. Siri Remote: Leg den Daumen auf die '
-          'Touchfläche, dorthin, wohin es gehen soll.',
-      'Controller: the left stick points where the tank should go, it turns '
-          'by itself and drives off. Siri Remote: rest your thumb on the '
-          'touch surface where you want to go.',
+      'Der linke Stick zeigt, wohin der Panzer soll: Er dreht sich von selbst '
+          'und fährt los.',
+      'The left stick points where the tank should go: it turns by itself '
+          'and drives off.',
     ),
   ),
   TutorialStep(
@@ -93,12 +100,12 @@ List<TutorialStep> get _tv => [
     icon: Icons.track_changes,
     scene: DemoScene.aim,
     text: tr(
-      'Controller: Der rechte Stick richtet den Turm aus. Lässt du ihn los, '
-          'dreht die Zielhilfe den Turm auf den nächsten Gegner. Mit der '
-          'Remote zielt immer die Zielhilfe. Auf Schwer gibt es keine.',
-      'Controller: the right stick aims the turret. Let go and the aim '
-          'assist turns it to the nearest enemy. With the remote the aim '
-          'assist always aims. On Hard there is none.',
+      'Der rechte Stick richtet den Turm aus, ganz gleich, wohin der Panzer '
+          'fährt. Lässt du ihn los, dreht die Zielhilfe den Turm auf den '
+          'nächsten Gegner. Auf Schwer gibt es keine.',
+      'The right stick aims the turret, no matter where the tank is driving. '
+          'Let go and the aim assist turns it to the nearest enemy. On Hard '
+          'there is none.',
     ),
   ),
   TutorialStep(
@@ -106,12 +113,10 @@ List<TutorialStep> get _tv => [
     icon: Icons.local_fire_department,
     scene: DemoScene.fire,
     text: tr(
-      'R2 oder A feuert, mit der Remote ein Klick auf die Touchfläche. Die '
-          'Zielhilfe feuert auch selbst. Die Munition ist begrenzt, blaue '
-          'Gems füllen sie auf.',
-      'R2 or A fires, with the remote a click on the touch surface. The aim '
-          'assist fires by itself too. Ammunition is limited, blue gems '
-          'refill it.',
+      'R2 oder A feuert, gedrückt halten heißt Dauerfeuer. Die Munition ist '
+          'begrenzt, blaue Gems füllen sie auf.',
+      'R2 or A fires, holding it down means continuous fire. Ammunition is '
+          'limited, blue gems refill it.',
     ),
   ),
   TutorialStep(
@@ -119,12 +124,12 @@ List<TutorialStep> get _tv => [
     icon: Icons.inventory_2,
     scene: DemoScene.inventory,
     text: tr(
-      'Kisten und Gems landen im Inventar am linken Rand. X, Y und das '
-          'Steuerkreuz setzen sie ein, das Zeichen steht am Feld. Mit der '
-          'Remote setzt Play/Pause das oberste ein.',
-      'Crates and gems land in the inventory on the left edge. X, Y and the '
-          'd-pad use them, the sign is on the slot. With the remote, '
-          'play/pause uses the top one.',
+      'Kisten und Gems landen im Inventar am linken Rand. X setzt das erste '
+          'Feld ein, Y das zweite, das Steuerkreuz die übrigen. Die Taste '
+          'steht am Feld.',
+      'Crates and gems land in the inventory on the left edge. X uses the '
+          'first slot, Y the second, the d-pad the others. The button is on '
+          'the slot.',
     ),
   ),
   TutorialStep(
@@ -132,10 +137,8 @@ List<TutorialStep> get _tv => [
     icon: Icons.sports_baseball,
     scene: DemoScene.special,
     text: tr(
-      'Granatwerfer, Mörser und Drohne aus Gems feuert L2, mit der Remote '
-          'Play/Pause.',
-      'Grenade launcher, mortar and drone from gems fire with L2, with the '
-          'remote with play/pause.',
+      'Granatwerfer, Mörser und Drohne aus Gems feuert L2.',
+      'Grenade launcher, mortar and drone from gems fire with L2.',
     ),
   ),
   TutorialStep(
@@ -145,11 +148,84 @@ List<TutorialStep> get _tv => [
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
           'neben deinem Panzer oder rüstet das auf, an dem er steht, L1 '
-          'wechselt die Art. Mit der Remote baut Play/Pause, wenn das '
-          'Inventar leer ist.',
+          'wechselt die Art.',
       'In defense mode kills bring money. R1 builds a turret next to your '
-          'tank or upgrades the one it stands at, L1 switches the kind. With '
-          'the remote, play/pause builds while the inventory is empty.',
+          'tank or upgrades the one it stands at, L1 switches the kind.',
+    ),
+  ),
+];
+
+List<TutorialStep> get _remote => [
+  TutorialStep(
+    title: tr('FAHREN', 'DRIVE'),
+    icon: Icons.settings_remote,
+    scene: DemoScene.drive,
+    text: tr(
+      'Leg den Daumen auf die Touchfläche der Siri Remote, dorthin, wohin der '
+          'Panzer soll: oben fährt er nach oben, rechts nach rechts. Hebst du '
+          'ihn ab, hält er an.',
+      'Rest your thumb on the touch surface of the Siri Remote where the tank '
+          'should go: at the top it drives up, at the right to the right. '
+          'Lift it and the tank stops.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELEN', 'AIM'),
+    icon: Icons.track_changes,
+    scene: DemoScene.aim,
+    text: tr(
+      'Mit der Remote zielt die Zielhilfe: Sie dreht den Turm auf den '
+          'nächsten Gegner in Reichweite und feuert. Auf Schwer gibt es keine, '
+          'dann schaut der Turm nach vorn.',
+      'With the remote the aim assist aims: it turns the turret to the '
+          'nearest enemy in range and fires. On Hard there is none, then the '
+          'turret looks ahead.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('FEUERN', 'FIRE'),
+    icon: Icons.local_fire_department,
+    scene: DemoScene.fire,
+    text: tr(
+      'Ein Klick auf die Touchfläche feuert, gedrückt halten heißt '
+          'Dauerfeuer. Die Munition ist begrenzt, blaue Gems füllen sie auf.',
+      'A click on the touch surface fires, holding it down means continuous '
+          'fire. Ammunition is limited, blue gems refill it.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('INVENTAR', 'INVENTORY'),
+    icon: Icons.inventory_2,
+    scene: DemoScene.inventory,
+    text: tr(
+      'Kisten und Gems landen im Inventar am linken Rand. Play/Pause setzt '
+          'das oberste Feld ein.',
+      'Crates and gems land in the inventory on the left edge. Play/pause '
+          'uses the top slot.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
+    icon: Icons.sports_baseball,
+    scene: DemoScene.special,
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems feuert Play/Pause. Solange '
+          'eine davon geladen ist, geht sie dem Inventar vor.',
+      'Grenade launcher, mortar and drone from gems fire with play/pause. '
+          'While one is loaded it comes before the inventory.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
+    icon: Icons.shield,
+    scene: DemoScene.defense,
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
+          'baut Play/Pause ein Geschütz neben deinem Panzer oder rüstet das '
+          'auf, an dem er steht. Mehr Auswahl gibt ein Controller.',
+      'In defense mode kills bring money. With an empty inventory, '
+          'play/pause builds a turret next to your tank or upgrades the one it '
+          'stands at. A controller gives more choice.',
     ),
   ),
 ];

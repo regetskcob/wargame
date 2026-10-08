@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
+import '../net/pad_link.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/pad_pairing.dart';
 import '../ui/widgets/panel.dart';
@@ -26,9 +27,12 @@ class TvControllers extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            ValueListenableBuilder<int>(
-              valueListenable: TvInput.instance.count,
-              builder: (context, _, _) => Wrap(
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                TvInput.instance.count,
+                PadScreen.instance.phones,
+              ]),
+              builder: (context, _) => Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
@@ -41,7 +45,13 @@ class TvControllers extends StatelessWidget {
                           '${i + 1} · '
                           '${pad.kind == TvPadKind.remote ? 'Siri Remote' : 'Controller'}',
                     ),
-                  if (TvInput.instance.pads.isEmpty)
+                  for (final (_, name) in PadScreen.instance.phones.value)
+                    _Chip(
+                      icon: Icons.smartphone,
+                      label: name.isEmpty ? tr('Handy', 'Phone') : name,
+                    ),
+                  if (TvInput.instance.pads.isEmpty &&
+                      PadScreen.instance.phones.value.isEmpty)
                     Text(
                       tr(
                         'Kein Controller verbunden. Die Siri Remote steuert '

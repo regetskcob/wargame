@@ -90,14 +90,14 @@ class Conditions {
   /// How far a tank can see, in world units. Null means as far as the screen.
   double? get vision {
     final weather = switch (sky) {
-      Sky.fog => 460.0,
+      Sky.fog => 520.0,
       Sky.precipitation when sand => 500.0,
       _ => null,
     };
     if (!night) {
       return weather;
     }
-    return min(weather ?? double.infinity, 340.0) * (weather == null ? 1 : 0.8);
+    return min(weather ?? double.infinity, 420.0) * (weather == null ? 1 : 0.8);
   }
 
   String get label {
@@ -237,15 +237,16 @@ class WeatherLayer {
     if (vision == null) {
       return;
     }
+    // Dark and thick enough to hide what is far, but the road, the woods
+    // and the tanks out there still show: a night that hides everything is
+    // no fun to play.
     final Color shade;
     if (conditions.night) {
-      shade = const Color(0xE6040814);
+      shade = const Color(0xB8040814);
     } else if (conditions.sand) {
-      shade = const Color(0xA8B9935A);
+      shade = const Color(0x96B9935A);
     } else {
-      // Thick enough to hide what is far, light enough to still make out
-      // the road and the woods.
-      shade = const Color(0xA8B4BAC0);
+      shade = const Color(0x8CB4BAC0);
     }
     final rect = Offset.zero & size;
     final centre = focus ?? rect.center;
@@ -261,7 +262,8 @@ class WeatherLayer {
         centre,
         radius,
         const [Color(0xFFFFFFFF), Color(0xFFFFFFFF), Color(0x00FFFFFF)],
-        const [0, 0.55, 1],
+        // Fog and sand thicken slowly with distance, the night ends sooner.
+        [0, conditions.night ? 0.5 : 0.3, 1],
       );
     canvas.drawCircle(centre, radius, clear);
     if (conditions.night && heading != null) {

@@ -790,9 +790,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ? 2
                   : 3;
               // Starts at the top: short pages leave the room below them
-              // instead of floating in the middle of the screen.
+              // instead of floating in the middle of the screen. The
+              // television shows every page whole, there it sits in the
+              // middle.
               return Align(
-                alignment: Alignment.topCenter,
+                alignment: onTv ? Alignment.center : Alignment.topCenter,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
