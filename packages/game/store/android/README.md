@@ -142,7 +142,7 @@ wird dafür nichts angegeben. Die Kamera ist als optional deklariert, Geräte
 ohne Kamera bleiben im Store.
 
 **Datenschutz-URL:** `https://www.regetskcob.de/wargame/datenschutz/` (wie im
-App Store, erreichbar nach dem nächsten Web-Deploy).
+App Store).
 
 **Kontolöschung (Datensicherheit):** In der App über Konto > „Konto löschen“.
 Als Web-Adresse für Löschanfragen ohne App dieselbe Datenschutz-URL angeben,
@@ -154,7 +154,5 @@ sie nennt die Löschung per E-Mail.
    Produktion mindestens 12 Tester 14 Tage lang im geschlossenen Test
    (`alpha`) haben. Tester-Liste per E-Mail anlegen, `testflight.txt` aus dem
    iOS-Ordner taugt als Testhinweis.
-2. **Migration 0010 einspielen:** `supabase db push` legt `delete_account` an,
-   ohne sie bricht „Konto löschen“ ab. Play prüft das.
-3. **Einrichtung oben:** App anlegen, erster Upload von Hand, Dienstkonto und
+2. **Einrichtung oben:** App anlegen, erster Upload von Hand, Dienstkonto und
    Secrets.
