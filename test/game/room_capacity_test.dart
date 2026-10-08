@@ -40,7 +40,8 @@ void main() {
     expect(
       GameConfig.roomLoad(2, cpu: false) + GameConfig.padLoad,
       lessThanOrEqualTo(80),
-      reason: 'on the free plan a room of two and a phone fit without CPU '
+      reason:
+          'on the free plan a room of two and a phone fit without CPU '
           'tanks',
     );
   });
