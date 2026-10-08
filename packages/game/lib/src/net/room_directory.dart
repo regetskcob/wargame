@@ -15,7 +15,10 @@ class RoomListing {
 
   factory RoomListing.fromJson(Map<String, dynamic> json) => RoomListing(
     room: json['room'] as String,
-    host: json['host'] as String? ?? '',
+    host: switch (json['host'] as String? ?? '') {
+      final name when name.length > 16 => name.substring(0, 16),
+      final name => name,
+    },
     players: json['players'] as int? ?? 1,
     inMatch: json['inMatch'] as bool? ?? false,
     teams: json['teams'] as bool? ?? false,
@@ -115,9 +118,15 @@ class RoomDirectory {
     for (final state in channel.presenceState()) {
       for (final presence in state.presences) {
         final json = presence.payload;
-        if (json['room'] is String && json['room'] != room) {
+        if (json['room'] is! String || json['room'] == room) {
+          continue;
+        }
+        // One bad entry must not empty the list for everybody.
+        try {
           final listing = RoomListing.fromJson(json);
           byRoom[listing.room] = listing;
+        } on Object {
+          continue;
         }
       }
     }

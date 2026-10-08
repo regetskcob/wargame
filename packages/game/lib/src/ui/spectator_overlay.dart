@@ -15,109 +15,163 @@ class SpectatorOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned(right: 16, bottom: 16, child: MiniMap(game: game)),
-        Positioned(left: 16, top: 16, child: KillFeedView(feed: game.killFeed)),
         ValueListenableBuilder<RoundOutcome>(
           valueListenable: game.outcome,
           builder: (context, outcome, _) => outcome == RoundOutcome.lost
               ? const _DestroyedBanner()
               : const SizedBox(),
         ),
-        Align(
-          alignment: Alignment.topCenter,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Panel(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (game.replaying.value) ...[
-                      const Icon(
-                        Icons.movie_outlined,
-                        size: 18,
-                        color: BwColors.amber,
-                      ),
-                      const SizedBox(width: 6),
-                      const Text(
-                        'WIEDERHOLUNG',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                          color: BwColors.amber,
+        // Clear of the notch, the Dynamic Island and the home indicator.
+        SafeArea(
+          minimum: const EdgeInsets.all(8),
+          child: LayoutBuilder(
+            builder: (context, box) {
+              // Upright phones: the bar takes two lines at a readable size
+              // and the kill feed moves under it instead of behind it.
+              final narrow = box.maxWidth < 640;
+              final gap = narrow ? 0.0 : 8.0;
+              return Stack(
+                fit: StackFit.expand,
+                children: [
+                  Positioned(
+                    right: gap,
+                    bottom: gap,
+                    child: MiniMap(game: game, size: narrow ? 120 : 150),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(gap),
+                    child: narrow
+                        ? Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _bar(narrow: true),
+                              const SizedBox(height: 8),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: KillFeedView(
+                                  feed: game.killFeed,
+                                  compact: true,
+                                ),
+                              ),
+                            ],
+                          )
+                        : Stack(
+                            children: [
+                              KillFeedView(feed: game.killFeed),
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: _bar(narrow: false),
+                                ),
+                              ),
+                            ],
+                          ),
+                  ),
+                  // Always in reach, also on a phone where the bar above is
+                  // cramped.
+                  if (game.replaying.value)
+                    Align(
+                      alignment: Alignment.bottomCenter,
+                      child: Padding(
+                        padding: EdgeInsets.only(bottom: narrow ? 132 : 12),
+                        child: FilledButton.icon(
+                          onPressed: game.stopReplay,
+                          icon: const Icon(Icons.stop_circle_outlined),
+                          label: Text(
+                            game.touchMode.value
+                                ? 'WIEDERHOLUNG BEENDEN'
+                                : 'WIEDERHOLUNG BEENDEN (ESC)',
+                          ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                    ] else ...[
-                      const Icon(Icons.visibility, size: 18),
-                      const SizedBox(width: 8),
-                    ],
-                    ValueListenableBuilder<String?>(
-                      valueListenable: game.spectatingName,
-                      builder: (context, name, _) =>
-                          Text(name == null ? 'Beobachte' : 'Beobachte $name'),
                     ),
-                    const SizedBox(width: 12),
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.aliveCount,
-                      builder: (context, alive, _) => Text(
-                        'noch $alive',
-                        style: const TextStyle(color: BwColors.textDim),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    ValueListenableBuilder<String?>(
-                      valueListenable: game.spectatingName,
-                      builder: (context, name, _) => ValueListenableBuilder<int>(
-                        valueListenable: game.aliveCount,
-                        builder: (context, alive, _) {
-                          final count =
-                              game.remoteShips.length + game.botShips.length;
-                          return Tooltip(
-                            message: count > 1
-                                ? 'Zum nächsten Panzer wechseln'
-                                : 'Es ist nur ein Panzer im Feld',
-                            child: TextButton(
-                              onPressed: count > 1 ? game.spectateNext : null,
-                              child: Text(
-                                count > 1
-                                    ? 'NÄCHSTER PANZER (${game.spectateNumber}/$count)'
-                                    : 'NÄCHSTER PANZER',
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+                ],
+              );
+            },
           ),
         ),
-        // Always in reach, also on a phone where the bar above is cramped.
-        if (game.replaying.value)
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: SafeArea(
-              minimum: const EdgeInsets.all(20),
-              child: FilledButton.icon(
-                onPressed: game.stopReplay,
-                icon: const Icon(Icons.stop_circle_outlined),
-                label: Text(
-                  game.touchMode.value
-                      ? 'WIEDERHOLUNG BEENDEN'
-                      : 'WIEDERHOLUNG BEENDEN (ESC)',
-                ),
+      ],
+    );
+  }
+
+  /// Who is being watched, how many are left and the switch to the next tank.
+  Widget _bar({required bool narrow}) {
+    final name = ValueListenableBuilder<String?>(
+      valueListenable: game.spectatingName,
+      builder: (context, name, _) => Text(
+        name == null ? 'Beobachte' : 'Beobachte $name',
+        overflow: TextOverflow.ellipsis,
+        maxLines: 1,
+      ),
+    );
+    final title = [
+      if (game.replaying.value) ...[
+        const Icon(Icons.movie_outlined, size: 18, color: BwColors.amber),
+        const SizedBox(width: 6),
+        const Text(
+          'WIEDERHOLUNG',
+          style: TextStyle(
+            fontWeight: FontWeight.w900,
+            letterSpacing: 2,
+            color: BwColors.amber,
+          ),
+        ),
+        const SizedBox(width: 12),
+      ] else ...[
+        const Icon(Icons.visibility, size: 18),
+        const SizedBox(width: 8),
+      ],
+      if (narrow) Flexible(child: name) else name,
+      const SizedBox(width: 12),
+      ValueListenableBuilder<int>(
+        valueListenable: game.aliveCount,
+        builder: (context, alive, _) => Text(
+          'noch $alive',
+          style: const TextStyle(color: BwColors.textDim),
+        ),
+      ),
+    ];
+    final next = ValueListenableBuilder<String?>(
+      valueListenable: game.spectatingName,
+      builder: (context, name, _) => ValueListenableBuilder<int>(
+        valueListenable: game.aliveCount,
+        builder: (context, alive, _) {
+          final count = game.remoteShips.length + game.botShips.length;
+          return Tooltip(
+            message: count > 1
+                ? 'Zum nächsten Panzer wechseln'
+                : 'Es ist nur ein Panzer im Feld',
+            child: TextButton(
+              onPressed: count > 1 ? game.spectateNext : null,
+              child: Text(
+                count > 1
+                    ? 'NÄCHSTER PANZER (${game.spectateNumber}/$count)'
+                    : 'NÄCHSTER PANZER',
               ),
             ),
-          ),
-      ],
+          );
+        },
+      ),
+    );
+    return Panel(
+      padding: EdgeInsets.symmetric(horizontal: narrow ? 12 : 16, vertical: 8),
+      child: narrow
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: title,
+                ),
+                next,
+              ],
+            )
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [...title, const SizedBox(width: 12), next],
+            ),
     );
   }
 }
@@ -147,21 +201,29 @@ class _DestroyedBanner extends StatelessWidget {
                   color: BwColors.danger.withValues(alpha: 0.28 * (1 - t)),
                 ),
                 Center(
-                  child: Transform.scale(
-                    scale:
-                        1.7 -
-                        0.7 *
-                            Curves.easeOutBack.transform(
-                              (t * 4).clamp(0.0, 1.0),
-                            ),
-                    child: const Text(
-                      'ZERSTÖRT',
-                      style: TextStyle(
-                        fontSize: 56,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 8,
-                        color: BwColors.danger,
-                        shadows: [Shadow(blurRadius: 18, color: Colors.black)],
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Transform.scale(
+                        scale:
+                            1.7 -
+                            0.7 *
+                                Curves.easeOutBack.transform(
+                                  (t * 4).clamp(0.0, 1.0),
+                                ),
+                        child: const Text(
+                          'ZERSTÖRT',
+                          style: TextStyle(
+                            fontSize: 56,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 8,
+                            color: BwColors.danger,
+                            shadows: [
+                              Shadow(blurRadius: 18, color: Colors.black),
+                            ],
+                          ),
+                        ),
                       ),
                     ),
                   ),

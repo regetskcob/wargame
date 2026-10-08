@@ -72,7 +72,7 @@ class _KillFeedViewState extends State<KillFeedView> {
     final fade = age > 6000 ? (1 - (age - 6000) / 2000).clamp(0.0, 1.0) : 1.0;
     final highlight = entry.byMe || entry.meDied;
     final text = TextStyle(
-      fontSize: widget.compact ? 10 : 13,
+      fontSize: widget.compact ? 11 : 13,
       fontWeight: FontWeight.w700,
     );
     return Opacity(
