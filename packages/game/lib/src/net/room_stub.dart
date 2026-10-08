@@ -1,5 +1,8 @@
 import 'dart:async';
+import 'dart:math';
+import 'dart:ui' show Rect;
 
+import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../env.dart';
@@ -24,9 +27,25 @@ Future<void> openLocalStore() async {
   }
 }
 
-/// Room of this session. Outside the browser there is no address to read it
-/// from, so everybody meets in the default room.
-String resolveRoom() => Env.room;
+const _alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+
+String _newCode() {
+  final random = Random.secure();
+  return [
+    for (var i = 0; i < 5; i++) _alphabet[random.nextInt(_alphabet.length)],
+  ].join();
+}
+
+var _hosting = true;
+
+/// Builds the game anew for another room: the apps have no address bar to
+/// reload, so the app swaps the whole game, as a reload does in the browser.
+/// Set by the app shell, takes the room and whether this player hosts it.
+void Function(String room, {required bool host})? onRoomSwitch;
+
+/// Room of this session: the fixed test room, else a fresh private one this
+/// player hosts, like the start page in the browser.
+String resolveRoom() => Env.room.isNotEmpty ? Env.room : _newCode();
 
 /// Whether this device chose to play as a guest before.
 bool prefersGuest() => _store?.getBool(_guestKey) ?? false;
@@ -51,22 +70,48 @@ void rememberTutorialSeen() {
 /// Outside the browser there is none.
 void leaveMailLink() {}
 
-/// True when this session opened the room, false when it joined by a link.
-bool isRoomHost() => true;
+/// True when this session opened the room, false when it joined by a code.
+bool isRoomHost() => _hosting;
 
-/// Link that brings others into [room], empty when there is none to share.
-String roomLink(String room) => '';
+/// Link that brings others into [room]: the browser game with the room in
+/// the address. It opens there for anybody, and the apps scan it too.
+String roomLink(String room) =>
+    Uri.parse(Env.webUrl).replace(queryParameters: {'room': room}).toString();
 
 /// Hands [url] to the share sheet of the device. False when there is none.
-Future<bool> shareRoomLink(String url, String text) async => false;
+/// [origin] is where the sheet points from on an iPad.
+Future<bool> shareRoomLink(String url, String text, {Rect? origin}) async {
+  try {
+    final result = await SharePlus.instance.share(
+      ShareParams(text: '$text\n$url', sharePositionOrigin: origin),
+    );
+    return result.status != ShareResultStatus.unavailable;
+  } on Object {
+    return false;
+  }
+}
 
 /// Address that sign-in links lead back to, null outside the browser.
 String? authRedirect() => null;
 
-/// Switches to [room]. Outside the browser there is no address to switch, so
-/// this returns false.
-bool joinRoom(String room) => false;
+/// Switches to [room] as a guest of whoever opened it.
+bool joinRoom(String room) {
+  final switcher = onRoomSwitch;
+  if (switcher == null) {
+    return false;
+  }
+  _hosting = false;
+  switcher(room.trim().toUpperCase(), host: false);
+  return true;
+}
 
-/// Opens a fresh room. False when this platform cannot, the game then joins
-/// its one room again.
-bool openFreshRoom() => false;
+/// Opens a fresh room hosted by this player.
+bool openFreshRoom() {
+  final switcher = onRoomSwitch;
+  if (switcher == null) {
+    return false;
+  }
+  _hosting = true;
+  switcher(_newCode(), host: true);
+  return true;
+}

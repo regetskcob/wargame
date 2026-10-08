@@ -13,7 +13,7 @@ in App Store Connect einfügen.
 | Schlüsselwörter (max. 100) | `metadata/de-DE/keywords.txt` |
 | Neuerungen | `metadata/de-DE/release_notes.txt` |
 | Support- und Marketing-URL | `metadata/de-DE/support_url.txt`, `marketing_url.txt` |
-| Datenschutz-URL | `metadata/de-DE/privacy_url.txt` (noch offen) |
+| Datenschutz-URL | `metadata/de-DE/privacy_url.txt` |
 | Copyright, Kategorien | `metadata/copyright.txt`, `metadata/primary_*.txt` |
 | Hinweise für die Prüfung | `metadata/review_notes.txt` |
 | TestFlight: Beschreibung, Testhinweise | `metadata/de-DE/testflight.txt` |
@@ -58,15 +58,13 @@ voraussichtlich 12+.
 
 ## Vor der Einreichung offen
 
-1. **Datenschutz-URL:** Apple verlangt eine öffentliche Seite. Die
-   Datenschutzerklärung steht bisher nur im Spiel (`lib/src/ui/widgets/legal.dart`)
-   und beschreibt den Browser (GitHub Pages, lokaler Speicher). Sie braucht
-   einen Abschnitt zur App und eine eigene Adresse.
-2. **Konto löschen:** Wer in einer App ein Konto anlegen kann, muss es dort
-   auch löschen können (Richtlinie 5.1.1(v)). Das fehlt noch.
-3. **Raumcodes auf iOS:** Mehrspieler trifft sich in der App immer im Raum
-   `main`. Die Karte auf dem Startbildschirm verspricht trotzdem
-   „Lade per Link oder Code ein“, das ist auch auf `iphone-06-modi.png` zu sehen.
-4. **Signieren:** Apple-ID in Xcode anmelden, Team unter Signing &
+1. **Migration 0010 einspielen:** `supabase db push` legt die Funktion
+   `delete_account` an. Ohne sie bricht „Konto löschen“ mit einer Meldung ab.
+2. **Web-Deploy abwarten:** Erst danach ist die Datenschutz-URL
+   `https://www.regetskcob.de/wargame/datenschutz/` erreichbar.
+3. **Signieren:** Apple-ID in Xcode anmelden, Team unter Signing &
    Capabilities wählen, dann `flutter build ipa` und über Xcode oder
    Transporter hochladen.
+
+In der App Privacy bleibt alles wie oben: Die Kamera liest nur QR-Codes auf
+dem Gerät, dabei wird nichts erhoben.

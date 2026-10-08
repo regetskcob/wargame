@@ -42,6 +42,9 @@ jobs:
           ACCOUNTS: ${{ vars.ACCOUNTS }}
       - run: cp build/web/index.html build/web/404.html
         working-directory: packages/game
+      - name: Write the Impressum and privacy pages
+        run: dart run tool/legal_pages.dart build/web
+        working-directory: packages/game
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

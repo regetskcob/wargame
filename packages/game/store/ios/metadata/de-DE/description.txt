@@ -2,7 +2,7 @@ Wargame ist ein schnelles Panzergefecht von oben. Du fährst mit dem linken Daum
 
 DREI SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer auf drei Schwierigkeitsstufen, jede Runde neu ausgewürfelt.
-• Mehrspieler: Triff andere Spieler im gemeinsamen Raum, alle gegen alle oder Rot gegen Blau. CPU-Panzer füllen auf Wunsch auf.
+• Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. Offene Räume stehen in der Raumliste, CPU-Panzer füllen auf Wunsch auf. Browser und App spielen im selben Raum.
 • Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen. Feinde rollen über die Straße, ab der zweiten Welle kommen sie auch aus der Luft. Mit jedem Abschuss verdienst du Mittel für Kanone, Flak, Mörser, Haubitze und Gräben sowie für Upgrades deines Panzers.
 
 ACHT FAHRZEUGE
@@ -18,7 +18,7 @@ GEMACHT FÜR TOUCH
 • Eine kurze Einweisung zeigt alles in einer Minute
 
 FORTSCHRITT UND BESTENLISTE
-Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Wertung und Abzeichen auf jedem Gerät weiter. In der Bestenliste erscheint nur dein selbst gewählter Rufname.
+Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Wertung und Abzeichen auf jedem Gerät weiter. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
 
 Keine Werbung, keine Käufe in der App, kein Tracking.
 

@@ -47,10 +47,13 @@ class _RoomInviteState extends State<RoomInvite> {
     });
   }
 
-  Future<void> _share() async {
+  Future<void> _share(BuildContext button) async {
+    // An iPad points its share sheet at the button.
+    final box = button.findRenderObject() as RenderBox?;
     final shared = await shareRoomLink(
       _link,
       'Komm ins Panzergefecht, Raum $_room.',
+      origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
     );
     if (!shared) {
       await _copy();
@@ -150,8 +153,9 @@ class _RoomInviteState extends State<RoomInvite> {
               children: [
                 Text(
                   hasLink
-                      ? 'Schick den Link weiter. Wer ihn öffnet, landet hier. '
-                            'Starte, sobald alle da sind.'
+                      ? 'Schick den Link weiter oder lass den QR-Code '
+                            'scannen. Wer ihn öffnet, landet hier. Starte, '
+                            'sobald alle da sind.'
                       : 'Wer den Raumcode kennt, kann beitreten. Starte, '
                             'sobald alle da sind.',
                   style: const TextStyle(color: BwColors.textDim, fontSize: 12),
@@ -187,10 +191,12 @@ class _RoomInviteState extends State<RoomInvite> {
                       ),
                       const SizedBox(width: 8),
                       Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _share,
-                          icon: const Icon(Icons.ios_share),
-                          label: const Text('TEILEN', maxLines: 1),
+                        child: Builder(
+                          builder: (button) => OutlinedButton.icon(
+                            onPressed: () => _share(button),
+                            icon: const Icon(Icons.ios_share),
+                            label: const Text('TEILEN', maxLines: 1),
+                          ),
                         ),
                       ),
                     ],

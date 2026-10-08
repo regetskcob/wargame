@@ -14,6 +14,7 @@ import '../game/components/tank_painter.dart';
 import '../theme.dart';
 import 'launch_view.dart';
 import 'welcome_view.dart';
+import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/account_panel.dart';
@@ -104,6 +105,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ),
             ),
+            AccountButton(game: game),
             const MuteButton(),
           ],
         ),

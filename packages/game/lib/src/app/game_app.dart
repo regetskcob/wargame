@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flame/game.dart';
@@ -31,25 +32,38 @@ class GameApp extends StatefulWidget {
 }
 
 class _GameAppState extends State<GameApp> {
-  late final SpaceGame game;
+  late SpaceGame game;
   final _gameFocus = FocusNode(debugLabel: 'game');
 
   @override
   void initState() {
     super.initState();
+    game = _createGame(resolveRoom(), host: isRoomHost());
+    onRoomSwitch = _switchRoom;
+  }
+
+  SpaceGame _createGame(String room, {required bool host}) {
     final client = Supabase.instance.client;
     final random = Random();
     final myId = [
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
-    game = SpaceGame(
-      net: NetService(myId: myId, room: resolveRoom(), isHost: isRoomHost()),
+    return SpaceGame(
+      net: NetService(myId: myId, room: room, isHost: host),
       myId: myId,
       scoreService: ScoreService(client),
       profiles: ProfileService(client),
       accounts: AccountService(client),
-    );
-    game.phase.addListener(_reclaimFocus);
+    )..phase.addListener(_reclaimFocus);
+  }
+
+  /// The apps' stand-in for loading another room's address: the old game
+  /// leaves its room and a fresh one joins the new room.
+  void _switchRoom(String room, {required bool host}) {
+    final old = game;
+    old.phase.removeListener(_reclaimFocus);
+    unawaited(old.leave());
+    setState(() => game = _createGame(room, host: host));
   }
 
   // The lobby's text field and buttons own the keyboard focus. Once their
@@ -69,6 +83,7 @@ class _GameAppState extends State<GameApp> {
 
   @override
   void dispose() {
+    onRoomSwitch = null;
     game.phase.removeListener(_reclaimFocus);
     _gameFocus.dispose();
     super.dispose();
@@ -121,6 +136,8 @@ class _GameAppState extends State<GameApp> {
               child: child,
             ),
             child: GameWidget<SpaceGame>(
+              // A new room brings a new game, which needs a fresh widget.
+              key: ObjectKey(game),
               game: game,
               focusNode: _gameFocus,
               autofocus: true,
