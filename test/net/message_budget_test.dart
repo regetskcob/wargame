@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -190,6 +191,26 @@ void main() {
       );
       // The host's own tank sends no more than any other pilot's.
       expect(host.sent[NetEvent.state], pilot.sent[NetEvent.state]);
+    });
+
+    test('the budget never counts a room as cheaper than it is', () {
+      // GameConfig.roomLoad is what rooms claim of the project's Realtime
+      // budget. A faster state or a new stream has to raise it too, or the
+      // budget lets in more than Realtime carries and throws out everybody.
+      for (final pilots in [2, 3, 4]) {
+        final measured = _roomLoad(pilots: pilots, pilot: pilot);
+        expect(
+          measured,
+          lessThanOrEqualTo(GameConfig.roomLoad(pilots, cpu: false) * 1.1),
+          reason: '$pilots pilots send $measured/s',
+        );
+      }
+      final withCpu = _roomLoad(pilots: 2, pilot: pilot, host: host);
+      expect(
+        withCpu,
+        lessThanOrEqualTo(GameConfig.roomLoad(2, cpu: true) * 1.1),
+        reason: 'two pilots with CPU tanks send $withCpu/s',
+      );
     });
 
     test('two pilots with CPU tanks fit the free plan', () {

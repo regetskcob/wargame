@@ -565,7 +565,14 @@ covers the room limit and what rooms claim of the budget,
 `test/ui/widgets/rooms_busy_test.dart` what the start page and the room
 list show while the budget is full,
 `test/db/server_status_test.dart` a server that refuses with 402 or
-cannot be reached. All of them run without a server; see
+cannot be reached. Two more catch breaking changes before a deploy:
+`test/db/rpc_contract_test.dart` reads the migrations and every `rpc`
+call of the game and checks that the function exists, knows every
+parameter and may be run by a signed in player;
+`test/net/wire_format_test.dart` keeps the event names and the fields
+older clients read, so a room of mixed versions keeps working. The budget
+tests also check that `GameConfig.roomLoad` and `GameConfig.padLoad` are
+not below what rooms and phones measurably send. All of them run without a server; see
 [Realtime limits](#realtime-limits).
 
 The integration smoke test exercises Broadcast, Presence, and the typed
