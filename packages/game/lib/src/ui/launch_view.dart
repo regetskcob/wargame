@@ -9,6 +9,7 @@ import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
+import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
 
 /// Start page of the host: alone, with others or together against waves.
@@ -67,11 +68,7 @@ class LaunchView extends StatelessWidget {
               'Wähle, wie du spielen willst.',
               style: TextStyle(color: BwColors.textDim),
             ),
-            TextButton.icon(
-              onPressed: game.showTutorial,
-              icon: const Icon(Icons.school, size: 18),
-              label: const Text('EINWEISUNG ANSEHEN'),
-            ),
+            TutorialButton(game: game),
           ],
         ),
         const SizedBox(height: 16),

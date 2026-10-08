@@ -289,7 +289,7 @@ const _ready = TutorialStep(
   scene: DemoScene.ready,
   text:
       'Das war die Einweisung. Du findest sie jederzeit wieder auf der '
-      'Startseite und im Warteraum.',
+      'Anmeldeseite, der Startseite und im Warteraum.',
 );
 
 IconData _towerIcon(TowerKind kind) => switch (kind) {

@@ -9,8 +9,8 @@ import 'tutorial_steps.dart';
 /// training ground with a thumb on the sticks or with keys and mouse. Then
 /// a quick tour through everything the game has, which plays on by itself.
 ///
-/// It opens by itself for new players and again from the start page and
-/// the waiting room, always with the controls of the device it runs on.
+/// A button opens it on the welcome page, the start page and in the
+/// waiting room, always with the controls of the device it runs on.
 class TutorialOverlay extends StatefulWidget {
   const TutorialOverlay({
     required this.touch,

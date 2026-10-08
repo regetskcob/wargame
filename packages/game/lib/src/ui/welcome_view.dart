@@ -7,6 +7,7 @@ import '../theme.dart';
 import 'widgets/account_panel.dart';
 import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/tutorial_button.dart';
 
 /// First page when accounts are switched on: sign in or create an account,
 /// or play on as a guest. Players who are signed in never see it.
@@ -71,9 +72,16 @@ class WelcomeView extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 4),
-        const Text(
-          'Willkommen, Panzerkommandant.',
-          style: TextStyle(color: BwColors.textDim),
+        Wrap(
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 12,
+          children: [
+            const Text(
+              'Willkommen, Panzerkommandant.',
+              style: TextStyle(color: BwColors.textDim),
+            ),
+            TutorialButton(game: game),
+          ],
         ),
         if (AccountService.mailLinkFailed) ...[
           const SizedBox(height: 16),

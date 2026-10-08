@@ -22,6 +22,7 @@ import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
+import 'widgets/tutorial_button.dart';
 
 class LobbyOverlay extends StatefulWidget {
   const LobbyOverlay({required this.game, super.key});
@@ -585,11 +586,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
             ),
             const SizedBox(height: 4),
-            TextButton.icon(
-              onPressed: game.showTutorial,
-              icon: const Icon(Icons.school, size: 18),
-              label: const Text('EINWEISUNG ANSEHEN'),
-            ),
+            TutorialButton(game: game),
           ],
         ),
       ),
