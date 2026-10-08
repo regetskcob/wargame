@@ -208,3 +208,50 @@ bool openFreshRoom() {
   );
   return true;
 }
+
+const _padKey = 'panzergefecht.pad';
+
+/// Pairing code of a phone that steers this tab. Kept for the tab only, so
+/// loading another room keeps the phone, and a new tab starts unpaired.
+String? storedPadCode() {
+  try {
+    return web.window.sessionStorage.getItem(_padKey);
+  } on Object {
+    return null;
+  }
+}
+
+void rememberPadCode(String? code) {
+  try {
+    if (code == null) {
+      web.window.sessionStorage.removeItem(_padKey);
+    } else {
+      web.window.sessionStorage.setItem(_padKey, code);
+    }
+  } on Object {
+    // Without storage the phone pairs again after the next room.
+  }
+}
+
+/// The browser reads a pairing link from its own address at the start.
+void Function(String code)? onPadLink;
+
+/// The pairing code this page was opened with, from `?pad=CODE`: the page
+/// is then a phone's controller instead of the game.
+String? padCodeOfPage() => Uri.base.queryParameters['pad'];
+
+/// Leaves the controller for the game, by loading the page without the
+/// pairing code.
+void leavePadPage() {
+  final uri = Uri.base;
+  final params = Map.of(uri.queryParameters)..remove('pad');
+  web.window.location.assign(
+    Uri(
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.hasPort ? uri.port : null,
+      path: uri.path,
+      queryParameters: params.isEmpty ? null : params,
+    ).toString(),
+  );
+}

@@ -115,6 +115,12 @@ Everything resolves from pub.dev. There are no git dependencies and no
   stick points where the tank should go, the right one aims and fires, and
   an aim assist (on by default, switched with a button) turns the turret
   onto the nearest enemy while the right thumb rests.
+- The phone as a controller for the game on a computer or tablet: the
+  account sheet in the browser shows a pairing QR code, the app scans it
+  (Account, Use as controller) or the phone camera opens it. The phone then
+  shows the two sticks, the special weapon, the items and, in a defense
+  round, the gun buttons, and feels hits as a buzz. Without the app the
+  phone's browser does the same.
 
 ### Weapons and damage
 
@@ -544,3 +550,11 @@ flutter build web --base-href /your-repo/ \
   into a round that starts now shows the round again.
 - Public rooms announce themselves through Presence on a separate
   `game-rooms` channel and vanish when their host leaves.
+- A phone controller pairs on a channel of its own, `pad-<CODE>`, with an
+  eight character code from the screen's QR code. The phone sends its
+  sticks as `pad` about twenty times a second and single presses as `act`,
+  the screen plays them as its touch controls and answers with `status`
+  (health, ammunition, items, phase). Presence shows either end whether the
+  other is there; the first phone steers, and when it falls silent for a
+  moment the tank lets go. The room never sees the phone. The pairing code
+  is kept for the browser tab, so a new room keeps the phone.

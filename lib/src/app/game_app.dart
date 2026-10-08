@@ -16,9 +16,11 @@ import '../game/game_phase.dart';
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../net/net_service.dart';
+import '../net/pad_link.dart';
 import '../net/room.dart';
 import '../ui/theme.dart';
 import '../ui/closed_overlay.dart';
+import '../ui/controller_view.dart';
 import '../ui/countdown_overlay.dart';
 import '../ui/hud_overlay.dart';
 import '../ui/lobby_overlay.dart';
@@ -40,6 +42,7 @@ class _GameAppState extends State<GameApp> {
   late TankGame game;
   late LiveActivityBridge _liveActivity;
   final _gameFocus = FocusNode(debugLabel: 'game');
+  final _navigator = GlobalKey<NavigatorState>();
   late final _online = OnlineService(
     Supabase.instance.client,
     inMatch: () => game.phase.value != GamePhase.lobby,
@@ -52,7 +55,37 @@ class _GameAppState extends State<GameApp> {
     _liveActivity = LiveActivityBridge(game)..attach();
     _online.start();
     onRoomSwitch = _switchRoom;
+    onPadLink = _openPad;
     listenForRoomLinks();
+    PadScreen.instance.game = game;
+    unawaited(PadScreen.instance.resume());
+  }
+
+  /// A pairing link opened on this device: it becomes the controller of
+  /// the screen that showed it.
+  void _openPad(String text) {
+    final code = padCodeFrom(text);
+    final navigator = _navigator.currentState;
+    if (code == null) {
+      return;
+    }
+    if (navigator == null) {
+      // A link that started the app can come in before the first frame.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _navigator.currentState != null) {
+          _openPad(code);
+        }
+      });
+      return;
+    }
+    unawaited(
+      navigator.push<void>(
+        MaterialPageRoute(
+          fullscreenDialog: true,
+          builder: (_) => ControllerView(code: code, name: game.myName),
+        ),
+      ),
+    );
   }
 
   TankGame _createGame(String room, {required bool host}) {
@@ -78,6 +111,7 @@ class _GameAppState extends State<GameApp> {
     _liveActivity.detach();
     unawaited(old.leave());
     setState(() => game = _createGame(room, host: host));
+    PadScreen.instance.game = game;
     _liveActivity = LiveActivityBridge(game)..attach();
   }
 
@@ -99,6 +133,7 @@ class _GameAppState extends State<GameApp> {
   @override
   void dispose() {
     onRoomSwitch = null;
+    onPadLink = null;
     _online.dispose();
     _liveActivity.detach();
     game.phase.removeListener(_reclaimFocus);
@@ -116,6 +151,7 @@ class _GameAppState extends State<GameApp> {
 
   Widget _app(AppLang lang) {
     return MaterialApp(
+      navigatorKey: _navigator,
       title: 'Panzergefecht',
       locale: lang.locale,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -190,6 +226,34 @@ class _GameAppState extends State<GameApp> {
               },
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// The browser on a phone that opened a pairing link without the app: the
+/// page is the controller of that screen and nothing else.
+class ControllerApp extends StatelessWidget {
+  const ControllerApp({required this.code, super.key});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<AppLang>(
+      valueListenable: L10n.lang,
+      builder: (context, lang, _) => MaterialApp(
+        title: 'Panzergefecht',
+        locale: lang.locale,
+        localizationsDelegates: GlobalMaterialLocalizations.delegates,
+        supportedLocales: [for (final l in AppLang.values) l.locale],
+        debugShowCheckedModeBanner: false,
+        theme: buildBundeswehrTheme(),
+        home: ControllerView(
+          code: code,
+          name: tr('Handy', 'Phone'),
+          onClose: leavePadPage,
         ),
       ),
     );

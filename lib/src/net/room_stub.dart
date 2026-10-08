@@ -58,6 +58,11 @@ StreamSubscription<Uri>? _links;
 /// browser, lead straight into their room, also when they start the app.
 void listenForRoomLinks() {
   void open(Uri? uri) {
+    final pad = uri?.queryParameters['pad'];
+    if (pad != null) {
+      onPadLink?.call(pad);
+      return;
+    }
     final code = uri == null ? null : roomCodeFrom(uri.toString());
     if (code != null && code != _current) {
       joinRoom(code);
@@ -143,3 +148,20 @@ bool openFreshRoom() {
   switcher(_current!, host: true);
   return true;
 }
+
+String? _padCode;
+
+/// Pairing code of a phone that steers this game. The apps keep the game
+/// when they switch rooms, so memory is enough.
+String? storedPadCode() => _padCode;
+
+void rememberPadCode(String? code) => _padCode = code;
+
+/// Set by the app shell: a pairing link opened on this device turns it
+/// into the controller of that screen.
+void Function(String code)? onPadLink;
+
+/// The apps open pairing links through [onPadLink] instead.
+String? padCodeOfPage() => null;
+
+void leavePadPage() {}

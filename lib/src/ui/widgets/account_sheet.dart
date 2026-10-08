@@ -9,6 +9,7 @@ import '../theme.dart';
 import 'account_panel.dart';
 import 'choice_row.dart';
 import 'legal.dart';
+import 'pad_pairing.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
@@ -216,6 +217,8 @@ class _AccountSheetState extends State<AccountSheet> {
                       }
                     },
                   ),
+                  const SizedBox(height: 16),
+                  ControllerSection(game: _game),
                   const SizedBox(height: 16),
                   if (Env.accounts)
                     AccountPanel(
