@@ -58,7 +58,8 @@ class AccountService {
         for (final provider in _knownProviders)
           if (external[provider.$1.name] == true) provider,
       ];
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('Loading the login providers failed: $error');
       providers.value = const [];
     }
   }
@@ -118,7 +119,8 @@ class AccountService {
         UserAttributes(data: {_tutorialKey(touch: touch): true}),
       );
       user.value = _client.auth.currentUser;
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('Keeping the tutorial on the account failed: $error');
       // The browser still remembers it, the account asks again elsewhere.
     }
   }
@@ -144,7 +146,8 @@ class AccountService {
         UserAttributes(data: {_languageKey: lang.code}),
       );
       user.value = _client.auth.currentUser;
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('Keeping the language on the account failed: $error');
       // The device still remembers it, the account learns it next time.
     }
   }

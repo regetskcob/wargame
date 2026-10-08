@@ -19,6 +19,7 @@ import 'payloads/shoot_payload.dart';
 import 'payloads/strike_payload.dart';
 import 'presence_throttle.dart';
 import 'replay.dart';
+import 'retry_backoff.dart';
 
 class NetService {
   NetService({
@@ -94,6 +95,8 @@ class NetService {
   @visibleForTesting
   bool othersPresent = false;
   bool _disposed = false;
+  final _backoff = RetryBackoff();
+  Timer? _reconnect;
   final _subscriptions = <StreamSubscription<void>>[];
 
   SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
@@ -140,6 +143,7 @@ class NetService {
     _subscriptions.add(
       channel.onStatusChange.listen((change) {
         if (change.status == RealtimeSubscribeStatus.subscribed) {
+          _backoff.reset();
           final me = _me;
           if (me != null) {
             _presence?.track(_tracked(me));
@@ -317,14 +321,21 @@ class NetService {
   }
 
   void _scheduleReconnect() {
-    if (_disposed) {
+    // An error is often followed by a close: one attempt for both.
+    if (_disposed || _reconnect != null) {
       return;
     }
     final me = _me;
     if (me == null) {
       return;
     }
-    Timer(const Duration(seconds: 2), () async {
+    final wait = _backoff.next();
+    debugPrint(
+      'Room channel $room dropped, rejoining in ${wait.inSeconds} s '
+      '(attempt ${_backoff.failures})',
+    );
+    _reconnect = Timer(wait, () async {
+      _reconnect = null;
       if (_disposed) {
         return;
       }
@@ -358,8 +369,9 @@ class NetService {
     if (channel == null) {
       return;
     }
-    unawaited(
+    fireAndForget(
       channel.sendBroadcastMessage(event: event.name, payload: payload),
+      'Sending ${event.name}',
     );
   }
 
@@ -492,6 +504,9 @@ class NetService {
 
   Future<void> dispose() async {
     _disposed = true;
+    _reconnect?.cancel();
+    _reconnect = null;
+    _backoff.reset();
     _joinedAt = null;
     final link = this.link;
     if (link != null && identical(link.guest, this) && link._guestIn) {

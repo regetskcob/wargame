@@ -11,6 +11,7 @@ import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../game/touch_input.dart';
 import 'payloads/pad_payload.dart';
+import 'retry_backoff.dart';
 import 'room.dart';
 
 /// Pairing a phone as the gamepad of the game on a computer or tablet.
@@ -117,6 +118,7 @@ abstract class _PadChannel {
   /// Ids of the other ends that talk on lanes.
   var _laneIds = <String>{};
   Timer? _retry;
+  final _backoff = RetryBackoff();
   String? _code;
   String _name = '';
 
@@ -176,6 +178,7 @@ abstract class _PadChannel {
       ..add(
         channel.onStatusChange.listen((change) async {
           if (change.status == RealtimeSubscribeStatus.subscribed) {
+            _backoff.reset();
             await channel.track({
               'role': role,
               'id': id,
@@ -196,10 +199,10 @@ abstract class _PadChannel {
     if (code == null || _retry != null) {
       return;
     }
-    _retry = Timer(const Duration(seconds: 2), () {
+    _retry = Timer(_backoff.next(), () {
       _retry = null;
       if (_code == code) {
-        unawaited(_connect(code, _name));
+        fireAndForget(_connect(code, _name), 'Rejoining pad channel');
       }
     });
   }
@@ -252,8 +255,9 @@ abstract class _PadChannel {
     onSend?.call(event.name, payload, lane);
     final channel = (lane == null ? null : _lanes[lane]) ?? _channel;
     if (channel != null) {
-      unawaited(
+      fireAndForget(
         channel.sendBroadcastMessage(event: event.name, payload: payload),
+        'Sending pad ${event.name}',
       );
     }
   }
@@ -278,6 +282,7 @@ abstract class _PadChannel {
   /// Leaves the channel for good.
   Future<void> _close() async {
     _code = null;
+    _backoff.reset();
     await _leave();
   }
 

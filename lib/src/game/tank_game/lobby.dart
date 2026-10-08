@@ -399,7 +399,7 @@ extension TankGameLobby on TankGame {
         'The host closed the waiting room.',
       ),
     );
-    unawaited(net.dispose());
+    fireAndForget(net.dispose(), 'Leaving the room');
   }
 
   /// Nobody started a round or came and went for a long time: leave the
@@ -418,7 +418,7 @@ extension TankGameLobby on TankGame {
       // join it again with the next step.
       dozing = true;
       roster.value = const [];
-      unawaited(net.dispose());
+      fireAndForget(net.dispose(), 'Leaving the room');
       return;
     }
     _enterClosed(
@@ -431,7 +431,7 @@ extension TankGameLobby on TankGame {
             'activity.',
       ),
     );
-    unawaited(net.dispose());
+    fireAndForget(net.dispose(), 'Leaving the room');
   }
 
   /// Whether the player still looks at the welcome page or, as host, at
@@ -446,7 +446,7 @@ extension TankGameLobby on TankGame {
     }
     dozing = false;
     _lastActivity = DateTime.now();
-    unawaited(net.connect(_presencePayload()));
+    fireAndForget(net.connect(_presencePayload()), 'Joining the room');
   }
 
   void _enterClosed(String reason) {
@@ -506,7 +506,7 @@ extension TankGameLobby on TankGame {
           'The room is full: ${GameConfig.maxPilots} pilots at most.',
         ),
       );
-      unawaited(net.dispose());
+      fireAndForget(net.dispose(), 'Leaving the room');
       return;
     }
     final before = {for (final member in roster.value) member.id};
@@ -604,6 +604,6 @@ extension TankGameLobby on TankGame {
             'single player always works.',
       ),
     );
-    unawaited(net.dispose());
+    fireAndForget(net.dispose(), 'Leaving the room');
   }
 }

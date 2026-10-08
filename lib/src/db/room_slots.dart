@@ -39,7 +39,8 @@ class RoomSlots {
             },
           ) !=
           false;
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('Claiming slot $key failed, letting it in: $error');
       return true;
     }
   }
@@ -48,7 +49,8 @@ class RoomSlots {
   Future<void> count() async {
     try {
       load.value = await _client.rpc<int>('live_load');
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('Counting the slots failed: $error');
       return;
     }
   }
