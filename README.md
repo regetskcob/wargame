@@ -714,7 +714,8 @@ What changed:
 - A paired phone still costs about 32 a second, on top of its room.
 - Clients older than these changes still run in TestFlight builds: they
   do not see the CPU tanks of a newer host, and they do not know the room
-  limit, so a fifth older client is not turned away by itself.
+  limit. They never leave a full room by themselves and count as there
+  first, so a newer pilot leaves in their place.
 
 ### Other log findings
 
