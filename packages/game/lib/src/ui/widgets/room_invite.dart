@@ -8,6 +8,7 @@ import '../../game/space_game.dart';
 import '../../net/payloads/lobby_presence.dart';
 import '../../net/room.dart';
 import '../../theme.dart';
+import 'panel.dart';
 
 /// Waiting room header: the room code, a link to hand around and how many
 /// pilots have gathered so far.
@@ -101,9 +102,9 @@ class _RoomInviteState extends State<RoomInvite> {
   Widget build(BuildContext context) {
     final hasLink = _link.isNotEmpty;
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        border: Border.all(color: BwColors.oliveLight),
+        shape: BwShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),

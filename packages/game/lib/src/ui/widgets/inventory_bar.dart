@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/inventory.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
+import 'panel.dart';
 
 /// The inventory down the left side of the screen: one slot per kind of
 /// item, with its count and the number key that sets it off. A tap does the
@@ -72,10 +73,9 @@ class _Slot extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: BwColors.panel,
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: type.color, width: 1.8),
+          shape: BwShapes.chip(edge: type.color, width: 1.8),
         ),
         child: Stack(
           children: [
@@ -143,10 +143,9 @@ class _Empty extends StatelessWidget {
       child: Container(
         width: size,
         height: size,
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: const Color(0x33000000),
-          borderRadius: BorderRadius.circular(6),
-          border: Border.all(color: const Color(0x338A9A5B)),
+          shape: BwShapes.chip(edge: const Color(0x338A9A5B), width: 1),
         ),
       ),
     );

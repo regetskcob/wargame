@@ -7,6 +7,7 @@ import 'widgets/account_panel.dart';
 import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/tutorial_button.dart';
+import 'widgets/panel.dart';
 
 /// First page when accounts are switched on: sign in or create an account,
 /// or play on as a guest. Players who are signed in never see it.
@@ -130,9 +131,9 @@ class _Notice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: const Color(0x33FFB300),
-        border: Border.all(color: BwColors.amber),
+        shape: BwShapes.card(edge: BwColors.amber),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
@@ -171,10 +172,7 @@ class _Box extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
-        ),
+        shape: BwShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),

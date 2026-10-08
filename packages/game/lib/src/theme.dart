@@ -128,5 +128,23 @@ ThemeData buildBundeswehrTheme() {
       linearTrackColor: Color(0x55000000),
     ),
     dividerTheme: const DividerThemeData(color: BwColors.oliveLight),
+    // Dialogs and tooltips in the same beveled shape as every panel.
+    dialogTheme: DialogThemeData(
+      backgroundColor: BwColors.surface,
+      shape: BeveledRectangleBorder(
+        borderRadius: BorderRadius.circular(8),
+        side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+      ),
+    ),
+    tooltipTheme: TooltipThemeData(
+      decoration: ShapeDecoration(
+        color: const Color(0xF01E2614),
+        shape: BeveledRectangleBorder(
+          borderRadius: BorderRadius.circular(4),
+          side: const BorderSide(color: BwColors.oliveLight),
+        ),
+      ),
+      textStyle: const TextStyle(color: BwColors.text, fontSize: 12),
+    ),
   );
 }

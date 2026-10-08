@@ -158,9 +158,11 @@ class SpecialPlate extends StatelessWidget {
             const SizedBox(width: 10),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: BoxDecoration(
-                border: Border.all(color: BwColors.sand),
-                borderRadius: BorderRadius.circular(3),
+              decoration: ShapeDecoration(
+                shape: BeveledRectangleBorder(
+                  borderRadius: BorderRadius.circular(3),
+                  side: const BorderSide(color: BwColors.sand),
+                ),
               ),
               child: Text(
                 keyHint!,

@@ -7,6 +7,7 @@ import '../../db/account_service.dart';
 import '../../net/room.dart';
 import '../../theme.dart';
 import 'choice_row.dart';
+import 'panel.dart';
 
 /// Guest or lasting account: secure the guest account by e-mail or with a
 /// login, sign into an account from another device, or sign out.
@@ -259,9 +260,9 @@ class _AccountPanelState extends State<AccountPanel> {
           );
         }
         return DecoratedBox(
-          decoration: BoxDecoration(
+          decoration: ShapeDecoration(
             color: const Color(0x44000000),
-            border: Border.all(color: BwColors.oliveLight),
+            shape: BwShapes.card(),
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),

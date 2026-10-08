@@ -13,6 +13,7 @@ import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
+import 'widgets/panel.dart';
 
 /// Start page of the host: alone, with others or together against waves.
 /// Everything else is set in the waiting room that follows.
@@ -188,10 +189,7 @@ class _ModeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final shape = BeveledRectangleBorder(
-      borderRadius: BorderRadius.circular(8),
-      side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
-    );
+    final shape = BwShapes.card();
     return Material(
       color: const Color(0x44000000),
       shape: shape,

@@ -311,9 +311,9 @@ class _StatsRow extends StatelessWidget {
           Container(
             width: 112,
             padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: const Color(0x66000000),
-              border: Border.all(color: BwColors.oliveLight),
+              shape: BwShapes.chip(),
             ),
             child: Column(
               children: [

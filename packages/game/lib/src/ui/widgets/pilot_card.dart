@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
 import '../../theme.dart';
+import 'panel.dart';
 
 /// Rank with the way to the next one, the rating and the badges.
 class PilotCard extends StatelessWidget {
@@ -21,93 +22,85 @@ class PilotCard extends StatelessWidget {
       builder: (context, _) {
         final rank = progress.rank.value;
         final rating = progress.rating.value;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0x44000000),
-            border: Border.all(color: BwColors.oliveLight),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    RankBadge(level: rank.level),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${rank.title.toUpperCase()} · STUFE ${rank.level}',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(2),
-                            child: LinearProgressIndicator(
-                              value: rank.progress,
-                              minHeight: 6,
-                              backgroundColor: const Color(0x55000000),
-                              color: BwColors.amber,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${rank.xp} / ${rank.next} EP',
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: BwColors.textDim,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
+        return Plate(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  RankBadge(level: rank.level),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          rating == null ? '–' : '$rating',
+                          '${rank.title.toUpperCase()} · STUFE ${rank.level}',
                           style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: 1,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(2),
+                          child: LinearProgressIndicator(
+                            value: rank.progress,
+                            minHeight: 6,
+                            backgroundColor: const Color(0x55000000),
                             color: BwColors.amber,
                           ),
                         ),
-                        const Text(
-                          'WERTUNG',
-                          style: TextStyle(
+                        const SizedBox(height: 2),
+                        Text(
+                          '${rank.xp} / ${rank.next} EP',
+                          style: const TextStyle(
                             fontSize: 11,
-                            letterSpacing: 1.4,
                             color: BwColors.textDim,
                           ),
                         ),
                       ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-                Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
-                  children: [
-                    for (final achievement in Achievement.all)
-                      BadgeChip(
-                        achievement: achievement,
-                        earned: progress.badges.value.contains(
-                          achievement.code,
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        rating == null ? '–' : '$rating',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                          color: BwColors.amber,
                         ),
                       ),
-                  ],
-                ),
-              ],
-            ),
+                      const Text(
+                        'WERTUNG',
+                        style: TextStyle(
+                          fontSize: 11,
+                          letterSpacing: 1.4,
+                          color: BwColors.textDim,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final achievement in Achievement.all)
+                    BadgeChip(
+                      achievement: achievement,
+                      earned: progress.badges.value.contains(achievement.code),
+                    ),
+                ],
+              ),
+            ],
           ),
         );
       },

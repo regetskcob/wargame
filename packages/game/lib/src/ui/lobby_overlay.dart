@@ -739,11 +739,8 @@ class _Section extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: const Color(0x33000000),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-          side: const BorderSide(color: Color(0x888A9A5B)),
-        ),
+        color: const Color(0x44000000),
+        shape: BwShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -821,9 +818,9 @@ class _JoinedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        border: Border.all(color: BwColors.oliveLight),
+        shape: BwShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),

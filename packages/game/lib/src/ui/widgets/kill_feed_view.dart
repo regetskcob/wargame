@@ -85,7 +85,7 @@ class _KillFeedViewState extends State<KillFeedView> {
         decoration: ShapeDecoration(
           color: const Color(0xB3101408),
           shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(5),
+            borderRadius: BorderRadius.circular(6),
             side: BorderSide(
               color: entry.byMe
                   ? BwColors.amber
