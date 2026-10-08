@@ -450,6 +450,13 @@ flutter-watchos run -d <watch-simulator-id>  # hot reload
 flutter-watchos run -d <watch-id> --release  # real watch: Series 9+, watchOS 26+
 ```
 
+CI (`watchos` job in `ci.yaml`) builds the watch app for the Simulator with
+the toolchain tag `v3.47.5-watchos.0.1.1`; that needs no account. Release
+builds need a signed-in `flutter-watchos` account and run locally: first
+`flutter-watchos build watchos --release`, then the iOS build, whose embed
+phase only warns when `build/watchos/Release-watchos/Runner.app` is missing.
+So the `testflight` workflow uploads the iOS app without the watch app.
+
 Use `FlutterWatchosPlatform.isWatch` from `flutter_watchos` to branch for the
 watch, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`
 package; without one calls throw `MissingPluginException`.
