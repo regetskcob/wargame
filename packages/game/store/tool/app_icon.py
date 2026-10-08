@@ -37,6 +37,10 @@ TURRET = (0x7F, 0xA7, 0x44)
 BARREL = (0x4E, 0x6B, 0x29)
 MUZZLE = (0x39, 0x4F, 0x1E)
 
+# The tank is drawn from x 212 to 936 (hull to muzzle) and y 300 to 724;
+# this shift puts the middle of that box on the middle of the icon.
+SHIFT = (512 - (212 + 936) / 2, 512 - (300 + 724) / 2)
+
 
 def _box(*v):
     return [round(x * SS) for x in v]
@@ -102,7 +106,9 @@ def tank():
     d.ellipse(_box(338, 410, 542, 614), fill=OUTLINE)
     d.ellipse(_box(344, 416, 536, 608), fill=TURRET)
     d.ellipse(_box(400, 472, 480, 552), fill=BARREL)
-    return img.resize((SIZE, SIZE), Image.LANCZOS)
+    centred = Image.new("RGBA", (s, s), (0, 0, 0, 0))
+    centred.paste(img, _box(*SHIFT))
+    return centred.resize((SIZE, SIZE), Image.LANCZOS)
 
 
 def icon():

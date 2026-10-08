@@ -27,10 +27,10 @@ DENSITIES = {
     "xxxhdpi": (192, 432),
 }
 
-# The tank reaches at most 430 px from the centre of the 1024 source (the
-# barrel tip). Launchers may cut the adaptive layer down to a circle of
+# The centred tank reaches at most 400 px from the middle of the 1024
+# source (the hull corners). Launchers may cut the adaptive layer down to a circle of
 # 66 of its 108 dp, so the tank is scaled into that circle.
-REACH = 430
+REACH = 400
 SAFE = 33 / 108
 
 
