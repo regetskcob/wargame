@@ -20,7 +20,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 - `GameMode.defense` – Tower Defense im Trupp gegen Wellen (Host ist
   Autorität), Stützpunkt wächst, nach Welle 8 Verlängerung.
 
-## Architektur in 6 Punkten
+## Architektur in 7 Punkten
 
 1. **Eine Runde = `{seed, startedAt}`.** Welt, Wetter, Tag/Nacht, Fallschirm-
    wellen folgen deterministisch aus dem Seed. Nur Ereignisse gehen übers Netz.
@@ -35,6 +35,12 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 5. **Wertung nur über RPC `record_round`** (Elo, EP, Abzeichen); Gäste ohne
    Wertung. RLS ist gehärtet (Migration 0011/0012).
 6. **Replays** = aufgezeichnete Nachrichten + Seed, rein lokal.
+7. **Realtime-Budget:** Jede Nachricht zählt einmal gesendet und einmal pro
+   Empfänger, projektweit 100/s und 2 Mio./Monat im Free-Plan. Darum
+   `state` mit 10/s, CPU-Panzer gebündelt in `states`, allein im Raum wird
+   nichts gesendet, Räume halten 4 Piloten, Presence gedrosselt. Ohne
+   Server startet das Spiel trotzdem (`ServerStatus`). Zahlen und Tests:
+   README „Realtime limits“.
 
 ## Wo finde ich was
 

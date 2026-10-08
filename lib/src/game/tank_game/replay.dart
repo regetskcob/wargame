@@ -62,6 +62,8 @@ extension TankGameReplay on TankGame {
       switch (event.event) {
         case NetEvent.state:
           _onTankState(TankStatePayload.fromJson(json));
+        case NetEvent.states:
+          _onTankStates(TankStatesPayload.fromJson(json));
         case NetEvent.shoot:
           _onShoot(ShootPayload.fromJson(json));
         case NetEvent.hit:

@@ -555,20 +555,23 @@ class PlayerTank extends TankBase
     _lastSentPosition.setFrom(position);
     _lastSentAngle = angle;
     _lastSentTurret = turretAngle;
-    gameRef.net.send(
-      NetEvent.state,
-      TankStatePayload(
-        id: playerId,
-        x: position.x,
-        y: position.y,
-        vx: velocity.x,
-        vy: velocity.y,
-        rotation: angle,
-        hp: hp,
-        turret: turretAngle,
-        shielded: shielded,
-      ).toJson(),
+    final state = TankStatePayload(
+      id: playerId,
+      x: position.x,
+      y: position.y,
+      vx: velocity.x,
+      vy: velocity.y,
+      rotation: angle,
+      hp: hp,
+      turret: turretAngle,
+      shielded: shielded,
     );
+    // CPU tanks go out together, one message for all of them.
+    if (isBot) {
+      gameRef.queueBotState(state);
+    } else {
+      gameRef.net.send(NetEvent.state, state.toJson());
+    }
   }
 
   void applyDamage(double amount, {required String? killerId}) {

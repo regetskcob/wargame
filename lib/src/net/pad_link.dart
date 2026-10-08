@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -56,6 +57,33 @@ final _code = RegExp('^[$_alphabet]{$padCodeLength}\$');
 /// either way.
 String padLink(String code) =>
     Uri.parse(roomLink('-')).replace(queryParameters: {'pad': code}).toString();
+
+/// Decides when a stream of snapshots goes out: a change at most every
+/// [gap], an unchanged one again after [keepalive] as a sign of life. A
+/// change that comes too soon is not lost, it goes out once the gap has
+/// passed, as whatever the snapshot is by then. Every message on a pad
+/// channel counts twice against the project's Realtime limit, sent and
+/// delivered.
+class SendGate {
+  SendGate({required this.gap, required this.keepalive});
+
+  final Duration gap;
+  final Duration keepalive;
+  String? _last;
+  DateTime? _lastAt;
+
+  bool shouldSend(String snapshot) {
+    final now = clock.now();
+    final lastAt = _lastAt;
+    final since = lastAt == null ? keepalive : now.difference(lastAt);
+    if ((snapshot != _last && since >= gap) || since >= keepalive) {
+      _last = snapshot;
+      _lastAt = now;
+      return true;
+    }
+    return false;
+  }
+}
 
 /// The code split in halves, easier to read off and type.
 String spacedPadCode(String code) =>
@@ -152,7 +180,12 @@ abstract class _PadChannel {
     });
   }
 
+  /// Sees every message this end sends, for the tests.
+  @visibleForTesting
+  void Function(String event, Map<String, dynamic> payload)? onSend;
+
   void _send(_Event event, Map<String, dynamic> payload) {
+    onSend?.call(event.name, payload);
     final channel = _channel;
     if (channel != null) {
       unawaited(
@@ -206,8 +239,13 @@ class PadScreen extends _PadChannel {
   String? _padId;
   Timer? _tick;
   DateTime _lastInput = DateTime(0);
-  String? _lastStatus;
-  DateTime _lastStatusAt = DateTime(0);
+
+  /// The status changes with every shot and every hit: a few times a second
+  /// is plenty for the phone's display.
+  static const statusGap = Duration(milliseconds: 250);
+  static const statusKeepalive = Duration(seconds: 1);
+  static const tickInterval = Duration(milliseconds: 100);
+  var _statusGate = SendGate(gap: statusGap, keepalive: statusKeepalive);
 
   /// The phone stops counting when nothing came from it for this long, so a
   /// tank whose phone dropped out does not drive on by itself.
@@ -221,10 +259,7 @@ class PadScreen extends _PadChannel {
     final fresh = existing ?? newPadCode();
     rememberPadCode(fresh);
     code.value = fresh;
-    _tick ??= Timer.periodic(
-      const Duration(milliseconds: 100),
-      (_) => _onTick(),
-    );
+    _tick ??= Timer.periodic(tickInterval, (_) => _onTick());
     await _connect(fresh, 'screen');
   }
 
@@ -259,6 +294,8 @@ class PadScreen extends _PadChannel {
     final next = peers.firstOrNull;
     _padId = next?.$1;
     paired.value = next?.$2;
+    // A new phone hears the status at once.
+    _statusGate = SendGate(gap: statusGap, keepalive: statusKeepalive);
   }
 
   @override
@@ -273,7 +310,7 @@ class PadScreen extends _PadChannel {
         if (pad == null || input == null) {
           return;
         }
-        _lastInput = DateTime.now();
+        _lastInput = clock.now();
         input
           ..drive = pad.drive
           ..aimHeld = pad.aimHeld
@@ -315,7 +352,7 @@ class PadScreen extends _PadChannel {
     if (_padId == null) {
       return;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     if (now.difference(_lastInput) > _silence) {
       _release();
     }
@@ -324,12 +361,7 @@ class PadScreen extends _PadChannel {
       return;
     }
     final status = statusOf(game).toJson();
-    final text = status.toString();
-    // Changes go out at once, the rest now and then as a sign of life.
-    if (text != _lastStatus ||
-        now.difference(_lastStatusAt) > const Duration(seconds: 1)) {
-      _lastStatus = text;
-      _lastStatusAt = now;
+    if (_statusGate.shouldSend(status.toString())) {
       _send(_Event.status, status);
     }
   }
@@ -376,14 +408,22 @@ class PadRemote extends _PadChannel {
   final screenOnline = ValueNotifier<bool>(false);
 
   Timer? _tick;
-  String? _lastSent;
-  DateTime _lastSentAt = DateTime(0);
+
+  /// The sticks are read this often, and a change goes out at most every
+  /// [inputGap]: twelve and a half a second while the thumbs move, about
+  /// three a second while they rest.
+  static const tickInterval = Duration(milliseconds: 40);
+  static const inputGap = Duration(milliseconds: 80);
+  static const inputKeepalive = Duration(milliseconds: 300);
+  final _inputGate = SendGate(gap: inputGap, keepalive: inputKeepalive);
+
+  /// Steps the sticks are rounded to, so a resting thumb's tremor is no
+  /// change: a sixteenth of the stick, a sixty-fourth of a radian.
+  static const driveSteps = 16;
+  static const aimSteps = 64;
 
   Future<void> start(String name) async {
-    _tick ??= Timer.periodic(
-      const Duration(milliseconds: 50),
-      (_) => _onTick(),
-    );
+    _tick ??= Timer.periodic(tickInterval, (_) => tick());
     await _connect(code, name);
   }
 
@@ -396,30 +436,32 @@ class PadRemote extends _PadChannel {
   void act(PadActionKind kind, [int slot = 0]) =>
       _send(_Event.act, PadAction(id: id, kind: kind, slot: slot).toJson());
 
-  void _onTick() {
+  /// Reads the sticks and sends them when it is time.
+  @visibleForTesting
+  void tick() {
     if (!screenOnline.value) {
       return;
     }
+    final drive = input.drive;
+    final aim = input.aim;
     final pad = PadInput(
       id: id,
-      drive: input.drive,
-      aim: input.aim,
+      drive: drive == null
+          ? null
+          : (_round(drive.$1, driveSteps), _round(drive.$2, driveSteps)),
+      aim: aim == null ? null : _round(aim, aimSteps),
       aimHeld: input.aimHeld,
       aimFire: input.aimFire,
       special: input.special,
       assist: input.assist,
     ).toJson();
-    final text = pad.toString();
-    final now = DateTime.now();
-    // About twenty a second while the thumbs move, a few a second to keep
-    // the screen from letting go while they rest.
-    if (text != _lastSent ||
-        now.difference(_lastSentAt) > const Duration(milliseconds: 300)) {
-      _lastSent = text;
-      _lastSentAt = now;
+    if (_inputGate.shouldSend(pad.toString())) {
       _send(_Event.pad, pad);
     }
   }
+
+  static double _round(double value, int steps) =>
+      (value * steps).roundToDouble() / steps;
 
   @override
   void _peersChanged(List<(String, String)> peers) {

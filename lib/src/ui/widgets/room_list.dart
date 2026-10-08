@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../game/game_config.dart';
 import '../../game/tank_game.dart';
 import '../../net/room.dart';
 import '../../net/room_code.dart';
@@ -113,6 +114,7 @@ class _RoomListState extends State<RoomList> {
   }
 
   Widget _tile(RoomListing room) {
+    final full = room.players >= GameConfig.maxPilots;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -137,9 +139,13 @@ class _RoomListState extends State<RoomList> {
             ),
           ),
           TextButton(
-            onPressed: () => _join(room.room),
+            onPressed: full ? null : () => _join(room.room),
             child: Text(
-              room.inMatch ? tr('ZUSEHEN', 'WATCH') : tr('BEITRETEN', 'JOIN'),
+              full
+                  ? tr('VOLL', 'FULL')
+                  : room.inMatch
+                  ? tr('ZUSEHEN', 'WATCH')
+                  : tr('BEITRETEN', 'JOIN'),
             ),
           ),
         ],

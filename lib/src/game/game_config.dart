@@ -34,7 +34,16 @@ class GameConfig {
   static const bulletDamage = 15.0;
   static const treeBumpDamage = 5.0;
 
-  static const stateSyncInterval = 0.05;
+  /// Ten states a second: the other side moves the tank on with its speed
+  /// in between. Realtime's free plan allows 100 messages a second for the
+  /// whole project, and every state counts once per receiver.
+  static const stateSyncInterval = 0.1;
+
+  /// Pilots a room holds, spectators included. Every message counts once
+  /// per receiver, so the load of a room grows with the square of its
+  /// pilots: four with CPU tanks need about 230 a second, within the Pro
+  /// plan's 500. Whoever comes later is turned away.
+  static const maxPilots = 4;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;

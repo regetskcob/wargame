@@ -116,6 +116,7 @@ class TankGame extends FlameGame
     required this.scoreService,
     required this.profiles,
     required this.accounts,
+    this._directory,
   }) : super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
@@ -301,7 +302,8 @@ class TankGame extends FlameGame
   ReplayPlayer? _replayPlayer;
 
   /// The public list of rooms.
-  late final directory = RoomDirectory(room: net.room);
+  late final directory = _directory ?? RoomDirectory(room: net.room);
+  final RoomDirectory? _directory;
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
@@ -423,6 +425,7 @@ class TankGame extends FlameGame
       ..add(InfantryCommand());
     net
       ..onTankState = _onTankState
+      ..onTankStates = _onTankStates
       ..onShoot = _onShoot
       ..onHit = _onHit
       ..onDeath = _onDeath
@@ -497,9 +500,39 @@ class TankGame extends FlameGame
     return super.onKeyEvent(event, keysPressed);
   }
 
+  /// Host: the latest state of every CPU tank, sent together.
+  final _botStates = <String, TankStatePayload>{};
+  double _sinceBotStates = 0;
+
+  /// A CPU tank of this host has a new state to tell the others.
+  void queueBotState(TankStatePayload state) => _botStates[state.id] = state;
+
+  void _sendBotStates(double dt) {
+    _sinceBotStates += dt;
+    if (_sinceBotStates < GameConfig.stateSyncInterval || _botStates.isEmpty) {
+      return;
+    }
+    _sinceBotStates = 0;
+    final states = _botStates.values.toList();
+    _botStates.clear();
+    for (var i = 0; i < states.length; i += TankStatesPayload.maxStates) {
+      net.send(
+        NetEvent.states,
+        TankStatesPayload(
+          id: myId,
+          states: states.sublist(
+            i,
+            min(states.length, i + TankStatesPayload.maxStates),
+          ),
+        ).toJson(),
+      );
+    }
+  }
+
   @override
   void update(double dt) {
     super.update(dt);
+    _sendBotStates(dt);
     _shake = max(0, _shake - dt * 28);
     _weather?.update(dt);
     _turnWeather(dt);

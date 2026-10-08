@@ -522,6 +522,17 @@ breaks the sound on the Apple TV until the next `flutter-tvos` build.
 
 ## Tests
 
+`test/net/message_budget_test.dart` plays real rounds on a `TankGame` and
+counts what would go onto the channel, then works out the load of a room
+the way Realtime counts it; its skipped tests are the targets still out
+of reach. `test/net/pad_budget_test.dart` does the same for a paired
+phone controller, `test/net/presence_throttle_test.dart` checks that no
+burst of presence updates gets near Realtime's limit, both on a fake
+clock. `test/game/room_capacity_test.dart` covers the room limit,
+`test/db/server_status_test.dart` a server that refuses with 402 or
+cannot be reached. All of them run without a server; see
+[Realtime limits](#realtime-limits).
+
 The integration smoke test exercises Broadcast, Presence, and the typed
 `scores` table against the local stack:
 
@@ -621,7 +632,7 @@ flutter build web --base-href /your-repo/ \
 ## How the netcode works
 
 - One Realtime channel per room carries the broadcast events `state`,
-  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
+  `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
   `defense`, `tower`, and `close`.
 - The netcode is peer-authoritative: every client simulates its own player and
@@ -636,8 +647,19 @@ flutter build web --base-href /your-repo/ \
 - A round is defined by `{seed, startedAt}`: every client generates an
   identical world from the seed and derives the round clock from the start
   time. The world costs zero bandwidth.
-- Player state is throttled to 20 packets per second and remote players smooth
-  over the gaps with dead reckoning.
+- Tank state goes out ten times a second and remote players smooth over the
+  gaps with dead reckoning. The host sends the states of all its CPU tanks
+  together as one `states` message. A client alone in its room sends
+  nothing at all. See [Realtime limits](#realtime-limits).
+- A room holds four pilots, spectators included. Presences carry when the
+  pilot joined; every client keeps the owner and then the earliest
+  arrivals, and whoever comes later sees that the room is full and leaves.
+- Without a server the game still starts; single player goes on, and the
+  heartbeat notices when the server is back. See
+  [Running without the server](#running-without-the-server).
+- Presence updates are spaced out to at most four per channel in 30 seconds
+  (`presence_throttle.dart`); faster changes wait and only the latest goes
+  out.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate.
 - In the defense mode the players hold a base together on a fixed map without
@@ -660,9 +682,208 @@ flutter build web --base-href /your-repo/ \
   `game-rooms` channel and vanish when their host leaves.
 - A phone controller pairs on a channel of its own, `pad-<CODE>`, with an
   eight character code from the screen's QR code. The phone sends its
-  sticks as `pad` about twenty times a second and single presses as `act`,
-  the screen plays them as its touch controls and answers with `status`
-  (health, ammunition, items, phase). Presence shows either end whether the
+  sticks as `pad` at most twelve and a half times a second, rounded so a
+  resting thumb's tremor is no change, and single presses as `act`; the
+  screen plays them as its touch controls and answers with `status`
+  (health, ammunition, items, phase) at most about three times a second. Presence shows either end whether the
   other is there; the first phone steers, and when it falls silent for a
   moment the tank lets go. The room never sees the phone. The pairing code
   is kept for the browser tab, so a new room keeps the phone.
+
+## Realtime limits
+
+Findings from going through the Supabase logs on 8 October 2026, and what
+changed because of them.
+
+### How Realtime counts
+
+- **Messages per second** (free plan 100, Pro 500) count for the whole
+  project, averaged over a minute. A broadcast counts once when a client
+  sends it and once more for every client it is delivered to, so a room of
+  *n* pilots costs *n* times what its pilots send together: the load grows
+  with the square of the room. Above the limit Realtime closes **every
+  channel of the project**, all rooms at once
+  (`MessagePerSecondRateLimitReached`). The clients reconnect after two
+  seconds and are thrown out again until the average has come down.
+- **Presence per client**: a client may track or untrack at most five times
+  in 30 seconds on one channel. One more and Realtime closes that channel
+  (`ClientPresenceRateLimitReached`), which threw players out of their room.
+  This happened when picking colours, choosing teams or moving between
+  lobby, round and end screen in quick succession.
+
+Sources: [Realtime limits](https://supabase.com/docs/guides/realtime/limits),
+[ClientPresenceRateLimitReached](https://supabase.com/docs/guides/troubleshooting/realtime-client-presence-rate-limit-reached),
+and the `supabase/realtime` source (`RealtimeChannel`, `MessageDispatcher`,
+`PresenceHandler`).
+
+### Before and after
+
+Measured by `message_budget_test.dart`: a 20 second round on a real
+`TankGame`, the own tank always driving, turning its turret and firing.
+Room totals are what Realtime counts, sent plus delivered.
+
+| What one client sends | Before | After |
+|---|---:|---:|
+| Pilot | ~21/s | ~11/s |
+| Host with 3 CPU tanks | ~87/s | ~24/s |
+| Solo round with 4 CPU tanks | ~107/s | 0 |
+
+| Load of one room | Before | After | Fits |
+|---|---:|---:|---|
+| Solo with CPU tanks | ~107/s | 0 | free |
+| 2 pilots | ~83/s | ~44/s | free |
+| 2 pilots with CPU tanks | ~216/s | ~70/s | free |
+| 3 pilots | ~186/s | ~98/s | free only on its own, on the edge |
+| 3 pilots with CPU tanks | ~386/s | ~138/s | Pro |
+| 4 pilots | ~331/s | ~174/s | Pro |
+| 4 pilots with CPU tanks | ~597/s | ~227/s | Pro |
+| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither, rooms now hold 4 |
+
+| Phone controller, one pair | Before | After |
+|---|---:|---:|
+| Thumbs moving, in a fight | ~60/s | ~32/s |
+| Thumbs resting | ~9/s, up to ~40/s with tremor | ~9/s |
+
+Before, a single player in a solo round with CPU tanks used more than the
+whole free plan on their own: that was most of the
+`MessagePerSecondRateLimitReached` entries in the logs. The limit is shared
+by every room, so on the free plan two rooms of two can already run into it
+together.
+
+What changed:
+
+1. **Nothing is sent when nobody listens.** A client alone in its room
+   still records the round for its replay, but puts nothing on the channel.
+2. **Ten states a second instead of twenty.** The receiving side already
+   moves remote tanks on with their speed between states, so this halves
+   the main stream. Between two states a tank at full speed now covers up
+   to 24 instead of 12 pixels on its guessed course, see
+   [What players notice](#what-players-notice).
+3. **CPU tanks in one message.** The host collects the latest state of
+   every CPU tank and sends them together as `states`, ten times a second,
+   however many there are. Their shots still go out one by one, so they
+   land at once. Clients from before this change do not understand
+   `states` and do not see the CPU tanks of a host that sends them.
+4. **Presence is throttled.** At most four updates per channel in 30
+   seconds, the last one always arrives.
+5. **Rooms hold four pilots.** Eight would need about 800 a second, more
+   than the Pro plan allows; four with CPU tanks fit within it. The room
+   list shows full rooms without a join button.
+6. **The phone controller is spaced out.** The phone reads its sticks every
+   40 ms and sends a change at most every 80 ms, rounded to sixteenths of
+   the stick and sixty-fourths of a radian of aim; the screen sends the
+   status at most every 250 ms. A quick tap on the aim stick shorter than
+   80 ms can now go unnoticed; items and building go out at once as
+   before.
+
+### Monthly quota
+
+Besides the messages per second there is a quota per billing month,
+counted the same way, sent plus delivered:
+
+| Plan | Included | Beyond |
+|---|---:|---|
+| Free | 2 million | grace period, then restrictions |
+| Pro ($25 a month) | 5 million | $2.50 per further million |
+
+What a million buys after the changes above:
+
+| Room | Messages an hour | Hours per million |
+|---|---:|---:|
+| Solo | ~0 | unlimited |
+| 2 pilots | ~160,000 | ~6 |
+| 2 pilots with CPU tanks | ~250,000 | ~4 |
+| 4 pilots with CPU tanks | ~820,000 | ~1.2 |
+| Phone controller, on top | ~115,000 | ~9 |
+
+On 8 October 2026 the project stood at about 610,000 of its 2 million,
+most of it from testing before the changes, when everything cost about
+three times as much. The free plan is enough for test evenings, not for
+real players: an evening of a full room uses a month's free quota. With
+real players the project belongs on the Pro plan, where an hour of a
+full room costs about $2.
+
+A free project over its quota gets a mail and a grace period of unstated
+length; after that Supabase may answer **every** API request of the
+organisation with `402`, Auth and the database included, not only
+Realtime, until the next billing month or an upgrade. See
+[Manage Realtime Messages usage](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages)
+and the Fair Use Policy in the
+[billing FAQ](https://supabase.com/docs/guides/platform/billing-faq).
+
+### Running without the server
+
+The game no longer depends on the server to start
+(`lib/src/db/server_status.dart`):
+
+- Before, the start awaited the anonymous sign-in without a guard.
+  Offline, or with the project restricted, the app never got past it and
+  the screen stayed empty, even for single player.
+- Now a failed sign-in only marks the server as away. The heartbeat
+  (`ping_online`, once a minute while the app is in front) asks again,
+  signs in once the server answers and keeps `ServerStatus.available` up
+  to date.
+- While the server is away, the start page and the waiting room say so,
+  multiplayer and the room list are greyed out, and single player and
+  defense on one's own go on, since alone nothing goes over Realtime.
+  Rounds then go unrecorded: no experience, rating or badges.
+
+### What players notice
+
+- **The room limit**, plainly: the fifth pilot reads "Der Raum ist voll:
+  höchstens 4 Piloten." and leaves, the room list shows full rooms as
+  `VOLL`. Groups of five or more cannot play together any more, not even
+  as spectators.
+- **The phone controller** a little: on average about 40 ms, at most 80 ms
+  more delay on the sticks, the status on the phone up to 250 ms later,
+  and a tap on the aim stick shorter than 80 ms can go unnoticed.
+- **Other tanks** hardly: on sharp turns or full braking a remote tank can
+  slide on a few pixels and then pull back, and remote turrets follow up
+  to about 50 ms later. The own tank is unaffected, and hits stay fair,
+  since the victim still works them out on its own side.
+- **Presence** only when clicking in a hurry: after four changes within 30
+  seconds the others see only the latest, up to 30 seconds later.
+- **Without the server**: the notice on the start page, see above.
+- Everything else (nothing sent when alone, CPU tanks in one message) is
+  not visible at all.
+
+Not yet tried by hand: a round on two devices with sharp manoeuvres, and
+a round with the phone controller. Should either feel off, the rates are
+constants in `GameConfig` and `pad_link.dart`, and the budget tests show
+at once whether a change still fits the plan.
+
+### Still open
+
+- Three pilots on the free plan only work as long as no other room plays,
+  and full rooms of four need the Pro plan. Bigger rooms would need a relay
+  of our own instead of Broadcast.
+- Shots, hits and the other events are not counted against a budget yet;
+  in a busy fight with many CPU tanks they add a few messages a second per
+  tank.
+- A paired phone still costs about 32 a second, on top of its room.
+- The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
+  decision for the Pro plan is due before real players come.
+- Clients older than these changes still run in TestFlight builds: they
+  do not see the CPU tanks of a newer host, and they do not know the room
+  limit. They never leave a full room by themselves and count as there
+  first, so a newer pilot leaves in their place. Web and a new TestFlight
+  build should go out together, and older builds expire with TestFlight.
+
+### Other log findings
+
+- **Security definer views** (advisor, critical): `weekly_scores` and
+  `tank_scores` ran with their owner's rights since migration 0011.
+  Migration 0014 makes both run with the caller's rights again;
+  `weekly_scores` reads through a function in the `private` schema that the
+  API does not expose, `tank_scores` only needs the own rows anyway, and no
+  longer shows other pilots' totals per vehicle. Checked with PGlite
+  against all migrations in order: the weekly totals of every account for
+  guests and pilots alike, the totals per vehicle only for the own pilot.
+  After `supabase db push`, look at the weekly leaderboard and the numbers
+  per vehicle once in the live game.
+- **RLS errors on `achievements`**: badges were written even when the
+  database had refused the round. They are now only written after a round
+  that was recorded.
+- `guests are not ranked` came from builds older than the guest check in the
+  client (TestFlight 1.0.0); the duplicate `schema_migrations_pkey` from two
+  migrations both numbered 0012, since renumbered.

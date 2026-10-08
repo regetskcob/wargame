@@ -12,6 +12,7 @@ dependencies:
   audioplayers: ^6.8.1
   audioplayers_tvos: ^0.0.2
   audioplayers_watchos: ^0.1.0
+  clock: ^1.1.2
   flame: ^2.0.0-dev.1
   flutter:
     sdk: flutter
@@ -33,6 +34,7 @@ dependencies:
   web: ^1.1.1
 
 dev_dependencies:
+  fake_async: ^1.3.3
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter

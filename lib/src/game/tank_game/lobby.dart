@@ -160,6 +160,7 @@ extension TankGameLobby on TankGame {
       uid: scoreService.myId,
       defense: round?.defense ?? false,
       botHost: round?.defense ?? false ? round?.botHost : null,
+      joinedAt: net.joinedAt,
     );
   }
 
@@ -490,7 +491,20 @@ extension TankGameLobby on TankGame {
     await net.connect(_presencePayload());
   }
 
-  void _onRosterChanged(List<LobbyPresence> members) {
+  void _onRosterChanged(List<LobbyPresence> all) {
+    final members = LobbyPresence.admitted(all, GameConfig.maxPilots);
+    if (phase.value != GamePhase.closed &&
+        all.any((member) => member.id == myId) &&
+        !members.any((member) => member.id == myId)) {
+      _enterClosed(
+        tr(
+          'Der Raum ist voll: höchstens ${GameConfig.maxPilots} Piloten.',
+          'The room is full: ${GameConfig.maxPilots} pilots at most.',
+        ),
+      );
+      unawaited(net.dispose());
+      return;
+    }
     final before = {for (final member in roster.value) member.id};
     final after = {for (final member in members) member.id};
     if (before.length != after.length || !before.containsAll(after)) {

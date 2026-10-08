@@ -12,6 +12,7 @@ class LobbyPresence {
     this.uid,
     this.defense = false,
     this.botHost,
+    this.joinedAt,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -28,7 +29,31 @@ class LobbyPresence {
       uid: json['uid'] as String?,
       defense: json['defense'] as bool? ?? false,
       botHost: json['botHost'] as String?,
+      joinedAt: json['joined'] as int?,
     );
+  }
+
+  /// The members a room keeps when more than [max] are in it: the owner
+  /// first, then whoever came first. Every client sorts the same way, so
+  /// they all agree on who has to go.
+  static List<LobbyPresence> admitted(List<LobbyPresence> members, int max) {
+    if (members.length <= max) {
+      return members;
+    }
+    final order = [...members]
+      ..sort((a, b) {
+        if (a.owner != b.owner) {
+          return a.owner ? -1 : 1;
+        }
+        // Clients from before the limit say nothing: they were there first.
+        final byTime = (a.joinedAt ?? 0).compareTo(b.joinedAt ?? 0);
+        return byTime != 0 ? byTime : a.id.compareTo(b.id);
+      });
+    final kept = {for (final member in order.take(max)) member.id};
+    return [
+      for (final member in members)
+        if (kept.contains(member.id)) member,
+    ];
   }
 
   /// Longest call sign the game shows. Longer ones come only from clients
@@ -75,6 +100,9 @@ class LobbyPresence {
   final bool defense;
   final String? botHost;
 
+  /// When the player came into the room, in milliseconds since the epoch.
+  final int? joinedAt;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -91,6 +119,7 @@ class LobbyPresence {
       if (uid != null) 'uid': uid,
       if (defense) 'defense': true,
       if (botHost != null) 'botHost': botHost,
+      if (joinedAt != null) 'joined': joinedAt,
     };
   }
 }

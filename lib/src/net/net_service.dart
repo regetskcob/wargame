@@ -17,6 +17,7 @@ import 'payloads/round_start_payload.dart';
 import 'payloads/tank_state_payload.dart';
 import 'payloads/shoot_payload.dart';
 import 'payloads/strike_payload.dart';
+import 'presence_throttle.dart';
 import 'replay.dart';
 
 class NetService {
@@ -32,6 +33,7 @@ class NetService {
   final bool isHost;
 
   void Function(TankStatePayload payload)? onTankState;
+  void Function(TankStatesPayload payload)? onTankStates;
   void Function(ShootPayload payload)? onShoot;
   void Function(HitPayload payload)? onHit;
   void Function(DeathPayload payload)? onDeath;
@@ -68,7 +70,19 @@ class NetService {
   void Function(String id)? onClose;
 
   RealtimeChannel? _channel;
+  PresenceThrottle? _presence;
+  int? _joinedAt;
+
+  /// When this player came into the room. Stays through reconnects, and
+  /// starts afresh once the room was left.
+  int get joinedAt => _joinedAt ??= DateTime.now().millisecondsSinceEpoch;
   LobbyPresence? _me;
+
+  /// Whether anybody else is in the room. Alone, nothing is sent: nobody
+  /// would hear it, and every message counts against the project's limit
+  /// of messages per second, which closes all channels once it is hit.
+  @visibleForTesting
+  bool othersPresent = false;
   bool _disposed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
@@ -82,10 +96,16 @@ class NetService {
       options: const RealtimeChannelConfig(self: false),
     );
     _channel = channel;
+    _presence = PresenceThrottle(channel);
     _listen(
       channel,
       NetEvent.state,
       (json) => onTankState?.call(TankStatePayload.fromJson(json)),
+    );
+    _listen(
+      channel,
+      NetEvent.states,
+      (json) => onTankStates?.call(TankStatesPayload.fromJson(json)),
     );
     _listen(
       channel,
@@ -204,11 +224,11 @@ class NetService {
       }),
     );
     _subscriptions.add(
-      channel.onStatusChange.listen((change) async {
+      channel.onStatusChange.listen((change) {
         if (change.status == RealtimeSubscribeStatus.subscribed) {
           final me = _me;
           if (me != null) {
-            await channel.track(me.toJson());
+            _presence?.track(me.toJson());
           }
         } else if (change.status == RealtimeSubscribeStatus.channelError ||
             change.status == RealtimeSubscribeStatus.closed) {
@@ -264,6 +284,15 @@ class NetService {
       return;
     }
     recorder?.add(event, payload);
+    if (!othersPresent) {
+      return;
+    }
+    transmit(event, payload);
+  }
+
+  /// Puts one message on the channel.
+  @protected
+  void transmit(NetEvent event, Map<String, dynamic> payload) {
     final channel = _channel;
     if (channel == null) {
       return;
@@ -275,7 +304,7 @@ class NetService {
 
   Future<void> updatePresence(LobbyPresence me) async {
     _me = me;
-    await _channel?.track(me.toJson());
+    _presence?.track(me.toJson());
   }
 
   void _emitRoster() {
@@ -299,6 +328,7 @@ class NetService {
       }
     }
     duplicateIds = twice;
+    othersPresent = byId.keys.any((id) => id != myId);
     onRosterChanged?.call(byId.values.toList());
   }
 
@@ -307,6 +337,9 @@ class NetService {
       await subscription.cancel();
     }
     _subscriptions.clear();
+    _presence?.close();
+    _presence = null;
+    othersPresent = false;
     final channel = _channel;
     _channel = null;
     if (channel != null) {
@@ -332,6 +365,7 @@ class NetService {
 
   Future<void> dispose() async {
     _disposed = true;
+    _joinedAt = null;
     await _teardownChannel();
   }
 }

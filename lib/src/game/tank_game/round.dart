@@ -435,6 +435,15 @@ extension TankGameRound on TankGame {
     }
   }
 
+  /// The CPU tanks of a round, all in one message. Only the host that
+  /// drives them sends it.
+  void _onTankStates(TankStatesPayload payload) {
+    if (payload.id != round?.botHost) {
+      return;
+    }
+    payload.states.forEach(_onTankState);
+  }
+
   void _onTankState(TankStatePayload raw) {
     final activeRound = round;
     if (activeRound == null) {
@@ -878,6 +887,7 @@ extension TankGameRound on TankGame {
   }
 
   void _clearWorld() {
+    _botStates.clear();
     final recorded = _recorder.finish();
     if (recorded != null) {
       lastReplay.value = recorded;

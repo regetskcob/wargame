@@ -29,9 +29,13 @@ event touches these places, in this order:
    defense mode via `runsShooter` / host checks) and ignore it from anyone
    else. If it changes health, ammo or items, add a rule in
    `lib/src/game/plausibility.dart`.
-6. **Traffic**: Realtime has message limits per room. Prefer events on
-   change over per-frame messages; per-frame state goes in `state`
-   (throttled to 20/s).
+6. **Traffic**: Realtime counts every message once sent and once per
+   receiver, against 100 a second for the whole project on the free plan
+   and a monthly quota (README, "Realtime limits"). Prefer events on change
+   over per-frame messages; per-frame state goes in `state` (10/s), CPU
+   tanks of the host in `states` (one message for all, 10/s). Nothing is
+   sent while a client is alone in its room. Check a new stream with
+   `test/net/message_budget_test.dart`.
 7. **Tests**: round trip in `test/net/payloads/`, hostile input in
    `test/net/hostile_payload_test.dart`, game behaviour in `test/game/`
    with the fakes in `test/helpers/fakes.dart`.

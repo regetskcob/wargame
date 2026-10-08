@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../db/server_status.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../net/room.dart';
@@ -17,6 +18,7 @@ import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
+import 'widgets/server_notice.dart';
 import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
 
@@ -133,56 +135,73 @@ class LaunchView extends StatelessWidget {
       const SizedBox(height: 16),
       PilotCard(progress: game.progress),
       const SizedBox(height: 20),
-      LayoutBuilder(
-        builder: (context, box) {
-          final cards = <Widget>[
-            for (final option in _options)
-              _ModeCard(
-                icon: option.icon,
-                title: option.title,
-                kicker: option.kicker,
-                onTap: () => game.chooseMode(option.mode),
-              ),
-            if (onTv) const _DuelCard(),
-          ];
-          // Two by two on the television, with the duel as the fourth.
-          // Elsewhere three side by side when there is room, else one per
-          // row. Cards in a row are equally tall, so it reads calmly.
-          final perRow = onTv
-              ? 2
-              : box.maxWidth >= 640
-              ? 3
-              : 1;
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              for (var row = 0; row < cards.length; row += perRow) ...[
-                if (row > 0) const SizedBox(height: 12),
-                IntrinsicHeight(
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      for (var i = row; i < row + perRow; i++) ...[
-                        if (i > row) const SizedBox(width: 12),
-                        Expanded(
-                          child: i < cards.length
-                              ? cards[i]
-                              : const SizedBox.shrink(),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          );
-        },
+      const ServerNotice(),
+      ValueListenableBuilder<bool>(
+        valueListenable: ServerStatus.available,
+        builder: (context, online, _) => _modes(online),
       ),
-      if (roomLink(game.net.room).isNotEmpty) ...[
-        const SizedBox(height: 28),
-        RoomList(game: game),
-      ],
+      ValueListenableBuilder<bool>(
+        valueListenable: ServerStatus.available,
+        builder: (context, online, _) =>
+            online && roomLink(game.net.room).isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 28),
+                child: RoomList(game: game),
+              )
+            : const SizedBox.shrink(),
+      ),
     ];
+  }
+
+  /// Playing with others needs the server; alone the game goes on without.
+  Widget _modes(bool online) {
+    VoidCallback? start(GameMode mode) =>
+        online || mode != GameMode.multi ? () => game.chooseMode(mode) : null;
+    return LayoutBuilder(
+      builder: (context, box) {
+        final cards = <Widget>[
+          for (final option in _options)
+            _ModeCard(
+              icon: option.icon,
+              title: option.title,
+              kicker: option.kicker,
+              onTap: start(option.mode),
+            ),
+          if (onTv) const _DuelCard(),
+        ];
+        // Two by two on the television, with the duel as the fourth.
+        // Elsewhere three side by side when there is room, else one per
+        // row. Cards in a row are equally tall, so it reads calmly.
+        final perRow = onTv
+            ? 2
+            : box.maxWidth >= 640
+            ? 3
+            : 1;
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (var row = 0; row < cards.length; row += perRow) ...[
+              if (row > 0) const SizedBox(height: 12),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = row; i < row + perRow; i++) ...[
+                      if (i > row) const SizedBox(width: 12),
+                      Expanded(
+                        child: i < cards.length
+                            ? cards[i]
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ],
+        );
+      },
+    );
   }
 }
 
@@ -220,10 +239,16 @@ class _ModeCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String kicker;
-  final VoidCallback onTap;
+
+  /// Null while the mode cannot be played, which greys the card out.
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
+    return Opacity(opacity: onTap == null ? 0.45 : 1, child: _card(context));
+  }
+
+  Widget _card(BuildContext context) {
     return Material(
       color: const Color(0x44000000),
       shape: BwShapes.card(),
@@ -257,7 +282,9 @@ class _ModeCard extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      kicker,
+                      onTap == null
+                          ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
+                          : kicker,
                       style: const TextStyle(
                         color: BwColors.amber,
                         fontSize: 12,

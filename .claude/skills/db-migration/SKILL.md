@@ -26,8 +26,9 @@ add a new one.
 4. **Client**: the game must keep working against a database without the
    migration (old deploys, local stacks). Catch the missing function or
    column and degrade.
-5. **Push**, only with the user's go-ahead, before the client code reaches
-   main. From a worktree first copy the link state:
+5. **Push** without asking (the user has given a standing go-ahead), as
+   soon as step 2 passed and before the client code reaches main. Say in
+   the report that it went live. From a worktree first copy the link state:
    `cp -R /Users/regetskcob/wargame/supabase/.temp supabase/.temp`, then
    `supabase db push`. Confirm with `supabase migration list`.
 6. Record the new live migration in memory and, if behaviour changed, in the

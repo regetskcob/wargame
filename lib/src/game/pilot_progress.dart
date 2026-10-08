@@ -93,23 +93,26 @@ class PilotProgress {
       cpuBeatenBy: cpuBeatenBy,
       cpuRating: cpuRating,
     );
-    _rounds++;
-    if (record != null) {
-      final before = rank.value.level;
-      rank.value = Rank.of(record.xp);
-      if (rating.value != null || record.ratingChange != 0) {
-        rating.value = record.rating;
-      } else {
-        // A rated round can leave the rating where it was: ask whether this
-        // one counted.
-        final score = await scores.myScore();
-        if (score != null && score.ratedRounds > 0) {
-          rating.value = score.rating;
-        }
-      }
-      rankedUp.value = rank.value.level > before;
-      lastRecord.value = record;
+    // A refused round earns no badges either: the database only takes
+    // badges right after a recorded round.
+    if (record == null) {
+      return;
     }
+    _rounds++;
+    final before = rank.value.level;
+    rank.value = Rank.of(record.xp);
+    if (rating.value != null || record.ratingChange != 0) {
+      rating.value = record.rating;
+    } else {
+      // A rated round can leave the rating where it was: ask whether this
+      // one counted.
+      final score = await scores.myScore();
+      if (score != null && score.ratedRounds > 0) {
+        rating.value = score.rating;
+      }
+    }
+    rankedUp.value = rank.value.level > before;
+    lastRecord.value = record;
     final tanksWithWins = <TankType>{
       if (won) tankType,
       for (final row in await scores.myTankScores())

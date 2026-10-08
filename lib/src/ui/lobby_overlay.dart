@@ -15,6 +15,7 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
@@ -727,6 +728,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ],
             ),
             const SizedBox(height: 18),
+            if (mode.withOthers) const ServerNotice(),
             if (room.isEmpty)
               _tankSection(context)
             else
