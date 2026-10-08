@@ -100,7 +100,8 @@ const _touch = [
     text:
         'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
         'nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE über '
-        'dem Stick schaltet sie aus und wieder an.',
+        'dem Stick schaltet sie aus und wieder an. Auf Schwer gibt es keine '
+        'Zielhilfe.',
   ),
   TutorialStep(
     title: 'INVENTAR',

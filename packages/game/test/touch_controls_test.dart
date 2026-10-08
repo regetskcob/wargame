@@ -5,7 +5,7 @@ import 'package:game/src/game/touch_input.dart';
 import 'package:game/src/ui/widgets/touch_controls.dart';
 
 void main() {
-  Future<TouchInput> pump(WidgetTester tester) async {
+  Future<TouchInput> pump(WidgetTester tester, {bool assist = true}) async {
     tester.view
       ..physicalSize = const Size(400, 800)
       ..devicePixelRatio = 1;
@@ -17,6 +17,7 @@ void main() {
           body: TouchControls(
             input: input,
             special: ValueNotifier<(SpecialWeapon, int)?>(null),
+            assist: assist,
           ),
         ),
       ),
@@ -37,6 +38,14 @@ void main() {
     await gesture.up();
     await tester.pump();
     expect(input.drive, isNull);
+  });
+
+  testWidgets('without the assist there is no button and it stays off', (
+    tester,
+  ) async {
+    final input = await pump(tester, assist: false);
+    expect(find.text('ZIELHILFE'), findsNothing);
+    expect(input.assist, isFalse);
   });
 
   testWidgets('aim assist starts on, the button switches it, the stick '

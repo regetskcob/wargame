@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../game/bot_level.dart';
 import '../game/components/storm_zone.dart';
 import '../net/payloads/defense_payload.dart';
 import '../game/defense/tower.dart';
@@ -122,7 +123,11 @@ class _HudOverlayState extends State<HudOverlay> {
             ),
           EnemyIndicators(game: game),
           if (touch)
-            TouchControls(input: game.touch, special: game.specialNotifier),
+            TouchControls(
+              input: game.touch,
+              special: game.specialNotifier,
+              assist: game.difficulty != BotLevel.hard,
+            ),
           SafeArea(
             minimum: const EdgeInsets.all(8),
             child: Align(

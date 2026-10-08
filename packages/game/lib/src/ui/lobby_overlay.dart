@@ -235,7 +235,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           'aus: Sammle Munitions-Gems und Kanister.',
                     BotLevel.hard =>
                       'Steile Hügel, knapper Nachschub und treffsichere '
-                          'CPU-Panzer. Dazu gibt es Luftschläge als Gem.',
+                          'CPU-Panzer. Dazu gibt es Luftschläge als Gem, aber keine '
+                          'Zielhilfe.',
                   }),
                 ],
               ),
