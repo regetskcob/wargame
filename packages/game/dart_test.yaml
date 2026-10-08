@@ -1,0 +1,3 @@
+tags:
+  # Needs a running local Supabase stack, see test/netcode_smoke_test.dart.
+  supabase:
