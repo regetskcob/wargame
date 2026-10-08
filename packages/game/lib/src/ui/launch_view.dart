@@ -8,6 +8,7 @@ import '../theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
 import 'widgets/account_sheet.dart';
+import 'widgets/call_sign.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
@@ -52,7 +53,7 @@ class LaunchView extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  _CallSign(game: game),
+                  CallSign(game: game),
                 ],
               );
             }
@@ -60,7 +61,7 @@ class LaunchView extends StatelessWidget {
               children: [
                 title,
                 const SizedBox(width: 12),
-                _CallSign(game: game),
+                CallSign(game: game),
                 AccountButton(game: game),
                 const MuteButton(),
               ],
@@ -253,123 +254,6 @@ class _ModeCard extends StatelessWidget {
                   Icon(Icons.chevron_right, color: BwColors.amber),
                 ],
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// The player's call sign at the top: tap to change it.
-class _CallSign extends StatefulWidget {
-  const _CallSign({required this.game});
-
-  final SpaceGame game;
-
-  @override
-  State<_CallSign> createState() => _CallSignState();
-}
-
-class _CallSignState extends State<_CallSign> {
-  final _controller = TextEditingController();
-  final _focus = FocusNode();
-  var _editing = false;
-
-  @override
-  void initState() {
-    super.initState();
-    widget.game.pilotVersion.addListener(_refresh);
-    _focus.addListener(() {
-      if (!_focus.hasFocus && _editing) {
-        _save();
-      }
-    });
-  }
-
-  void _refresh() => setState(() {});
-
-  @override
-  void dispose() {
-    widget.game.pilotVersion.removeListener(_refresh);
-    _controller.dispose();
-    _focus.dispose();
-    super.dispose();
-  }
-
-  void _edit() {
-    _controller
-      ..text = widget.game.myName
-      ..selection = TextSelection(
-        baseOffset: 0,
-        extentOffset: widget.game.myName.length,
-      );
-    setState(() => _editing = true);
-    _focus.requestFocus();
-  }
-
-  void _save() {
-    final game = widget.game;
-    game.setPilot(name: _controller.text, colorIndex: game.myColorIndex);
-    // The waiting room reads the name again from the game.
-    game.pilotVersion.value++;
-    setState(() => _editing = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_editing) {
-      return SizedBox(
-        width: 220,
-        child: TextField(
-          controller: _controller,
-          focusNode: _focus,
-          maxLength: 16,
-          decoration: InputDecoration(
-            labelText: 'RUFNAME',
-            counterText: '',
-            isDense: true,
-            suffixIcon: IconButton(
-              tooltip: 'Speichern',
-              onPressed: _save,
-              icon: const Icon(Icons.check, color: BwColors.amber),
-            ),
-          ),
-          onSubmitted: (_) => _save(),
-        ),
-      );
-    }
-    return Tooltip(
-      message: 'Rufnamen ändern',
-      child: InkWell(
-        onTap: _edit,
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 260),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: ShapeDecoration(
-            color: const Color(0x44000000),
-            shape: BeveledRectangleBorder(
-              borderRadius: BorderRadius.circular(6),
-              side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.badge_outlined, size: 18, color: BwColors.amber),
-              const SizedBox(width: 8),
-              Flexible(
-                child: Text(
-                  widget.game.myName,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 1,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              const Icon(Icons.edit, size: 16, color: BwColors.textDim),
             ],
           ),
         ),

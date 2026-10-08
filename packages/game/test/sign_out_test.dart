@@ -6,51 +6,8 @@ import 'package:game/src/net/room.dart';
 import 'package:game/src/ui/widgets/account_panel.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-User _user({required bool guest}) => User(
-  id: guest ? 'guest' : 'account',
-  audience: 'authenticated',
-  createdAt: DateTime.utc(2026, 10, 8),
-  email: guest ? null : 'peter@example.com',
-  isAnonymous: guest,
-);
-
-/// Stands in for Supabase: signed into an account, signing out leaves a
-/// fresh guest behind, or fails when told to.
-class _FakeAccounts implements AccountService {
-  _FakeAccounts({this.fails = false});
-
-  final bool fails;
-  var signOuts = 0;
-
-  @override
-  final user = ValueNotifier<User?>(_user(guest: false));
-
-  @override
-  final providers = ValueNotifier<List<(OAuthProvider, String)>>(const []);
-
-  @override
-  Future<void> loadProviders() async {}
-
-  @override
-  bool get isGuest => user.value?.isAnonymous ?? true;
-
-  @override
-  String? get email => user.value?.email;
-
-  @override
-  Future<void> signOut() async {
-    signOuts++;
-    if (fails) {
-      throw Exception('offline');
-    }
-    user.value = _user(guest: true);
-  }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+import 'fakes.dart';
 
 void main() {
   late List<bool> switches;
@@ -94,7 +51,7 @@ void main() {
   testWidgets('signing out closes the dialog and starts over on the '
       'welcome page', (tester) async {
     rememberGuest();
-    final accounts = _FakeAccounts();
+    final accounts = FakeAccounts();
     await open(tester, accounts);
 
     await tester.tap(find.text('ABMELDEN'));
@@ -118,7 +75,7 @@ void main() {
     tester,
   ) async {
     rememberGuest();
-    final accounts = _FakeAccounts(fails: true);
+    final accounts = FakeAccounts(fails: true);
     await open(tester, accounts);
 
     await tester.tap(find.text('ABMELDEN'));

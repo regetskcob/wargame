@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../env.dart';
 import '../game_config.dart';
 import '../game/bot_level.dart';
 import '../game/game_mode.dart';
@@ -17,7 +16,7 @@ import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
-import 'widgets/account_panel.dart';
+import 'widgets/call_sign.dart';
 import 'widgets/panel.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
@@ -35,7 +34,6 @@ class LobbyOverlay extends StatefulWidget {
 }
 
 class _LobbyOverlayState extends State<LobbyOverlay> {
-  late final TextEditingController _nameController;
   late int _colorIndex;
   late int _teamPick = widget.game.teamPick;
   bool _closeArmed = false;
@@ -44,24 +42,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.game.myName);
     _colorIndex = widget.game.myColorIndex;
     widget.game.pilotVersion.addListener(_reloadPilot);
   }
 
-  /// Another account was signed in: show its name and look.
+  /// Another account was signed in: show its look.
   void _reloadPilot() {
-    setState(() {
-      _nameController.text = widget.game.myName;
-      _colorIndex = widget.game.myColorIndex;
-    });
+    setState(() => _colorIndex = widget.game.myColorIndex);
   }
 
   @override
   void dispose() {
     widget.game.pilotVersion.removeListener(_reloadPilot);
     _closeTimer?.cancel();
-    _nameController.dispose();
     super.dispose();
   }
 
@@ -83,7 +76,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   void _apply() {
-    widget.game.setPilot(name: _nameController.text, colorIndex: _colorIndex);
+    widget.game.setPilot(name: widget.game.myName, colorIndex: _colorIndex);
   }
 
   /// Title, what the round is about and the sound switch.
@@ -359,7 +352,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Call sign, account, vehicle and paint: what every player sets.
+  /// Call sign, vehicle and paint: what every player sets. The call sign
+  /// and the account are changed behind the profile button.
   Widget _tankSection(BuildContext context) {
     final game = widget.game;
     return _Section(
@@ -369,24 +363,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PilotCard(progress: game.progress),
-          if (Env.accounts) ...[
-            const SizedBox(height: 8),
-            AccountPanel(
-              accounts: game.accounts,
-              onCallSign: (name) {
-                game.claimCallSign(name);
-                setState(() => _nameController.text = name);
-              },
-              callSign: game.myName,
-            ),
-          ],
           const SizedBox(height: 12),
-          TextField(
-            controller: _nameController,
-            maxLength: 16,
-            decoration: const InputDecoration(labelText: 'RUFNAME'),
-            onChanged: (_) => _apply(),
-          ),
+          CallSign(game: game),
           _label(context, 'FAHRZEUG'),
           ListenableBuilder(
             listenable: Listenable.merge([

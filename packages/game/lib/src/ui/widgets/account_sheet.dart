@@ -53,8 +53,37 @@ class AccountSheet extends StatefulWidget {
 class _AccountSheetState extends State<AccountSheet> {
   var _busy = false;
   String? _error;
+  late final _name = TextEditingController(text: widget.game.myName);
 
   SpaceGame get _game => widget.game;
+
+  @override
+  void initState() {
+    super.initState();
+    _game.pilotVersion.addListener(_reloadName);
+  }
+
+  /// Signing in here brings the account's call sign along.
+  void _reloadName() {
+    if (_name.text.trim() != _game.myName) {
+      _name.text = _game.myName;
+    }
+  }
+
+  @override
+  void dispose() {
+    _game.pilotVersion.removeListener(_reloadName);
+    _name.dispose();
+    super.dispose();
+  }
+
+  /// Takes the call sign while typing, the start page and the waiting
+  /// room behind the sheet follow along. An empty field keeps the old one.
+  void _rename(String value) {
+    if (value.trim().isNotEmpty) {
+      _game.claimCallSign(value);
+    }
+  }
 
   Future<void> _delete() async {
     final confirmed = await showDialog<bool>(
@@ -119,6 +148,8 @@ class _AccountSheetState extends State<AccountSheet> {
     return Panel(
       padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
       child: Column(
+        // As tall as its content, scrolling only once that is too much.
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Row(
@@ -142,9 +173,16 @@ class _AccountSheetState extends State<AccountSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Du spielst als ${_game.myName}.',
-                    style: const TextStyle(color: BwColors.textDim),
+                  TextField(
+                    controller: _name,
+                    maxLength: 16,
+                    decoration: const InputDecoration(
+                      labelText: 'RUFNAME',
+                      helperText:
+                          'Öffentlich sichtbar, zum Beispiel in der '
+                          'Bestenliste',
+                    ),
+                    onChanged: _rename,
                   ),
                   const SizedBox(height: 12),
                   if (Env.accounts)
