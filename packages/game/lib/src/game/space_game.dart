@@ -101,7 +101,10 @@ class SpaceGame extends FlameGame
     required this.scoreService,
     required this.profiles,
     required this.accounts,
-  }) : super(camera: CameraComponent());
+  }) : super(camera: CameraComponent()) {
+    welcomed.addListener(_wake);
+    choosingMode.addListener(_wake);
+  }
 
   final NetService net;
   final String myId;
@@ -626,7 +629,7 @@ class SpaceGame extends FlameGame
       _settleHost(_staleTimer);
       _staleTimer = 0;
       _dropSilentTanks();
-      _closeWhenIdle();
+      closeWhenIdle();
     }
     _engineTimer += dt;
     if (_engineTimer >= 0.1) {
@@ -4499,12 +4502,21 @@ class SpaceGame extends FlameGame
 
   /// Nobody started a round or came and went for a long time: leave the
   /// room, so forgotten tabs do not keep it open forever.
-  void _closeWhenIdle() {
-    if (phase.value != GamePhase.lobby) {
+  @visibleForTesting
+  void closeWhenIdle({DateTime? now}) {
+    if (phase.value != GamePhase.lobby || dozing) {
       return;
     }
-    final idle = DateTime.now().difference(_lastActivity);
+    final idle = (now ?? DateTime.now()).difference(_lastActivity);
     if (idle < GameConfig.lobbyIdleTimeout) {
+      return;
+    }
+    if (beforeWaitingRoom) {
+      // No waiting room on screen to close: leave the room quietly and
+      // join it again with the next step.
+      dozing = true;
+      roster.value = const [];
+      unawaited(net.dispose());
       return;
     }
     _enterClosed(
@@ -4513,6 +4525,25 @@ class SpaceGame extends FlameGame
       'geschlossen.',
     );
     unawaited(net.dispose());
+  }
+
+  /// Whether the player still looks at the welcome page or, as host, at
+  /// the start page: the room is joined, but no waiting room is shown.
+  bool get beforeWaitingRoom =>
+      !welcomed.value || (choosingMode.value && isHost.value);
+
+  /// Left the room quietly after a long time on the start or welcome page.
+  @visibleForTesting
+  var dozing = false;
+
+  /// Moving on to the waiting room joins the room again after dozing.
+  void _wake() {
+    if (!dozing || beforeWaitingRoom) {
+      return;
+    }
+    dozing = false;
+    _lastActivity = DateTime.now();
+    unawaited(net.connect(_presencePayload()));
   }
 
   void _enterClosed(String reason) {
