@@ -458,6 +458,12 @@ sharing and no QR scanning on the watch.
 
 ## Tests
 
+`test/net/message_budget_test.dart` plays real rounds on a `TankGame` and
+counts what would go onto the channel, then works out the load of a room
+the way Realtime counts it. `test/net/presence_throttle_test.dart` checks
+on a fake clock that no burst of presence updates gets near Realtime's
+limit. Both run without a server; see [Realtime limits](#realtime-limits).
+
 The integration smoke test exercises Broadcast, Presence, and the typed
 `scores` table against the local stack:
 
@@ -557,7 +563,7 @@ flutter build web --base-href /your-repo/ \
 ## How the netcode works
 
 - One Realtime channel per room carries the broadcast events `state`,
-  `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
+  `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
   `defense`, `tower`, and `close`.
 - The netcode is peer-authoritative: every client simulates its own player and
@@ -572,8 +578,13 @@ flutter build web --base-href /your-repo/ \
 - A round is defined by `{seed, startedAt}`: every client generates an
   identical world from the seed and derives the round clock from the start
   time. The world costs zero bandwidth.
-- Player state is throttled to 20 packets per second and remote players smooth
-  over the gaps with dead reckoning.
+- Tank state goes out ten times a second and remote players smooth over the
+  gaps with dead reckoning. The host sends the states of all its CPU tanks
+  together as one `states` message. A client alone in its room sends
+  nothing at all. See [Realtime limits](#realtime-limits).
+- Presence updates are spaced out to at most four per channel in 30 seconds
+  (`presence_throttle.dart`); faster changes wait and only the latest goes
+  out.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate.
 - In the defense mode the players hold a base together on a fixed map without
@@ -602,3 +613,99 @@ flutter build web --base-href /your-repo/ \
   other is there; the first phone steers, and when it falls silent for a
   moment the tank lets go. The room never sees the phone. The pairing code
   is kept for the browser tab, so a new room keeps the phone.
+
+## Realtime limits
+
+Findings from going through the Supabase logs on 8 October 2026, and what
+changed because of them.
+
+### How Realtime counts
+
+- **Messages per second** (free plan 100, Pro 500) count for the whole
+  project, averaged over a minute. A broadcast counts once when a client
+  sends it and once more for every client it is delivered to, so a room of
+  *n* pilots costs *n* times what its pilots send together: the load grows
+  with the square of the room. Above the limit Realtime closes **every
+  channel of the project**, all rooms at once
+  (`MessagePerSecondRateLimitReached`). The clients reconnect after two
+  seconds and are thrown out again until the average has come down.
+- **Presence per client**: a client may track or untrack at most five times
+  in 30 seconds on one channel. One more and Realtime closes that channel
+  (`ClientPresenceRateLimitReached`), which threw players out of their room.
+  This happened when picking colours, choosing teams or moving between
+  lobby, round and end screen in quick succession.
+
+Sources: [Realtime limits](https://supabase.com/docs/guides/realtime/limits),
+[ClientPresenceRateLimitReached](https://supabase.com/docs/guides/troubleshooting/realtime-client-presence-rate-limit-reached),
+and the `supabase/realtime` source (`RealtimeChannel`, `MessageDispatcher`,
+`PresenceHandler`).
+
+### Before and after
+
+Measured by `message_budget_test.dart`: a 20 second round on a real
+`TankGame`, the own tank always driving, turning its turret and firing.
+Room totals are what Realtime counts, sent plus delivered.
+
+| What one client sends | Before | After |
+|---|---:|---:|
+| Pilot | ~21/s | ~11/s |
+| Host with 3 CPU tanks | ~87/s | ~24/s |
+| Solo round with 4 CPU tanks | ~107/s | 0 |
+
+| Load of one room | Before | After | Fits |
+|---|---:|---:|---|
+| Solo with CPU tanks | ~107/s | 0 | free |
+| 2 pilots | ~83/s | ~44/s | free |
+| 2 pilots with CPU tanks | ~216/s | ~70/s | free |
+| 3 pilots | ~186/s | ~98/s | free only on its own, on the edge |
+| 3 pilots with CPU tanks | ~386/s | ~138/s | Pro |
+| 4 pilots | ~331/s | ~174/s | Pro |
+| 4 pilots with CPU tanks | ~597/s | ~227/s | Pro |
+| 8 pilots with CPU tanks | ~1850/s | ~800/s | neither |
+
+Before, a single player in a solo round with CPU tanks used more than the
+whole free plan on their own: that was most of the
+`MessagePerSecondRateLimitReached` entries in the logs. The limit is shared
+by every room, so on the free plan two rooms of two can already run into it
+together.
+
+What changed:
+
+1. **Nothing is sent when nobody listens.** A client alone in its room
+   still records the round for its replay, but puts nothing on the channel.
+2. **Ten states a second instead of twenty.** The receiving side already
+   moves remote tanks on with their speed between states, so this halves
+   the main stream without a visible difference.
+3. **CPU tanks in one message.** The host collects the latest state of
+   every CPU tank and sends them together as `states`, ten times a second,
+   however many there are. Their shots still go out one by one, so they
+   land at once. Clients from before this change do not understand
+   `states` and do not see the CPU tanks of a host that sends them.
+4. **Presence is throttled.** At most four updates per channel in 30
+   seconds, the last one always arrives.
+
+### Still open
+
+- Three pilots on the free plan only work as long as no other room plays,
+  and four or more need the Pro plan. Rooms of eight are too much for both:
+  that would need a relay of our own instead of Broadcast.
+- Shots, hits and the other events are not counted against a budget yet;
+  in a busy fight with many CPU tanks they add a few messages a second per
+  tank.
+- The phone controller sends its sticks about twenty times a second on its
+  own channel, roughly 40 counted messages a second for every paired phone.
+- Clients older than the `states` message still run in TestFlight builds.
+
+### Other log findings
+
+- **Security definer views** (advisor, critical): `weekly_scores` and
+  `tank_scores` ran with their owner's rights since migration 0011.
+  Migration 0014 makes both run with the caller's rights again;
+  `weekly_scores` reads through a function in the `private` schema that the
+  API does not expose, `tank_scores` only needs the own rows anyway.
+- **RLS errors on `achievements`**: badges were written even when the
+  database had refused the round. They are now only written after a round
+  that was recorded.
+- `guests are not ranked` came from builds older than the guest check in the
+  client (TestFlight 1.0.0); the duplicate `schema_migrations_pkey` from two
+  migrations both numbered 0012, since renumbered.
