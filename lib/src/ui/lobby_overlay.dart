@@ -738,7 +738,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              return Center(
+              // Starts at the top: short pages leave the room below them
+              // instead of floating in the middle of the screen.
+              return Align(
+                alignment: Alignment.topCenter,
                 child: SingleChildScrollView(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
