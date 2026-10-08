@@ -407,6 +407,28 @@ class SpaceGame extends FlameGame
     showHit(at, amount, mine: true, color: const Color(0xFFFF6B5A));
   }
 
+  void _renderWeather(
+    Canvas canvas,
+    WeatherLayer layer,
+    bool playing,
+    PlayerShip? ship,
+  ) {
+    layer.render(
+      canvas,
+      Size(canvasSize.x, canvasSize.y),
+      camera: camera.viewfinder.position.toOffset(),
+      scale: viewScale,
+      heading: playing ? ship!.angle : null,
+      focus: playing
+          ? ((ship!.position - camera.viewfinder.position) * viewScale +
+                    canvasSize / 2)
+                .toOffset()
+          : null,
+      // Spectators and the fallen see the whole field.
+      veil: playing,
+    );
+  }
+
   @override
   void render(Canvas canvas) {
     final rattle = _shake > 0.2;
@@ -426,22 +448,10 @@ class SpaceGame extends FlameGame
         (phase.value == GamePhase.playing ||
             phase.value == GamePhase.countdown) &&
         ship != null;
-    for (final layer in [?_passingWeather, ?_weather]) {
-      layer.render(
-        canvas,
-        Size(canvasSize.x, canvasSize.y),
-        camera: camera.viewfinder.position.toOffset(),
-        scale: viewScale,
-        heading: playing ? ship.angle : null,
-        focus: playing
-            ? ((ship.position - camera.viewfinder.position) * viewScale +
-                      canvasSize / 2)
-                  .toOffset()
-            : null,
-        // Spectators and the fallen see the whole field.
-        veil: playing,
-      );
-    }
+    final passing = _passingWeather;
+    if (passing != null) _renderWeather(canvas, passing, playing, ship);
+    final weather = _weather;
+    if (weather != null) _renderWeather(canvas, weather, playing, ship);
     if (_damageFlash > 0.01) {
       final size = canvasSize;
       final edge = Paint()
