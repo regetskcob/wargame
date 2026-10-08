@@ -396,93 +396,111 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Start, watch, replay and leave.
+  /// Watch and replay above, then leave on the left and start on the
+  /// right, both as wide.
   Widget _actions() {
     final game = widget.game;
     return ValueListenableBuilder<List<LobbyPresence>>(
       valueListenable: game.roster,
       builder: (context, roster, _) {
         final live = game.liveMatch;
-        return Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          crossAxisAlignment: WrapCrossAlignment.center,
+        final Widget leave;
+        // Alone there is nobody to close the room for: just go back.
+        if (game.mode.value == GameMode.solo && game.isHost.value) {
+          leave = OutlinedButton.icon(
+            onPressed: game.changeMode,
+            icon: const Icon(Icons.arrow_back),
+            label: _oneLine(tr('ZURÜCK', 'BACK')),
+          );
+        } else {
+          leave = OutlinedButton.icon(
+            onPressed: _confirmClose,
+            style: _closeArmed
+                ? OutlinedButton.styleFrom(
+                    foregroundColor: BwColors.danger,
+                    side: const BorderSide(color: BwColors.danger),
+                  )
+                : null,
+            icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+            label: _oneLine(switch ((_closeArmed, game.isHost.value)) {
+              (true, true) => tr(
+                'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                'REALLY CLOSE FOR EVERYONE?',
+              ),
+              (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
+              (false, true) => tr('WARTERAUM SCHLIESSEN', 'CLOSE WAITING ROOM'),
+              (false, false) => tr('WARTERAUM VERLASSEN', 'LEAVE WAITING ROOM'),
+            }),
+          );
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            FilledButton.icon(
-              onPressed: live == null && game.canStart
-                  ? () {
-                      _apply();
-                      game.startRound();
-                    }
-                  : null,
-              icon: const Icon(Icons.flag),
-              label: Text(
-                game.canStart
-                    ? tr('GEFECHT STARTEN', 'START BATTLE')
-                    : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
-              ),
-            ),
-            if (live != null)
-              OutlinedButton.icon(
-                onPressed: game.spectateLiveMatch,
-                icon: const Icon(Icons.visibility),
-                label: Text(
-                  tr(
-                    'LAUFENDES GEFECHT BEOBACHTEN',
-                    'WATCH THE BATTLE IN PROGRESS',
-                  ),
-                ),
-              ),
             ValueListenableBuilder(
               valueListenable: game.lastReplay,
-              builder: (context, replay, _) => replay == null
+              builder: (context, replay, _) => live == null && replay == null
                   ? const SizedBox.shrink()
-                  : OutlinedButton.icon(
-                      onPressed: game.watchReplay,
-                      icon: const Icon(Icons.movie_outlined),
-                      label: Text(
-                        tr('LETZTE RUNDE ANSEHEN', 'WATCH LAST ROUND'),
+                  : Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          if (live != null)
+                            OutlinedButton.icon(
+                              onPressed: game.spectateLiveMatch,
+                              icon: const Icon(Icons.visibility),
+                              label: Text(
+                                tr(
+                                  'LAUFENDES GEFECHT BEOBACHTEN',
+                                  'WATCH THE BATTLE IN PROGRESS',
+                                ),
+                              ),
+                            ),
+                          if (replay != null)
+                            OutlinedButton.icon(
+                              onPressed: game.watchReplay,
+                              icon: const Icon(Icons.movie_outlined),
+                              label: Text(
+                                tr('LETZTE RUNDE ANSEHEN', 'WATCH LAST ROUND'),
+                              ),
+                            ),
+                        ],
                       ),
                     ),
             ),
-            // Alone there is nobody to close the room for: just go back.
-            if (game.mode.value == GameMode.solo && game.isHost.value)
-              OutlinedButton.icon(
-                onPressed: game.changeMode,
-                icon: const Icon(Icons.arrow_back),
-                label: Text(tr('ZURÜCK', 'BACK')),
-              )
-            else
-              OutlinedButton.icon(
-                onPressed: _confirmClose,
-                style: _closeArmed
-                    ? OutlinedButton.styleFrom(
-                        foregroundColor: BwColors.danger,
-                        side: const BorderSide(color: BwColors.danger),
-                      )
-                    : null,
-                icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
-                label: Text(switch ((_closeArmed, game.isHost.value)) {
-                  (true, true) => tr(
-                    'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                    'REALLY CLOSE FOR EVERYONE?',
+            Row(
+              children: [
+                Expanded(child: leave),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: live == null && game.canStart
+                        ? () {
+                            _apply();
+                            game.startRound();
+                          }
+                        : null,
+                    icon: const Icon(Icons.flag),
+                    label: _oneLine(
+                      game.canStart
+                          ? tr('STARTEN', 'START')
+                          : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                    ),
                   ),
-                  (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
-                  (false, true) => tr(
-                    'WARTERAUM SCHLIESSEN',
-                    'CLOSE WAITING ROOM',
-                  ),
-                  (false, false) => tr(
-                    'WARTERAUM VERLASSEN',
-                    'LEAVE WAITING ROOM',
-                  ),
-                }),
-              ),
+                ),
+              ],
+            ),
           ],
         );
       },
     );
   }
+
+  /// A button label on one line, shrinking where the half width is too
+  /// narrow, so both buttons in the row stay as tall.
+  Widget _oneLine(String text) =>
+      FittedBox(fit: BoxFit.scaleDown, child: Text(text, maxLines: 1));
 
   /// How to steer, behind the question mark in the heading, with the way
   /// into the briefing.
