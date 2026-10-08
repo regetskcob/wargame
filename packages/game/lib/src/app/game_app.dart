@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
+import '../db/online_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
@@ -34,11 +35,16 @@ class GameApp extends StatefulWidget {
 class _GameAppState extends State<GameApp> {
   late SpaceGame game;
   final _gameFocus = FocusNode(debugLabel: 'game');
+  late final _online = OnlineService(
+    Supabase.instance.client,
+    inMatch: () => game.phase.value != GamePhase.lobby,
+  );
 
   @override
   void initState() {
     super.initState();
     game = _createGame(resolveRoom(), host: isRoomHost());
+    _online.start();
     onRoomSwitch = _switchRoom;
     listenForRoomLinks();
   }
@@ -85,6 +91,7 @@ class _GameAppState extends State<GameApp> {
   @override
   void dispose() {
     onRoomSwitch = null;
+    _online.dispose();
     game.phase.removeListener(_reclaimFocus);
     _gameFocus.dispose();
     super.dispose();
