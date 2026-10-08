@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Spaces out the presence updates of one channel. Realtime closes a
@@ -7,13 +8,27 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// seconds, which throws the player out of the room. Updates that come
 /// faster wait, and only the latest of them goes out.
 class PresenceThrottle {
-  PresenceThrottle(this._channel);
+  PresenceThrottle(RealtimeChannel channel)
+    : this.calling(
+        track: (payload) => channel.track(payload),
+        untrack: () => channel.untrack(),
+      );
+
+  /// Calls [track] and [untrack] instead of a channel, for the tests.
+  @visibleForTesting
+  PresenceThrottle.calling({
+    required this._track,
+    required this._untrack,
+    DateTime Function()? now,
+  }) : _now = now ?? DateTime.now;
 
   /// One below the server's limit, for a little room.
-  static const _budget = 4;
-  static const _window = Duration(seconds: 30);
+  static const budget = 4;
+  static const window = Duration(seconds: 30);
 
-  final RealtimeChannel _channel;
+  final Future<Object?> Function(Map<String, dynamic> payload) _track;
+  final Future<Object?> Function() _untrack;
+  final DateTime Function() _now;
   final _sent = <DateTime>[];
   Map<String, dynamic>? _payload;
   var _waiting = false;
@@ -40,10 +55,10 @@ class PresenceThrottle {
     if (_closed || !_waiting || _timer != null) {
       return;
     }
-    final now = DateTime.now();
-    _sent.removeWhere((at) => now.difference(at) >= _window);
-    if (_sent.length >= _budget) {
-      _timer = Timer(_window - now.difference(_sent.first), () {
+    final now = _now();
+    _sent.removeWhere((at) => now.difference(at) >= window);
+    if (_sent.length >= budget) {
+      _timer = Timer(window - now.difference(_sent.first), () {
         _timer = null;
         _flush();
       });
@@ -53,6 +68,6 @@ class PresenceThrottle {
     final payload = _payload;
     _payload = null;
     _waiting = false;
-    unawaited(payload == null ? _channel.untrack() : _channel.track(payload));
+    unawaited(payload == null ? _untrack() : _track(payload));
   }
 }

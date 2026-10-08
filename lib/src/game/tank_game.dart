@@ -104,6 +104,7 @@ class TankGame extends FlameGame
     required this.scoreService,
     required this.profiles,
     required this.accounts,
+    this._directory,
   }) : super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
@@ -306,7 +307,8 @@ class TankGame extends FlameGame
   ReplayPlayer? _replayPlayer;
 
   /// The public list of rooms.
-  late final directory = RoomDirectory(room: net.room);
+  late final directory = _directory ?? RoomDirectory(room: net.room);
+  final RoomDirectory? _directory;
 
   void _updateListing() {
     final listed =

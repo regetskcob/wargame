@@ -75,7 +75,8 @@ class NetService {
   /// Whether anybody else is in the room. Alone, nothing is sent: nobody
   /// would hear it, and every message counts against the project's limit
   /// of messages per second, which closes all channels once it is hit.
-  bool _othersPresent = false;
+  @visibleForTesting
+  bool othersPresent = false;
   bool _disposed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
@@ -272,8 +273,17 @@ class NetService {
       return;
     }
     recorder?.add(event, payload);
+    if (!othersPresent) {
+      return;
+    }
+    transmit(event, payload);
+  }
+
+  /// Puts one message on the channel.
+  @protected
+  void transmit(NetEvent event, Map<String, dynamic> payload) {
     final channel = _channel;
-    if (channel == null || !_othersPresent) {
+    if (channel == null) {
       return;
     }
     unawaited(
@@ -307,7 +317,7 @@ class NetService {
       }
     }
     duplicateIds = twice;
-    _othersPresent = byId.keys.any((id) => id != myId);
+    othersPresent = byId.keys.any((id) => id != myId);
     onRosterChanged?.call(byId.values.toList());
   }
 
@@ -318,7 +328,7 @@ class NetService {
     _subscriptions.clear();
     _presence?.close();
     _presence = null;
-    _othersPresent = false;
+    othersPresent = false;
     final channel = _channel;
     _channel = null;
     if (channel != null) {

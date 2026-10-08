@@ -6,6 +6,7 @@ import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/net_service.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
+import 'package:wargame/src/net/room_directory.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 User _user({required bool guest}) => User(
@@ -44,6 +45,15 @@ class FakeAccounts implements AccountService {
 
   @override
   Future<void> rememberLanguage(AppLang lang) async => language = lang;
+
+  @override
+  bool get olderThanTutorial => false;
+
+  @override
+  bool tutorialSeen({required bool touch}) => true;
+
+  @override
+  Future<void> rememberTutorialSeen({required bool touch}) async {}
 
   @override
   Future<void> signOut() async {
@@ -93,6 +103,22 @@ class FakeNet extends NetService {
   Future<void> dispose() async => disposes++;
 }
 
+/// The public room list without a server behind it.
+class FakeDirectory extends RoomDirectory {
+  FakeDirectory() : super(room: 'TEST1');
+
+  final listings = <RoomListing?>[];
+
+  @override
+  void connect() {}
+
+  @override
+  Future<void> advertise(RoomListing? listing) async => listings.add(listing);
+
+  @override
+  Future<void> dispose() async {}
+}
+
 /// A game that never connects: enough for the pages around it.
 TankGame offlineGame({
   AccountService? accounts,
@@ -104,4 +130,5 @@ TankGame offlineGame({
   scoreService: FakeScores(),
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),
+  directory: FakeDirectory(),
 );
