@@ -633,6 +633,12 @@ is no server of our own.
    repository name as base path and publishes it. Without the variables the
    build falls back to the project configured in `lib/src/app/env.dart`.
 
+GitHub only mails when a workflow fails, not when it recovers. The
+`build-status` workflow fills that gap: when `ci` or `pages` fails on
+`main`, it opens an issue labelled `build-failed` (one per workflow, later
+failures add a comment), and the next green run closes it with a comment.
+Watchers of the repository get a mail for both.
+
 To build by hand:
 
 ```sh
