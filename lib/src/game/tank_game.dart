@@ -325,6 +325,7 @@ class TankGame extends FlameGame
   final RoomSlots? _slots;
   async.Timer? _slotTimer;
   var _slotHeld = false;
+  int? _claimedLoad;
 
   /// Team wanted in the lobby (0 for any) and the one given for the round.
   int teamPick = 0;
@@ -334,6 +335,9 @@ class TankGame extends FlameGame
   /// people.
   final botLevel = ValueNotifier<BotLevel>(BotLevel.normal);
   final fillWithBots = ValueNotifier<bool>(false);
+
+  /// Whether a paired phone steers this game's tank. Set by `PadScreen`.
+  final padSteered = ValueNotifier<bool>(false);
 
   /// Whether the next round starts with red against blue.
   final teamMode = ValueNotifier<bool>(false);
@@ -475,6 +479,7 @@ class TankGame extends FlameGame
     _adoptLanguage();
     L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;
+    padSteered.addListener(_onPadSteered);
     await net.connect(_presencePayload());
     directory.connect();
     for (final notifier in <Listenable>[

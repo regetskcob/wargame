@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/pad_link.dart';
+import 'package:wargame/src/net/payloads/lobby_presence.dart';
 import 'package:wargame/src/net/payloads/pad_payload.dart';
 
 import '../helpers/fakes.dart';
@@ -8,13 +10,22 @@ import '../helpers/fakes.dart';
 void main() {
   late PadScreen screen;
   late TankGame main;
+  late FakeSlots slots;
 
   setUp(() {
     screen = PadScreen.instance..clearRoutes();
-    main = offlineGame();
+    slots = FakeSlots();
+    main = offlineGame(slots: slots);
     screen
       ..game = main
       ..debugPeers(const []);
+  });
+
+  tearDown(() {
+    screen
+      ..code.value = null
+      ..busy.value = false
+      ..onSend = null;
   });
 
   Map<String, dynamic> push(String id) =>
@@ -59,5 +70,120 @@ void main() {
 
     screen.clearRoutes();
     expect(screen.gameOf('a'), same(main));
+  });
+
+  group('the Realtime budget', () {
+    setUp(() => screen.code.value = 'ABCDEFGH');
+
+    test('a phone takes its share and tells the game it steers', () async {
+      screen.debugPeers(const [('a', 'Anna')]);
+      await screen.debugClaimSlot();
+      expect(slots.claimed.last, ('pad-ABCDEFGH', 32));
+      expect(main.padSteered.value, isTrue);
+    });
+
+    test('a duel with two phones takes two shares', () async {
+      final left = offlineGame(slots: slots);
+      final right = offlineGame(slots: slots);
+      screen
+        ..debugPeers(const [('a', 'Anna'), ('b', 'Ben')])
+        ..route('a', left)
+        ..route('b', right);
+      await screen.debugClaimSlot();
+      expect(slots.claimed.last.$2, 64);
+      expect(left.padSteered.value && right.padSteered.value, isTrue);
+      expect(main.padSteered.value, isFalse);
+    });
+
+    test('without room in the budget the phones wait and say so', () async {
+      slots.free = false;
+      screen.debugPeers(const [('a', 'Anna')]);
+      await screen.debugClaimSlot();
+      expect(screen.busy.value, isTrue);
+      expect(screen.gameOf('a'), isNull);
+      // Still paired: the room keeps playing without CPU tanks for it.
+      expect(main.padSteered.value, isTrue);
+
+      slots.free = true;
+      await screen.debugClaimSlot();
+      expect(screen.busy.value, isFalse);
+      expect(screen.gameOf('a'), same(main));
+    });
+
+    test(
+      'a room with others lowers its slot before the phone claims',
+      () async {
+        main
+          ..chooseMode(GameMode.multi)
+          ..roster.value = const [
+            LobbyPresence(id: 'me', name: 'me', colorIndex: 0, phase: 'lobby'),
+            LobbyPresence(id: 'x', name: 'x', colorIndex: 0, phase: 'lobby'),
+          ];
+        screen.debugPeers(const [('a', 'Anna')]);
+        await screen.debugClaimSlot();
+        final room = slots.claimed.lastIndexWhere((c) => c.$1 == main.net.room);
+        final pad = slots.claimed.lastIndexWhere((c) => c.$1 == 'pad-ABCDEFGH');
+        expect(slots.claimed[room].$2, 44, reason: 'no CPU tanks with a phone');
+        expect(room, lessThan(pad));
+        expect(slots.claimed[pad].$2, 32);
+      },
+    );
+
+    test(
+      'in defense the room keeps its CPU tanks and the phone may wait',
+      () async {
+        main
+          ..chooseMode(GameMode.defense)
+          ..roster.value = const [
+            LobbyPresence(id: 'me', name: 'me', colorIndex: 0, phase: 'lobby'),
+            LobbyPresence(id: 'x', name: 'x', colorIndex: 0, phase: 'lobby'),
+          ];
+        screen.debugPeers(const [('a', 'Anna')]);
+        await screen.debugClaimSlot();
+        final room = slots.claimed.lastWhere((c) => c.$1 == main.net.room);
+        expect(room.$2, 70);
+      },
+    );
+  });
+
+  group('lanes', () {
+    test('the status goes on the lane of its phone', () {
+      final sent = <(String, String?)>[];
+      screen
+        ..onSend = (event, payload, lane) {
+          sent.add((event, lane));
+        }
+        ..debugPeers(const [('a', 'Anna')], lanes: {'a'})
+        ..debugTick();
+      expect(sent, [('status', 'a')]);
+    });
+
+    test('a phone from before lanes hears it on the shared channel', () {
+      final sent = <(String, String?)>[];
+      screen
+        ..onSend = (event, payload, lane) {
+          sent.add((event, lane));
+        }
+        ..debugPeers(const [('a', 'Anna')])
+        ..debugTick();
+      expect(sent, [('status', null)]);
+    });
+
+    test('a phone talks on its own lane once the screen has lanes', () {
+      final remote = PadRemote('ABCDEFGH');
+      final lanes = <String?>[];
+      remote
+        ..onSend = (event, payload, lane) {
+          lanes.add(lane);
+        }
+        ..debugScreen(lanes: true)
+        ..tick()
+        ..act(PadActionKind.item);
+      expect(lanes, [remote.id, remote.id]);
+
+      remote.debugScreen(lanes: false);
+      remote.act(PadActionKind.item);
+      expect(lanes.last, isNull);
+    });
   });
 }

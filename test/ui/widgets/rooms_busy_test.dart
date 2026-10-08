@@ -21,7 +21,7 @@ void main() {
     L10n.lang.value = AppLang.de;
   });
 
-  tearDown(() => RoomSlots.live.value = null);
+  tearDown(() => RoomSlots.load.value = null);
 
   Future<void> show(WidgetTester tester, Widget child) async {
     await tester.pumpWidget(
@@ -34,30 +34,40 @@ void main() {
 
   TankGame game() => offlineGame()..changeMode();
 
-  testWidgets('the start page says when every room is taken', (tester) async {
-    RoomSlots.live.value = GameConfig.maxRooms;
+  testWidgets('the start page says when the budget has no room left', (
+    tester,
+  ) async {
+    RoomSlots.load.value = GameConfig.realtimeBudget;
     await show(tester, LaunchView(game: game()));
-    expect(find.textContaining('läuft schon ein Mehrspieler'), findsOneWidget);
+    expect(
+      find.textContaining('trägt der Server im Moment nicht'),
+      findsOneWidget,
+    );
     expect(find.text('ALLE RÄUME BELEGT'), findsOneWidget);
     // Single player stays as it was.
     expect(find.text('ALLEIN GEGEN CPU'), findsOneWidget);
   });
 
-  testWidgets('with a free room the start page says nothing', (tester) async {
-    RoomSlots.live.value = GameConfig.maxRooms - 1;
+  testWidgets('with room in the budget the start page says nothing', (
+    tester,
+  ) async {
+    RoomSlots.load.value = 0;
     await show(tester, LaunchView(game: game()));
-    expect(find.textContaining('läuft schon ein Mehrspieler'), findsNothing);
+    expect(
+      find.textContaining('trägt der Server im Moment nicht'),
+      findsNothing,
+    );
     expect(find.text('GEFECHT MIT ANDEREN'), findsOneWidget);
   });
 
-  testWidgets('a waiting room with every slot taken cannot be joined', (
+  testWidgets('a waiting room cannot be joined while the budget is full', (
     tester,
   ) async {
     final g = game();
     g.directory.rooms.value = const [
       RoomListing(room: 'ABCDE', host: 'Wolf', players: 1, inMatch: false),
     ];
-    RoomSlots.live.value = GameConfig.maxRooms;
+    RoomSlots.load.value = GameConfig.realtimeBudget;
     await show(tester, RoomList(game: g));
     expect(find.text('BELEGT'), findsOneWidget);
     final button = tester.widget<TextButton>(
@@ -65,7 +75,7 @@ void main() {
     );
     expect(button.onPressed, isNull);
 
-    RoomSlots.live.value = 0;
+    RoomSlots.load.value = 0;
     await tester.pump();
     expect(find.text('BEITRETEN'), findsWidgets);
     expect(find.text('BELEGT'), findsNothing);
@@ -81,7 +91,7 @@ void main() {
         inMatch: true,
       ),
     ];
-    RoomSlots.live.value = 0;
+    RoomSlots.load.value = 0;
     await show(tester, RoomList(game: g));
     expect(find.text('VOLL'), findsOneWidget);
   });

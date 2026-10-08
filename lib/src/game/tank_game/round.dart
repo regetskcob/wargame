@@ -34,7 +34,8 @@ extension TankGameRound on TankGame {
     final botCount = botsFor(
       solo: solo || together,
       humans: ids.length,
-      fill: fillWithBots.value && !defending,
+      // A phone in the room leaves no Realtime room for CPU tanks.
+      fill: fillWithBots.value && !defending && !roomHasPhone,
       teams: teamMode.value,
       random: random,
     );

@@ -528,7 +528,8 @@ a controller, T on a keyboard, sends an extra tank against the other base for
 120 funds (`troops` event, run by the host). Bases grow on their
 own, the HUD shows both, whose base falls first loses, and the waves go on past
 wave 8 by themselves. Duels are unranked. The host runs the waves and keeps the
-score of every base and gun, also of the other player's shots.
+score of every base and gun, also of the other player's shots. Phones as
+the two players' controllers talk to the television on a lane each.
 
 ```sh
 export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
@@ -554,9 +555,11 @@ the way Realtime counts it; its skipped tests are the targets still out
 of reach. `test/net/pad_budget_test.dart` does the same for a paired
 phone controller, `test/net/presence_throttle_test.dart` checks that no
 burst of presence updates gets near Realtime's limit, both on a fake
-clock. `test/game/room_capacity_test.dart` covers the room limit and the
-room slots, `test/ui/widgets/rooms_busy_test.dart` what the start page and
-the room list show while every slot is taken,
+clock, and the duel on lanes. `test/game/room_capacity_test.dart`
+covers the room limit and what rooms claim of the budget,
+`test/net/pad_screen_test.dart` what phones claim and the lanes,
+`test/ui/widgets/rooms_busy_test.dart` what the start page and the room
+list show while the budget is full,
 `test/db/server_status_test.dart` a server that refuses with 402 or
 cannot be reached. All of them run without a server; see
 [Realtime limits](#realtime-limits).
@@ -645,7 +648,7 @@ is no server of our own.
    the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable
    key) under Settings, Secrets and variables, Actions, Variables, and
    `ACCOUNTS` set to `true` for accounts. Optionally `MAX_PILOTS` and
-   `MAX_ROOMS` for a bigger Supabase plan; without them the build keeps
+   `REALTIME_BUDGET` for a bigger Supabase plan; without them the build keeps
    to what the free plan carries, see
    [Rooms and room sizes](#rooms-and-room-sizes).
 3. Push to `main`. The `pages` workflow builds the game with the
@@ -693,13 +696,16 @@ flutter build web --base-href /your-repo/ \
   Presences carry when the pilot joined; every client keeps the owner and
   then the earliest arrivals, and whoever comes later sees that the room is
   full and leaves.
-- Only `MAX_ROOMS` rooms with more than one pilot play at once, project
-  wide (one by default). A room takes one of these slots through the
-  `claim_room` database function as soon as a second pilot is in it, and
-  everybody in it refreshes the slot once a minute; a silent room gives it
-  back after two and a half minutes. Who comes into a room that finds no
-  free slot sees that all rooms are taken and leaves; the owner stays and
-  waits. See [Rooms and room sizes](#rooms-and-room-sizes).
+- Rooms and phone controllers share the project's Realtime budget,
+  `REALTIME_BUDGET` messages a second (80 by default). A room takes a slot
+  with its load through the `claim_load` database function as soon as a
+  second pilot is in it, a screen with paired phones takes one for them,
+  and everybody refreshes once a minute; a silent slot runs out after two
+  and a half minutes. Who comes into a room that does not fit any more
+  sees that all rooms are taken and leaves; the owner stays and waits.
+  Phones that do not fit wait and steer nothing. A room with a phone in it
+  plays without CPU tanks filling it up. See
+  [Rooms and room sizes](#rooms-and-room-sizes).
 - Without a server the game still starts; single player goes on, and the
   heartbeat notices when the server is back. See
   [Running without the server](#running-without-the-server).
@@ -731,8 +737,10 @@ flutter build web --base-href /your-repo/ \
   sticks as `pad` at most twelve and a half times a second, rounded so a
   resting thumb's tremor is no change, and single presses as `act`; the
   screen plays them as its touch controls and answers with `status`
-  (health, ammunition, items, phase) at most about three times a second. Presence shows either end whether the
-  other is there; the first phone steers, and when it falls silent for a
+  (health, ammunition, items, phase) at most about three times a second.
+  Sticks and status run on a lane per phone, `pad-<CODE>-<phone>`, so in a
+  duel no phone hears the other; ends from before lanes stay on the shared
+  channel. Presence shows either end whether the other is there; the first phone steers, and when it falls silent for a
   moment the tank lets go. The room never sees the phone. The pairing code
   is kept for the browser tab, so a new room keeps the phone.
 
@@ -789,6 +797,7 @@ Room totals are what Realtime counts, sent plus delivered.
 |---|---:|---:|
 | Thumbs moving, in a fight | ~60/s | ~32/s |
 | Thumbs resting | ~9/s, up to ~40/s with tremor | ~9/s |
+| Apple TV duel with two phones, moving | ~95/s | ~63/s |
 
 Before, a single player in a solo round with CPU tanks used more than the
 whole free plan on their own: that was most of the
@@ -822,11 +831,23 @@ What changed:
    status at most every 250 ms. A quick tap on the aim stick shorter than
    80 ms can now go unnoticed; items and building go out at once as
    before.
-7. **Rooms take slots.** Only `MAX_ROOMS` rooms with more than one pilot
-   play at once, one by default (migration 0015, `RoomSlots`). The start
-   page and the waiting room say when every slot is taken, the
-   multiplayer card reads `ALLE RÄUME BELEGT`, and the room list shows
-   rooms that cannot be joined as `BELEGT`.
+7. **Rooms and phones share a budget.** Every room with more than one
+   pilot and every screen with paired phones takes a slot with the load
+   it costs, and a new one only gets in while all of them stay within
+   `REALTIME_BUDGET`, 80 a second by default (migrations 0015 and 0016,
+   `RoomSlots`). The start page and the waiting room say when nothing more
+   fits, the multiplayer card reads `ALLE RÄUME BELEGT`, the room list
+   shows rooms that cannot be joined as `BELEGT`, and the pairing says
+   when phones have to wait.
+8. **A phone makes room for itself.** A room with a phone controller in it
+   plays without CPU tanks filling it up (except in defense, where the
+   enemies are CPU tanks): the room lowers its slot first, then the phone
+   claims its share like anything else, and waits if it still does not
+   fit. So a room of two and a phone fit the free plan (~44 + 32 = 76),
+   two phones on top of a room of two do not.
+9. **A lane per phone.** Sticks and status run on a channel per phone,
+   so in an Apple TV duel neither phone hears the other: ~63 a second
+   instead of ~95.
 
 ### Monthly quota
 
@@ -874,26 +895,25 @@ messages a second, a fifth kept in reserve:
 | Any number of solo rounds | 0 | fits |
 | One room of 2 pilots | ~44/s | fits |
 | One room of 2 pilots with CPU tanks | ~70/s | fits |
-| One room of 2 pilots and a phone controller | ~76/s | fits, just |
-| Two rooms of 2 pilots | ~88/s | below 100, no reserve |
-| One room of 3 pilots | ~98/s | only on its own, at the limit |
+| One phone controller | ~32/s | fits |
+| One room of 2 pilots and a phone controller | ~76/s | fits, the room plays without CPU tanks |
 | Two players on one screen (split screen or duel) | 0 | fits, takes no room |
-| Two players on one screen, each on a phone | ~64/s | fits |
-| One room of 3 pilots with CPU tanks | ~138/s | does not fit |
-| One room of 4 pilots | ~174/s | does not fit |
+| Two players on one screen, each on a phone | ~64/s | fits while no room plays |
+| Two rooms of 2 pilots | ~88/s | the second is turned away |
+| A room of 2 pilots and somebody else's phone | ~102/s | the phone waits |
+| One room of 3 or 4 pilots | ~98–227/s | not allowed, `MAX_PILOTS=2` |
 
-So on the free plan **one small room plays at a time**: two pilots, with
-or without CPU tanks, next to any number of solo rounds. That is what the
-game allows by default, `MAX_PILOTS=2` and `MAX_ROOMS=1`; rooms of three
-or four and a second room at the same time are turned away. The monthly
-quota adds up to about 12 hours of a room of two, shared by all rooms.
+So on the free plan **one small room plays at a time**, next to any number
+of solo rounds and of two players on one screen. That is what the game allows
+by default, `MAX_PILOTS=2` and `REALTIME_BUDGET=80`: what does not fit is
+turned away with a notice, phones wait. The monthly quota adds up to
+about 12 hours of a room of two, shared by all rooms.
 
-| Plan | `MAX_PILOTS` | `MAX_ROOMS` | At most, with CPU tanks |
-|---|---:|---:|---:|
-| Free (default) | 2 | 1 | ~70/s of 100 |
-| Pro, full rooms | 4 | 1 | ~227/s of 500 |
-| Pro, many small rooms | 2 | 5 | ~350/s of 500 |
-| Pro, two full rooms | 4 | 2 | ~454/s of 500, no reserve |
+| Plan | `MAX_PILOTS` | `REALTIME_BUDGET` | Carries, for example |
+|---|---:|---:|---|
+| Free (default) | 2 | 80 | one room of two, or a room of two and a phone |
+| Pro, full rooms | 4 | 400 | one room of four with CPU tanks, a room of two and phones |
+| Pro, many small rooms | 2 | 400 | five rooms of two with CPU tanks |
 
 Set them as repository variables next to `ACCOUNTS`; the `pages`, `play`
 and `testflight` workflows hand them to the build. Every client of one
@@ -903,8 +923,8 @@ The same for every plan:
 
 Single player costs nothing of either: alone nothing goes over Realtime,
 so any number of solo rounds can run. The room size (`MAX_PILOTS`) and
-the rooms playing at once (`MAX_ROOMS`) are set by the build and enforced
-by the game; the tables show what each plan carries.
+the budget all rooms and phones share (`REALTIME_BUDGET`) are set by the
+build and enforced by the game; the tables show what each plan carries.
 
 **Rooms at the same time**, from the measured load of one room (sent plus
 delivered, own tank always driving and firing). The second number keeps a
@@ -927,9 +947,8 @@ Rooms of different sizes add up. Combinations that still fit, with the
 reserve:
 
 - **Free**: one room of two, with or without CPU tanks, plus any number
-  of solo rounds. Two rooms of two only without CPU tanks and without a
-  phone controller, and then with no reserve left. A room of three only on
-  its own. A room of four does not fit at all.
+  of solo rounds and of two players on one screen. A room of two and a phone
+  controller fit when the room drops its CPU tanks, which the game does.
 - **Pro**: one full room of four with CPU tanks plus two rooms of two
   (~227 + 2 × 70 ≈ 370/s), or two rooms of four without CPU tanks
   (~350/s), or about five rooms of two with CPU tanks.
@@ -953,13 +972,15 @@ The hours are for the whole project and month, shared by all rooms: two
 rooms of two playing for an hour use two hours of the "2 pilots" row.
 
 Two players on one screen, on a split screen or in a duel, cost nothing:
-their two games talk on the device and the room takes no slot. Phones as
-their controllers cost about 32 a second each. Two phones share one pad
-channel with the screen, so every input and status reaches both other
-ends, the other phone included: that third is wasted, and a pad channel
-per phone would save it. Only when somebody from another device joins,
-which a room of two on the free plan turns away, does the second player
-connect for themselves and the room cost what its pilots cost.
+their two games talk on the device, the room sends nothing for the
+second player and takes no share of the budget. Phones as their
+controllers cost about 32 a second each, each on a lane of its own (on
+one shared pad channel every input and status also reached the other
+phone). Two phones fit the free plan while no other room plays;
+controllers and the Siri Remote always work. Only when somebody from
+another device joins, which a room of two on the free plan turns away,
+does the second player connect for themselves and the room cost what its
+pilots cost.
 
 The other Realtime limits do not bind before these: every client holds
 one connection however many channels it joins (200 at once on the free
@@ -994,14 +1015,19 @@ The game no longer depends on the server to start
   voll: höchstens 2 Piloten." and leaves, the room list shows full rooms
   as `VOLL`. On the free plan that means duels of two, filled up with CPU
   tanks; spectators count as pilots.
-- **All rooms taken**, plainly: while another room plays, the start page
-  says that a multiplayer battle is already running, the multiplayer card
-  reads `ALLE RÄUME BELEGT`, and rooms of one in the list are `BELEGT`.
-  Opening a waiting room still works, and it says that nobody can come in
-  until a slot is free. Who joins through a link or code anyway reads
-  "Alle Räume sind gerade belegt …" and leaves. A slot comes free up to
-  two and a half minutes after its room ended. Single player always
-  works.
+- **All rooms taken**, plainly: while another room, a duel or phones use
+  the budget, the start page says that the server carries no more right
+  now, the multiplayer card reads `ALLE RÄUME BELEGT`, and rooms of one in
+  the list are `BELEGT`. Opening a waiting room still works, and it says
+  that nobody can come in until there is room. Who joins through a link or
+  code anyway reads "Alle Räume sind gerade belegt …" and leaves. A slot
+  comes free up to two and a half minutes after its room ended. Single
+  player always works.
+- **Phones that have to wait**: the pairing on the screen says that there
+  is no room for phone controllers right now; the phone steers once there
+  is. Controllers, keyboard and touch always work.
+- **No CPU tanks with a phone**: a room with a phone controller in it plays
+  without CPU tanks filling it up, and the waiting room says why.
 - **The phone controller** a little: on average about 40 ms, at most 80 ms
   more delay on the sticks, the status on the phone up to 250 ms later,
   and a tap on the aim stick shorter than 80 ms can go unnoticed.
@@ -1026,16 +1052,22 @@ at once whether a change still fits the plan.
   and full rooms of four need the Pro plan. Bigger rooms would need a relay
   of our own instead of Broadcast. See
   [Rooms and room sizes](#rooms-and-room-sizes).
-- Room slots only cover rooms. Phone controllers talk on their own pad
-  channels and take no slot, nor do two players on one screen.
-- Clients from before migration 0015 take no slot and do not know the
-  room limit of two.
+- The loads in the budget are estimates from the budget tests
+  (`GameConfig.roomLoad`, `GameConfig.padLoad`), not live counts; a room
+  always counts with CPU tanks unless a phone is in it, as only the host
+  knows whether it fills up.
+- Clients from before migrations 0015 and 0016 take no slot or count as a
+  room of two with CPU tanks, and do not know the room limit of two or the
+  lanes; phones from before the lanes stay on the shared pad channel.
+- Two players on one screen take no share of the budget: the first
+  player's presence carries the second, so other devices count them for
+  the room limit, but nothing goes over Realtime for them.
 - Shots, hits and the other events are not counted against a budget yet;
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
-- Two players on one screen with two phones as their controllers cost
-  about 64 a second, nearly what the free plan carries next to one room.
+- Two players on one screen cost nothing; with two phones as their
+  controllers about 64 a second, on the free plan only while no room plays.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they

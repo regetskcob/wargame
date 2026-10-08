@@ -13,6 +13,7 @@ class LobbyPresence {
     this.defense = false,
     this.botHost,
     this.joinedAt,
+    this.pad = false,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -30,6 +31,7 @@ class LobbyPresence {
       defense: json['defense'] as bool? ?? false,
       botHost: json['botHost'] as String?,
       joinedAt: json['joined'] as int?,
+      pad: json['pad'] as bool? ?? false,
     );
   }
 
@@ -103,6 +105,10 @@ class LobbyPresence {
   /// When the player came into the room, in milliseconds since the epoch.
   final int? joinedAt;
 
+  /// A phone controller steers this player's tank. The room then plays
+  /// without CPU tanks filling it up, to leave Realtime room for the phone.
+  final bool pad;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -120,6 +126,7 @@ class LobbyPresence {
       if (defense) 'defense': true,
       if (botHost != null) 'botHost': botHost,
       if (joinedAt != null) 'joined': joinedAt,
+      if (pad) 'pad': true,
     };
   }
 }

@@ -64,6 +64,7 @@ class TvControllers extends StatelessWidget {
                 ],
               ),
             ),
+            const PadBusyNotice(),
             const SizedBox(height: 14),
             ControllerSection(game: game),
           ],

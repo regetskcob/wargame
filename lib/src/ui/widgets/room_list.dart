@@ -61,7 +61,7 @@ class _RoomListState extends State<RoomList> {
         ListenableBuilder(
           listenable: Listenable.merge([
             widget.game.directory.rooms,
-            RoomSlots.live,
+            RoomSlots.load,
           ]),
           builder: (context, _) {
             final rooms = widget.game.directory.rooms.value;

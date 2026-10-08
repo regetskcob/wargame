@@ -3,13 +3,13 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../db/room_slots.dart';
-import '../../game/game_config.dart';
 import '../../l10n/l10n.dart';
 import '../theme.dart';
 import 'panel.dart';
 
-/// Says so while every room slot of the project is taken, and nothing
-/// otherwise. Counts the slots now and every 20 seconds while it shows.
+/// Says so while the project's Realtime budget has no room for another
+/// room, and nothing otherwise. Counts now and every 20 seconds while it
+/// shows.
 class RoomsBusyNotice extends StatefulWidget {
   const RoomsBusyNotice({required this.slots, this.waiting = false, super.key});
 
@@ -46,34 +46,27 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<int?>(
-      valueListenable: RoomSlots.live,
+      valueListenable: RoomSlots.load,
       builder: (context, _, _) {
         if (!RoomSlots.allTaken) {
           return const SizedBox.shrink();
         }
-        final rooms = GameConfig.maxRooms;
         final text = widget.waiting
             ? tr(
                 'Alle Räume sind gerade belegt: Mitspieler kommen erst in '
-                    'deinen Raum, wenn einer frei wird.',
+                    'deinen Raum, wenn wieder Platz ist.',
                 'All rooms are taken right now: others can only join yours '
-                    'once one is free.',
+                    'once there is room again.',
               )
             : tr(
-                rooms == 1
-                    ? 'Gerade läuft schon ein Mehrspieler-Gefecht, mehr '
-                          'trägt der Server im Moment nicht. Einzelspieler '
-                          'geht immer, Mitspielen sobald es vorbei ist.'
-                    : 'Alle $rooms Mehrspieler-Räume sind gerade belegt. '
-                          'Einzelspieler geht immer, Mitspielen sobald einer '
-                          'frei wird.',
-                rooms == 1
-                    ? 'A multiplayer battle is already running, the server '
-                          'carries no more right now. Single player always '
-                          'works, playing with others once it is over.'
-                    : 'All $rooms multiplayer rooms are taken right now. '
-                          'Single player always works, playing with others '
-                          'once one is free.',
+                'Gerade laufen schon Mehrspieler-Gefechte oder Handy-'
+                    'Controller, mehr trägt der Server im Moment nicht. '
+                    'Einzelspieler geht immer, Mitspielen sobald wieder '
+                    'Platz ist.',
+                'Multiplayer battles or phone controllers are running '
+                    'already, the server carries no more right now. Single '
+                    'player always works, playing with others once there is '
+                    'room again.',
               );
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
