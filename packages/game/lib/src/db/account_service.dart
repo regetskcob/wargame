@@ -94,6 +94,17 @@ class AccountService {
   bool tutorialSeen({required bool touch}) =>
       user.value?.userMetadata[_tutorialKey(touch: touch)] == true;
 
+  /// Day the tutorial came. Every visitor gets an account on the first
+  /// visit, a guest one at least, so an older account belongs to a player
+  /// who knows the game already.
+  static final tutorialSince = DateTime.utc(2026, 10, 8);
+
+  /// Whether the account is older than the tutorial.
+  bool get olderThanTutorial {
+    final created = user.value?.createdAt;
+    return created != null && created.isBefore(tutorialSince);
+  }
+
   /// Marks the tutorial as seen on the account, so signing in on another
   /// device does not bring it up again. Guests get the marker too: it stays
   /// when they register.

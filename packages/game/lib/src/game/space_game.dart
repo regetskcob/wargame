@@ -523,6 +523,16 @@ class SpaceGame extends FlameGame
       unawaited(accounts.rememberTutorialSeen(touch: touchMode.value));
       return true;
     }
+    if (accounts.olderThanTutorial) {
+      // Players from before the tutorial get the marker right away, for
+      // both kinds of controls.
+      rememberTutorialSeen();
+      unawaited(() async {
+        await accounts.rememberTutorialSeen(touch: true);
+        await accounts.rememberTutorialSeen(touch: false);
+      }());
+      return true;
+    }
     return accounts.tutorialSeen(touch: touchMode.value);
   }
 
@@ -534,7 +544,8 @@ class SpaceGame extends FlameGame
     }
   }
 
-  /// Closes the tutorial and marks it as seen.
+  /// Closes the tutorial and marks it as seen, whether it was finished or
+  /// skipped.
   void closeTutorial() {
     rememberTutorialSeen();
     tutorialDone.value = true;
