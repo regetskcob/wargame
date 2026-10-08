@@ -27,13 +27,13 @@ class Env {
 
   /// Pilots a room holds, and the Realtime messages a second all rooms and
   /// phone controllers of the project may use together. Both follow the
-  /// Supabase plan, whose limits count for the whole project: the free plan
-  /// allows 100, planned with 80, which carries one room of two (README,
-  /// "Rooms and room sizes", which also lists the values for Pro, such as
-  /// `MAX_PILOTS=4` and `REALTIME_BUDGET=400`).
-  static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 2);
+  /// Supabase plan, whose limits count for the whole project. The project
+  /// is on Pro: 500 a second, planned with 400, which carries rooms of four
+  /// (README, "Rooms and room sizes"). Back on the free plan, build with
+  /// `MAX_PILOTS=2` and `REALTIME_BUDGET=80`.
+  static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 4);
   static const realtimeBudget = int.fromEnvironment(
     'REALTIME_BUDGET',
-    defaultValue: 80,
+    defaultValue: 400,
   );
 }
