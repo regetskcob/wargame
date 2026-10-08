@@ -74,7 +74,7 @@ class MapTheme {
   final bool roads;
 
   static const forest = MapTheme(
-    name: 'Übungsplatz',
+    name: 'Gefechtsplatz',
     ground: Color(0xFF424F29),
     patches: [
       Color(0xFF4A5A2E),

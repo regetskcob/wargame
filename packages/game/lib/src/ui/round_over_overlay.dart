@@ -50,7 +50,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
             ? 'SIEG'
             : lost
             ? 'NIEDERLAGE'
-            : 'ÜBUNG BEENDET';
+            : 'GEFECHT BEENDET';
         return AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
@@ -107,7 +107,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                                   ? (game.round?.teamMode ?? false
                                         ? 'Euer Team behauptet das Feld!'
                                         : 'Letzter Panzer im Feld. Gut gemacht!')
-                                  : '$winner gewinnt die Übung.',
+                                  : '$winner gewinnt das Gefecht.',
                               style: Theme.of(context).textTheme.titleMedium,
                               textAlign: TextAlign.center,
                             ),

@@ -232,7 +232,7 @@ final _tour = [
         'Nebel, die die Sicht begrenzen. Häuser, Sperren und Bäume lassen '
         'sich zerschießen.',
     chips: [
-      TutorialChip(Icons.park, 'ÜBUNGSPLATZ'),
+      TutorialChip(Icons.park, 'GEFECHTSPLATZ'),
       TutorialChip(Icons.wb_sunny, 'WÜSTE'),
       TutorialChip(Icons.ac_unit, 'WINTER'),
       TutorialChip(Icons.location_city, 'STADT'),

@@ -102,7 +102,7 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   static const _empty = Text(
-    'Noch keine Übungen gewertet.',
+    'Noch keine Gefechte gewertet.',
     style: TextStyle(color: BwColors.textDim),
   );
 

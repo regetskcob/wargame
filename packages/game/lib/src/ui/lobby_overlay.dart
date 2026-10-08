@@ -512,14 +512,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : null,
               icon: const Icon(Icons.flag),
               label: Text(
-                game.canStart ? 'ÜBUNG STARTEN' : 'WARTE AUF GASTGEBER',
+                game.canStart ? 'GEFECHT STARTEN' : 'WARTE AUF GASTGEBER',
               ),
             ),
             if (live != null)
               OutlinedButton.icon(
                 onPressed: game.spectateLiveMatch,
                 icon: const Icon(Icons.visibility),
-                label: const Text('LAUFENDE ÜBUNG BEOBACHTEN'),
+                label: const Text('LAUFENDES GEFECHT BEOBACHTEN'),
               ),
             ValueListenableBuilder(
               valueListenable: game.lastReplay,
@@ -834,8 +834,8 @@ class _JoinedBanner extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Du bist dem Warteraum beigetreten. Der Gastgeber startet die '
-                'Übung, sobald alle da sind.',
+                'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '
+                'Gefecht, sobald alle da sind.',
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),
