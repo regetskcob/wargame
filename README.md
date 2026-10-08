@@ -22,7 +22,7 @@ netcode with Broadcast events and Presence. There is no game server.
 | Mail | Own SMTP server for the auth mails, German templates in `supabase/templates` |
 | Audio | Web Audio in the browser, `audioplayers` on macOS, iOS and Android |
 | Hosting | GitHub Pages, built and published by GitHub Actions on every push to `main`, served under `regetskcob.de` |
-| Tooling | Dart workspace with [Melos](https://melos.invertase.dev), Supabase CLI for the local stack and the migrations |
+| Tooling | A standard Flutter project, Supabase CLI for the local stack and the migrations |
 
 The typed database layer is the Supabase v3 groundwork, merged into
 [supabase-flutter](https://github.com/supabase/supabase-flutter) and published
@@ -35,7 +35,7 @@ to pub.dev:
   `supabase_typegen` code generator, released as `supabase_typegen` 0.5.1
 
 Everything resolves from pub.dev. There are no git dependencies and no
-`dependency_overrides` anywhere in the workspace.
+`dependency_overrides` anywhere in the project.
 
 ## Features
 
@@ -120,9 +120,9 @@ Everything resolves from pub.dev. There are no git dependencies and no
 
 ### Weapons and damage
 
-All values are hit points. They live in `packages/game/lib/src/game_config.dart`,
-`packages/game/lib/src/game/tank_stats.dart` and, for the guns,
-`packages/game/lib/src/game/defense/tower.dart`. Blasts do their full damage at
+All values are hit points. They live in `lib/src/game/game_config.dart`,
+`lib/src/game/tank_stats.dart` and, for the guns,
+`lib/src/game/defense/tower.dart`. Blasts do their full damage at
 the centre and half at the edge of the radius.
 
 **Tank guns.** Per second means with every shot landing.
@@ -180,8 +180,8 @@ shells a quarter to a helicopter and nothing to a jet.
 ### Defense thresholds
 
 The numbers that decide how a defense round grows. They live in
-`packages/game/lib/src/game_config.dart` and, for the guns,
-`packages/game/lib/src/game/defense/tower.dart`.
+`lib/src/game/game_config.dart` and, for the guns,
+`lib/src/game/defense/tower.dart`.
 
 **The base.** It starts with 1500 hit points. A wave counts as held well
 when the base loses at most 15 % of its current maximum during it. The
@@ -286,7 +286,7 @@ still a win.
   messages of the round, instead of trusting what each client reports.
   Until then kills, damage and wins are only clamped.
 - Tests for what is not covered yet (about 20 % of the code):
-  - the defense rules as a pure function out of `space_game.dart`, with an
+  - the defense rules as a pure function out of `tank_game.dart`, with an
     injected clock: the decision after wave 8, extending, pulling out, the
     wave bonus counted once, only the host deciding;
   - `record_round` and the policies with pgTAP in CI (`supabase test db`),
@@ -307,40 +307,56 @@ still a win.
 - Settings for key bindings and colour blindness, and the web version as an
   installable app (PWA).
 
-## Packages
+## Project structure
 
-| Package | Description |
+A standard Flutter app, everything lives in the repository root:
+
+| Path | Contents |
 | --- | --- |
-| `packages/game` | Panzergefecht, the game (Flutter web, macOS, iOS and Android) |
+| `lib/main.dart` | Entry point |
+| `lib/src/app` | App shell, overlay ids, environment, Live Activity bridge |
+| `lib/src/audio` | Sound playback for web and native |
+| `lib/src/db` | Supabase services and the generated schema |
+| `lib/src/game` | The Flame game (`TankGame`), its rules, config and bots |
+| `lib/src/game/components` | Tanks, shells, terrain and other Flame components |
+| `lib/src/game/defense` | The defense mode: map, towers, aircraft, director |
+| `lib/src/l10n` | German and English texts |
+| `lib/src/legal` | Impressum and privacy texts |
+| `lib/src/net` | Realtime rooms, events and payloads |
+| `lib/src/ui` | Overlays, widgets, tutorial and theme |
+| `test` | Unit and widget tests, mirroring `lib/src` |
+| `assets` | Sounds and fonts |
+| `android`, `ios`, `macos`, `web` | Platform runners |
+| `store` | App Store and Google Play texts, icons and screenshots |
+| `supabase` | Migrations, config and mail templates |
+| `tool` | Scripts for sounds and the legal pages |
 
 ## Prerequisites
 
 - [Flutter](https://flutter.dev) 3.47 or newer
 - [Supabase CLI](https://supabase.com/docs/guides/local-development) 2.x and Docker
-- [Melos](https://melos.invertase.dev) 8.x: `dart pub global activate melos`
 
 ## Setup
 
 ```sh
-dart pub get
+flutter pub get
 supabase start
 ```
 
 `supabase start` boots the local stack (API on port 54621) and applies the
 migrations. The game defaults to the hosted Supabase project (see
-`lib/src/env.dart`), so to play against the local stack pass the local URL and
+`lib/src/app/env.dart`), so to play against the local stack pass the local URL and
 the standard local publishable key as dart-defines, as shown below.
 
 ## Run the game
 
 ```sh
-melos run game
+flutter run -d chrome
 ```
 
-Or manually, with explicit configuration:
+Or with explicit configuration:
 
 ```sh
-cd packages/game
 flutter run -d chrome \
   --dart-define=SUPABASE_URL=http://127.0.0.1:54621 \
   --dart-define=SUPABASE_KEY=sb_publishable_... \
@@ -353,7 +369,7 @@ separate rooms to stay under the Realtime message limits.
 
 ## Mobile apps (iOS and Android)
 
-`packages/game` carries `ios/` and `android/` next to `macos/` and `web/`. The
+The project carries `ios/` and `android/` next to `macos/` and `web/`. The
 apps are called Panzergefecht, with the bundle and app id
 `de.regetskcob.wargame` on iOS and Android (kept from an earlier name, store
 ids cannot change). The iOS product is `Panzergefecht.app`, the Xcode target
@@ -370,11 +386,10 @@ You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:
 
 ```sh
-cd packages/game
 flutter run -d <device-id>   # a simulator, an emulator, or a plugged in phone
-melos run build:game:apk     # Android APK
-melos run build:game:appbundle  # Android App Bundle for Google Play
-melos run build:game:ios     # iOS, set your signing team in Xcode first
+flutter build apk --release        # Android APK
+flutter build appbundle --release  # Android App Bundle for Google Play
+flutter build ios --release        # iOS, set your signing team in Xcode first
 ```
 
 Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
@@ -398,12 +413,12 @@ phone the LAN address of your Mac.
 
 ## Apple Watch
 
-`packages/game/watchos` is the watchOS runner of the same game, built with the
+`watchos` is the watchOS runner of the same game, built with the
 [flutter-watchos](https://github.com/flutterwatch/flutter-watchos) toolchain
 (Flutter 3.47.5, Apple Silicon, `flutter-watchos login` once). The watch app is
 a companion of the iOS app (`de.regetskcob.wargame.watchkitapp`, embedded by the
 "Embed Prebuilt watchOS App" phase of the iOS Runner) and runs the same
-`lib/main.dart`. State: a spike. The game starts in the watch Simulator and
+`lib/main.dart`. State: first version, not tried on a real watch yet. The game starts in the watch Simulator and
 reaches Supabase and plays its sounds (`audioplayers_watchos`,
 `path_provider_watchos`, `shared_preferences_watchos`) and taps the wrist
 (`lib/src/haptics.dart`: hits and blasts close by, countdown, start, own tank
@@ -424,28 +439,16 @@ The app icon is the one of the phone app.
 
 ```sh
 export PATH="$HOME/path/to/flutter-watchos/bin:$PATH"
-cd packages/game
 flutter-watchos build watchos --simulator    # debug, Simulator only
 flutter-watchos run -d <watch-simulator-id>  # hot reload
 flutter-watchos run -d <watch-id> --release  # real watch: Series 9+, watchOS 26+
 ```
 
-The toolchain does not know Dart workspaces: it looks for
-`package_config.json` in `packages/game/.dart_tool`, finds none and registers no
-watch plugins (every call then throws `MissingPluginException`). Copy the two
-files from the workspace root after each `dart pub get` and run with
-`--no-pub`, because stock `flutter` commands (`flutter analyze` too) rewrite
-the plugin list without watchOS:
-
-```sh
-cp ../../.dart_tool/package_config.json ../../.dart_tool/package_graph.json .dart_tool/
-flutter-watchos run -d <watch-simulator-id> --no-pub
-```
-
 Use `FlutterWatchosPlatform.isWatch` from `flutter_watchos` to branch for the
 watch, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`
-package; without one calls throw `MissingPluginException`, as `audioplayers`
-does today. `app_links`, `share_plus` and `mobile_scanner` have none.
+package; without one calls throw `MissingPluginException`.
+`app_links`, `share_plus` and `mobile_scanner` have none, so no room links, no
+sharing and no QR scanning on the watch.
 
 ## Tests
 
@@ -454,23 +457,21 @@ The integration smoke test exercises Broadcast, Presence, and the typed
 
 ```sh
 supabase start
-cd packages/game
 flutter test
 ```
 
 ## Regenerating the typed database models
 
-`packages/game/lib/src/db/supabase_schema.g.dart` is generated by
+`lib/src/db/supabase_schema.g.dart` is generated by
 `supabase_typegen` from `supabase/schema.json`, a snapshot of the postgres-meta
 introspection document. After changing a migration, update the snapshot to
 match and regenerate:
 
 ```sh
-cd packages/game
 dart run supabase_typegen \
   --output lib/src/db/supabase_schema.g.dart \
   --import package:supabase_flutter/supabase_flutter.dart \
-  < ../../supabase/schema.json
+  < supabase/schema.json
 ```
 
 Columns that were added to a table after it was created (the statistics,
@@ -484,7 +485,6 @@ snapshot. A recent Supabase CLI (2.120 has it) supports Dart directly. Use
 hosted project after `supabase login`:
 
 ```sh
-cd packages/game
 supabase gen types --lang dart --local > lib/src/db/supabase_schema.g.dart
 ```
 
@@ -492,7 +492,6 @@ The CLI runs the `supabase_typegen` dev dependency of the package it is called
 from. On an older CLI, call the generator yourself:
 
 ```sh
-cd packages/game
 dart run supabase_typegen --local --output lib/src/db/supabase_schema.g.dart
 ```
 
@@ -537,14 +536,13 @@ is no server of our own.
    the repository variables `SUPABASE_URL` and `SUPABASE_KEY` (the publishable
    key) under Settings, Secrets and variables, Actions, Variables, and
    `ACCOUNTS` set to `true` for accounts.
-3. Push to `main`. The `pages` workflow builds `packages/game` with the
+3. Push to `main`. The `pages` workflow builds the game with the
    repository name as base path and publishes it. Without the variables the
-   build falls back to the project configured in `lib/src/env.dart`.
+   build falls back to the project configured in `lib/src/app/env.dart`.
 
 To build by hand:
 
 ```sh
-cd packages/game
 flutter build web --base-href /your-repo/ \
   --dart-define=SUPABASE_URL=https://your-project-ref.supabase.co \
   --dart-define=SUPABASE_KEY=sb_publishable_...
