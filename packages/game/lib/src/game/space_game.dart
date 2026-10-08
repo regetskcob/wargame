@@ -4492,6 +4492,25 @@ class SpaceGame extends FlameGame
     _setPhase(GamePhase.closed);
   }
 
+  /// Leaves this room for good, before the apps swap in a game for another
+  /// one: the channels close, timers stop and nothing writes anymore.
+  Future<void> leave() async {
+    if (_saveTimer?.isActive ?? false) {
+      // A name typed just now still goes out.
+      _saveTimer!.cancel();
+      try {
+        await profiles.save(name: myName, style: myColorIndex);
+      } on Object {
+        // Leaving the room matters more.
+      }
+    }
+    _noticeTimer?.cancel();
+    pauseEngine();
+    accounts.dispose();
+    await directory.dispose();
+    await net.dispose();
+  }
+
   /// Leaves the closed screen for a new room, hosted by this player.
   Future<void> openNewRoom() async {
     if (phase.value != GamePhase.closed || openFreshRoom()) {

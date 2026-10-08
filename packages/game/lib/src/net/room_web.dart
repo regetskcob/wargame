@@ -1,6 +1,7 @@
 import 'dart:js_interop';
 import 'dart:js_interop_unsafe';
 import 'dart:math';
+import 'dart:ui' show Rect;
 
 import 'package:web/web.dart' as web;
 
@@ -14,6 +15,10 @@ String _newCode() {
 }
 
 bool _hosting = true;
+
+/// Used by the apps to swap the game for another room. The browser loads
+/// the room's address instead, so this stays unset here.
+void Function(String room, {required bool host})? onRoomSwitch;
 
 const _hostedKey = 'panzergefecht.hostedRooms';
 
@@ -157,7 +162,8 @@ bool joinRoom(String room) {
   return true;
 }
 
-Future<bool> shareRoomLink(String url, String text) async {
+/// [origin] only matters to the share sheet of the apps.
+Future<bool> shareRoomLink(String url, String text, {Rect? origin}) async {
   final navigator = web.window.navigator;
   if (!(navigator as JSObject).has('share')) {
     return false;

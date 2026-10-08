@@ -9,7 +9,16 @@ class Env {
     defaultValue: 'sb_publishable__f2Lb3vqafUovQCsYilkiQ_nVNkoNhS',
   );
 
-  static const room = String.fromEnvironment('ROOM', defaultValue: 'main');
+  /// Fixed room for local testing, so two instances meet. Without it every
+  /// start opens a fresh private room, as in the browser.
+  static const room = String.fromEnvironment('ROOM');
+
+  /// The browser game. Room links from the apps point here, so the code
+  /// scanned or opened anywhere leads into the same room.
+  static const webUrl = String.fromEnvironment(
+    'WEB_URL',
+    defaultValue: 'https://www.regetskcob.de/wargame/',
+  );
 
   /// Securing the guest account and signing in on another device. Off until
   /// the project sends mails through its own SMTP server, see the README.

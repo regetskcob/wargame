@@ -1,9 +1,12 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../game/space_game.dart';
 import '../../net/room.dart';
+import '../../net/room_code.dart';
 import '../../net/room_directory.dart';
 import '../../theme.dart';
+import 'room_scanner.dart';
 
 /// Public rooms to join, and a field for the code of a private one.
 class RoomList extends StatefulWidget {
@@ -25,11 +28,19 @@ class _RoomListState extends State<RoomList> {
   }
 
   void _join(String room) {
-    final code = room.trim().toUpperCase();
-    if (code.isEmpty || code == widget.game.net.room) {
+    // A pasted room link works as well as the bare code.
+    final code = roomCodeFrom(room);
+    if (code == null || code == widget.game.net.room) {
       return;
     }
     joinRoom(code);
+  }
+
+  Future<void> _scan() async {
+    final code = await RoomScanner.scan(context);
+    if (code != null) {
+      _join(code);
+    }
   }
 
   @override
@@ -63,7 +74,7 @@ class _RoomListState extends State<RoomList> {
               child: TextField(
                 controller: _code,
                 textCapitalization: TextCapitalization.characters,
-                maxLength: 5,
+                maxLength: 12,
                 decoration: const InputDecoration(
                   labelText: 'RAUMCODE',
                   counterText: '',
@@ -78,6 +89,16 @@ class _RoomListState extends State<RoomList> {
             ),
           ],
         ),
+        // The apps read the QR code of a waiting room with the camera. In
+        // the browser the phone camera opens the room link by itself.
+        if (!kIsWeb) ...[
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            onPressed: _scan,
+            icon: const Icon(Icons.qr_code_scanner),
+            label: const Text('QR-CODE SCANNEN'),
+          ),
+        ],
       ],
     );
   }

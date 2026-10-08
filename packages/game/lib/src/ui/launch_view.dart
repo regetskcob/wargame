@@ -7,6 +7,7 @@ import '../net/room.dart';
 import '../theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
+import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
@@ -43,7 +44,13 @@ class LaunchView extends StatelessWidget {
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(children: [title, const MuteButton()]),
+                  Row(
+                    children: [
+                      title,
+                      AccountButton(game: game),
+                      const MuteButton(),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   _CallSign(game: game),
                 ],
@@ -54,6 +61,7 @@ class LaunchView extends StatelessWidget {
                 title,
                 const SizedBox(width: 12),
                 _CallSign(game: game),
+                AccountButton(game: game),
                 const MuteButton(),
               ],
             );

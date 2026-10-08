@@ -161,6 +161,20 @@ class AccountService {
     user.value = _client.auth.currentUser;
   }
 
+  /// Deletes the account with every round, rating, badge and the profile
+  /// for good, then plays on as a fresh guest.
+  Future<void> deleteAccount() async {
+    await _client.rpc<void>('delete_account');
+    try {
+      // The session belonged to the deleted user, drop it on this device.
+      await _client.auth.signOut(scope: SignOutScope.local);
+    } on Object {
+      // Gone on the server already, nothing left to sign out of.
+    }
+    await _client.auth.signInAnonymously();
+    user.value = _client.auth.currentUser;
+  }
+
   /// Leaves the account and plays on as a fresh guest.
   Future<void> signOut() async {
     await _client.auth.signOut();
