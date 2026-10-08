@@ -1,0 +1,74 @@
+# Uploads Panzergefecht to TestFlight and the store texts to App Store
+# Connect. Run from packages/game/ios after `flutter build ios --config-only`,
+# see store/ios/README.md. The GitHub workflow testflight.yaml does both.
+#
+# Signing runs through the App Store Connect API key: Xcode fetches the
+# certificate and the profile itself (cloud signing, the key needs the Admin
+# role). Only when IOS_DIST_P12_BASE64 is set, that certificate is imported
+# into a temporary keychain first.
+
+default_platform(:ios)
+
+STORE = File.expand_path("../../store/ios", __dir__)
+
+def api_key
+  app_store_connect_api_key(
+    key_id: ENV.fetch("ASC_KEY_ID"),
+    issuer_id: ENV.fetch("ASC_ISSUER_ID"),
+    key_filepath: ENV.fetch("ASC_KEY_PATH")
+  )
+end
+
+# Lets xcodebuild sign with the API key instead of a signed-in Apple ID.
+def signing_args
+  "-allowProvisioningUpdates " \
+    "-authenticationKeyPath #{ENV.fetch("ASC_KEY_PATH")} " \
+    "-authenticationKeyID #{ENV.fetch("ASC_KEY_ID")} " \
+    "-authenticationKeyIssuerID #{ENV.fetch("ASC_ISSUER_ID")}"
+end
+
+platform :ios do
+  desc "Builds the signed IPA and uploads it to TestFlight"
+  lane :beta do |options|
+    key = api_key
+    if ENV["IOS_DIST_P12_BASE64"].to_s != ""
+      setup_ci
+      p12 = File.join(Dir.tmpdir, "distribution.p12")
+      File.binwrite(p12, Base64.decode64(ENV["IOS_DIST_P12_BASE64"]))
+      import_certificate(
+        certificate_path: p12,
+        certificate_password: ENV.fetch("IOS_DIST_P12_PASSWORD", ""),
+        keychain_name: ENV.fetch("MATCH_KEYCHAIN_NAME", "fastlane_tmp_keychain"),
+        keychain_password: ""
+      )
+    end
+    build_app(
+      workspace: "Runner.xcworkspace",
+      scheme: "Runner",
+      configuration: "Release",
+      export_method: "app-store",
+      output_directory: File.expand_path("../../build/ios/ipa", __dir__),
+      xcargs: signing_args,
+      export_xcargs: signing_args
+    )
+    upload_to_testflight(
+      api_key: key,
+      changelog: File.read(File.join(STORE, "metadata/de-DE/release_notes.txt")),
+      skip_waiting_for_build_processing: !options[:wait]
+    )
+  end
+
+  desc "Uploads the store texts and screenshots, without a build or review"
+  lane :metadata do
+    deliver(
+      api_key: api_key,
+      metadata_path: File.join(STORE, "metadata"),
+      screenshots_path: File.join(STORE, "screenshots"),
+      overwrite_screenshots: true,
+      skip_binary_upload: true,
+      submit_for_review: false,
+      force: true,
+      precheck_include_in_app_purchases: false
+    )
+  end
+end

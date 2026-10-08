@@ -32,3 +32,10 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+# fastlane output and the App Store Connect key.
+fastlane/report.xml
+fastlane/README.md
+fastlane/test_output
+*.p8
+*.p12
