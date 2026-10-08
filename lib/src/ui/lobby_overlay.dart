@@ -789,12 +789,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Starts at the top: short pages leave the room below them
-              // instead of floating in the middle of the screen. The
-              // television shows every page whole, there it sits in the
-              // middle.
+              // Phones and the tablet apps start at the top: short pages
+              // leave the room below them instead of floating in the middle
+              // of a screen held in the hand. The browser and the
+              // television frame the menu as a plate, which sits best in
+              // the middle.
               return Align(
-                alignment: onTv ? Alignment.center : Alignment.topCenter,
+                alignment: phone ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
