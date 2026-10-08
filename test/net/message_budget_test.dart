@@ -1,9 +1,6 @@
 import 'dart:math';
 
-import 'package:flame/components.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/net/net_events.dart';
@@ -59,23 +56,7 @@ Future<_Measured> _playRound({
   Duration length = _length,
 }) async {
   final net = _CountingNet()..othersPresent = othersPresent;
-  final game = offlineGame(net: net)..onGameResize(Vector2(1280, 720));
-  for (final id in [
-    OverlayIds.lobby,
-    OverlayIds.countdown,
-    OverlayIds.hud,
-    OverlayIds.spectator,
-    OverlayIds.roundOver,
-    OverlayIds.closed,
-    OverlayIds.tutorial,
-  ]) {
-    game.overlays.addEntry(id, (_, _) => const SizedBox());
-  }
-  // ignore: invalid_use_of_internal_member
-  await game.load();
-  // ignore: invalid_use_of_internal_member
-  game.mount();
-  await game.ready();
+  final game = await loadedGame(net: net);
   game
     ..update(0)
     ..chooseMode(mode)

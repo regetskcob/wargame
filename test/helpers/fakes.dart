@@ -1,4 +1,6 @@
-import 'package:flutter/foundation.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/widgets.dart';
+import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/db/account_service.dart';
 import 'package:wargame/src/db/profile_service.dart';
 import 'package:wargame/src/db/score_service.dart';
@@ -132,3 +134,27 @@ TankGame offlineGame({
   accounts: accounts ?? FakeAccounts(),
   directory: FakeDirectory(),
 );
+
+/// A game loaded and mounted as the app would, with every overlay, so the
+/// net callbacks are wired and rounds can run.
+Future<TankGame> loadedGame({NetService? net}) async {
+  final game = offlineGame(net: net)..onGameResize(Vector2(1280, 720));
+  for (final id in [
+    OverlayIds.lobby,
+    OverlayIds.countdown,
+    OverlayIds.hud,
+    OverlayIds.spectator,
+    OverlayIds.roundOver,
+    OverlayIds.closed,
+    OverlayIds.tutorial,
+  ]) {
+    game.overlays.addEntry(id, (_, _) => const SizedBox());
+  }
+  // ignore: invalid_use_of_internal_member
+  await game.load();
+  // ignore: invalid_use_of_internal_member
+  game.mount();
+  await game.ready();
+  game.update(0);
+  return game;
+}

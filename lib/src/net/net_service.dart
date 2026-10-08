@@ -70,6 +70,11 @@ class NetService {
 
   RealtimeChannel? _channel;
   PresenceThrottle? _presence;
+  int? _joinedAt;
+
+  /// When this player came into the room. Stays through reconnects, and
+  /// starts afresh once the room was left.
+  int get joinedAt => _joinedAt ??= DateTime.now().millisecondsSinceEpoch;
   LobbyPresence? _me;
 
   /// Whether anybody else is in the room. Alone, nothing is sent: nobody
@@ -359,6 +364,7 @@ class NetService {
 
   Future<void> dispose() async {
     _disposed = true;
+    _joinedAt = null;
     await _teardownChannel();
   }
 }

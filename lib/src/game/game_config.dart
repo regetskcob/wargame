@@ -38,6 +38,12 @@ class GameConfig {
   /// in between. Realtime's free plan allows 100 messages a second for the
   /// whole project, and every state counts once per receiver.
   static const stateSyncInterval = 0.1;
+
+  /// Pilots a room holds, spectators included. Every message counts once
+  /// per receiver, so the load of a room grows with the square of its
+  /// pilots: four with CPU tanks need about 230 a second, within the Pro
+  /// plan's 500. Whoever comes later is turned away.
+  static const maxPilots = 4;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
