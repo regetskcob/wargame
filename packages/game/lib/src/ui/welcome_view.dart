@@ -29,21 +29,25 @@ class WelcomeView extends StatelessWidget {
         callSign: game.myName,
       ),
     );
-    final guest = _Box(
+    // Side by side the guest box is as tall as the account box, and its
+    // button sits on the same line as the account's.
+    Widget guest({bool stretched = false}) => _Box(
       icon: Icons.person_outline,
       title: 'ALS GAST',
       kicker: 'OHNE KONTO SPIELEN',
+      stretched: stretched,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 6),
+          const SizedBox(height: 14),
           const Text(
             'Sofort los, ohne E-Mail. Dein Fortschritt hängt an diesem '
             '${kIsWeb ? 'Browser' : 'Gerät'}. Im Warteraum kannst du dein Gastkonto jederzeit '
             'sichern.',
             style: TextStyle(color: BwColors.text, fontSize: 14, height: 1.35),
           ),
-          const SizedBox(height: 14),
+          if (stretched) const Spacer(),
+          const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: game.playAsGuest,
             icon: const Icon(Icons.chevron_right),
@@ -103,13 +107,13 @@ class WelcomeView extends StatelessWidget {
                     children: [
                       Expanded(flex: 3, child: account),
                       const SizedBox(width: 12),
-                      Expanded(flex: 2, child: guest),
+                      Expanded(flex: 2, child: guest(stretched: true)),
                     ],
                   ),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [account, const SizedBox(height: 12), guest],
+                  children: [account, const SizedBox(height: 12), guest()],
                 ),
         ),
         const SizedBox(height: 12),
@@ -152,12 +156,16 @@ class _Box extends StatelessWidget {
     required this.title,
     required this.kicker,
     required this.child,
+    this.stretched = false,
   });
 
   final IconData icon;
   final String title;
   final String kicker;
   final Widget child;
+
+  /// Fills the height it is given, the child takes what is left.
+  final bool stretched;
 
   @override
   Widget build(BuildContext context) {
@@ -194,7 +202,7 @@ class _Box extends StatelessWidget {
                 letterSpacing: 1.5,
               ),
             ),
-            child,
+            if (stretched) Expanded(child: child) else child,
           ],
         ),
       ),
