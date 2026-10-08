@@ -22,6 +22,7 @@ import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
 import 'widgets/touch_controls.dart';
 import 'widgets/vitals_plate.dart';
+import '../l10n/l10n.dart';
 
 class HudOverlay extends StatefulWidget {
   const HudOverlay({required this.game, super.key});
@@ -67,16 +68,30 @@ class _HudOverlayState extends State<HudOverlay> {
     if (now < graceEndsAt) {
       final seconds = ((graceEndsAt - now) / 1000).ceil();
       return compact
-          ? 'Sperrgebiet in $seconds s'
-          : 'Sperrgebiet wird in $seconds s zugezogen';
+          ? tr('Sperrgebiet in $seconds s', 'Closed zone in $seconds s')
+          : tr(
+              'Sperrgebiet wird in $seconds s zugezogen',
+              'Closed zone shrinks in $seconds s',
+            );
     }
     final radius = StormZone.radiusAt(round.startedAt, now);
     if (radius <= GameConfig.zoneMinRadius) {
-      return compact ? 'Sperrgebiet zu' : 'Sperrgebiet vollständig geschlossen';
+      return compact
+          ? tr('Sperrgebiet zu', 'Zone closed')
+          : tr(
+              'Sperrgebiet vollständig geschlossen',
+              'Closed zone fully shrunk',
+            );
     }
     return compact
-        ? 'Sicher: Radius ${radius.round()}'
-        : 'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}';
+        ? tr(
+            'Sicher: Radius ${radius.round()}',
+            'Safe: radius ${radius.round()}',
+          )
+        : tr(
+            'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}',
+            'Closed zone is shrinking: safe radius ${radius.round()}',
+          );
   }
 
   /// What the waves are up to, in place of the closing zone.
@@ -90,22 +105,33 @@ class _HudOverlayState extends State<HudOverlay> {
       final seconds = ((state.nextWaveAt - now) / 1000).ceil().clamp(0, 999);
       if (state.deciding) {
         return compact
-            ? 'Sieg! Ende in $seconds s'
-            : 'Sieg gesichert: Ende in $seconds s';
+            ? tr('Sieg! Ende in $seconds s', 'Victory! End in $seconds s')
+            : tr(
+                'Sieg gesichert: Ende in $seconds s',
+                'Victory secured: end in $seconds s',
+              );
       }
       return compact
-          ? 'Welle ${state.wave + 1} in $seconds s'
-          : 'Nächste Welle in $seconds s';
+          ? tr(
+              'Welle ${state.wave + 1} in $seconds s',
+              'Wave ${state.wave + 1} in $seconds s',
+            )
+          : tr('Nächste Welle in $seconds s', 'Next wave in $seconds s');
     }
-    return compact ? 'Welle läuft' : 'Welle läuft: Haltet die Straße';
+    return compact
+        ? tr('Welle läuft', 'Wave on')
+        : tr('Welle läuft: Haltet die Straße', 'Wave on: hold the road');
   }
 
   /// The wave out of the regular ones, or how far into the extension.
   static String _wave(DefensePayload? state) {
     final wave = state?.wave ?? 0;
     return state != null && state.extended
-        ? 'WELLE $wave · VERLÄNGERUNG'
-        : 'WELLE $wave/${GameConfig.defenseWaves}';
+        ? tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION')
+        : tr(
+            'WELLE $wave/${GameConfig.defenseWaves}',
+            'WAVE $wave/${GameConfig.defenseWaves}',
+          );
   }
 
   /// Wave, enemies and comrades in one short line, for the phone panel.
@@ -114,7 +140,8 @@ class _HudOverlayState extends State<HudOverlay> {
     final round = game.round;
     final allies = round == null ? 0 : round.alive.where(round.isAlly).length;
     return '${_wave(game.defense.value)}'
-        ' · FEINDE ${game.enemiesOnField} · KAM. $allies';
+        ' · ${tr('FEINDE', 'ENEMIES')} ${game.enemiesOnField}'
+        ' · ${tr('KAM.', 'ALLIES')} $allies';
   }
 
   @override
@@ -181,7 +208,8 @@ class _HudOverlayState extends State<HudOverlay> {
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
             builder: (context, state, _) => Text(
-              '${_wave(state)}   FEINDE $enemies   KAMERADEN $allies',
+              '${_wave(state)}   ${tr('FEINDE', 'ENEMIES')} $enemies   '
+              '${tr('KAMERADEN', 'COMRADES')} $allies',
               style: style,
             ),
           );
@@ -191,12 +219,12 @@ class _HudOverlayState extends State<HudOverlay> {
             TextSpan(
               children: [
                 TextSpan(
-                  text: 'ROT ${round.aliveIn(1)}',
+                  text: '${tr('ROT', 'RED')} ${round.aliveIn(1)}',
                   style: TextStyle(color: GameConfig.teamColors[1]),
                 ),
                 const TextSpan(text: '   '),
                 TextSpan(
-                  text: 'BLAU ${round.aliveIn(2)}',
+                  text: '${tr('BLAU', 'BLUE')} ${round.aliveIn(2)}',
                   style: TextStyle(color: GameConfig.teamColors[2]),
                 ),
               ],
@@ -204,7 +232,10 @@ class _HudOverlayState extends State<HudOverlay> {
             style: style,
           );
         }
-        return Text('$alive PANZER IM FELD', style: style);
+        return Text(
+          tr('$alive PANZER IM FELD', '$alive TANKS IN THE FIELD'),
+          style: style,
+        );
       },
     );
   }
@@ -358,7 +389,10 @@ class _HudOverlayState extends State<HudOverlay> {
                           vertical: 8,
                         ),
                         child: Text(
-                          'ZERSTÖRT  ·  WIEDER EINSATZBEREIT IN $seconds s',
+                          tr(
+                            'ZERSTÖRT  ·  WIEDER EINSATZBEREIT IN $seconds s',
+                            'DESTROYED  ·  READY AGAIN IN $seconds s',
+                          ),
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -379,7 +413,12 @@ class _HudOverlayState extends State<HudOverlay> {
                           horizontal: 12,
                           vertical: 6,
                         ),
-                        child: Text('SCHNELLFEUER  $seconds s'),
+                        child: Text(
+                          tr(
+                            'SCHNELLFEUER  $seconds s',
+                            'RAPID FIRE  $seconds s',
+                          ),
+                        ),
                       ),
                     ),
             ),
@@ -395,7 +434,7 @@ class _HudOverlayState extends State<HudOverlay> {
                           vertical: 6,
                         ),
                         child: Text(
-                          'SCHILD  $seconds s',
+                          tr('SCHILD  $seconds s', 'SHIELD  $seconds s'),
                           style: const TextStyle(color: Color(0xFF81D4FA)),
                         ),
                       ),
@@ -461,7 +500,7 @@ class _HudOverlayState extends State<HudOverlay> {
                         builder: (context, n, _) => n == 0
                             ? const SizedBox()
                             : Text(
-                                'ÜBERROLLT: $n',
+                                tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
                                 style: const TextStyle(
                                   color: BwColors.danger,
                                   fontWeight: FontWeight.w800,
@@ -573,12 +612,18 @@ class _DefensePanelState extends State<_DefensePanel> {
       icon: const Icon(Icons.upgrade, size: 16),
       label: Text(
         !near.kind.upgradable
-            ? '${near.kind.label} BESETZT'
+            ? tr('${near.kind.label} BESETZT', '${near.kind.label} OCCUPIED')
             : near.level >= TowerKind.maxLevel
-            ? '${near.kind.label} HÖCHSTE STUFE'
+            ? tr(
+                '${near.kind.label} HÖCHSTE STUFE',
+                '${near.kind.label} MAXIMUM LEVEL',
+              )
             : near.level >= _towerLimit
-            ? '${near.kind.label} STUFE ${near.level + 1} IN VERLÄNGERUNG'
-            : '${near.kind.label} AUFRÜSTEN  '
+            ? tr(
+                '${near.kind.label} STUFE ${near.level + 1} IN VERLÄNGERUNG',
+                '${near.kind.label} LEVEL ${near.level + 1} IN EXTENSION',
+              )
+            : '${near.kind.label} ${tr('AUFRÜSTEN', 'UPGRADE')}  '
                   '${near.kind.upgradeCost(near.level)}',
         style: _small,
       ),
@@ -616,7 +661,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                     child: Text(
                       kind.unlockedIn(wave, extended: extended)
                           ? '${kind.label} ${kind.cost}'
-                          : '${kind.label} AB W${kind.fromWave}',
+                          : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
                       style: _small,
                     ),
                   ),
@@ -642,7 +687,10 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
+          tr(
+            'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
+            'FUNDS $credits   ·   B builds/upgrades, V switches',
+          ),
           style: const TextStyle(
             color: BwColors.amber,
             fontWeight: FontWeight.w800,
@@ -677,7 +725,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'MITTEL $credits',
+              tr('MITTEL $credits', 'FUNDS $credits'),
               style: const TextStyle(
                 color: BwColors.amber,
                 fontSize: 12,
@@ -685,7 +733,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               ),
             ),
             const SizedBox(width: 8),
-            _tab('TÜRME', _Shop.towers),
+            _tab(tr('TÜRME', 'TOWERS'), _Shop.towers),
             const SizedBox(width: 6),
             _tab('UPGRADES', _Shop.upgrades),
           ],
@@ -713,7 +761,7 @@ class _DefensePanelState extends State<_DefensePanel> {
     final maxed = level >= limit;
     final cost = kind.costFrom(level);
     return Tooltip(
-      message: '${kind.label}: ${kind.effect} je Stufe',
+      message: '${kind.label}: ${kind.effect} ${tr('je Stufe', 'per level')}',
       child: OutlinedButton(
         style: _buyStyle(kind.color).copyWith(
           padding: WidgetStatePropertyAll(
@@ -751,14 +799,17 @@ class _DefensePanelState extends State<_DefensePanel> {
           style: _buyStyle(BwColors.sand),
           onPressed: game.withdrawDefense,
           icon: const Icon(Icons.flag, size: 16),
-          label: Text('ABZIEHEN', style: _small),
+          label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
         );
         final children = <Widget>[];
         if (state.deciding) {
           children
             ..add(
               Text(
-                'ALLE ${GameConfig.defenseWaves} WELLEN ABGEWEHRT · SIEG GESICHERT',
+                tr(
+                  'ALLE ${GameConfig.defenseWaves} WELLEN ABGEWEHRT · SIEG GESICHERT',
+                  'ALL ${GameConfig.defenseWaves} WAVES REPELLED · VICTORY SECURED',
+                ),
                 style: TextStyle(
                   color: BwColors.amber,
                   fontSize: touch ? 11 : 13,
@@ -771,9 +822,14 @@ class _DefensePanelState extends State<_DefensePanel> {
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Text(
-                  'Verlängerung: Wellen ohne Ende mit zäheren Gegnern, Stufe 4 '
-                  'und 5 für Geschütze und Panzer, Raketenwerfer und eine '
-                  'Zitadelle. Fällt der Stützpunkt, bleibt der Sieg.',
+                  tr(
+                    'Verlängerung: Wellen ohne Ende mit zäheren Gegnern, Stufe 4 '
+                        'und 5 für Geschütze und Panzer, Raketenwerfer und eine '
+                        'Zitadelle. Fällt der Stützpunkt, bleibt der Sieg.',
+                    'Extension: endless waves with tougher enemies, levels 4 '
+                        'and 5 for turrets and tanks, rocket launchers and a '
+                        'citadel. If the base falls, the victory remains.',
+                  ),
                   style: TextStyle(fontSize: touch ? 10 : 11),
                 ),
               ),
@@ -789,13 +845,19 @@ class _DefensePanelState extends State<_DefensePanel> {
                           style: _buttonStyle,
                           onPressed: game.extendDefense,
                           icon: const Icon(Icons.all_inclusive, size: 16),
-                          label: Text('VERLÄNGERN', style: _small),
+                          label: Text(
+                            tr('VERLÄNGERN', 'EXTEND'),
+                            style: _small,
+                          ),
                         ),
                         withdraw,
                       ],
                     )
                   : Text(
-                      'Der Host entscheidet, ob es weitergeht.',
+                      tr(
+                        'Der Host entscheidet, ob es weitergeht.',
+                        'The host decides whether it goes on.',
+                      ),
                       style: TextStyle(
                         fontSize: touch ? 10 : 11,
                         color: BwColors.textDim,
@@ -840,7 +902,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         final label = Text(
           touch
               ? '${hp.ceil()}'
-              : 'STÜTZPUNKT · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
+              : '${tr('STÜTZPUNKT', 'BASE')} · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
           style: TextStyle(
             fontSize: touch ? 10 : 12,
             fontWeight: FontWeight.w800,
@@ -851,7 +913,8 @@ class _DefensePanelState extends State<_DefensePanel> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Tooltip(
-                message: 'Stützpunkt · ${GameConfig.hqName(hq)}',
+                message:
+                    '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
                 child: const Icon(Icons.flag, size: 12, color: BwColors.sand),
               ),
               const SizedBox(width: 4),

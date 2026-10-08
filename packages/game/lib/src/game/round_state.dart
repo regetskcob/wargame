@@ -1,6 +1,7 @@
 import 'bot_level.dart';
 import '../game_config.dart';
 import 'defense/defense_map.dart';
+import '../l10n/l10n.dart';
 
 class RoundState {
   RoundState({
@@ -59,23 +60,25 @@ class RoundState {
   String botName(String id) {
     final parts = id.split('-');
     if (isFriendlyAir(id)) {
-      return parts[1] == 'j' ? 'EIGENER JET' : 'EIGENER HUBSCHRAUBER';
+      return parts[1] == 'j'
+          ? tr('EIGENER JET', 'OWN JET')
+          : tr('EIGENER HUBSCHRAUBER', 'OWN HELICOPTER');
     }
     if (isAlly(id) && parts[1].startsWith('q')) {
-      return 'EIGENE INFANTERIE';
+      return tr('EIGENE INFANTERIE', 'OWN INFANTRY');
     }
     if (isAlly(id)) {
-      return 'KAMERAD ${(int.tryParse(parts[1]) ?? 0) + 1}';
+      return '${tr('KAMERAD', 'COMRADE')} ${(int.tryParse(parts[1]) ?? 0) + 1}';
     }
     if (!isEnemy(id)) {
       return 'CPU-${parts.last}';
     }
     return switch (parts[1]) {
-      'h' => 'HUBSCHRAUBER',
-      'j' => 'KAMPFJET',
-      'd' => 'FEINDDROHNE',
-      'i' => 'INFANTERIE',
-      _ => 'FEIND',
+      'h' => tr('HUBSCHRAUBER', 'HELICOPTER'),
+      'j' => tr('KAMPFJET', 'FIGHTER JET'),
+      'd' => tr('FEINDDROHNE', 'ENEMY DRONE'),
+      'i' => tr('INFANTERIE', 'INFANTRY'),
+      _ => tr('FEIND', 'ENEMY'),
     };
   }
 

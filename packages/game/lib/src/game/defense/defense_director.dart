@@ -24,7 +24,7 @@ class DefenseDirector extends Component with HasGameRef<SpaceGame> {
   /// Per comrade slot: the tank on the field, how often it was sent and the
   /// seconds until the next one rolls out of the base.
   late final _allyIds = List<String?>.filled(
-    allies + GameConfig.hqNames.length - 1,
+    allies + GameConfig.hqCount - 1,
     null,
   );
   late final _allyLives = List<int>.filled(_allyIds.length, 0);

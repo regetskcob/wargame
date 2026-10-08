@@ -4,6 +4,7 @@ import '../../game/special_weapon.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// Rounds left in the magazine, warning once it runs low.
 class AmmoGauge extends StatelessWidget {
@@ -49,10 +50,10 @@ class AmmoGauge extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   endless
-                      ? 'MUNITION ∞'
+                      ? tr('MUNITION ∞', 'AMMO ∞')
                       : ammo == 0
-                      ? 'MUNITION LEER'
-                      : 'MUNITION $ammo/$maxAmmo',
+                      ? tr('MUNITION LEER', 'AMMO EMPTY')
+                      : tr('MUNITION $ammo/$maxAmmo', 'AMMO $ammo/$maxAmmo'),
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
 
@@ -104,8 +105,11 @@ class FuelGauge extends StatelessWidget {
                 const SizedBox(width: 4),
                 Text(
                   fuel <= 0
-                      ? 'TANK LEER'
-                      : 'TREIBSTOFF ${(fuel * 100).ceil()} %',
+                      ? tr('TANK LEER', 'TANK EMPTY')
+                      : tr(
+                          'TREIBSTOFF ${(fuel * 100).ceil()} %',
+                          'FUEL ${(fuel * 100).ceil()} %',
+                        ),
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
 

@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../components/tank_painter.dart';
 import '../../game_config.dart';
+import '../../l10n/l10n.dart';
 
 /// The fixed battlefield of a defense round: a rectangle, one road the enemy
 /// follows and the base at its end. Which of the layouts is used follows from
@@ -266,20 +267,20 @@ class DefenseMap {
   /// Why a gun can not go to [point], or null when it can.
   String? whyNotBuild(Vector2 point, Iterable<Vector2> towers) {
     if (!bounds.deflate(40).contains(point.toOffset())) {
-      return 'Zu nah am Rand';
+      return tr('Zu nah am Rand', 'Too close to the edge');
     }
     if (distanceToRoad(point) < roadHalfWidth + 30) {
-      return 'Nicht auf der Straße';
+      return tr('Nicht auf der Straße', 'Not on the road');
     }
     if (inWater(point, margin: 26) ||
         bridges.any((b) => b.centre.distanceTo(point) < b.halfLength + 30)) {
-      return 'Nicht im Fluss';
+      return tr('Nicht im Fluss', 'Not in the river');
     }
     if (point.distanceTo(base) < baseRadius + 50) {
-      return 'Zu nah am Stützpunkt';
+      return tr('Zu nah am Stützpunkt', 'Too close to the base');
     }
     if (towers.any((t) => t.distanceTo(point) < GameConfig.towerSpacing)) {
-      return 'Zu nah am nächsten Geschütz';
+      return tr('Zu nah am nächsten Geschütz', 'Too close to the next turret');
     }
     return null;
   }

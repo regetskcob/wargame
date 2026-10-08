@@ -7,6 +7,7 @@ import 'package:flame/extensions.dart';
 
 import '../game_phase.dart';
 import '../space_game.dart';
+import '../../l10n/l10n.dart';
 
 /// What a player can put down in a defense round. Each gun has its job: the
 /// cannon for tanks, flak for helicopters, jets and drones, the mortar for
@@ -16,6 +17,7 @@ import '../space_game.dart';
 enum TowerKind {
   cannon(
     'KANONE',
+    'CANNON',
     cost: 100,
     range: 420,
     cooldown: 0.45,
@@ -23,6 +25,7 @@ enum TowerKind {
     shotSpeed: 560,
   ),
   flak(
+    'FLAK',
     'FLAK',
     cost: 120,
     range: 480,
@@ -33,6 +36,7 @@ enum TowerKind {
   ),
   mortar(
     'MÖRSER',
+    'MORTAR',
     cost: 150,
     range: 620,
     cooldown: 2.4,
@@ -42,6 +46,7 @@ enum TowerKind {
   ),
   howitzer(
     'HAUBITZE',
+    'HOWITZER',
     cost: 220,
     range: 1050,
     cooldown: 4.2,
@@ -53,6 +58,7 @@ enum TowerKind {
   ),
   trench(
     'GRABEN',
+    'TRENCH',
     cost: 60,
     range: 0,
     cooldown: 0,
@@ -62,6 +68,7 @@ enum TowerKind {
   ),
   rockets(
     'RAKETEN',
+    'ROCKETS',
     cost: 260,
     range: 640,
     cooldown: 1.4,
@@ -72,7 +79,8 @@ enum TowerKind {
   );
 
   const TowerKind(
-    this.label, {
+    this._labelDe,
+    this._labelEn, {
     required this.cost,
     required this.range,
     required this.cooldown,
@@ -85,7 +93,9 @@ enum TowerKind {
     this.extension = false,
   });
 
-  final String label;
+  final String _labelDe;
+  final String _labelEn;
+  String get label => tr(_labelDe, _labelEn);
   final int cost;
   final double range;
   final double cooldown;
@@ -123,8 +133,8 @@ enum TowerKind {
       unlockedIn(wave, extended: extended)
       ? null
       : extension
-      ? 'in der Verlängerung'
-      : 'ab Welle $fromWave';
+      ? tr('in der Verlängerung', 'in the extension')
+      : tr('ab Welle $fromWave', 'from wave $fromWave');
 
   /// Three steps, two more in the extension.
   static const maxLevel = 5;
@@ -150,12 +160,21 @@ enum TowerKind {
       (1 + 0.3 * (level - 1));
 
   String get hint => switch (this) {
-    TowerKind.cannon => 'gegen Panzer',
-    TowerKind.flak => 'gegen Luftziele',
-    TowerKind.mortar => 'Flächenfeuer',
-    TowerKind.howitzer => 'Flächenfeuer auf große Entfernung',
-    TowerKind.trench => 'halber Schaden für den Panzer darin',
-    TowerKind.rockets => 'gegen Panzer und Luftziele',
+    TowerKind.cannon => tr('gegen Panzer', 'against tanks'),
+    TowerKind.flak => tr('gegen Luftziele', 'against air targets'),
+    TowerKind.mortar => tr('Flächenfeuer', 'area fire'),
+    TowerKind.howitzer => tr(
+      'Flächenfeuer auf große Entfernung',
+      'area fire at long range',
+    ),
+    TowerKind.trench => tr(
+      'halber Schaden für den Panzer darin',
+      'half damage for the tank inside',
+    ),
+    TowerKind.rockets => tr(
+      'gegen Panzer und Luftziele',
+      'against tanks and air targets',
+    ),
   };
 }
 

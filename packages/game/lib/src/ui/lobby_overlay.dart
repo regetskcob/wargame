@@ -24,6 +24,8 @@ import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 import 'widgets/tutorial_button.dart';
+import '../l10n/l10n.dart';
+import 'widgets/language_button.dart';
 
 class LobbyOverlay extends StatefulWidget {
   const LobbyOverlay({required this.game, super.key});
@@ -93,13 +95,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 fit: BoxFit.scaleDown,
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  'WARTERAUM',
+                  tr('WARTERAUM', 'WAITING ROOM'),
                   maxLines: 1,
                   style: Theme.of(context).textTheme.headlineLarge,
                 ),
               ),
             ),
             AccountButton(game: game),
+            const LanguageButton(),
             const MuteButton(),
           ],
         ),
@@ -107,10 +110,18 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         ValueListenableBuilder<GameMode>(
           valueListenable: game.mode,
           builder: (context, mode, _) => Text(switch (mode) {
-            GameMode.solo => 'Einzelspieler: Du gegen CPU-Panzer.',
-            GameMode.multi => 'Mehrspieler: Der letzte Panzer im Feld gewinnt.',
-            GameMode.defense =>
+            GameMode.solo => tr(
+              'Einzelspieler: Du gegen CPU-Panzer.',
+              'Single player: You against CPU tanks.',
+            ),
+            GameMode.multi => tr(
+              'Mehrspieler: Der letzte Panzer im Feld gewinnt.',
+              'Multiplayer: The last tank in the field wins.',
+            ),
+            GameMode.defense => tr(
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
+              'Defense: Hold the base against all waves.',
+            ),
           }, style: const TextStyle(color: BwColors.textDim)),
         ),
       ],
@@ -122,7 +133,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     final game = widget.game;
     return _Section(
       icon: Icons.flag_outlined,
-      title: 'RUNDE',
+      title: tr('RUNDE', 'ROUND'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
         builder: (context, mode, _) => Column(
@@ -138,9 +149,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     (
                       mode,
                       switch (mode) {
-                        GameMode.solo => 'EINZELSPIELER',
-                        GameMode.multi => 'MEHRSPIELER',
-                        GameMode.defense => 'VERTEIDIGUNG',
+                        GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
+                        GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
+                        GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
                       },
                       null,
                     ),
@@ -151,35 +162,46 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 TextButton.icon(
                   onPressed: game.changeMode,
                   icon: const Icon(Icons.swap_horiz),
-                  label: const Text('ÄNDERN'),
+                  label: Text(tr('ÄNDERN', 'CHANGE')),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             _hint(switch (mode) {
-              GameMode.solo =>
+              GameMode.solo => tr(
                 'Du spielst allein gegen ${GameConfig.minBots} bis '
                     '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
                     'ausgewürfelt.',
-              GameMode.multi =>
+                'You play alone against ${GameConfig.minBots} to '
+                    '${GameConfig.maxBots} CPU tanks, rolled anew every round.',
+              ),
+              GameMode.multi => tr(
                 'Schick den Link weiter. Ein öffentlicher Raum steht '
                     'außerdem in der Raumliste der Startseite.',
-              GameMode.defense =>
+                'Pass the link on. A public room is also listed in the '
+                    'room list on the start page.',
+              ),
+              GameMode.defense => tr(
                 'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
                     'zweiten Welle auch aus der Luft. Abschüsse bringen '
                     'Mittel für Geschütze${game.touchMode.value ? '' : ' (B)'} '
                     'und Upgrades.',
+                'The enemies roll down the road to the base, from the '
+                    'second wave also through the air. Kills bring funds '
+                    'for turrets${game.touchMode.value ? '' : ' (B)'} '
+                    'and upgrades.',
+              ),
             }),
             if (mode == GameMode.multi &&
                 roomLink(game.net.room).isNotEmpty) ...[
               const SizedBox(height: 12),
-              _label(context, 'SICHTBARKEIT'),
+              _label(context, tr('SICHTBARKEIT', 'VISIBILITY')),
               ValueListenableBuilder<bool>(
                 valueListenable: game.publicRoom,
                 builder: (context, public, _) => ChoiceRow<bool>(
-                  options: const [
-                    (false, 'PRIVAT', null),
-                    (true, 'ÖFFENTLICH', null),
+                  options: [
+                    (false, tr('PRIVAT', 'PRIVATE'), null),
+                    (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
                   ],
                   selected: public,
                   onSelected: (v) => game.publicRoom.value = v ?? false,
@@ -201,13 +223,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     final game = widget.game;
     return _Section(
       icon: Icons.tune,
-      title: 'EINSATZ',
+      title: tr('EINSATZ', 'MISSION'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
         builder: (context, mode, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _label(context, 'SCHWIERIGKEIT'),
+            _label(context, tr('SCHWIERIGKEIT', 'DIFFICULTY')),
             ValueListenableBuilder<BotLevel>(
               valueListenable: game.botLevel,
               builder: (context, level, _) => Column(
@@ -223,29 +245,39 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
                   const SizedBox(height: 6),
                   _hint(switch (level) {
-                    BotLevel.easy =>
+                    BotLevel.easy => tr(
                       'Flaches Gelände, voller Tank und Munition ohne Ende. '
                           'CPU-Panzer zielen ungenau.',
-                    BotLevel.normal =>
+                      'Flat terrain, a full tank and endless ammunition. '
+                          'CPU tanks aim poorly.',
+                    ),
+                    BotLevel.normal => tr(
                       'Hügel bremsen bergauf. Munition und Treibstoff gehen '
                           'aus: Sammle Munitions-Gems und Kanister.',
-                    BotLevel.hard =>
+                      'Hills slow you down uphill. Ammunition and fuel run '
+                          'out: collect ammo gems and fuel cans.',
+                    ),
+                    BotLevel.hard => tr(
                       'Steile Hügel, knapper Nachschub und treffsichere '
                           'CPU-Panzer. Dazu gibt es Luftschläge als Gem, aber keine '
                           'Zielhilfe.',
+                      'Steep hills, scarce supplies and sharp-shooting CPU '
+                          'tanks. Air strikes come as gems, but there is no '
+                          'aim assist.',
+                    ),
                   }),
                 ],
               ),
             ),
             if (mode == GameMode.multi) ...[
               const SizedBox(height: 14),
-              _label(context, 'CPU-PANZER'),
+              _label(context, tr('CPU-PANZER', 'CPU TANKS')),
               ValueListenableBuilder<bool>(
                 valueListenable: game.fillWithBots,
                 builder: (context, fill, _) => ChoiceRow<bool>(
-                  options: const [
-                    (false, 'NUR MENSCHEN', null),
-                    (true, 'MIT CPU AUFFÜLLEN', null),
+                  options: [
+                    (false, tr('NUR MENSCHEN', 'HUMANS ONLY'), null),
+                    (true, tr('MIT CPU AUFFÜLLEN', 'FILL WITH CPU'), null),
                   ],
                   selected: fill,
                   onSelected: (v) => game.fillWithBots.value = v ?? false,
@@ -253,13 +285,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
               const SizedBox(height: 6),
               _hint(
-                'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
-                'und gleicht bei Teams die Seiten aus.',
+                tr(
+                  'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
+                      'und gleicht bei Teams die Seiten aus.',
+                  'Filling brings the field up to ${GameConfig.fillTo} tanks '
+                      'and evens out the sides in teams.',
+                ),
               ),
             ],
             if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),
-              _label(context, 'MODUS'),
+              _label(context, tr('MODUS', 'MODE')),
               _teamChoice(),
             ],
           ],
@@ -277,8 +313,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           ChoiceRow<bool>(
-            options: const [
-              (false, 'ALLE GEGEN ALLE', null),
+            options: [
+              (false, tr('ALLE GEGEN ALLE', 'FREE FOR ALL'), null),
               (true, 'TEAMS', null),
             ],
             selected: teams,
@@ -289,8 +325,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ChoiceRow<int>(
               options: [
                 (0, 'AUTO', null),
-                (1, 'ROT', GameConfig.teamColors[1]),
-                (2, 'BLAU', GameConfig.teamColors[2]),
+                (1, tr('ROT', 'RED'), GameConfig.teamColors[1]),
+                (2, tr('BLAU', 'BLUE'), GameConfig.teamColors[2]),
               ],
               selected: _teamPick,
               onSelected: (v) {
@@ -300,8 +336,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ),
             const SizedBox(height: 6),
             _hint(
-              'AUTO füllt das kleinere Team. Eigene Teammitglieder und '
-              'Trupps triffst du nicht.',
+              tr(
+                'AUTO füllt das kleinere Team. Eigene Teammitglieder und '
+                    'Trupps triffst du nicht.',
+                'AUTO fills the smaller team. You do not hit your own '
+                    'teammates and squads.',
+              ),
             ),
           ],
         ],
@@ -314,11 +354,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     final game = widget.game;
     return _Section(
       icon: Icons.landscape_outlined,
-      title: 'GELÄNDE',
+      title: tr('GELÄNDE', 'TERRAIN'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label(context, 'GELÄNDE'),
+          _label(context, tr('GELÄNDE', 'TERRAIN')),
           ValueListenableBuilder<int?>(
             valueListenable: game.mapChoice,
             builder: (context, choice, _) => ChoiceRow<int>(
@@ -333,10 +373,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ),
           const SizedBox(height: 6),
           _hint(
-            'Ohne Auswahl wird zufällig bestimmt. Tag und Nacht wechseln '
-            'sich regelmäßig ab, das Wetter würfelt jede Runde selbst aus und '
-            'schlägt in langen Runden um. Nachts, im Nebel und im Sandsturm '
-            'siehst du nur, was nah ist.',
+            tr(
+              'Ohne Auswahl wird zufällig bestimmt. Tag und Nacht wechseln '
+                  'sich regelmäßig ab, das Wetter würfelt jede Runde selbst aus und '
+                  'schlägt in langen Runden um. Nachts, im Nebel und im Sandsturm '
+                  'siehst du nur, was nah ist.',
+              'Without a choice it is picked at random. Day and night '
+                  'alternate regularly, the weather rolls itself every round '
+                  'and changes in long rounds. At night, in fog and in a '
+                  'sandstorm you only see what is close.',
+            ),
           ),
         ],
       ),
@@ -349,14 +395,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     final game = widget.game;
     return _Section(
       icon: Icons.shield_outlined,
-      title: 'DEIN PANZER',
+      title: tr('DEIN PANZER', 'YOUR TANK'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           PilotCard(progress: game.progress),
           const SizedBox(height: 12),
           CallSign(game: game),
-          _label(context, 'FAHRZEUG'),
+          _label(context, tr('FAHRZEUG', 'VEHICLE')),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.roster,
@@ -397,13 +443,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             valueListenable: game.mode,
             builder: (context, mode, _) => mode.withOthers
                 ? _hint(
-                    'Mit anderen fährt jeder Panzer in einer eigenen Farbe '
-                    'statt in Tarnung.',
+                    tr(
+                      'Mit anderen fährt jeder Panzer in einer eigenen Farbe '
+                          'statt in Tarnung.',
+                      'With others every tank drives in its own colour '
+                          'instead of camouflage.',
+                    ),
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _label(context, 'TARNUNG'),
+                      _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
                       ValueListenableBuilder(
                         valueListenable: game.progress.rank,
                         builder: (context, rank, _) => Wrap(
@@ -417,8 +467,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                             )
                               Tooltip(
                                 message: game.progress.unlocked(i)
-                                    ? GameConfig.colorNames[i]
-                                    : '${GameConfig.colorNames[i]}: ab Stufe '
+                                    ? GameConfig.colorName(i)
+                                    : '${GameConfig.colorName(i)}: '
+                                          '${tr('ab Stufe', 'from level')} '
                                           '${GameConfig.colorLevels[i]}',
                                 child: ColorSwatchButton(
                                   color: GameConfig.shipColors[i],
@@ -484,14 +535,21 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : null,
               icon: const Icon(Icons.flag),
               label: Text(
-                game.canStart ? 'GEFECHT STARTEN' : 'WARTE AUF GASTGEBER',
+                game.canStart
+                    ? tr('GEFECHT STARTEN', 'START BATTLE')
+                    : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
               ),
             ),
             if (live != null)
               OutlinedButton.icon(
                 onPressed: game.spectateLiveMatch,
                 icon: const Icon(Icons.visibility),
-                label: const Text('LAUFENDES GEFECHT BEOBACHTEN'),
+                label: Text(
+                  tr(
+                    'LAUFENDES GEFECHT BEOBACHTEN',
+                    'WATCH THE BATTLE IN PROGRESS',
+                  ),
+                ),
               ),
             ValueListenableBuilder(
               valueListenable: game.lastReplay,
@@ -500,7 +558,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : OutlinedButton.icon(
                       onPressed: game.watchReplay,
                       icon: const Icon(Icons.movie_outlined),
-                      label: const Text('LETZTE RUNDE ANSEHEN'),
+                      label: Text(
+                        tr('LETZTE RUNDE ANSEHEN', 'WATCH LAST ROUND'),
+                      ),
                     ),
             ),
             OutlinedButton.icon(
@@ -513,10 +573,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : null,
               icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
               label: Text(switch ((_closeArmed, game.isHost.value)) {
-                (true, true) => 'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                (true, false) => 'WIRKLICH VERLASSEN?',
-                (false, true) => 'WARTERAUM SCHLIESSEN',
-                (false, false) => 'WARTERAUM VERLASSEN',
+                (true, true) => tr(
+                  'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                  'REALLY CLOSE FOR EVERYONE?',
+                ),
+                (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
+                (false, true) => tr(
+                  'WARTERAUM SCHLIESSEN',
+                  'CLOSE WAITING ROOM',
+                ),
+                (false, false) => tr(
+                  'WARTERAUM VERLASSEN',
+                  'LEAVE WAITING ROOM',
+                ),
               }),
             ),
           ],
@@ -535,27 +604,47 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         child: ExpansionTile(
           tilePadding: EdgeInsets.zero,
           leading: const Icon(Icons.sports_esports, color: BwColors.amber),
-          title: const Text(
-            'STEUERUNG',
-            style: TextStyle(fontWeight: FontWeight.w800, letterSpacing: 1.5),
+          title: Text(
+            tr('STEUERUNG', 'CONTROLS'),
+            style: const TextStyle(
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.5,
+            ),
           ),
           childrenPadding: const EdgeInsets.only(bottom: 8),
           expandedCrossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _hint(
               touch
-                  ? 'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
-                        'Rechter Stick richtet den Turm aus und feuert, sobald '
-                        'du über den Ring schiebst. Kisten und Gems landen im '
-                        'Inventar am linken Rand, ein Tipp setzt sie ein. '
-                        'Waffen wie Granatwerfer, Mörser und Drohne löst du '
-                        'danach mit dem runden Knopf über dem rechten Stick aus.'
-                  : 'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
-                        'Maus (oder Q und E), Feuer mit Leertaste oder '
-                        'Linksklick. Kisten und Gems wandern ins Inventar am '
-                        'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
-                        'ein. Waffen löst du danach mit F aus. In der '
-                        'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
+                  ? tr(
+                      'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
+                          'Rechter Stick richtet den Turm aus und feuert, sobald '
+                          'du über den Ring schiebst. Kisten und Gems landen im '
+                          'Inventar am linken Rand, ein Tipp setzt sie ein. '
+                          'Waffen wie Granatwerfer, Mörser und Drohne löst du '
+                          'danach mit dem runden Knopf über dem rechten Stick aus.',
+                      'The left stick drives: up for forward, sideways to '
+                          'steer. The right stick aims the turret and fires '
+                          'as soon as you push past the ring. Crates and gems '
+                          'land in the inventory on the left edge, a tap uses '
+                          'them. Weapons such as grenade launcher, mortar and '
+                          'drone are then fired with the round button above '
+                          'the right stick.',
+                    )
+                  : tr(
+                      'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
+                          'Maus (oder Q und E), Feuer mit Leertaste oder '
+                          'Linksklick. Kisten und Gems wandern ins Inventar am '
+                          'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
+                          'ein. Waffen löst du danach mit F aus. In der '
+                          'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
+                      'Drive with WASD or the arrow keys, the turret aims at '
+                          'the mouse (or Q and E), fire with space or left '
+                          'click. Crates and gems go to the inventory on the '
+                          'left edge, use them with 1 to 6 or a click. '
+                          'Weapons are then fired with F. In defense, B builds '
+                          'a turret and V switches the type.',
+                    ),
             ),
             const SizedBox(height: 4),
             TutorialButton(game: game),
@@ -837,8 +926,12 @@ class _JoinedBanner extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: Text(
-                'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '
-                'Gefecht, sobald alle da sind.',
+                tr(
+                  'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '
+                      'Gefecht, sobald alle da sind.',
+                  'You joined the waiting room. The host starts the battle '
+                      'as soon as everyone is here.',
+                ),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
             ),

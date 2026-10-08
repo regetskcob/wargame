@@ -7,6 +7,7 @@ import '../../game/components/tank_painter.dart';
 import '../../game/space_game.dart';
 import '../../theme.dart';
 import 'choice_row.dart';
+import '../../l10n/l10n.dart';
 
 enum _View { total, week, vehicles }
 
@@ -98,13 +99,16 @@ class _LeaderboardState extends State<Leaderboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('BESTENLISTE', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          tr('BESTENLISTE', 'LEADERBOARD'),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         ChoiceRow<_View>(
-          options: const [
-            (_View.total, 'GESAMT', null),
-            (_View.week, 'DIESE WOCHE', null),
-            (_View.vehicles, 'MEINE FAHRZEUGE', null),
+          options: [
+            (_View.total, tr('GESAMT', 'OVERALL'), null),
+            (_View.week, tr('DIESE WOCHE', 'THIS WEEK'), null),
+            (_View.vehicles, tr('MEINE FAHRZEUGE', 'MY VEHICLES'), null),
           ],
           selected: _view,
           onSelected: (v) => setState(() {
@@ -122,9 +126,9 @@ class _LeaderboardState extends State<Leaderboard> {
     );
   }
 
-  static const _empty = Text(
-    'Noch keine Gefechte gewertet.',
-    style: TextStyle(color: BwColors.textDim),
+  static Widget get _empty => Text(
+    tr('Noch keine Gefechte gewertet.', 'No battles ranked yet.'),
+    style: const TextStyle(color: BwColors.textDim),
   );
 
   Widget _table(List<String> labels, List<TableRow> rows) {
@@ -176,21 +180,24 @@ class _LeaderboardState extends State<Leaderboard> {
         final rows = snapshot.data ?? const <WeeklyScoresRow>[];
         if (rows.isEmpty) {
           return snapshot.connectionState == ConnectionState.done
-              ? const Text(
-                  'Diese Woche wurde noch nicht geübt.',
-                  style: TextStyle(color: BwColors.textDim),
+              ? Text(
+                  tr(
+                    'Diese Woche wurde noch nicht geübt.',
+                    'Nobody has played this week yet.',
+                  ),
+                  style: const TextStyle(color: BwColors.textDim),
                 )
               : const SizedBox(height: 24);
         }
         return _table(
-          const [
-            'RANG',
+          [
+            tr('RANG', 'RANK'),
             'PILOT',
-            'EP',
-            'SIEGE',
-            'RUNDEN',
-            'ABSCHÜSSE',
-            '± WERTUNG',
+            tr('EP', 'XP'),
+            tr('SIEGE', 'WINS'),
+            tr('RUNDEN', 'ROUNDS'),
+            tr('ABSCHÜSSE', 'KILLS'),
+            tr('± WERTUNG', '± RATING'),
           ],
           [
             for (final (rank, row) in _shown(rows, (r) => r.id == me))
@@ -229,14 +236,14 @@ class _LeaderboardState extends State<Leaderboard> {
               : const SizedBox(height: 24);
         }
         return _table(
-          const [
+          [
             '',
-            'FAHRZEUG',
-            'RUNDEN',
-            'SIEGE',
-            'ABSCHÜSSE',
-            'SCHADEN',
-            'TREFFER',
+            tr('FAHRZEUG', 'VEHICLE'),
+            tr('RUNDEN', 'ROUNDS'),
+            tr('SIEGE', 'WINS'),
+            tr('ABSCHÜSSE', 'KILLS'),
+            tr('SCHADEN', 'DAMAGE'),
+            tr('TREFFER', 'HITS'),
           ],
           [
             for (final type in TankType.values)
@@ -265,21 +272,24 @@ class _LeaderboardState extends State<Leaderboard> {
         if (snapshot.hasError) {
           return Row(
             children: [
-              const Text(
-                'Bestenliste gerade nicht erreichbar.',
-                style: TextStyle(color: BwColors.textDim),
+              Text(
+                tr(
+                  'Bestenliste gerade nicht erreichbar.',
+                  'Leaderboard currently unavailable.',
+                ),
+                style: const TextStyle(color: BwColors.textDim),
               ),
               TextButton(
                 onPressed: () => setState(_reload),
-                child: const Text('NEU LADEN'),
+                child: Text(tr('NEU LADEN', 'RELOAD')),
               ),
             ],
           );
         }
         if (snapshot.connectionState != ConnectionState.done) {
-          return const Text(
-            'Bestenliste wird geladen …',
-            style: TextStyle(color: BwColors.textDim),
+          return Text(
+            tr('Bestenliste wird geladen …', 'Loading leaderboard …'),
+            style: const TextStyle(color: BwColors.textDim),
           );
         }
         final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
@@ -318,16 +328,16 @@ class _LeaderboardState extends State<Leaderboard> {
     ),
   );
 
-  static const _labels = [
-    'RANG',
+  static List<String> get _labels => [
+    tr('RANG', 'RANK'),
     'PILOT',
-    'WERTUNG',
-    'SIEGE',
-    'RUNDEN',
-    'ABSCHÜSSE',
-    'SCHADEN',
-    'TREFFER',
-    'Ø ÜBERLEBT',
+    tr('WERTUNG', 'RATING'),
+    tr('SIEGE', 'WINS'),
+    tr('RUNDEN', 'ROUNDS'),
+    tr('ABSCHÜSSE', 'KILLS'),
+    tr('SCHADEN', 'DAMAGE'),
+    tr('TREFFER', 'HITS'),
+    tr('Ø ÜBERLEBT', 'Ø SURVIVED'),
   ];
 
   TableRow _headerOf(List<String> labels) {

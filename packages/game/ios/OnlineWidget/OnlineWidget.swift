@@ -96,7 +96,7 @@ struct OnlineWidgetView: View {
     case .accessoryRectangular:
       rectangular
     case .accessoryInline:
-      Text(entry.status.map { "\($0.online) Piloten online" } ?? "Panzergefecht offline")
+      Text(entry.status.map { tr("\($0.online) Piloten online", "\($0.online) pilots online") } ?? tr("Panzergefecht offline", "Panzergefecht offline"))
     case .systemMedium:
       medium
     default:
@@ -134,12 +134,12 @@ struct OnlineWidgetView: View {
         .minimumScaleFactor(0.5)
       HStack(spacing: 6) {
         dot
-        Text(entry.status == nil ? "keine Verbindung" : "Piloten online")
+        Text(entry.status == nil ? tr("keine Verbindung", "no connection") : tr("Piloten online", "pilots online"))
           .font(.system(size: 13, weight: .semibold))
           .foregroundStyle(Bw.textDim)
       }
       if showMatches, let status = entry.status, status.inMatch > 0 {
-        Text("\(status.inMatch) im Gefecht")
+        Text(tr("\(status.inMatch) im Gefecht", "\(status.inMatch) in battle"))
           .font(.system(size: 12, weight: .medium))
           .foregroundStyle(Bw.olive)
       }
@@ -151,9 +151,9 @@ struct OnlineWidgetView: View {
     HStack(spacing: 16) {
       small(showMatches: false)
       VStack(alignment: .leading, spacing: 10) {
-        stat(entry.status.map { "\($0.inMatch)" } ?? "–", "im Gefecht")
-        stat(entry.status.map { "\($0.roundsToday)" } ?? "–", "Runden heute")
-        Text("Stand \(entry.date, style: .time)")
+        stat(entry.status.map { "\($0.inMatch)" } ?? "–", tr("im Gefecht", "in battle"))
+        stat(entry.status.map { "\($0.roundsToday)" } ?? "–", tr("Runden heute", "rounds today"))
+        Text("\(tr("Stand", "As of")) \(entry.date, style: .time)")
           .font(.system(size: 11))
           .foregroundStyle(Bw.textDim.opacity(0.7))
       }
@@ -181,7 +181,7 @@ struct OnlineWidgetView: View {
         Text(onlineText)
           .font(.system(size: 22, weight: .black, design: .rounded))
           .minimumScaleFactor(0.5)
-        Text("online")
+        Text(tr("online", "online"))
           .font(.system(size: 9, weight: .semibold))
       }
     }
@@ -192,9 +192,9 @@ struct OnlineWidgetView: View {
       Text("Panzergefecht")
         .font(.headline)
         .widgetAccentable()
-      Text(entry.status.map { "\($0.online) online" } ?? "keine Verbindung")
+      Text(entry.status.map { "\($0.online) online" } ?? tr("keine Verbindung", "no connection"))
       if let status = entry.status {
-        Text("\(status.inMatch) im Gefecht")
+        Text(tr("\(status.inMatch) im Gefecht", "\(status.inMatch) in battle"))
           .foregroundStyle(.secondary)
       }
     }
@@ -208,8 +208,8 @@ struct OnlineWidget: Widget {
       OnlineWidgetView(entry: entry)
         .containerBackground(for: .widget) { Bw.background }
     }
-    .configurationDisplayName("Piloten online")
-    .description("Wie viele gerade Panzergefecht spielen.")
+    .configurationDisplayName(tr("Piloten online", "Pilots online"))
+    .description(tr("Wie viele gerade Panzergefecht spielen.", "How many are playing Panzergefecht right now."))
     .supportedFamilies([
       .systemSmall, .systemMedium,
       .accessoryCircular, .accessoryRectangular, .accessoryInline,
@@ -230,4 +230,10 @@ struct OnlineWidgetBundle: WidgetBundle {
 } timeline: {
   OnlineEntry(date: .now, status: .preview)
   OnlineEntry(date: .now, status: nil)
+}
+
+/// The text in the language of the device: German on German devices, English
+/// everywhere else. The app picks the same way on its first start.
+func tr(_ de: String, _ en: String) -> String {
+  Locale.current.language.languageCode?.identifier == "de" ? de : en
 }

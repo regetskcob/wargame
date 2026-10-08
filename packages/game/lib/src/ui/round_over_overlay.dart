@@ -9,6 +9,7 @@ import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
 import 'widgets/round_rewards.dart';
+import '../l10n/l10n.dart';
 
 /// End of round: gold rays and confetti for the winner, a red pulse and a
 /// shaking banner for everyone who lost.
@@ -48,10 +49,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
             ? BwColors.danger
             : BwColors.sand;
         final title = won
-            ? 'SIEG'
+            ? tr('SIEG', 'VICTORY')
             : lost
-            ? 'NIEDERLAGE'
-            : 'GEFECHT BEENDET';
+            ? tr('NIEDERLAGE', 'DEFEAT')
+            : tr('GEFECHT BEENDET', 'BATTLE OVER');
         return AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
@@ -148,12 +149,24 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                 game.round?.defense ?? false
                     ? _defenseLine(game.defense.value, won)
                     : winner == null
-                    ? 'Unentschieden. Das Sperrgebiet gewinnt.'
+                    ? tr(
+                        'Unentschieden. Das Sperrgebiet gewinnt.',
+                        'Draw. The closed zone wins.',
+                      )
                     : won
                     ? (game.round?.teamMode ?? false
-                          ? 'Euer Team behauptet das Feld!'
-                          : 'Letzter Panzer im Feld. Gut gemacht!')
-                    : '$winner gewinnt das Gefecht.',
+                          ? tr(
+                              'Euer Team behauptet das Feld!',
+                              'Your team holds the field!',
+                            )
+                          : tr(
+                              'Letzter Panzer im Feld. Gut gemacht!',
+                              'Last tank in the field. Well done!',
+                            ))
+                    : tr(
+                        '$winner gewinnt das Gefecht.',
+                        '$winner wins the battle.',
+                      ),
                 style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   fontSize: narrow ? 14 : null,
                   letterSpacing: narrow ? 1 : null,
@@ -177,16 +190,20 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                   FilledButton.icon(
                     onPressed: host ? game.rematch : null,
                     icon: const Icon(Icons.replay),
-                    label: Text(host ? 'NEUES SPIEL' : 'WARTE AUF GASTGEBER'),
+                    label: Text(
+                      host
+                          ? tr('NEUES SPIEL', 'NEW GAME')
+                          : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                    ),
                   ),
                   OutlinedButton(
                     onPressed: game.backToLobby,
-                    child: const Text('ZURÜCK INS LAGER'),
+                    child: Text(tr('ZURÜCK INS LAGER', 'BACK TO CAMP')),
                   ),
                   OutlinedButton.icon(
                     onPressed: game.watchReplay,
                     icon: const Icon(Icons.movie_outlined),
-                    label: const Text('WIEDERHOLUNG'),
+                    label: Text(tr('WIEDERHOLUNG', 'REPLAY')),
                   ),
                 ],
               ),
@@ -297,10 +314,10 @@ class _StatsRow extends StatelessWidget {
         ? '-'
         : '${(stats.accuracy * 100).round()} %';
     final tiles = [
-      ('ABSCHÜSSE', '${stats.kills}'),
-      ('SCHADEN', '${stats.damage.round()}'),
-      ('TREFFERQUOTE', accuracy),
-      ('ÜBERLEBT', _time(stats.survived)),
+      (tr('ABSCHÜSSE', 'KILLS'), '${stats.kills}'),
+      (tr('SCHADEN', 'DAMAGE'), '${stats.damage.round()}'),
+      (tr('TREFFERQUOTE', 'ACCURACY'), accuracy),
+      (tr('ÜBERLEBT', 'SURVIVED'), _time(stats.survived)),
     ];
     return Wrap(
       alignment: WrapAlignment.center,
@@ -346,16 +363,29 @@ class _StatsRow extends StatelessWidget {
 String _defenseLine(DefensePayload? state, bool won) {
   final wave = state?.wave ?? 0;
   if (!won) {
-    return 'Der Stützpunkt ist in Welle $wave gefallen.';
+    return tr(
+      'Der Stützpunkt ist in Welle $wave gefallen.',
+      'The base fell in wave $wave.',
+    );
   }
   if (state == null || !state.extended) {
-    return 'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!';
+    return tr(
+      'Alle ${GameConfig.defenseWaves} Wellen abgewehrt. Der Stützpunkt steht!',
+      'All ${GameConfig.defenseWaves} waves repelled. The base stands!',
+    );
   }
   // A wave that is still running when the base falls or the defenders pull
   // out does not count.
   final held = state.nextWaveAt > 0 ? wave : wave - 1;
   return state.hp <= 0
-      ? '$held Wellen gehalten, in Welle $wave fiel der Stützpunkt. '
-            'Der Sieg bleibt!'
-      : '$held Wellen abgewehrt. Der Stützpunkt steht!';
+      ? tr(
+          '$held Wellen gehalten, in Welle $wave fiel der Stützpunkt. '
+              'Der Sieg bleibt!',
+          '$held waves held, the base fell in wave $wave. '
+              'The victory remains!',
+        )
+      : tr(
+          '$held Wellen abgewehrt. Der Stützpunkt steht!',
+          '$held waves repelled. The base stands!',
+        );
 }

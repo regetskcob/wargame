@@ -14,6 +14,8 @@ import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
 import 'widgets/panel.dart';
+import '../l10n/l10n.dart';
+import 'widgets/language_button.dart';
 
 /// Start page of the host: alone, with others or together against waves.
 /// Everything else is set in the waiting room that follows.
@@ -50,6 +52,7 @@ class LaunchView extends StatelessWidget {
                     children: [
                       title,
                       AccountButton(game: game),
+                      const LanguageButton(),
                       const MuteButton(),
                     ],
                   ),
@@ -64,6 +67,7 @@ class LaunchView extends StatelessWidget {
                 const SizedBox(width: 12),
                 CallSign(game: game),
                 AccountButton(game: game),
+                const LanguageButton(),
                 const MuteButton(),
               ],
             );
@@ -74,9 +78,12 @@ class LaunchView extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 12,
           children: [
-            const Text(
-              'Wähle, wie du spielen willst.',
-              style: TextStyle(color: BwColors.textDim),
+            Text(
+              tr(
+                'Wähle, wie du spielen willst.',
+                'Choose how you want to play.',
+              ),
+              style: const TextStyle(color: BwColors.textDim),
             ),
             TutorialButton(game: game),
           ],
@@ -142,34 +149,43 @@ typedef _Option = ({
   String text,
 });
 
-const List<_Option> _options = [
+List<_Option> get _options => [
   (
     mode: GameMode.solo,
     icon: Icons.person,
-    title: 'EINZELSPIELER',
-    kicker: 'ALLEIN GEGEN CPU',
-    text:
-        'Du gegen ${GameConfig.minBots} bis ${GameConfig.maxBots} '
-        'CPU-Panzer auf drei Stufen. Der letzte Panzer im Feld gewinnt.',
+    title: tr('EINZELSPIELER', 'SINGLE PLAYER'),
+    kicker: tr('ALLEIN GEGEN CPU', 'ALONE AGAINST THE CPU'),
+    text: tr(
+      'Du gegen ${GameConfig.minBots} bis ${GameConfig.maxBots} '
+          'CPU-Panzer auf drei Stufen. Der letzte Panzer im Feld gewinnt.',
+      'You against ${GameConfig.minBots} to ${GameConfig.maxBots} '
+          'CPU tanks on three levels. The last tank in the field wins.',
+    ),
   ),
   (
     mode: GameMode.multi,
     icon: Icons.groups,
-    title: 'MEHRSPIELER',
-    kicker: 'GEFECHT MIT ANDEREN',
-    text:
-        'Lade per Link oder Code ein, alle gegen alle oder Rot gegen Blau. '
-        'CPU-Panzer füllen auf Wunsch auf.',
+    title: tr('MEHRSPIELER', 'MULTIPLAYER'),
+    kicker: tr('GEFECHT MIT ANDEREN', 'BATTLE WITH OTHERS'),
+    text: tr(
+      'Lade per Link oder Code ein, alle gegen alle oder Rot gegen Blau. '
+          'CPU-Panzer füllen auf Wunsch auf.',
+      'Invite by link or code, free for all or red against blue. '
+          'CPU tanks fill up on request.',
+    ),
   ),
   (
     mode: GameMode.defense,
     icon: Icons.shield,
-    title: 'VERTEIDIGUNG',
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
     kicker: 'TOWER DEFENSE',
-    text:
-        'Haltet gemeinsam den Stützpunkt gegen ${GameConfig.defenseWaves} '
-        'Wellen, danach nach Wunsch weiter. Abschüsse bringen Mittel für '
-        'Geschütze.',
+    text: tr(
+      'Haltet gemeinsam den Stützpunkt gegen ${GameConfig.defenseWaves} '
+          'Wellen, danach nach Wunsch weiter. Abschüsse bringen Mittel für '
+          'Geschütze.',
+      'Hold the base together against ${GameConfig.defenseWaves} waves, '
+          'then carry on if you like. Kills bring funds for turrets.',
+    ),
   ),
 ];
 
@@ -239,18 +255,18 @@ class _ModeCard extends StatelessWidget {
               ),
               if (stretched) const Spacer(),
               const SizedBox(height: 14),
-              const Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   Text(
-                    'WEITER',
-                    style: TextStyle(
+                    tr('WEITER', 'NEXT'),
+                    style: const TextStyle(
                       color: BwColors.amber,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
                     ),
                   ),
-                  Icon(Icons.chevron_right, color: BwColors.amber),
+                  const Icon(Icons.chevron_right, color: BwColors.amber),
                 ],
               ),
             ],

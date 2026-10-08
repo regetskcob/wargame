@@ -12,40 +12,48 @@ import '../bot_level.dart';
 import '../defense/defense_map.dart';
 import '../special_weapon.dart';
 import 'storm_zone.dart';
+import '../../l10n/l10n.dart';
 
 enum PowerUpType {
-  repair('REPARATUR', Color(0xFF66BB6A)),
-  smoke('NEBELWERFER', Color(0xFFB0BEC5)),
-  rapidFire('SCHNELLFEUER', Color(0xFFFFB300)),
-  shield('SCHILD', Color(0xFF80DEEA)),
-  mines('MINEN', Color(0xFFE57373)),
-  artillery('ARTILLERIE', Color(0xFFFF7043)),
+  repair('REPARATUR', 'REPAIR', Color(0xFF66BB6A)),
+  smoke('NEBELWERFER', 'SMOKE LAUNCHER', Color(0xFFB0BEC5)),
+  rapidFire('SCHNELLFEUER', 'RAPID FIRE', Color(0xFFFFB300)),
+  shield('SCHILD', 'SHIELD', Color(0xFF80DEEA)),
+  mines('MINEN', 'MINES', Color(0xFFE57373)),
+  artillery('ARTILLERIE', 'ARTILLERY', Color(0xFFFF7043)),
 
   /// Gems: refill the magazine or hand out a special weapon.
-  ammo('MUNITION', Color(0xFF4FC3F7), gem: true),
-  grenades('GRANATWERFER', Color(0xFFEF5350), gem: true),
-  drone('DROHNE', Color(0xFFB388FF), gem: true),
-  mortar('MÖRSER', Color(0xFFFF8A65), gem: true),
+  ammo('MUNITION', 'AMMUNITION', Color(0xFF4FC3F7), gem: true),
+  grenades('GRANATWERFER', 'GRENADE LAUNCHER', Color(0xFFEF5350), gem: true),
+  drone('DROHNE', 'DRONE', Color(0xFFB388FF), gem: true),
+  mortar('MÖRSER', 'MORTAR', Color(0xFFFF8A65), gem: true),
 
   /// A squad on foot that fights next to the tank.
-  infantry('INFANTERIE', Color(0xFF9CCC65), gem: true),
+  infantry('INFANTERIE', 'INFANTRY', Color(0xFF9CCC65), gem: true),
 
   /// A drop of paratroopers with rocket launchers onto the cursor.
-  paratroopers('FALLSCHIRMJÄGER', Color(0xFFFFD54F), gem: true),
+  paratroopers('FALLSCHIRMJÄGER', 'PARATROOPERS', Color(0xFFFFD54F), gem: true),
 
   /// A jerrycan that fills the tank up again, from the middle level on.
-  fuel('KANISTER', Color(0xFFFF9100), gem: true),
+  fuel('KANISTER', 'JERRYCAN', Color(0xFFFF9100), gem: true),
 
   /// A drone that takes off from the inventory and hunts an enemy picked at
   /// random.
-  hunterDrone('JAGDDROHNE', Color(0xFF26C6DA), gem: true),
+  hunterDrone('JAGDDROHNE', 'HUNTER DRONE', Color(0xFF26C6DA), gem: true),
 
   /// A bomber that crosses the field and bombs an enemy, on the hard level.
-  airstrike('LUFTSCHLAG', Color(0xFF90CAF9), gem: true);
+  airstrike('LUFTSCHLAG', 'AIR STRIKE', Color(0xFF90CAF9), gem: true);
 
-  const PowerUpType(this.label, this.color, {this.gem = false});
+  const PowerUpType(
+    this._labelDe,
+    this._labelEn,
+    this.color, {
+    this.gem = false,
+  });
 
-  final String label;
+  final String _labelDe;
+  final String _labelEn;
+  String get label => tr(_labelDe, _labelEn);
   final Color color;
 
   /// Drawn as a gem instead of a crate.
@@ -61,21 +69,21 @@ enum PowerUpType {
 
   /// Short name for the inventory slot.
   String get short => switch (this) {
-    PowerUpType.repair => 'REPARATUR',
-    PowerUpType.smoke => 'NEBEL',
-    PowerUpType.rapidFire => 'SCHNELLF.',
-    PowerUpType.shield => 'SCHILD',
-    PowerUpType.mines => 'MINEN',
-    PowerUpType.artillery => 'ARTILLERIE',
-    PowerUpType.ammo => 'MUNITION',
-    PowerUpType.grenades => 'GRANATEN',
-    PowerUpType.drone => 'DROHNE',
-    PowerUpType.mortar => 'MÖRSER',
-    PowerUpType.infantry => 'TRUPP',
-    PowerUpType.paratroopers => 'FALLSCH.',
-    PowerUpType.fuel => 'KANISTER',
-    PowerUpType.hunterDrone => 'JAGDDR.',
-    PowerUpType.airstrike => 'LUFTSCHL.',
+    PowerUpType.repair => tr('REPARATUR', 'REPAIR'),
+    PowerUpType.smoke => tr('NEBEL', 'SMOKE'),
+    PowerUpType.rapidFire => tr('SCHNELLF.', 'RAPID F.'),
+    PowerUpType.shield => tr('SCHILD', 'SHIELD'),
+    PowerUpType.mines => tr('MINEN', 'MINES'),
+    PowerUpType.artillery => tr('ARTILLERIE', 'ARTILLERY'),
+    PowerUpType.ammo => tr('MUNITION', 'AMMO'),
+    PowerUpType.grenades => tr('GRANATEN', 'GRENADES'),
+    PowerUpType.drone => tr('DROHNE', 'DRONE'),
+    PowerUpType.mortar => tr('MÖRSER', 'MORTAR'),
+    PowerUpType.infantry => tr('TRUPP', 'SQUAD'),
+    PowerUpType.paratroopers => tr('FALLSCH.', 'PARA.'),
+    PowerUpType.fuel => tr('KANISTER', 'JERRYCAN'),
+    PowerUpType.hunterDrone => tr('JAGDDR.', 'HUNTER'),
+    PowerUpType.airstrike => tr('LUFTSCHL.', 'AIRSTRIKE'),
   };
 
   /// The symbol on the gem, in the inventory and on the crate list.

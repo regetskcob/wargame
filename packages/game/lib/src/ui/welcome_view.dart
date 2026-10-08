@@ -8,6 +8,8 @@ import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/panel.dart';
+import '../l10n/l10n.dart';
+import 'widgets/language_button.dart';
 
 /// First page when accounts are switched on: sign in or create an account,
 /// or play on as a guest. Players who are signed in never see it.
@@ -20,8 +22,8 @@ class WelcomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final account = _Box(
       icon: Icons.verified_user,
-      title: 'MIT KONTO',
-      kicker: 'FORTSCHRITT AUF JEDEM GERÄT',
+      title: tr('MIT KONTO', 'WITH ACCOUNT'),
+      kicker: tr('FORTSCHRITT AUF JEDEM GERÄT', 'PROGRESS ON EVERY DEVICE'),
       child: AccountPanel(
         accounts: game.accounts,
         embedded: true,
@@ -33,25 +35,34 @@ class WelcomeView extends StatelessWidget {
     // button sits on the same line as the account's.
     Widget guest({bool stretched = false}) => _Box(
       icon: Icons.person_outline,
-      title: 'ALS GAST',
-      kicker: 'OHNE KONTO SPIELEN',
+      title: tr('ALS GAST', 'AS GUEST'),
+      kicker: tr('OHNE KONTO SPIELEN', 'PLAY WITHOUT AN ACCOUNT'),
       stretched: stretched,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 14),
-          const Text(
-            'Sofort los, ohne E-Mail, aber ohne Wertung: EP, Rang, '
-            'Abzeichen und neue Fahrzeuge gibt es nur mit Konto. Im '
-            'Warteraum kannst du jederzeit eins anlegen.',
-            style: TextStyle(color: BwColors.text, fontSize: 14, height: 1.35),
+          Text(
+            tr(
+              'Sofort los, ohne E-Mail, aber ohne Wertung: EP, Rang, '
+                  'Abzeichen und neue Fahrzeuge gibt es nur mit Konto. Im '
+                  'Warteraum kannst du jederzeit eins anlegen.',
+              'Jump right in, no email, but no ranking: XP, rank, badges '
+                  'and new vehicles need an account. You can create one in '
+                  'the waiting room at any time.',
+            ),
+            style: const TextStyle(
+              color: BwColors.text,
+              fontSize: 14,
+              height: 1.35,
+            ),
           ),
           if (stretched) const Spacer(),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: game.playAsGuest,
             icon: const Icon(Icons.chevron_right),
-            label: const Text('ALS GAST SPIELEN'),
+            label: Text(tr('ALS GAST SPIELEN', 'PLAY AS GUEST')),
           ),
         ],
       ),
@@ -72,6 +83,7 @@ class WelcomeView extends StatelessWidget {
                 ),
               ),
             ),
+            const LanguageButton(),
             const MuteButton(),
           ],
         ),
@@ -80,21 +92,28 @@ class WelcomeView extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           spacing: 12,
           children: [
-            const Text(
-              'Willkommen, Panzerkommandant.',
-              style: TextStyle(color: BwColors.textDim),
+            Text(
+              tr('Willkommen, Panzerkommandant.', 'Welcome, tank commander.'),
+              style: const TextStyle(color: BwColors.textDim),
             ),
             TutorialButton(game: game),
           ],
         ),
         if (AccountService.mailLinkFailed) ...[
           const SizedBox(height: 16),
-          const _Notice(
-            'Der Link aus der Mail ließ sich in diesem Tab nicht abschließen. '
-            'Hast du dich gerade registriert, ist deine Adresse trotzdem '
-            'bestätigt: Wechsle zurück in den Tab, in dem du die Mail '
-            'angefordert hast, dort geht es von selbst weiter. Sonst melde '
-            'dich hier an und gib den Code aus der Mail ein.',
+          _Notice(
+            tr(
+              'Der Link aus der Mail ließ sich in diesem Tab nicht abschließen. '
+                  'Hast du dich gerade registriert, ist deine Adresse trotzdem '
+                  'bestätigt: Wechsle zurück in den Tab, in dem du die Mail '
+                  'angefordert hast, dort geht es von selbst weiter. Sonst melde '
+                  'dich hier an und gib den Code aus der Mail ein.',
+              'The link from the email could not be completed in this tab. '
+                  'If you just registered, your address is confirmed anyway: '
+                  'switch back to the tab where you requested the email and '
+                  'it will carry on by itself. Otherwise sign in here and '
+                  'enter the code from the email.',
+            ),
           ),
         ],
         const SizedBox(height: 20),

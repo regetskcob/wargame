@@ -9,6 +9,7 @@ import 'src/app/game_app.dart';
 import 'src/audio_service.dart';
 import 'src/db/account_service.dart';
 import 'src/env.dart';
+import 'src/l10n/l10n.dart';
 import 'src/net/room.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 
@@ -33,6 +34,7 @@ Future<void> main() async {
     await SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
   }
   await openLocalStore();
+  await L10n.init();
   // A link from a sign-in mail carries a one time code. Supabase redeems it
   // during initialize and drops it from the address, unless this browser
   // lacks the key the code was requested with.

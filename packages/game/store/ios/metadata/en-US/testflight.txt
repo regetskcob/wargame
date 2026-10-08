@@ -1,0 +1,13 @@
+BETA DESCRIPTION
+Panzergefecht is a top-down tank duel for iPhone and iPad: single player against CPU tanks, multiplayer in a shared room and defense against eight waves and more.
+
+WHAT TO TEST
+• Controls: drive with the left thumb, aim and fire with the right, aim assist on and off
+• Portrait and landscape during play and in the menus
+• Defense: build turrets, upgrade them, buy upgrades, extend after wave 8
+• Day and night alternate during a battle
+• Account: play as a guest, quit and restart the app, secure the account with e-mail (enter the code from the mail)
+• Sound: follows the silent switch and the volume keys
+
+FEEDBACK
+By screenshot from TestFlight or to regetskcob@icloud.com.

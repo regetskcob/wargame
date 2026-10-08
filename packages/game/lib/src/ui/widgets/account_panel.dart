@@ -8,6 +8,7 @@ import '../../net/room.dart';
 import '../../theme.dart';
 import 'choice_row.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// Guest or lasting account: secure the guest account by e-mail or with a
 /// login, sign into an account from another device, or sign out.
@@ -98,7 +99,10 @@ class _AccountPanelState extends State<AccountPanel> {
         if (mounted) {
           setState(() {
             _step = _Step.idle;
-            _message = 'E-Mail bestätigt, dein Konto steht.';
+            _message = tr(
+              'E-Mail bestätigt, dein Konto steht.',
+              'E-mail confirmed, your account is set up.',
+            );
             _error = false;
           });
         }
@@ -140,7 +144,7 @@ class _AccountPanelState extends State<AccountPanel> {
   /// Signs out and starts over on the welcome page, with nothing of the
   /// account left in the game: no name, no progress, no open dialog.
   Future<void> _signOut() async {
-    await _run(widget.accounts.signOut, 'Abgemeldet.');
+    await _run(widget.accounts.signOut, tr('Abgemeldet.', 'Signed out.'));
     if (_error) {
       return;
     }
@@ -154,16 +158,22 @@ class _AccountPanelState extends State<AccountPanel> {
     final name = _name.text.trim();
     if (!_signIn && (name.length < 2 || name.length > 16)) {
       setState(() {
-        _message =
-            'Bitte einen Rufnamen mit 2 bis 16 Zeichen wählen. Andere sehen '
-            'nur ihn, nie deine E-Mail-Adresse.';
+        _message = tr(
+          'Bitte einen Rufnamen mit 2 bis 16 Zeichen wählen. Andere sehen '
+              'nur ihn, nie deine E-Mail-Adresse.',
+          'Please choose a call sign of 2 to 16 characters. Others only '
+              'ever see it, never your e-mail address.',
+        );
         _error = true;
       });
       return;
     }
     if (!email.contains('@')) {
       setState(() {
-        _message = 'Bitte eine E-Mail-Adresse eingeben.';
+        _message = tr(
+          'Bitte eine E-Mail-Adresse eingeben.',
+          'Please enter an e-mail address.',
+        );
         _error = true;
       });
       return;
@@ -203,8 +213,12 @@ class _AccountPanelState extends State<AccountPanel> {
           _watchConfirmation();
         }
       },
-      'Mail ist unterwegs. Öffne den Link darin, das reicht. Steht in der '
-      'Mail auch ein Code, kannst du ihn stattdessen hier eingeben.',
+      tr(
+        'Mail ist unterwegs. Öffne den Link darin, das reicht. Steht in der '
+            'Mail auch ein Code, kannst du ihn stattdessen hier eingeben.',
+        'The mail is on its way. Open the link in it, that is enough. If '
+            'the mail also contains a code, you can enter it here instead.',
+      ),
     );
   }
 
@@ -213,20 +227,33 @@ class _AccountPanelState extends State<AccountPanel> {
   static const _noAccount = 'otp_disabled';
   static const _taken = {'email_exists', 'user_already_exists'};
 
-  /// The auth service answers in English: say it in German where we know
-  /// the case.
+  /// The auth service answers in English: say it in the player's language
+  /// where we know the case.
   String _describe(AuthException error) => switch (error.errorCode) {
-    _noAccount => 'Zu dieser E-Mail gibt es noch kein Konto.',
-    'email_exists' || 'user_already_exists' =>
+    _noAccount => tr(
+      'Zu dieser E-Mail gibt es noch kein Konto.',
+      'There is no account for this e-mail yet.',
+    ),
+    'email_exists' || 'user_already_exists' => tr(
       'Zu dieser E-Mail gibt es schon ein Konto. Melde dich damit an.',
-    'email_address_invalid' ||
-    'validation_failed' => 'Diese E-Mail-Adresse ist ungültig.',
-    'over_email_send_rate_limit' || 'over_request_rate_limit' =>
+      'There is already an account for this e-mail. Sign in with it.',
+    ),
+    'email_address_invalid' || 'validation_failed' => tr(
+      'Diese E-Mail-Adresse ist ungültig.',
+      'This e-mail address is invalid.',
+    ),
+    'over_email_send_rate_limit' || 'over_request_rate_limit' => tr(
       'Zu viele Versuche in kurzer Zeit. Bitte warte einen Moment.',
-    'otp_expired' =>
+      'Too many attempts in a short time. Please wait a moment.',
+    ),
+    'otp_expired' => tr(
       'Der Code ist falsch oder abgelaufen. Fordere eine neue Mail an.',
-    'email_address_not_authorized' =>
+      'The code is wrong or has expired. Request a new mail.',
+    ),
+    'email_address_not_authorized' => tr(
       'An diese Adresse darf gerade keine Mail gehen.',
+      'No mail may be sent to this address right now.',
+    ),
     _ => error.message,
   };
 
@@ -235,10 +262,10 @@ class _AccountPanelState extends State<AccountPanel> {
       () =>
           widget.accounts.verifyCode(_email.text, _code.text, signIn: _signIn),
       _signIn
-          ? 'Angemeldet.'
+          ? tr('Angemeldet.', 'Signed in.')
           : widget.embedded
-          ? 'Konto angelegt.'
-          : 'Konto gesichert.',
+          ? tr('Konto angelegt.', 'Account created.')
+          : tr('Konto gesichert.', 'Account secured.'),
     ).then((_) {
       if (!_error && mounted) {
         setState(() => _step = _Step.idle);
@@ -292,8 +319,8 @@ class _AccountPanelState extends State<AccountPanel> {
                           Flexible(
                             child: Text(
                               guest
-                                  ? 'KONTO: GAST'
-                                  : 'KONTO: ${widget.accounts.email ?? 'VERKNÜPFT'}',
+                                  ? tr('KONTO: GAST', 'ACCOUNT: GUEST')
+                                  : '${tr('KONTO', 'ACCOUNT')}: ${widget.accounts.email ?? tr('VERKNÜPFT', 'LINKED')}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: 1,
@@ -307,13 +334,15 @@ class _AccountPanelState extends State<AccountPanel> {
                         TextButton(
                           onPressed: () => setState(() => _open = !_open),
                           child: Text(
-                            _open ? 'SCHLIESSEN' : 'SICHERN / ANMELDEN',
+                            _open
+                                ? tr('SCHLIESSEN', 'CLOSE')
+                                : tr('SICHERN / ANMELDEN', 'SECURE / SIGN IN'),
                           ),
                         )
                       else
                         TextButton(
                           onPressed: _busy ? null : _signOut,
-                          child: const Text('ABMELDEN'),
+                          child: Text(tr('ABMELDEN', 'SIGN OUT')),
                         ),
                     ],
                   ),
@@ -350,9 +379,9 @@ class _AccountPanelState extends State<AccountPanel> {
       if (fresh) ...[
         const SizedBox(height: 16),
         ChoiceRow<bool>(
-          options: const [
-            (true, 'ANMELDEN', null),
-            (false, 'REGISTRIEREN', null),
+          options: [
+            (true, tr('ANMELDEN', 'SIGN IN'), null),
+            (false, tr('REGISTRIEREN', 'REGISTER'), null),
           ],
           selected: _signIn,
           onSelected: (v) => _switchTo(signIn: v ?? _signIn),
@@ -360,19 +389,32 @@ class _AccountPanelState extends State<AccountPanel> {
       ],
       SizedBox(height: fresh ? 14 : 6),
       Text(switch ((_signIn, fresh)) {
-        (true, true) =>
+        (true, true) => tr(
           'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
               'auf dieses Gerät zu holen. Gibt es zu der Adresse noch kein '
               'Konto, legen wir eins an.',
-        (true, false) =>
+          'Sign in with your account to bring your rank, rating and badges '
+              'to this device. If there is no account for the address yet, '
+              'we create one.',
+        ),
+        (true, false) => tr(
           'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
               'auf dieses Gerät zu holen.',
-        (false, true) =>
+          'Sign in with your account to bring your rank, rating and badges '
+              'to this device.',
+        ),
+        (false, true) => tr(
           'Lege ein Konto mit deiner E-Mail an. Rang, Wertung und Abzeichen '
               'bleiben dann auf jedem Gerät erhalten.',
-        (false, false) =>
+          'Create an account with your e-mail. Your rank, rating and badges '
+              'are then kept on every device.',
+        ),
+        (false, false) => tr(
           'Als Gast spielst du ohne Wertung. Lege ein Konto an, um EP, Rang, '
               'Wertung und Abzeichen zu sammeln und Fahrzeuge freizuschalten.',
+          'As a guest you play without ranking. Create an account to collect '
+              'XP, rank, rating and badges and to unlock vehicles.',
+        ),
       }, style: dim),
       SizedBox(height: fresh ? 16 : 10),
       if (_step == _Step.idle) ...[
@@ -381,10 +423,12 @@ class _AccountPanelState extends State<AccountPanel> {
             controller: _name,
             maxLength: 16,
             autofillHints: const [AutofillHints.username],
-            decoration: const InputDecoration(
-              labelText: 'RUFNAME',
-              helperText:
-                  'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+            decoration: InputDecoration(
+              labelText: tr('RUFNAME', 'CALL SIGN'),
+              helperText: tr(
+                'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+                'Publicly visible, for example on the leaderboard',
+              ),
             ),
           ),
           const SizedBox(height: 4),
@@ -393,7 +437,7 @@ class _AccountPanelState extends State<AccountPanel> {
           controller: _email,
           keyboardType: TextInputType.emailAddress,
           autofillHints: const [AutofillHints.email],
-          decoration: const InputDecoration(labelText: 'E-MAIL'),
+          decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
           onSubmitted: (_) => _sendMail(),
         ),
         SizedBox(height: fresh ? 16 : 8),
@@ -404,9 +448,9 @@ class _AccountPanelState extends State<AccountPanel> {
             FilledButton(
               onPressed: _busy ? null : _sendMail,
               child: Text(switch ((_signIn, fresh)) {
-                (true, _) => 'ANMELDELINK SENDEN',
-                (false, true) => 'KONTO ANLEGEN',
-                (false, false) => 'KONTO SICHERN',
+                (true, _) => tr('ANMELDELINK SENDEN', 'SEND SIGN-IN LINK'),
+                (false, true) => tr('KONTO ANLEGEN', 'CREATE ACCOUNT'),
+                (false, false) => tr('KONTO SICHERN', 'SECURE ACCOUNT'),
               }),
             ),
             for (final (provider, label) in widget.accounts.providers.value)
@@ -417,7 +461,10 @@ class _AccountPanelState extends State<AccountPanel> {
                         () => _signIn
                             ? widget.accounts.signInWith(provider)
                             : widget.accounts.secureWith(provider),
-                        'Weiter im Anmeldefenster.',
+                        tr(
+                          'Weiter im Anmeldefenster.',
+                          'Continue in the sign-in window.',
+                        ),
                       ),
                 child: Text(label),
               ),
@@ -428,8 +475,11 @@ class _AccountPanelState extends State<AccountPanel> {
           controller: _code,
           keyboardType: TextInputType.number,
           autofillHints: const [AutofillHints.oneTimeCode],
-          decoration: const InputDecoration(
-            labelText: 'CODE AUS DER MAIL (FALLS VORHANDEN)',
+          decoration: InputDecoration(
+            labelText: tr(
+              'CODE AUS DER MAIL (FALLS VORHANDEN)',
+              'CODE FROM THE MAIL (IF ANY)',
+            ),
           ),
           onSubmitted: (_) => _verify(),
         ),
@@ -439,11 +489,11 @@ class _AccountPanelState extends State<AccountPanel> {
           children: [
             FilledButton(
               onPressed: _busy ? null : _verify,
-              child: const Text('BESTÄTIGEN'),
+              child: Text(tr('BESTÄTIGEN', 'CONFIRM')),
             ),
             TextButton(
               onPressed: () => setState(() => _step = _Step.idle),
-              child: const Text('ZURÜCK'),
+              child: Text(tr('ZURÜCK', 'BACK')),
             ),
           ],
         ),
@@ -454,8 +504,14 @@ class _AccountPanelState extends State<AccountPanel> {
           onPressed: () => _switchTo(signIn: !_signIn),
           child: Text(
             _signIn
-                ? 'Noch kein Konto? Gastkonto sichern'
-                : 'Schon ein Konto? Anmelden',
+                ? tr(
+                    'Noch kein Konto? Gastkonto sichern',
+                    'No account yet? Secure your guest account',
+                  )
+                : tr(
+                    'Schon ein Konto? Anmelden',
+                    'Already have an account? Sign in',
+                  ),
           ),
         ),
       ],

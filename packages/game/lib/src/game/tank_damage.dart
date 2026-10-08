@@ -1,20 +1,25 @@
+import '../l10n/l10n.dart';
+
 /// How badly a tank is battered, and what that does to it. Everything follows
 /// from the hit points alone, so every client sees the same wreckage on every
 /// tank without extra network traffic.
 enum DamageStage {
-  intact(0, null),
-  scratched(0.15, null),
-  damaged(0.4, 'KETTE BESCHÄDIGT'),
-  crippled(0.65, 'MOTOR BESCHÄDIGT'),
-  burning(0.82, 'PANZER BRENNT');
+  intact(0, null, null),
+  scratched(0.15, null, null),
+  damaged(0.4, 'KETTE BESCHÄDIGT', 'TRACK DAMAGED'),
+  crippled(0.65, 'MOTOR BESCHÄDIGT', 'ENGINE DAMAGED'),
+  burning(0.82, 'PANZER BRENNT', 'TANK ON FIRE');
 
-  const DamageStage(this.threshold, this.notice);
+  const DamageStage(this.threshold, this._noticeDe, this._noticeEn);
 
   /// Wear from which on the stage applies.
   final double threshold;
 
   /// Warning for the driver when the tank sinks to this stage.
-  final String? notice;
+  String? get notice => _noticeDe == null ? null : tr(_noticeDe, _noticeEn!);
+
+  final String? _noticeDe;
+  final String? _noticeEn;
 }
 
 class TankDamage {

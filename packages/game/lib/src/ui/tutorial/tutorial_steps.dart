@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 
+import '../../game/bot_level.dart';
 import '../../game/components/power_up.dart';
 import '../../game/components/tank_painter.dart';
 import '../../game/defense/tower.dart';
+import '../../game/map_theme.dart';
 import '../../game_config.dart';
+import '../../l10n/l10n.dart';
 import '../../theme.dart';
 
 /// What the stage behind a tutorial card acts out.
@@ -66,149 +69,206 @@ List<TutorialStep> tutorialSteps({required bool touch}) => [
 /// How many of the steps for [touch] explain the controls.
 int controlSteps({required bool touch}) => (touch ? _touch : _desktop).length;
 
-const _touch = [
+List<TutorialStep> get _touch => [
   TutorialStep(
-    title: 'FAHREN',
+    title: tr('FAHREN', 'DRIVE'),
     icon: Icons.open_with,
     scene: DemoScene.drive,
-    text:
-        'Setz den linken Daumen irgendwo unten links auf, dort erscheint der '
-        'Stick. Schieb ihn dorthin, wohin der Panzer soll: Er dreht sich von '
-        'selbst und fährt los.',
+    text: tr(
+      'Setz den linken Daumen irgendwo unten links auf, dort erscheint der '
+          'Stick. Schieb ihn dorthin, wohin der Panzer soll: Er dreht sich von '
+          'selbst und fährt los.',
+      'Put your left thumb anywhere at the bottom left, the stick appears '
+          'there. Push it where the tank should go: it turns by itself and '
+          'drives off.',
+    ),
   ),
   TutorialStep(
-    title: 'ZIELEN',
+    title: tr('ZIELEN', 'AIM'),
     icon: Icons.track_changes,
     scene: DemoScene.aim,
-    text:
-        'Der rechte Daumen richtet den Turm aus, ganz gleich, wohin der '
-        'Panzer fährt. Innerhalb des Rings wird nur gezielt.',
+    text: tr(
+      'Der rechte Daumen richtet den Turm aus, ganz gleich, wohin der '
+          'Panzer fährt. Innerhalb des Rings wird nur gezielt.',
+      'The right thumb aims the turret, no matter where the tank is '
+          'driving. Inside the ring you only aim.',
+    ),
   ),
   TutorialStep(
-    title: 'FEUERN',
+    title: tr('FEUERN', 'FIRE'),
     icon: Icons.local_fire_department,
     scene: DemoScene.fire,
-    text:
-        'Schieb den rechten Stick über den Ring hinaus, dann feuert der '
-        'Panzer, solange du ihn dort hältst. Die Munition ist begrenzt, '
-        'blaue Gems füllen sie auf.',
+    text: tr(
+      'Schieb den rechten Stick über den Ring hinaus, dann feuert der '
+          'Panzer, solange du ihn dort hältst. Die Munition ist begrenzt, '
+          'blaue Gems füllen sie auf.',
+      'Push the right stick past the ring and the tank fires as long as '
+          'you hold it there. Ammunition is limited, blue gems refill it.',
+    ),
   ),
   TutorialStep(
-    title: 'ZIELHILFE',
+    title: tr('ZIELHILFE', 'AIM ASSIST'),
     icon: Icons.gps_fixed,
     scene: DemoScene.assist,
-    text:
-        'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
-        'nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE über '
-        'dem Stick schaltet sie aus und wieder an. Auf Schwer gibt es keine '
-        'Zielhilfe.',
+    text: tr(
+      'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
+          'nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE über '
+          'dem Stick schaltet sie aus und wieder an. Auf Schwer gibt es keine '
+          'Zielhilfe.',
+      'While the right thumb rests, the aim assist turns the turret to the '
+          'nearest enemy in range and fires. The AIM ASSIST button above the '
+          'stick switches it off and on again. On Hard there is no aim '
+          'assist.',
+    ),
   ),
   TutorialStep(
-    title: 'INVENTAR',
+    title: tr('INVENTAR', 'INVENTORY'),
     icon: Icons.inventory_2,
     scene: DemoScene.inventory,
-    text:
-        'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
-        'Ein Tipp auf das Feld setzt sie ein, hier einen Schild.',
+    text: tr(
+      'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
+          'Ein Tipp auf das Feld setzt sie ein, hier einen Schild.',
+      'Drive over crates and gems, they land in the inventory on the left '
+          'edge. A tap on the slot uses them, here a shield.',
+    ),
   ),
   TutorialStep(
-    title: 'SPEZIALWAFFE',
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
     icon: Icons.sports_baseball,
     scene: DemoScene.special,
-    text:
-        'Granatwerfer, Mörser und Drohne aus Gems bekommen einen runden Knopf '
-        'über dem rechten Stick. Ein Druck feuert, die Zahl zeigt, wie oft '
-        'noch.',
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems bekommen einen runden Knopf '
+          'über dem rechten Stick. Ein Druck feuert, die Zahl zeigt, wie oft '
+          'noch.',
+      'Grenade launcher, mortar and drone from gems get a round button '
+          'above the right stick. A press fires, the number shows how many '
+          'shots are left.',
+    ),
   ),
   TutorialStep(
-    title: 'VERTEIDIGUNG',
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
     icon: Icons.shield,
     scene: DemoScene.defense,
-    text:
-        'Im Modus Verteidigung bringen Abschüsse Geld. Ein Tipp auf ein '
-        'Geschütz baut es neben deinem Panzer, steht er an einem Geschütz, '
-        'rüstest du es dort auf.',
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. Ein Tipp auf ein '
+          'Geschütz baut es neben deinem Panzer, steht er an einem Geschütz, '
+          'rüstest du es dort auf.',
+      'In defense mode kills bring money. A tap on a turret builds it next '
+          'to your tank, and when it stands at a turret you upgrade that '
+          'one.',
+    ),
   ),
 ];
 
-const _desktop = [
+List<TutorialStep> get _desktop => [
   TutorialStep(
-    title: 'FAHREN',
+    title: tr('FAHREN', 'DRIVE'),
     icon: Icons.keyboard,
     scene: DemoScene.drive,
-    text:
-        'W fährt vorwärts, S bremst und setzt zurück, A und D lenken. Die '
-        'Pfeiltasten tun dasselbe.',
+    text: tr(
+      'W fährt vorwärts, S bremst und setzt zurück, A und D lenken. Die '
+          'Pfeiltasten tun dasselbe.',
+      'W drives forward, S brakes and reverses, A and D steer. The arrow '
+          'keys do the same.',
+    ),
   ),
   TutorialStep(
-    title: 'ZIELEN',
+    title: tr('ZIELEN', 'AIM'),
     icon: Icons.mouse,
     scene: DemoScene.aim,
-    text:
-        'Der Turm folgt der Maus, ganz gleich, wohin der Panzer fährt. Ohne '
-        'Maus drehen Q und E den Turm.',
+    text: tr(
+      'Der Turm folgt der Maus, ganz gleich, wohin der Panzer fährt. Ohne '
+          'Maus drehen Q und E den Turm.',
+      'The turret follows the mouse, no matter where the tank is driving. '
+          'Without a mouse, Q and E turn the turret.',
+    ),
   ),
   TutorialStep(
-    title: 'FEUERN',
+    title: tr('FEUERN', 'FIRE'),
     icon: Icons.local_fire_department,
     scene: DemoScene.fire,
-    text:
-        'Linksklick oder Leertaste feuert, gedrückt halten heißt Dauerfeuer. '
-        'Die Munition ist begrenzt, blaue Gems füllen sie auf.',
+    text: tr(
+      'Linksklick oder Leertaste feuert, gedrückt halten heißt Dauerfeuer. '
+          'Die Munition ist begrenzt, blaue Gems füllen sie auf.',
+      'Left click or space fires, holding it down means continuous fire. '
+          'Ammunition is limited, blue gems refill it.',
+    ),
   ),
   TutorialStep(
-    title: 'INVENTAR',
+    title: tr('INVENTAR', 'INVENTORY'),
     icon: Icons.inventory_2,
     scene: DemoScene.inventory,
-    text:
-        'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
-        'Die Tasten 1 bis 6 oder ein Klick auf das Feld setzen sie ein, hier '
-        'einen Schild.',
+    text: tr(
+      'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
+          'Die Tasten 1 bis 6 oder ein Klick auf das Feld setzen sie ein, hier '
+          'einen Schild.',
+      'Drive over crates and gems, they land in the inventory on the left '
+          'edge. The keys 1 to 6 or a click on the slot use them, here a '
+          'shield.',
+    ),
   ),
   TutorialStep(
-    title: 'SPEZIALWAFFE',
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
     icon: Icons.sports_baseball,
     scene: DemoScene.special,
-    text:
-        'Granatwerfer, Mörser und Drohne aus Gems löst du mit F aus. Granaten '
-        'und Mörser fliegen über Mauern hinweg dorthin, wo die Maus steht.',
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems löst du mit F aus. Granaten '
+          'und Mörser fliegen über Mauern hinweg dorthin, wo die Maus steht.',
+      'Grenade launcher, mortar and drone from gems are fired with F. '
+          'Grenades and mortar shells fly over walls to where the mouse is.',
+    ),
   ),
   TutorialStep(
-    title: 'VERTEIDIGUNG',
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
     icon: Icons.shield,
     scene: DemoScene.defense,
-    text:
-        'Im Modus Verteidigung bringen Abschüsse Geld. B baut ein Geschütz '
-        'neben deinem Panzer, V wechselt den Typ.',
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. B baut ein Geschütz '
+          'neben deinem Panzer, V wechselt den Typ.',
+      'In defense mode kills bring money. B builds a turret next to your '
+          'tank, V switches the type.',
+    ),
   ),
 ];
 
-final _tour = [
-  const TutorialStep(
-    title: 'DREI WEGE ZU SPIELEN',
+List<TutorialStep> get _tour => [
+  TutorialStep(
+    title: tr('DREI WEGE ZU SPIELEN', 'THREE WAYS TO PLAY'),
     icon: Icons.flag,
-    text:
-        'Allein gegen CPU-Panzer, mit anderen per Link, Code oder Raumliste, '
-        'oder gemeinsam gegen ${GameConfig.defenseWaves} Wellen.',
+    text: tr(
+      'Allein gegen CPU-Panzer, mit anderen per Link, Code oder Raumliste, '
+          'oder gemeinsam gegen ${GameConfig.defenseWaves} Wellen.',
+      'Alone against CPU tanks, with others by link, code or room list, '
+          'or together against ${GameConfig.defenseWaves} waves.',
+    ),
     chips: [
-      TutorialChip(Icons.person, 'EINZELSPIELER'),
-      TutorialChip(Icons.groups, 'MEHRSPIELER'),
-      TutorialChip(Icons.compare_arrows, 'ROT GEGEN BLAU'),
-      TutorialChip(Icons.shield, 'VERTEIDIGUNG'),
+      TutorialChip(Icons.person, tr('EINZELSPIELER', 'SINGLE PLAYER')),
+      TutorialChip(Icons.groups, tr('MEHRSPIELER', 'MULTIPLAYER')),
+      TutorialChip(Icons.compare_arrows, tr('ROT GEGEN BLAU', 'RED VS BLUE')),
+      TutorialChip(Icons.shield, tr('VERTEIDIGUNG', 'DEFENSE')),
     ],
   ),
   TutorialStep(
-    title: '${_count(TankType.values.length)} FAHRZEUGE',
+    title: tr(
+      '${_count(TankType.values.length)} FAHRZEUGE',
+      '${_countEn(TankType.values.length)} VEHICLES',
+    ),
     icon: Icons.directions_car,
     scene: DemoScene.vehicles,
-    text:
-        'Jedes mit eigener Panzerung, Tempo und Kanone. Weitere Fahrzeuge '
-        'und Tarnfarben kommen mit höheren Rängen.',
+    text: tr(
+      'Jedes mit eigener Panzerung, Tempo und Kanone. Weitere Fahrzeuge '
+          'und Tarnfarben kommen mit höheren Rängen.',
+      'Each with its own armour, speed and cannon. More vehicles and '
+          'camouflage colours come with higher ranks.',
+    ),
   ),
   TutorialStep(
-    title: 'KISTEN',
+    title: tr('KISTEN', 'CRATES'),
     icon: Icons.all_inbox,
-    text: 'Im Feld liegen Kisten mit Hilfe für den Notfall.',
+    text: tr(
+      'Im Feld liegen Kisten mit Hilfe für den Notfall.',
+      'Crates with emergency help lie around the field.',
+    ),
     chips: [
       for (final type in PowerUpType.values.where((t) => !t.gem))
         TutorialChip(type.icon, type.label, type.color),
@@ -217,81 +277,108 @@ final _tour = [
   TutorialStep(
     title: 'GEMS',
     icon: Icons.diamond,
-    text:
-        'Gems bringen Munition, Treibstoff und Spezialwaffen, bis hin zu '
-        'Fallschirmjägern mit Panzerfäusten.',
+    text: tr(
+      'Gems bringen Munition, Treibstoff und Spezialwaffen, bis hin zu '
+          'Fallschirmjägern mit Panzerfäusten.',
+      'Gems bring ammunition, fuel and special weapons, even paratroopers '
+          'with rocket launchers.',
+    ),
     chips: [
       for (final type in PowerUpType.values.where((t) => t.gem))
         TutorialChip(type.icon, type.label, type.color),
     ],
   ),
-  const TutorialStep(
-    title: 'GELÄNDE UND WETTER',
+  TutorialStep(
+    title: tr('GELÄNDE UND WETTER', 'TERRAIN AND WEATHER'),
     icon: Icons.terrain,
-    text:
-        'Vier Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
-        'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Häuser, '
-        'Sperren und Bäume lassen sich zerschießen.',
+    text: tr(
+      'Vier Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
+          'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Häuser, '
+          'Sperren und Bäume lassen sich zerschießen.',
+      'Four terrains where day and night alternate, with rain, snow, '
+          'sandstorm or fog that limit your view. Houses, barriers and trees '
+          'can be shot to pieces.',
+    ),
     chips: [
-      TutorialChip(Icons.park, 'GEFECHTSPLATZ'),
-      TutorialChip(Icons.wb_sunny, 'WÜSTE'),
-      TutorialChip(Icons.ac_unit, 'WINTER'),
-      TutorialChip(Icons.location_city, 'STADT'),
-      TutorialChip(Icons.water_drop, 'REGEN'),
-      TutorialChip(Icons.blur_on, 'NEBEL'),
-      TutorialChip(Icons.nightlight_round, 'NACHT'),
-    ],
-  ),
-  const TutorialStep(
-    title: 'DREI STUFEN',
-    icon: Icons.signal_cellular_alt,
-    text:
-        'Leicht: flaches Land, Treibstoff und Munition gehen nie aus. '
-        'Normal: Hügel und Nachschub, der gesucht werden muss. Schwer: '
-        'steile Hügel und Luftschläge.',
-    chips: [
-      TutorialChip(Icons.signal_cellular_alt_1_bar, 'LEICHT'),
-      TutorialChip(Icons.signal_cellular_alt_2_bar, 'NORMAL'),
-      TutorialChip(Icons.signal_cellular_alt, 'SCHWER', BwColors.danger),
+      TutorialChip(Icons.park, MapTheme.forest.name.toUpperCase()),
+      TutorialChip(Icons.wb_sunny, MapTheme.desert.name.toUpperCase()),
+      TutorialChip(Icons.ac_unit, MapTheme.winter.name.toUpperCase()),
+      TutorialChip(Icons.location_city, MapTheme.city.name.toUpperCase()),
+      TutorialChip(Icons.water_drop, tr('REGEN', 'RAIN')),
+      TutorialChip(Icons.blur_on, tr('NEBEL', 'FOG')),
+      TutorialChip(Icons.nightlight_round, tr('NACHT', 'NIGHT')),
     ],
   ),
   TutorialStep(
-    title: 'STÜTZPUNKT HALTEN',
+    title: tr('DREI STUFEN', 'THREE LEVELS'),
+    icon: Icons.signal_cellular_alt,
+    text: tr(
+      'Leicht: flaches Land, Treibstoff und Munition gehen nie aus. '
+          'Normal: Hügel und Nachschub, der gesucht werden muss. Schwer: '
+          'steile Hügel und Luftschläge.',
+      'Easy: flat land, fuel and ammunition never run out. Normal: hills '
+          'and supplies that have to be found. Hard: steep hills and air '
+          'strikes.',
+    ),
+    chips: [
+      TutorialChip(Icons.signal_cellular_alt_1_bar, BotLevel.easy.label),
+      TutorialChip(Icons.signal_cellular_alt_2_bar, BotLevel.normal.label),
+      TutorialChip(
+        Icons.signal_cellular_alt,
+        BotLevel.hard.label,
+        BwColors.danger,
+      ),
+    ],
+  ),
+  TutorialStep(
+    title: tr('STÜTZPUNKT HALTEN', 'HOLD THE BASE'),
     icon: Icons.fort,
-    text:
-        'Geschütze, Gräben und Upgrades für den Panzer. Hält der Stützpunkt '
-        'gut, wächst er vom Wachturm zur Festung und schickt eigene '
-        'Hubschrauber und Jets. Nach Welle ${GameConfig.defenseWaves} könnt '
-        'ihr verlängern: höhere Stufen, Raketenwerfer, zähere Gegner.',
+    text: tr(
+      'Geschütze, Gräben und Upgrades für den Panzer. Hält der Stützpunkt '
+          'gut, wächst er vom Wachturm zur Festung und schickt eigene '
+          'Hubschrauber und Jets. Nach Welle ${GameConfig.defenseWaves} könnt '
+          'ihr verlängern: höhere Stufen, Raketenwerfer, zähere Gegner.',
+      'Turrets, trenches and upgrades for the tank. If the base holds '
+          'well, it grows from a watchtower into a fortress and sends its '
+          'own helicopters and jets. After wave ${GameConfig.defenseWaves} '
+          'you can extend: higher levels, rocket launchers, tougher '
+          'enemies.',
+    ),
     chips: [
       for (final kind in TowerKind.values)
         TutorialChip(_towerIcon(kind), kind.label),
-      const TutorialChip(Icons.upgrade, 'UPGRADES'),
+      TutorialChip(Icons.upgrade, 'UPGRADES'),
     ],
   ),
-  const TutorialStep(
-    title: 'NACH DER RUNDE',
+  TutorialStep(
+    title: tr('NACH DER RUNDE', 'AFTER THE ROUND'),
     icon: Icons.emoji_events,
-    text:
-        'Revanche auf Knopfdruck, die letzte Runde als Wiederholung, dazu '
-        'Ränge, Wertung, Abzeichen und Bestenlisten.',
+    text: tr(
+      'Revanche auf Knopfdruck, die letzte Runde als Wiederholung, dazu '
+          'Ränge, Wertung, Abzeichen und Bestenlisten.',
+      'A rematch at the push of a button, the last round as a replay, plus '
+          'ranks, rating, badges and leaderboards.',
+    ),
     chips: [
-      TutorialChip(Icons.replay, 'REVANCHE'),
-      TutorialChip(Icons.movie_outlined, 'WIEDERHOLUNG'),
-      TutorialChip(Icons.military_tech, 'RÄNGE'),
-      TutorialChip(Icons.workspace_premium, 'ABZEICHEN'),
-      TutorialChip(Icons.leaderboard, 'BESTENLISTE'),
+      TutorialChip(Icons.replay, tr('REVANCHE', 'REMATCH')),
+      TutorialChip(Icons.movie_outlined, tr('WIEDERHOLUNG', 'REPLAY')),
+      TutorialChip(Icons.military_tech, tr('RÄNGE', 'RANKS')),
+      TutorialChip(Icons.workspace_premium, tr('ABZEICHEN', 'BADGES')),
+      TutorialChip(Icons.leaderboard, tr('BESTENLISTE', 'LEADERBOARD')),
     ],
   ),
 ];
 
-const _ready = TutorialStep(
-  title: 'BEREIT, KOMMANDANT',
+TutorialStep get _ready => TutorialStep(
+  title: tr('BEREIT, KOMMANDANT', 'READY, COMMANDER'),
   icon: Icons.military_tech,
   scene: DemoScene.ready,
-  text:
-      'Das war die Einweisung. Du findest sie jederzeit wieder auf der '
-      'Anmeldeseite, der Startseite und im Warteraum.',
+  text: tr(
+    'Das war die Einweisung. Du findest sie jederzeit wieder auf der '
+        'Anmeldeseite, der Startseite und im Warteraum.',
+    'That was the briefing. You can find it again at any time on the '
+        'sign-in page, the start page and in the waiting room.',
+  ),
 );
 
 IconData _towerIcon(TowerKind kind) => switch (kind) {
@@ -309,5 +396,13 @@ String _count(int n) => switch (n) {
   8 => 'ACHT',
   9 => 'NEUN',
   10 => 'ZEHN',
+  _ => '$n',
+};
+
+String _countEn(int n) => switch (n) {
+  7 => 'SEVEN',
+  8 => 'EIGHT',
+  9 => 'NINE',
+  10 => 'TEN',
   _ => '$n',
 };

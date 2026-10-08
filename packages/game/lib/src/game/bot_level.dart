@@ -1,22 +1,34 @@
 import 'dart:math';
 
 import '../game_config.dart';
+import '../l10n/l10n.dart';
 
 /// How well the CPU tanks fight.
 enum BotLevel {
-  easy('LEICHT', aimError: 0.24, reaction: 0.8, think: 0.28, lead: 0.4),
-  normal('MITTEL', aimError: 0.12, reaction: 0.4, think: 0.15, lead: 1),
-  hard('SCHWER', aimError: 0.05, reaction: 0.18, think: 0.08, lead: 1);
+  easy('LEICHT', 'EASY', aimError: 0.24, reaction: 0.8, think: 0.28, lead: 0.4),
+  normal(
+    'MITTEL',
+    'NORMAL',
+    aimError: 0.12,
+    reaction: 0.4,
+    think: 0.15,
+    lead: 1,
+  ),
+  hard('SCHWER', 'HARD', aimError: 0.05, reaction: 0.18, think: 0.08, lead: 1);
 
   const BotLevel(
-    this.label, {
+    this._labelDe,
+    this._labelEn, {
     required this.aimError,
     required this.reaction,
     required this.think,
     required this.lead,
   });
 
-  final String label;
+  final String _labelDe;
+  final String _labelEn;
+
+  String get label => tr(_labelDe, _labelEn);
 
   /// Largest aiming mistake in radians, before distance makes it worse.
   final double aimError;

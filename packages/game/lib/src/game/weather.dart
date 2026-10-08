@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'map_theme.dart';
+import '../l10n/l10n.dart';
 
 /// What falls from the sky. Rain, snow or sand depends on the ground: snow
 /// in winter, sand in the desert, rain everywhere else.
@@ -101,13 +102,13 @@ class Conditions {
 
   String get label {
     final weather = switch (sky) {
-      Sky.clear => night ? 'Sternklar' : 'Klar',
-      Sky.fog => 'Nebel',
-      Sky.precipitation when snow => 'Schneefall',
-      Sky.precipitation when sand => 'Sandsturm',
-      Sky.precipitation => 'Regen',
+      Sky.clear => night ? tr('Sternklar', 'Starry') : tr('Klar', 'Clear'),
+      Sky.fog => tr('Nebel', 'Fog'),
+      Sky.precipitation when snow => tr('Schneefall', 'Snowfall'),
+      Sky.precipitation when sand => tr('Sandsturm', 'Sandstorm'),
+      Sky.precipitation => tr('Regen', 'Rain'),
     };
-    return night ? 'Nacht, $weather' : weather;
+    return night ? tr('Nacht, $weather', 'Night, $weather') : weather;
   }
 }
 

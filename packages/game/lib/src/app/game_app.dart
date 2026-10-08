@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart'
     show PointerDeviceKind, kPrimaryMouseButton;
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
@@ -13,6 +14,7 @@ import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
 import '../game/space_game.dart';
+import '../l10n/l10n.dart';
 import '../net/net_service.dart';
 import '../net/room.dart';
 import '../theme.dart';
@@ -106,8 +108,18 @@ class _GameAppState extends State<GameApp> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<AppLang>(
+      valueListenable: L10n.lang,
+      builder: (context, lang, _) => _app(lang),
+    );
+  }
+
+  Widget _app(AppLang lang) {
     return MaterialApp(
       title: 'Panzergefecht',
+      locale: lang.locale,
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      supportedLocales: [for (final l in AppLang.values) l.locale],
       debugShowCheckedModeBanner: false,
       theme: buildBundeswehrTheme(),
       home: Scaffold(

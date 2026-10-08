@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import '../game_config.dart';
+import '../l10n/l10n.dart';
 
 /// Weapons a tank only gets from a gem. They come with a few charges, fire
 /// with F or the touch button and are gone once the charges are used up.
@@ -8,6 +9,7 @@ enum SpecialWeapon {
   /// Lobs shells over walls and trees onto the spot under the cursor.
   grenades(
     'GRANATWERFER',
+    'GRENADE LAUNCHER',
     Color(0xFFEF5350),
     charges: GameConfig.grenadeCharges,
     cooldown: GameConfig.grenadeCooldown,
@@ -22,6 +24,7 @@ enum SpecialWeapon {
   /// Launches a kamikaze drone that hunts the nearest enemy on its own.
   drone(
     'DROHNE',
+    'DRONE',
     Color(0xFFB388FF),
     charges: GameConfig.droneCharges,
     cooldown: GameConfig.droneCooldown,
@@ -33,6 +36,7 @@ enum SpecialWeapon {
   /// hits tanks harder than the grenade launcher.
   mortar(
     'MÖRSER',
+    'MORTAR',
     Color(0xFFFF8A65),
     charges: GameConfig.mortarCharges,
     cooldown: GameConfig.mortarCooldown,
@@ -48,6 +52,7 @@ enum SpecialWeapon {
   /// it.
   shell(
     'MÖRSERSTELLUNG',
+    'MORTAR EMPLACEMENT',
     Color(0xFFFFAB40),
     charges: 0,
     cooldown: 0,
@@ -58,7 +63,8 @@ enum SpecialWeapon {
   );
 
   const SpecialWeapon(
-    this.label,
+    this._labelDe,
+    this._labelEn,
     this.color, {
     required this.charges,
     required this.cooldown,
@@ -70,7 +76,9 @@ enum SpecialWeapon {
     this.arc = 0,
   });
 
-  final String label;
+  final String _labelDe;
+  final String _labelEn;
+  String get label => tr(_labelDe, _labelEn);
   final Color color;
   final int charges;
   final double cooldown;
