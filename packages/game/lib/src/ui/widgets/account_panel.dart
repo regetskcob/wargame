@@ -17,6 +17,7 @@ class AccountPanel extends StatefulWidget {
     this.onCallSign,
     this.callSign,
     this.onSignedOut,
+    this.initiallyOpen = false,
     super.key,
   });
 
@@ -38,6 +39,10 @@ class AccountPanel extends StatefulWidget {
   /// a new one.
   final bool embedded;
 
+  /// Starts with securing and signing in shown, for a guest who opened the
+  /// account to do just that.
+  final bool initiallyOpen;
+
   @override
   State<AccountPanel> createState() => _AccountPanelState();
 }
@@ -53,7 +58,7 @@ class _AccountPanelState extends State<AccountPanel> {
   /// The names the game hands out to fresh guests, not worth keeping.
   static final _generated = RegExp(r'^Panzer-\d{4}$');
   final _code = TextEditingController();
-  var _open = false;
+  late var _open = widget.initiallyOpen;
   late var _signIn = widget.embedded;
   var _step = _Step.idle;
   var _busy = false;
