@@ -19,6 +19,9 @@ class PilotProgress {
   final ProfileService profiles;
 
   final rank = ValueNotifier<Rank>(Rank.of(0));
+
+  /// Null until a round against a rated opponent moved it, like the dash in
+  /// the leaderboard.
   final rating = ValueNotifier<int?>(null);
   final badges = ValueNotifier<Set<String>>({});
 
@@ -43,7 +46,7 @@ class PilotProgress {
     final score = await scoreLoad;
     if (score != null) {
       rank.value = Rank.of(score.xp);
-      rating.value = score.rating;
+      rating.value = score.ratedRounds > 0 ? score.rating : null;
       _rounds = score.rounds;
     }
     badges.value = await badgeLoad;
@@ -85,7 +88,16 @@ class PilotProgress {
     if (record != null) {
       final before = rank.value.level;
       rank.value = Rank.of(record.xp);
-      rating.value = record.rating;
+      if (rating.value != null || record.ratingChange != 0) {
+        rating.value = record.rating;
+      } else {
+        // A rated round can leave the rating where it was: ask whether this
+        // one counted.
+        final score = await scores.myScore();
+        if (score != null && score.ratedRounds > 0) {
+          rating.value = score.rating;
+        }
+      }
       rankedUp.value = rank.value.level > before;
       lastRecord.value = record;
     }

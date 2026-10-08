@@ -10,9 +10,9 @@ import 'choice_row.dart';
 
 enum _View { total, week, vehicles }
 
-/// Ranking of the pilots with a rated round by rating, with the totals behind it, the same for
+/// Ranking of all pilots by rating, with the totals behind it, the same for
 /// the current week, and the player's own numbers per vehicle. The own row
-/// is highlighted.
+/// is highlighted, and added below the list when it is further down.
 class Leaderboard extends StatefulWidget {
   const Leaderboard({required this.game, this.rows = 10, super.key});
 
@@ -50,12 +50,17 @@ class _LeaderboardState extends State<Leaderboard> {
 
   void _reload() {
     _scores = widget.game.scoreService.topScores(limit: 50);
-    _week = widget.game.scoreService.weeklyScores();
+    _week = widget.game.scoreService.weeklyScores(limit: 50);
     _vehicles = widget.game.scoreService.myTankScores();
   }
 
-  /// Rating first, then wins, kills and damage break ties.
+  /// Pilots with a rated round first, then rating, then wins, kills and
+  /// damage break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
+    final byRated = _rated(b).compareTo(_rated(a));
+    if (byRated != 0) {
+      return byRated;
+    }
     final byRating = b.rating.compareTo(a.rating);
     if (byRating != 0) {
       return byRating;
@@ -66,6 +71,22 @@ class _LeaderboardState extends State<Leaderboard> {
     }
     final byKills = b.kills.compareTo(a.kills);
     return byKills != 0 ? byKills : b.damage.compareTo(a.damage);
+  }
+
+  /// Without a rated opponent yet the rating is only the starting value.
+  static int _rated(ScoresRow row) => row.ratedRounds > 0 ? 1 : 0;
+
+  /// The first [widget.rows] places, and the own place below them when it
+  /// is further down.
+  List<(int, T)> _shown<T>(List<T> rows, bool Function(T) mine) {
+    final shown = [
+      for (var i = 0; i < rows.length && i < widget.rows; i++) (i + 1, rows[i]),
+    ];
+    final own = rows.indexWhere(mine);
+    if (own >= widget.rows) {
+      shown.add((own + 1, rows[own]));
+    }
+    return shown;
   }
 
   static String _time(int seconds) =>
@@ -172,19 +193,19 @@ class _LeaderboardState extends State<Leaderboard> {
             '± WERTUNG',
           ],
           [
-            for (var i = 0; i < rows.length; i++)
+            for (final (rank, row) in _shown(rows, (r) => r.id == me))
               _plainRow(
                 [
-                  '${i + 1}',
-                  rows[i].name ?? '',
-                  '${rows[i].xp ?? 0}',
-                  '${rows[i].wins ?? 0}',
-                  '${rows[i].rounds ?? 0}',
-                  '${rows[i].kills ?? 0}',
-                  _signed(rows[i].ratingChange ?? 0),
+                  '$rank',
+                  row.name ?? '',
+                  '${row.xp ?? 0}',
+                  '${row.wins ?? 0}',
+                  '${row.rounds ?? 0}',
+                  '${row.kills ?? 0}',
+                  _signed(row.ratingChange ?? 0),
                 ],
-                mine: rows[i].id == me,
-                rank: i + 1,
+                mine: row.id == me,
+                rank: rank,
               ),
           ],
         );
@@ -263,14 +284,13 @@ class _LeaderboardState extends State<Leaderboard> {
         }
         final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
           ..sort(_byRank);
-        final shown = scores.take(widget.rows).toList();
         final me = widget.game.scoreService.myId;
-        if (shown.isEmpty) {
+        if (scores.isEmpty) {
           return _empty;
         }
         return _table(_labels, [
-          for (var i = 0; i < shown.length; i++)
-            _row(i + 1, shown[i], mine: shown[i].id == me),
+          for (final (rank, row) in _shown(scores, (r) => r.id == me))
+            _row(rank, row, mine: row.id == me),
         ]);
       },
     );
@@ -358,7 +378,7 @@ class _LeaderboardState extends State<Leaderboard> {
           ),
         ),
         _cell(row.name, style: base, align: TextAlign.left),
-        _cell('${row.rating}', style: base),
+        _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.rounds}', style: base),
         _cell('${row.kills}', style: base),
