@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../game_config.dart';
 import '../../net/payloads/lobby_presence.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 class PlayerList extends StatelessWidget {
   const PlayerList({
@@ -26,7 +27,7 @@ class PlayerList extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          'BESATZUNGEN IM LAGER',
+          tr('BESATZUNGEN IM LAGER', 'CREWS IN CAMP'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
@@ -38,7 +39,11 @@ class PlayerList extends StatelessWidget {
               children: [
                 Icon(Icons.shield, size: 16, color: colorOf(member)),
                 const SizedBox(width: 8),
-                Text(member.id == myId ? '${member.name} (du)' : member.name),
+                Text(
+                  member.id == myId
+                      ? '${member.name} (${tr('du', 'you')})'
+                      : member.name,
+                ),
                 if (member.host) ...[
                   const SizedBox(width: 6),
                   const Icon(Icons.star, size: 13, color: BwColors.amber),
@@ -56,7 +61,9 @@ class PlayerList extends StatelessWidget {
                 ],
                 const SizedBox(width: 8),
                 Text(
-                  member.inMatch ? 'im Einsatz' : 'im Lager',
+                  member.inMatch
+                      ? tr('im Einsatz', 'in battle')
+                      : tr('im Lager', 'in camp'),
                   style: const TextStyle(color: BwColors.textDim, fontSize: 12),
                 ),
               ],

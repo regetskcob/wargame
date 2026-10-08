@@ -5,6 +5,7 @@ import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
 import '../../theme.dart';
 import 'pilot_card.dart';
+import '../../l10n/l10n.dart';
 
 /// What the round brought: experience, the change in rating, a promotion and
 /// new badges. Appears once the database has answered.
@@ -26,13 +27,17 @@ class RoundRewards extends StatelessWidget {
         final record = progress.lastRecord.value;
         final badges = progress.newBadges.value;
         if (progress.unranked.value) {
-          return const Padding(
-            padding: EdgeInsets.only(top: 16),
+          return Padding(
+            padding: const EdgeInsets.only(top: 16),
             child: Text(
-              'Als Gast wird nicht gewertet. Mit einem Konto sammelst du '
-              'EP, Wertung und Abzeichen und schaltest Fahrzeuge frei.',
+              tr(
+                'Als Gast wird nicht gewertet. Mit einem Konto sammelst du '
+                    'EP, Wertung und Abzeichen und schaltest Fahrzeuge frei.',
+                'Guests are not ranked. With an account you collect XP, '
+                    'rating and badges and unlock vehicles.',
+              ),
               textAlign: TextAlign.center,
-              style: TextStyle(color: BwColors.textDim, fontSize: 13),
+              style: const TextStyle(color: BwColors.textDim, fontSize: 13),
             ),
           );
         }
@@ -84,7 +89,7 @@ class RoundRewards extends StatelessWidget {
       spacing: 18,
       children: [
         Text(
-          '+${record.xpGained} EP',
+          '+${record.xpGained} ${tr('EP', 'XP')}',
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 16,
@@ -93,7 +98,7 @@ class RoundRewards extends StatelessWidget {
         ),
         Text.rich(
           TextSpan(
-            text: 'WERTUNG ${record.rating} ',
+            text: '${tr('WERTUNG', 'RATING')} ${record.rating} ',
             children: [
               TextSpan(
                 text: '(${change >= 0 ? '+' : ''}$change)',
@@ -114,7 +119,10 @@ class RoundRewards extends StatelessWidget {
         RankBadge(level: rank.level, size: 26),
         const SizedBox(width: 8),
         Text(
-          'BEFÖRDERT ZUM ${rank.title.toUpperCase()}',
+          tr(
+            'BEFÖRDERT ZUM ${rank.title.toUpperCase()}',
+            'PROMOTED TO ${rank.title.toUpperCase()}',
+          ),
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 1.5,

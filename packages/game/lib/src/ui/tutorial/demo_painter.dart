@@ -8,6 +8,7 @@ import '../../game_config.dart';
 import '../../theme.dart';
 import '../widgets/touch_controls.dart';
 import 'tutorial_steps.dart';
+import '../../l10n/l10n.dart';
 
 /// Acts out one tutorial step on a small training ground: the tank drives,
 /// aims and fires while a thumb works the sticks, or keys light up and the
@@ -119,8 +120,14 @@ class DemoPainter extends CustomPainter {
     if (touch) {
       final dir = vel / vel.distance;
       final knob = _leftStick + dir * _stickRadius * 0.75;
-      _stick(canvas, _leftStick, knob, 'FAHREN');
-      _stick(canvas, _rightStick, null, 'ZIELEN · FEUER', ring: true);
+      _stick(canvas, _leftStick, knob, tr('FAHREN', 'DRIVE'));
+      _stick(
+        canvas,
+        _rightStick,
+        null,
+        tr('ZIELEN · FEUER', 'AIM · FIRE'),
+        ring: true,
+      );
       _finger(canvas, knob, fromLeft: true);
     } else {
       // Bend of the path: positive turns right.
@@ -142,14 +149,24 @@ class DemoPainter extends CustomPainter {
     _tank(canvas, pos, 0, aim);
     if (touch) {
       final knob = _rightStick + dir * _stickRadius * 0.45;
-      _stick(canvas, _leftStick, null, 'FAHREN');
-      _stick(canvas, _rightStick, knob, 'ZIELEN · FEUER', ring: true);
+      _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
+      _stick(
+        canvas,
+        _rightStick,
+        knob,
+        tr('ZIELEN · FEUER', 'AIM · FIRE'),
+        ring: true,
+      );
       _finger(canvas, knob, fromLeft: false);
     } else {
       _crosshair(canvas, pos + dir * reach);
       _key(canvas, _keys + const Offset(0, 40), 'Q');
       _key(canvas, _keys + const Offset(40, 40), 'E');
-      _caption(canvas, _keys + const Offset(0, 84), 'ODER TURM PER TASTE');
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('ODER TURM PER TASTE', 'OR TURRET BY KEY'),
+      );
     }
   }
 
@@ -172,12 +189,12 @@ class DemoPainter extends CustomPainter {
           ? 0.9
           : 0.9 * (1 - _ease(_seg(0.7, 0.8)));
       final knob = _rightStick + _dir(aim) * _stickRadius * reach;
-      _stick(canvas, _leftStick, null, 'FAHREN');
+      _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
       _stick(
         canvas,
         _rightStick,
         knob,
-        'ZIELEN · FEUER',
+        tr('ZIELEN · FEUER', 'AIM · FIRE'),
         ring: true,
         firing: reach > TouchControls.fireRing,
       );
@@ -192,7 +209,11 @@ class DemoPainter extends CustomPainter {
       )!;
       _crosshair(canvas, cursor, clicks: shots);
       _spaceBar(canvas, _keys + const Offset(0, 40), lit: _pulse(shots));
-      _caption(canvas, _keys + const Offset(0, 84), 'ODER LINKSKLICK');
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('ODER LINKSKLICK', 'OR LEFT CLICK'),
+      );
     }
   }
 
@@ -209,13 +230,19 @@ class DemoPainter extends CustomPainter {
     if (on) {
       _lock(canvas, enemy);
     }
-    _stick(canvas, _leftStick, null, 'FAHREN');
-    _stick(canvas, _rightStick, null, 'ZIELEN · FEUER', ring: true);
+    _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
+    _stick(
+      canvas,
+      _rightStick,
+      null,
+      tr('ZIELEN · FEUER', 'AIM · FIRE'),
+      ring: true,
+    );
     _roundButton(
       canvas,
       _assistButton,
       Icons.gps_fixed,
-      'ZIELHILFE',
+      tr('ZIELHILFE', 'AIM ASSIST'),
       on ? BwColors.amber : BwColors.textDim,
       lit: on,
     );
@@ -271,7 +298,11 @@ class DemoPainter extends CustomPainter {
       }
     } else {
       _key(canvas, _keys + const Offset(0, 40), '1', lit: _between(0.62, 0.7));
-      _caption(canvas, _keys + const Offset(0, 84), 'TASTEN 1 BIS 6');
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('TASTEN 1 BIS 6', 'KEYS 1 TO 6'),
+      );
     }
   }
 
@@ -334,8 +365,14 @@ class DemoPainter extends CustomPainter {
     }
     final left = 3 - shots.where((s) => _t > s).length;
     if (touch) {
-      _stick(canvas, _leftStick, null, 'FAHREN');
-      _stick(canvas, _rightStick, null, 'ZIELEN · FEUER', ring: true);
+      _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
+      _stick(
+        canvas,
+        _rightStick,
+        null,
+        tr('ZIELEN · FEUER', 'AIM · FIRE'),
+        ring: true,
+      );
       _roundButton(
         canvas,
         _specialButton,
@@ -357,7 +394,11 @@ class DemoPainter extends CustomPainter {
     } else {
       _crosshair(canvas, enemy);
       _key(canvas, _keys + const Offset(0, 40), 'F', lit: _pulse(shots));
-      _caption(canvas, _keys + const Offset(0, 84), 'GRANATWERFER  $left');
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('GRANATWERFER  $left', 'GRENADE LAUNCHER  $left'),
+      );
     }
   }
 
@@ -414,13 +455,13 @@ class DemoPainter extends CustomPainter {
     }
     final money = built ? 50 : 150;
     // The build bar: what can be built and what it costs.
-    final kinds = [('KANONE', 100), ('FLAK', 120)];
+    final kinds = [(tr('KANONE', 'CANNON'), 100), ('FLAK', 120)];
     final barLeft = touch ? _w / 2 - 110 : _keys.dx + 140;
     final barTop = _h - 64.0;
     _caption(
       canvas,
       Offset(barLeft + kinds.length * 112 + 6, barTop + 11),
-      'GELD $money',
+      tr('GELD $money', 'MONEY $money'),
     );
     for (final (i, (label, cost)) in kinds.indexed) {
       final chosen = flak ? i == 1 : i == 0;
@@ -441,7 +482,11 @@ class DemoPainter extends CustomPainter {
     } else {
       _key(canvas, _keys + const Offset(0, 40), 'B', lit: _between(0.16, 0.24));
       _key(canvas, _keys + const Offset(40, 40), 'V', lit: _between(0.52, 0.6));
-      _caption(canvas, _keys + const Offset(0, 84), 'BAUEN · TYP');
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('BAUEN · TYP', 'BUILD · TYPE'),
+      );
     }
   }
 
@@ -482,7 +527,9 @@ class DemoPainter extends CustomPainter {
       _text(
         canvas,
         at + Offset(0, size * 0.75 + 14),
-        type.level == 1 ? 'AB START' : 'AB RANG ${type.level}',
+        type.level == 1
+            ? tr('AB START', 'FROM START')
+            : tr('AB RANG ${type.level}', 'FROM RANK ${type.level}'),
         size: 9,
         color: type.level == 1 ? BwColors.textDim : BwColors.amber,
         center: true,
@@ -709,7 +756,7 @@ class DemoPainter extends CustomPainter {
     _text(
       canvas,
       rect.bottomCenter + const Offset(0, 4),
-      'INVENTAR',
+      tr('INVENTAR', 'INVENTORY'),
       size: 9,
       color: BwColors.textDim,
       center: true,
@@ -854,7 +901,11 @@ class DemoPainter extends CustomPainter {
     _key(canvas, _keys + const Offset(0, 40), 'A', lit: a);
     _key(canvas, _keys + const Offset(40, 40), 'S');
     _key(canvas, _keys + const Offset(80, 40), 'D', lit: d);
-    _caption(canvas, _keys + const Offset(0, 84), 'ODER PFEILTASTEN');
+    _caption(
+      canvas,
+      _keys + const Offset(0, 84),
+      tr('ODER PFEILTASTEN', 'OR ARROW KEYS'),
+    );
   }
 
   void _key(Canvas canvas, Offset at, String label, {bool lit = false}) {
@@ -916,7 +967,7 @@ class DemoPainter extends CustomPainter {
     _text(
       canvas,
       rect.center - const Offset(0, 7),
-      'LEERTASTE',
+      tr('LEERTASTE', 'SPACE'),
       size: 11,
       color: lit ? Colors.black : BwColors.text,
       center: true,

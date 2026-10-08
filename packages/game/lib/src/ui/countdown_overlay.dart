@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../game/space_game.dart';
+import '../l10n/l10n.dart';
 
 class CountdownOverlay extends StatefulWidget {
   const CountdownOverlay({required this.game, super.key});
@@ -48,7 +49,10 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                 ValueListenableBuilder<String>(
                   valueListenable: widget.game.mapName,
                   builder: (context, name, _) => Text(
-                    'GELÄNDE: ${name.toUpperCase()}',
+                    tr(
+                      'GELÄNDE: ${name.toUpperCase()}',
+                      'TERRAIN: ${name.toUpperCase()}',
+                    ),
                     style: const TextStyle(
                       fontSize: 18,
                       letterSpacing: 4,
@@ -63,7 +67,10 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                   builder: (context, label, _) => label == null
                       ? const SizedBox()
                       : Text(
-                          'WETTER: ${label.toUpperCase()}',
+                          tr(
+                            'WETTER: ${label.toUpperCase()}',
+                            'WEATHER: ${label.toUpperCase()}',
+                          ),
                           style: const TextStyle(
                             fontSize: 14,
                             letterSpacing: 3,
@@ -76,7 +83,7 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                         ),
                 ),
                 Text(
-                  seconds > 0 ? '$seconds' : 'Feuer frei!',
+                  seconds > 0 ? '$seconds' : tr('Feuer frei!', 'Fire at will!'),
                   style: const TextStyle(
                     fontSize: 96,
                     fontWeight: FontWeight.bold,
@@ -87,10 +94,13 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
                 ValueListenableBuilder<bool>(
                   valueListenable: widget.game.touchMode,
                   builder: (context, touch, _) => touch
-                      ? const Padding(
-                          padding: EdgeInsets.only(top: 12),
+                      ? Padding(
+                          padding: const EdgeInsets.only(top: 12),
                           child: Text(
-                            'LINKS FAHREN  ·  RECHTS DEN TURM ZIELEN',
+                            tr(
+                              'LINKS FAHREN  ·  RECHTS DEN TURM ZIELEN',
+                              'LEFT TO DRIVE  ·  RIGHT TO AIM THE TURRET',
+                            ),
                             style: TextStyle(
                               fontSize: 14,
                               letterSpacing: 2,

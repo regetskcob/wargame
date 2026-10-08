@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../game/kill_feed.dart';
 import '../../game_config.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 /// The last few kills, newest at the bottom, fading out after a few seconds.
 class KillFeedView extends StatefulWidget {
@@ -120,9 +121,9 @@ class _KillFeedViewState extends State<KillFeedView> {
             ),
             if (entry.killer == null) ...[
               const SizedBox(width: 8),
-              const Text(
-                'ist ausgefallen',
-                style: TextStyle(fontSize: 12, color: BwColors.textDim),
+              Text(
+                tr('ist ausgefallen', 'dropped out'),
+                style: const TextStyle(fontSize: 12, color: BwColors.textDim),
               ),
             ],
           ],

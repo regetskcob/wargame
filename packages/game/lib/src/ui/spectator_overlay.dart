@@ -5,6 +5,7 @@ import 'widgets/kill_feed_view.dart';
 import 'widgets/mini_map.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
+import '../l10n/l10n.dart';
 
 class SpectatorOverlay extends StatelessWidget {
   const SpectatorOverlay({required this.game, super.key});
@@ -81,8 +82,11 @@ class SpectatorOverlay extends StatelessWidget {
                           icon: const Icon(Icons.stop_circle_outlined),
                           label: Text(
                             game.touchMode.value
-                                ? 'WIEDERHOLUNG BEENDEN'
-                                : 'WIEDERHOLUNG BEENDEN (ESC)',
+                                ? tr('WIEDERHOLUNG BEENDEN', 'END REPLAY')
+                                : tr(
+                                    'WIEDERHOLUNG BEENDEN (ESC)',
+                                    'END REPLAY (ESC)',
+                                  ),
                           ),
                         ),
                       ),
@@ -101,7 +105,9 @@ class SpectatorOverlay extends StatelessWidget {
     final name = ValueListenableBuilder<String?>(
       valueListenable: game.spectatingName,
       builder: (context, name, _) => Text(
-        name == null ? 'Beobachte' : 'Beobachte $name',
+        name == null
+            ? tr('Beobachte', 'Watching')
+            : tr('Beobachte $name', 'Watching $name'),
         overflow: TextOverflow.ellipsis,
         maxLines: 1,
       ),
@@ -110,9 +116,9 @@ class SpectatorOverlay extends StatelessWidget {
       if (game.replaying.value) ...[
         const Icon(Icons.movie_outlined, size: 18, color: BwColors.amber),
         const SizedBox(width: 6),
-        const Text(
-          'WIEDERHOLUNG',
-          style: TextStyle(
+        Text(
+          tr('WIEDERHOLUNG', 'REPLAY'),
+          style: const TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
             color: BwColors.amber,
@@ -128,7 +134,7 @@ class SpectatorOverlay extends StatelessWidget {
       ValueListenableBuilder<int>(
         valueListenable: game.aliveCount,
         builder: (context, alive, _) => Text(
-          'noch $alive',
+          tr('noch $alive', '$alive left'),
           style: const TextStyle(color: BwColors.textDim),
         ),
       ),
@@ -141,14 +147,17 @@ class SpectatorOverlay extends StatelessWidget {
           final count = game.remoteShips.length + game.botShips.length;
           return Tooltip(
             message: count > 1
-                ? 'Zum nächsten Panzer wechseln'
-                : 'Es ist nur ein Panzer im Feld',
+                ? tr('Zum nächsten Panzer wechseln', 'Switch to the next tank')
+                : tr('Es ist nur ein Panzer im Feld', 'Only one tank is left'),
             child: TextButton(
               onPressed: count > 1 ? game.spectateNext : null,
               child: Text(
                 count > 1
-                    ? 'NÄCHSTER PANZER (${game.spectateNumber}/$count)'
-                    : 'NÄCHSTER PANZER',
+                    ? tr(
+                        'NÄCHSTER PANZER (${game.spectateNumber}/$count)',
+                        'NEXT TANK (${game.spectateNumber}/$count)',
+                      )
+                    : tr('NÄCHSTER PANZER', 'NEXT TANK'),
               ),
             ),
           );
@@ -212,9 +221,9 @@ class _DestroyedBanner extends StatelessWidget {
                                 Curves.easeOutBack.transform(
                                   (t * 4).clamp(0.0, 1.0),
                                 ),
-                        child: const Text(
-                          'ZERSTÖRT',
-                          style: TextStyle(
+                        child: Text(
+                          tr('ZERSTÖRT', 'DESTROYED'),
+                          style: const TextStyle(
                             fontSize: 56,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 8,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 class HealthBar extends StatelessWidget {
   const HealthBar({required this.hp, required this.maxHp, super.key});
@@ -26,8 +27,11 @@ class HealthBar extends StatelessWidget {
                 Icon(Icons.health_and_safety, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
-                  'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
-                  style: TextStyle(fontWeight: FontWeight.w800),
+                  tr(
+                    'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
+                    'ARMOUR ${hp.ceil().clamp(0, maxHp.ceil())}',
+                  ),
+                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ],
             ),

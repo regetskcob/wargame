@@ -141,3 +141,137 @@ const privacy = [
   ),
   LegalBlock(null, '\nStand: 8. Oktober 2026'),
 ];
+
+// English reading copies of the texts above, shown in the game when English is
+// chosen. The German texts are the binding ones.
+
+const _ownerEn =
+    'Daniel Bocksteger\n'
+    'Kirchstraße 42\n'
+    '47546 Kalkar\n'
+    'Germany';
+
+const imprintEn = [
+  LegalBlock('Information pursuant to § 5 DDG', _ownerEn),
+  LegalBlock('Contact', 'E-mail: $_mail'),
+  LegalBlock(
+    'Responsible for the content pursuant to § 18 (2) MStV',
+    'Daniel Bocksteger, address as above',
+  ),
+  LegalBlock(
+    null,
+    '\nPanzergefecht is a private, non-commercial game. It has no '
+    'connection to the Bundeswehr or to the manufacturers of the vehicles '
+    'shown.\n\nThis is an English reading copy. The German text is binding.',
+  ),
+];
+
+const privacyEn = [
+  LegalBlock(
+    'Controller',
+    '$_ownerEn\nE-mail: $_mail\n\n'
+        'This notice applies to the game Panzergefecht in the browser and in '
+        'the apps for iPhone, iPad and Android. The privacy notice at '
+        'regetskcob.de/legal applies to the rest of the website.',
+  ),
+  LegalBlock(
+    'Providing the game',
+    'The files of the game are hosted on GitHub Pages (GitHub Inc., USA). '
+        'When you open the page, GitHub processes technically necessary '
+        'access data, including the IP address, to deliver the page and to '
+        'protect it against abuse. To display the game, its runtime '
+        '(Flutter) also loads fonts and program libraries from Google '
+        'servers (gstatic.com); the IP address is transmitted in this case '
+        'as well. The legal basis is Art. 6 (1) (f) GDPR, our interest is a '
+        'working and secure game.\n\n'
+        'You download the apps for iPhone and iPad from Apple\'s App Store. '
+        'Apple\'s privacy terms apply to downloads and updates, we receive '
+        'no data about you. The app brings its fonts with it and loads '
+        'nothing from Google.',
+  ),
+  LegalBlock(
+    'Game account and saved games',
+    'The game uses Supabase (Supabase Inc.) with servers in Ireland (EU) '
+        'for saved games, the leaderboard and multiplayer. On first start an '
+        'anonymous guest account with a random identifier is created. The '
+        'following is stored: your call sign and the chosen vehicle with '
+        'camouflage. Guests play without ranking. With an account, game '
+        'statistics (rounds, wins, kills, damage, hits, survival time), '
+        'experience, rank, rating, badges and the results of individual '
+        'rounds are added. The legal basis is Art. 6 (1) (b) GDPR, because '
+        'the game cannot be offered with progress and a leaderboard without '
+        'this data.',
+  ),
+  LegalBlock(
+    'Publicly visible',
+    'The leaderboard shows your call sign, your rating and your statistics '
+        'to everyone. If you open a public room, your call sign appears in '
+        'the room list. If you do not want that, choose a call sign that '
+        'does not contain your real name.',
+  ),
+  LegalBlock(
+    'Multiplayer',
+    'During a round, positions, shots and similar game events as well as '
+        'your call sign, vehicle and team are sent to the other players in '
+        'the same room via Supabase Realtime. These messages are only passed '
+        'on and not stored permanently. The replay of the last round stays '
+        'on your device only.',
+  ),
+  LegalBlock(
+    'Camera (apps only)',
+    'To join a waiting room by QR code, you can open the camera in the app. '
+        'The image is searched for the code on your device only and is '
+        'neither stored nor transmitted. The app asks for permission first, '
+        'you can withdraw it in the settings at any time and type the room '
+        'code instead.',
+  ),
+  LegalBlock(
+    'Account with e-mail address (optional)',
+    'If you secure your guest account with an e-mail address, Supabase '
+        'stores the address to sign you in and to send you sign-in and '
+        'confirmation mails. These mails are sent through the mail server of '
+        'our web host do.de (Domain-Offensive), which receives your e-mail '
+        'address and the content of the mail for this purpose. The address '
+        'is never shown to other players, only your call sign appears '
+        'publicly. If a sign-in with GitHub or Google is offered and you use '
+        'it, we receive your e-mail address and an identifier of the account '
+        'from there. The legal basis is Art. 6 (1) (b) GDPR.',
+  ),
+  LegalBlock(
+    'Storage on your device',
+    'The game keeps the sign-in session, your choice to play as a guest, '
+        'whether you have seen the briefing and, in the browser, the room '
+        'opened last in the local storage of your browser or the app. It '
+        'sets no cookies, uses no analytics or advertising services and '
+        'creates no usage profiles.',
+  ),
+  LegalBlock(
+    'Retention',
+    'The data of your account stays stored as long as the account exists. '
+        'You can delete your account, a guest account too, in the game at '
+        'any time: via the Account button at the top, then "Delete account". '
+        'Rank, rating, badges, all saved games, your call sign and a stored '
+        'e-mail address are deleted immediately and permanently. You can '
+        'also request deletion by e-mail to $_mail.',
+  ),
+  LegalBlock(
+    'Transfer to the USA',
+    'GitHub, Google and Supabase are companies based in the USA. Where data '
+        'reaches the USA, the providers rely on the EU-US Data Privacy '
+        'Framework or on EU standard contractual clauses.',
+  ),
+  LegalBlock(
+    'Your rights',
+    'You have the right of access, rectification, erasure, restriction of '
+        'processing and data portability as well as the right to object to '
+        'processing (Art. 15 to 21 GDPR). Contact $_mail for this. You can '
+        'also lodge a complaint with a data protection supervisory '
+        'authority; the competent one is the State Commissioner for Data '
+        'Protection and Freedom of Information of North Rhine-Westphalia.',
+  ),
+  LegalBlock(
+    null,
+    '\nAs of: 8 October 2026\n\nThis is an English reading copy. The German '
+    'text is binding.',
+  ),
+];

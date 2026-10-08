@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../game/space_game.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 /// Opens the tutorial. Until the player went through it once, the button
 /// stands out in amber, since the tutorial never opens by itself.
@@ -18,7 +19,7 @@ class TutorialButton extends StatelessWidget {
           ? TextButton.icon(
               onPressed: game.showTutorial,
               icon: const Icon(Icons.school, size: 18),
-              label: const Text('EINWEISUNG ANSEHEN'),
+              label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
             )
           : OutlinedButton.icon(
               onPressed: game.showTutorial,
@@ -31,7 +32,9 @@ class TutorialButton extends StatelessWidget {
                 ),
               ),
               icon: const Icon(Icons.school, size: 18),
-              label: const Text('NEU HIER? EINWEISUNG ANSEHEN'),
+              label: Text(
+                tr('NEU HIER? EINWEISUNG ANSEHEN', 'NEW HERE? VIEW BRIEFING'),
+              ),
             ),
     );
   }

@@ -7,6 +7,7 @@ import '../../net/room_code.dart';
 import '../../net/room_directory.dart';
 import '../../theme.dart';
 import 'room_scanner.dart';
+import '../../l10n/l10n.dart';
 
 /// Public rooms to join, and a field for the code of a private one.
 class RoomList extends StatefulWidget {
@@ -49,15 +50,21 @@ class _RoomListState extends State<RoomList> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text('OFFENE RÄUME', style: Theme.of(context).textTheme.titleMedium),
+        Text(
+          tr('OFFENE RÄUME', 'OPEN ROOMS'),
+          style: Theme.of(context).textTheme.titleMedium,
+        ),
         const SizedBox(height: 8),
         ValueListenableBuilder<List<RoomListing>>(
           valueListenable: widget.game.directory.rooms,
           builder: (context, rooms, _) {
             if (rooms.isEmpty) {
-              return const Text(
-                'Gerade ist kein öffentlicher Raum offen.',
-                style: TextStyle(color: BwColors.textDim, fontSize: 12),
+              return Text(
+                tr(
+                  'Gerade ist kein öffentlicher Raum offen.',
+                  'There is no public room open right now.',
+                ),
+                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
               );
             }
             return Column(
@@ -75,8 +82,8 @@ class _RoomListState extends State<RoomList> {
                 controller: _code,
                 textCapitalization: TextCapitalization.characters,
                 maxLength: 12,
-                decoration: const InputDecoration(
-                  labelText: 'RAUMCODE',
+                decoration: InputDecoration(
+                  labelText: tr('RAUMCODE', 'ROOM CODE'),
                   counterText: '',
                 ),
                 onSubmitted: _join,
@@ -85,7 +92,7 @@ class _RoomListState extends State<RoomList> {
             const SizedBox(width: 8),
             OutlinedButton(
               onPressed: () => _join(_code.text),
-              child: const Text('BEITRETEN'),
+              child: Text(tr('BEITRETEN', 'JOIN')),
             ),
           ],
         ),
@@ -96,7 +103,7 @@ class _RoomListState extends State<RoomList> {
           OutlinedButton.icon(
             onPressed: _scan,
             icon: const Icon(Icons.qr_code_scanner),
-            label: const Text('QR-CODE SCANNEN'),
+            label: Text(tr('QR-CODE SCANNEN', 'SCAN QR CODE')),
           ),
         ],
       ],
@@ -120,16 +127,18 @@ class _RoomListState extends State<RoomList> {
           Expanded(
             child: Text(
               '${room.host} · ${room.players} '
-              '${room.players == 1 ? 'Pilot' : 'Piloten'}'
+              '${room.players == 1 ? tr('Pilot', 'pilot') : tr('Piloten', 'pilots')}'
               '${room.teams ? ' · Teams' : ''}'
-              '${room.inMatch ? ' · Gefecht läuft' : ''}',
+              '${room.inMatch ? tr(' · Gefecht läuft', ' · battle in progress') : ''}',
               overflow: TextOverflow.ellipsis,
               style: const TextStyle(fontSize: 12),
             ),
           ),
           TextButton(
             onPressed: () => _join(room.room),
-            child: Text(room.inMatch ? 'ZUSEHEN' : 'BEITRETEN'),
+            child: Text(
+              room.inMatch ? tr('ZUSEHEN', 'WATCH') : tr('BEITRETEN', 'JOIN'),
+            ),
           ),
         ],
       ),

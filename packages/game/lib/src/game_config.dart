@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import 'game/components/tank_painter.dart';
+import 'l10n/l10n.dart';
 
 class GameConfig {
   static const worldRadius = 900.0;
@@ -111,7 +112,9 @@ class GameConfig {
   /// beaten off while losing at most [hqCleanLoss] of its hit points. Each
   /// step adds hit points, a comrade, room for two more guns and a gun on
   /// the base itself.
-  static const hqNames = ['WACHTURM', 'KASERNE', 'FESTUNG', 'ZITADELLE'];
+  static const hqCount = 4;
+  static const _hqNamesDe = ['WACHTURM', 'KASERNE', 'FESTUNG', 'ZITADELLE'];
+  static const _hqNamesEn = ['WATCHTOWER', 'BARRACKS', 'FORTRESS', 'CITADEL'];
   static const hqCleanWaves = [0, 2, 4, 7];
   static const hqCleanLoss = 0.15;
   static const hqHpStep = 500.0;
@@ -128,8 +131,11 @@ class GameConfig {
   }
 
   static double baseMaxHp(int hq) => baseHp + hqHpStep * (hq - 1);
-  static String hqName(int hq) =>
-      hqNames[(hq - 1).clamp(0, hqNames.length - 1)];
+  static String hqName(int hq) {
+    final i = (hq - 1).clamp(0, _hqNamesDe.length - 1);
+    return tr(_hqNamesDe[i], _hqNamesEn[i]);
+  }
+
   static const raidDamage = 120.0;
   static const firstWaveSeconds = 8;
   static const waveBreakSeconds = 12;
@@ -320,7 +326,7 @@ class GameConfig {
     Color(0xFFC9A227),
   ];
 
-  static const colorNames = [
+  static const _colorNamesDe = [
     'FLECKTARN',
     'WÜSTENTARN',
     'WINTERTARN',
@@ -330,6 +336,20 @@ class GameConfig {
     'ROSTROT',
     'EHRENGOLD',
   ];
+  static const _colorNamesEn = [
+    'WOODLAND',
+    'DESERT',
+    'WINTER',
+    'NATO GREY',
+    'NAVY BLUE',
+    'MIDNIGHT BLACK',
+    'RUST RED',
+    'HONOUR GOLD',
+  ];
+
+  /// Name of the paint scheme at [index].
+  static String colorName(int index) =>
+      tr(_colorNamesDe[index], _colorNamesEn[index]);
 
   /// Rank a paint scheme needs.
   static const colorLevels = [1, 1, 1, 1, 3, 5, 7, 10];
@@ -369,7 +389,11 @@ class GameConfig {
     Color(0xFFE5533D),
     Color(0xFF4A90E2),
   ];
-  static const teamNames = ['', 'ROT', 'BLAU'];
+  static List<String> get teamNames => [
+    '',
+    tr('ROT', 'RED'),
+    tr('BLAU', 'BLUE'),
+  ];
 
   static int styleOf(int tankType, int color) =>
       tankType * shipColors.length + color;

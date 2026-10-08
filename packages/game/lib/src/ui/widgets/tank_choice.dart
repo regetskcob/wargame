@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../game/components/tank_painter.dart';
 import '../../game/tank_stats.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 class TankChoice extends StatelessWidget {
   const TankChoice({
@@ -78,7 +79,9 @@ class TankChoice extends StatelessWidget {
               17,
             ),
             _line(
-              locked ? 'ab Stufe ${type.level}' : type.role,
+              locked
+                  ? tr('ab Stufe ${type.level}', 'from level ${type.level}')
+                  : type.role,
               TextStyle(
                 fontSize: 11,
                 color: locked ? BwColors.amber : BwColors.textDim,
@@ -93,7 +96,10 @@ class TankChoice extends StatelessWidget {
       return card;
     }
     return Tooltip(
-      message: '${type.label}: freigeschaltet ab Stufe ${type.level}',
+      message: tr(
+        '${type.label}: freigeschaltet ab Stufe ${type.level}',
+        '${type.label}: unlocked from level ${type.level}',
+      ),
       child: Stack(
         children: [
           Opacity(opacity: 0.45, child: card),
@@ -139,10 +145,10 @@ class StatBars extends StatelessWidget {
   static List<(String, double)> rowsOf(TankType type) {
     final stats = TankStats.of(type);
     return [
-      ('PANZERUNG', stats.maxHp / _max((s) => s.maxHp)),
-      ('TEMPO', stats.speed / _max((s) => s.speed)),
-      ('WENDIGKEIT', stats.turnRate / _max((s) => s.turnRate)),
-      ('FEUERKRAFT', stats.dps / _max((s) => s.dps)),
+      (tr('PANZERUNG', 'ARMOUR'), stats.maxHp / _max((s) => s.maxHp)),
+      (tr('TEMPO', 'SPEED'), stats.speed / _max((s) => s.speed)),
+      (tr('WENDIGKEIT', 'AGILITY'), stats.turnRate / _max((s) => s.turnRate)),
+      (tr('FEUERKRAFT', 'FIREPOWER'), stats.dps / _max((s) => s.dps)),
     ];
   }
 

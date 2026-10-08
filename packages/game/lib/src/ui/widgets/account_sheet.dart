@@ -7,6 +7,7 @@ import '../../theme.dart';
 import 'account_panel.dart';
 import 'legal.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// Round profile button in the corner of the start page and the waiting
 /// room. Opens the account: who you play as, securing or signing in, and
@@ -19,7 +20,7 @@ class AccountButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IconButton(
-      tooltip: 'Konto',
+      tooltip: tr('Konto', 'Account'),
       onPressed: () => AccountSheet.show(context, game),
       icon: const Icon(Icons.account_circle_outlined),
     );
@@ -89,22 +90,27 @@ class _AccountSheetState extends State<AccountSheet> {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: BwColors.surface,
-        title: const Text('KONTO LÖSCHEN?'),
+        title: Text(tr('KONTO LÖSCHEN?', 'DELETE ACCOUNT?')),
         content: Text(
-          'Dein Konto ${_game.accounts.email ?? ''} wird mit Rang, Wertung, '
-          'Abzeichen, allen Spielständen und deinem Rufnamen endgültig '
-          'gelöscht, auf allen Geräten. Das lässt sich nicht rückgängig '
-          'machen.',
+          tr(
+            'Dein Konto ${_game.accounts.email ?? ''} wird mit Rang, Wertung, '
+                'Abzeichen, allen Spielständen und deinem Rufnamen endgültig '
+                'gelöscht, auf allen Geräten. Das lässt sich nicht rückgängig '
+                'machen.',
+            'Your account ${_game.accounts.email ?? ''} will be permanently '
+                'deleted with rank, rating, badges, all saved games and your '
+                'call sign, on all devices. This cannot be undone.',
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('ABBRECHEN'),
+            child: Text(tr('ABBRECHEN', 'CANCEL')),
           ),
           FilledButton(
             style: FilledButton.styleFrom(backgroundColor: BwColors.danger),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('ENDGÜLTIG LÖSCHEN'),
+            child: Text(tr('ENDGÜLTIG LÖSCHEN', 'DELETE PERMANENTLY')),
           ),
         ],
       ),
@@ -122,9 +128,11 @@ class _AccountSheetState extends State<AccountSheet> {
       if (mounted) {
         setState(() {
           _busy = false;
-          _error =
-              'Das Löschen hat nicht geklappt. Prüfe die Verbindung und '
-              'versuch es noch einmal.';
+          _error = tr(
+            'Das Löschen hat nicht geklappt. Prüfe die Verbindung und '
+                'versuch es noch einmal.',
+            'Deleting failed. Check your connection and try again.',
+          );
         });
       }
       return;
@@ -151,12 +159,12 @@ class _AccountSheetState extends State<AccountSheet> {
             children: [
               Expanded(
                 child: Text(
-                  'KONTO',
+                  tr('KONTO', 'ACCOUNT'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               IconButton(
-                tooltip: 'Schließen',
+                tooltip: tr('Schließen', 'Close'),
                 onPressed: () => Navigator.of(context).pop(),
                 icon: const Icon(Icons.close),
               ),
@@ -171,11 +179,13 @@ class _AccountSheetState extends State<AccountSheet> {
                   TextField(
                     controller: _name,
                     maxLength: 16,
-                    decoration: const InputDecoration(
-                      labelText: 'RUFNAME',
-                      helperText:
-                          'Öffentlich sichtbar, zum Beispiel in der '
-                          'Bestenliste',
+                    decoration: InputDecoration(
+                      labelText: tr('RUFNAME', 'CALL SIGN'),
+                      helperText: tr(
+                        'Öffentlich sichtbar, zum Beispiel in der '
+                            'Bestenliste',
+                        'Publicly visible, for example on the leaderboard',
+                      ),
                     ),
                     onChanged: _rename,
                   ),
@@ -189,7 +199,12 @@ class _AccountSheetState extends State<AccountSheet> {
                       initiallyOpen: true,
                     )
                   else
-                    Text('Du spielst als Gast, ohne Wertung.'),
+                    Text(
+                      tr(
+                        'Du spielst als Gast, ohne Wertung.',
+                        'You play as a guest, without ranking.',
+                      ),
+                    ),
                   // A guest has nothing lasting to delete, signing in or
                   // securing the account above is what they are offered.
                   ValueListenableBuilder(
@@ -201,15 +216,20 @@ class _AccountSheetState extends State<AccountSheet> {
                             children: [
                               const SizedBox(height: 20),
                               Text(
-                                'KONTO LÖSCHEN',
+                                tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                               const SizedBox(height: 6),
-                              const Text(
-                                'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
-                                'Spielständen und deinem Rufnamen. Danach spielst du als '
-                                'neuer Gast weiter.',
-                                style: TextStyle(
+                              Text(
+                                tr(
+                                  'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
+                                      'Spielständen und deinem Rufnamen. Danach spielst du als '
+                                      'neuer Gast weiter.',
+                                  'Deletes your account with rank, rating, badges, all '
+                                      'saved games and your call sign. Afterwards you '
+                                      'carry on as a new guest.',
+                                ),
+                                style: const TextStyle(
                                   color: BwColors.textDim,
                                   fontSize: 13,
                                 ),
@@ -232,7 +252,9 @@ class _AccountSheetState extends State<AccountSheet> {
                                         ),
                                       )
                                     : const Icon(Icons.delete_forever),
-                                label: const Text('KONTO LÖSCHEN'),
+                                label: Text(
+                                  tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
+                                ),
                               ),
                               if (_error != null) ...[
                                 const SizedBox(height: 8),

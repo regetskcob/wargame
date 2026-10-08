@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../game/space_game.dart';
 import '../theme.dart';
 import 'widgets/panel.dart';
+import '../l10n/l10n.dart';
 
 /// The waiting room is gone: say why and lead back to the start page.
 class ClosedOverlay extends StatelessWidget {
@@ -27,7 +28,7 @@ class ClosedOverlay extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'WARTERAUM GESCHLOSSEN',
+                      tr('WARTERAUM GESCHLOSSEN', 'WAITING ROOM CLOSED'),
                       style: Theme.of(context).textTheme.headlineMedium,
                     ),
                     const SizedBox(height: 12),
@@ -42,7 +43,7 @@ class ClosedOverlay extends StatelessWidget {
                     FilledButton.icon(
                       onPressed: game.backToStart,
                       icon: const Icon(Icons.home),
-                      label: const Text('ZUR STARTSEITE'),
+                      label: Text(tr('ZUR STARTSEITE', 'TO THE START PAGE')),
                     ),
                   ],
                 ),

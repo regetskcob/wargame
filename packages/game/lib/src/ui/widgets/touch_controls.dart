@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 /// Twin stick controls for holding the phone with both hands.
 ///
@@ -61,7 +62,7 @@ class TouchControls extends StatelessWidget {
                 width: zoneWidth,
                 child: _FloatingStick(
                   size: stick,
-                  label: 'FAHREN',
+                  label: tr('FAHREN', 'DRIVE'),
                   homeOnRight: false,
                   onChanged: (v) =>
                       input.drive = v.distance > 0.18 ? (v.dx, v.dy) : null,
@@ -75,7 +76,7 @@ class TouchControls extends StatelessWidget {
                 width: zoneWidth,
                 child: _FloatingStick(
                   size: stick,
-                  label: 'ZIELEN · FEUER',
+                  label: tr('ZIELEN · FEUER', 'AIM · FIRE'),
                   homeOnRight: true,
                   ring: fireRing,
                   onChanged: (v) {
@@ -167,12 +168,12 @@ class _AssistToggleState extends State<_AssistToggle> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.gps_fixed, size: 18, color: color),
-            const Text(
-              'ZIELHILFE',
-              style: TextStyle(fontSize: 10, letterSpacing: 0.3),
+            Text(
+              tr('ZIELHILFE', 'AIM ASSIST'),
+              style: const TextStyle(fontSize: 10, letterSpacing: 0.3),
             ),
             Text(
-              on ? 'AN' : 'AUS',
+              on ? tr('AN', 'ON') : tr('AUS', 'OFF'),
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
             ),
           ],
@@ -238,9 +239,9 @@ class _SpecialButtonState extends State<_SpecialButton> {
           children: [
             Icon(Icons.diamond, size: 18, color: color),
             Text(switch (widget.weapon) {
-              SpecialWeapon.drone => 'DROHNE',
-              SpecialWeapon.mortar => 'MÖRSER',
-              _ => 'GRANATE',
+              SpecialWeapon.drone => tr('DROHNE', 'DRONE'),
+              SpecialWeapon.mortar => tr('MÖRSER', 'MORTAR'),
+              _ => tr('GRANATE', 'GRENADE'),
             }, style: const TextStyle(fontSize: 10, letterSpacing: 0.5)),
             Text(
               '×${widget.charges}',

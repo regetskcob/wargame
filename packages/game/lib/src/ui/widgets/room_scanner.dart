@@ -3,6 +3,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../net/room_code.dart';
 import '../../theme.dart';
+import '../../l10n/l10n.dart';
 
 /// Full screen camera that reads the QR code of a waiting room and returns
 /// its code. Only in the apps: in the browser the phone camera opens the
@@ -64,7 +65,7 @@ class _RoomScannerState extends State<RoomScanner> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: BwColors.background,
-        title: const Text('RAUM SCANNEN'),
+        title: Text(tr('RAUM SCANNEN', 'SCAN ROOM')),
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -77,10 +78,18 @@ class _RoomScannerState extends State<RoomScanner> {
                 padding: const EdgeInsets.all(24),
                 child: Text(
                   error.errorCode == MobileScannerErrorCode.permissionDenied
-                      ? 'Kein Zugriff auf die Kamera. Erlaube ihn in den '
-                            'Einstellungen oder gib den Raumcode von Hand ein.'
-                      : 'Die Kamera lässt sich nicht starten. Gib den '
-                            'Raumcode von Hand ein.',
+                      ? tr(
+                          'Kein Zugriff auf die Kamera. Erlaube ihn in den '
+                              'Einstellungen oder gib den Raumcode von Hand ein.',
+                          'No access to the camera. Allow it in the settings '
+                              'or enter the room code by hand.',
+                        )
+                      : tr(
+                          'Die Kamera lässt sich nicht starten. Gib den '
+                              'Raumcode von Hand ein.',
+                          'The camera cannot be started. Enter the room '
+                              'code by hand.',
+                        ),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -101,8 +110,14 @@ class _RoomScannerState extends State<RoomScanner> {
               minimum: const EdgeInsets.all(24),
               child: Text(
                 _rejected == null
-                    ? 'Halte die Kamera auf den QR-Code im Warteraum.'
-                    : 'Das ist kein Raum-Code von Panzergefecht.',
+                    ? tr(
+                        'Halte die Kamera auf den QR-Code im Warteraum.',
+                        'Point the camera at the QR code in the waiting room.',
+                      )
+                    : tr(
+                        'Das ist kein Raum-Code von Panzergefecht.',
+                        'This is not a Panzergefecht room code.',
+                      ),
                 textAlign: TextAlign.center,
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),

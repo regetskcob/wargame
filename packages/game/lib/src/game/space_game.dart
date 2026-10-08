@@ -82,6 +82,7 @@ import 'terrain.dart';
 import 'touch_input.dart';
 import 'upgrades.dart';
 import 'round_state.dart';
+import '../l10n/l10n.dart';
 
 /// Whether the welcome page asks how to play: accounts are switched on,
 /// nobody is signed in, and this device did not choose the guest before,
@@ -1016,7 +1017,8 @@ class SpaceGame extends FlameGame
     soldierField = SoldierField(
       seed: payload.seed,
       startedAt: payload.startedAt,
-      onWave: () => showNotice('FALLSCHIRMJÄGER IM ANFLUG'),
+      onWave: () =>
+          showNotice(tr('FALLSCHIRMJÄGER IM ANFLUG', 'PARATROOPERS INBOUND')),
       armedSides: activeRound.teamMode,
     );
     _extras.add(soldierField!);
@@ -1352,9 +1354,12 @@ class SpaceGame extends FlameGame
     _weather = WeatherLayer(next)..opacity = 0;
     if (phase.value == GamePhase.playing) {
       showNotice(switch ((next.sky == now.sky, next.night)) {
-        (true, true) => 'DIE NACHT BRICHT HEREIN',
-        (true, false) => 'DER TAG BRICHT AN',
-        _ => 'WETTERUMSCHWUNG: ${next.label.toUpperCase()}',
+        (true, true) => tr('DIE NACHT BRICHT HEREIN', 'NIGHT IS FALLING'),
+        (true, false) => tr('DER TAG BRICHT AN', 'DAY IS BREAKING'),
+        _ => tr(
+          'WETTERUMSCHWUNG: ${next.label.toUpperCase()}',
+          'WEATHER CHANGE: ${next.label.toUpperCase()}',
+        ),
       });
     }
   }
@@ -1516,7 +1521,7 @@ class SpaceGame extends FlameGame
         send: true,
       );
     }
-    showNotice('EIGENE INFANTERIE RÜCKT AUS');
+    showNotice(tr('EIGENE INFANTERIE RÜCKT AUS', 'OWN INFANTRY MOVING OUT'));
   }
 
   /// Host of a defense round: a helicopter or a jet comes in over the edge
@@ -1618,13 +1623,17 @@ class SpaceGame extends FlameGame
     if (friendly) {
       showNotice(
         kind == AirKind.jet
-            ? 'EIGENER LUFTSCHLAG IM ANFLUG'
-            : 'LUFTUNTERSTÜTZUNG IM ANFLUG',
+            ? tr('EIGENER LUFTSCHLAG IM ANFLUG', 'OWN AIR STRIKE INBOUND')
+            : tr('LUFTUNTERSTÜTZUNG IM ANFLUG', 'AIR SUPPORT INBOUND'),
       );
       AudioService.play('go', volume: 0.5);
       return;
     }
-    showNotice(kind == AirKind.jet ? 'LUFTANGRIFF!' : 'HUBSCHRAUBER IM ANFLUG');
+    showNotice(
+      kind == AirKind.jet
+          ? tr('LUFTANGRIFF!', 'AIR RAID!')
+          : tr('HUBSCHRAUBER IM ANFLUG', 'HELICOPTER INBOUND'),
+    );
     AudioService.play('tick');
   }
 
@@ -2035,13 +2044,22 @@ class SpaceGame extends FlameGame
     defense.value = state;
     if (before != null && state.hq > before.hq) {
       showNotice(
-        'STÜTZPUNKT AUSGEBAUT: ${GameConfig.hqName(state.hq)}  '
-        '+${GameConfig.hqTowerStep} GESCHÜTZE',
+        tr(
+          'STÜTZPUNKT AUSGEBAUT: ${GameConfig.hqName(state.hq)}  '
+              '+${GameConfig.hqTowerStep} GESCHÜTZE',
+          'BASE UPGRADED: ${GameConfig.hqName(state.hq)}  '
+              '+${GameConfig.hqTowerStep} TURRETS',
+        ),
       );
       AudioService.play('win', volume: 0.5);
     }
     if (before != null && state.extended && !before.extended) {
-      showNotice('VERLÄNGERUNG: STUFE 4 UND 5, RAKETENWERFER');
+      showNotice(
+        tr(
+          'VERLÄNGERUNG: STUFE 4 UND 5, RAKETENWERFER',
+          'EXTENSION: LEVELS 4 AND 5, ROCKET LAUNCHERS',
+        ),
+      );
       AudioService.play('go', volume: 0.6);
     }
     if (before != null &&
@@ -2052,11 +2070,19 @@ class SpaceGame extends FlameGame
       credits.value += GameConfig.waveBonus;
       showNotice(
         state.deciding
-            ? 'ALLE ${state.wave} WELLEN ABGEWEHRT  +${GameConfig.waveBonus}'
-            : 'WELLE ${state.wave} ABGEWEHRT  +${GameConfig.waveBonus}',
+            ? tr(
+                'ALLE ${state.wave} WELLEN ABGEWEHRT  +${GameConfig.waveBonus}',
+                'ALL ${state.wave} WAVES REPELLED  +${GameConfig.waveBonus}',
+              )
+            : tr(
+                'WELLE ${state.wave} ABGEWEHRT  +${GameConfig.waveBonus}',
+                'WAVE ${state.wave} REPELLED  +${GameConfig.waveBonus}',
+              ),
       );
     } else if (before != null && state.wave > before.wave) {
-      showNotice('WELLE ${state.wave} ROLLT AN');
+      showNotice(
+        tr('WELLE ${state.wave} ROLLT AN', 'WAVE ${state.wave} INCOMING'),
+      );
       AudioService.play('go', volume: 0.6);
     }
     if (state.result != DefenseResult.running) {
@@ -2090,11 +2116,11 @@ class SpaceGame extends FlameGame
     final reason = locked != null
         ? '${build.label} $locked'
         : credits.value < build.cost
-        ? 'Zu wenig Mittel'
+        ? tr('Zu wenig Mittel', 'Not enough funds')
         : mine >= limit
         ? build.isGun
-              ? 'Höchstens $limit Geschütze'
-              : 'Höchstens $limit Gräben'
+              ? tr('Höchstens $limit Geschütze', 'At most $limit turrets')
+              : tr('Höchstens $limit Gräben', 'At most $limit trenches')
         : map.whyNotBuild(ship.position, towers.values.map((t) => t.position));
     if (reason != null) {
       showNotice(reason.toUpperCase());
@@ -2204,7 +2230,9 @@ class SpaceGame extends FlameGame
     shakeAt(tower.position, 8);
     AudioService.play('explosion', distance: _distanceToView(tower.position));
     if (tower.ownerId == myId) {
-      showNotice('${tower.kind.label} ZERSTÖRT');
+      showNotice(
+        tr('${tower.kind.label} ZERSTÖRT', '${tower.kind.label} DESTROYED'),
+      );
     }
     if (nearTower.value == tower) {
       nearTower.value = null;
@@ -2254,20 +2282,28 @@ class SpaceGame extends FlameGame
 
   void upgradeTower(Tower tower) {
     if (!tower.kind.upgradable) {
-      showNotice('${tower.kind.label}: NICHTS AUSZUBAUEN');
+      showNotice(
+        tr(
+          '${tower.kind.label}: NICHTS AUSZUBAUEN',
+          '${tower.kind.label}: NOTHING TO UPGRADE',
+        ),
+      );
       return;
     }
     if (tower.level >= TowerKind.levelLimit(extended: extended)) {
       showNotice(
         tower.level >= TowerKind.maxLevel
-            ? 'HÖCHSTE STUFE'
-            : 'STUFE ${tower.level + 1} IN DER VERLÄNGERUNG',
+            ? tr('HÖCHSTE STUFE', 'MAXIMUM LEVEL')
+            : tr(
+                'STUFE ${tower.level + 1} IN DER VERLÄNGERUNG',
+                'LEVEL ${tower.level + 1} IN THE EXTENSION',
+              ),
       );
       return;
     }
     final cost = tower.kind.upgradeCost(tower.level);
     if (credits.value < cost) {
-      showNotice('ZU WENIG MITTEL');
+      showNotice(tr('ZU WENIG MITTEL', 'NOT ENOUGH FUNDS'));
       return;
     }
     credits.value -= cost;
@@ -2286,7 +2322,12 @@ class SpaceGame extends FlameGame
       ).toJson(),
     );
     AudioService.play('go', volume: 0.5);
-    showNotice('${tower.kind.label} STUFE ${tower.level}');
+    showNotice(
+      tr(
+        '${tower.kind.label} STUFE ${tower.level}',
+        '${tower.kind.label} LEVEL ${tower.level}',
+      ),
+    );
   }
 
   void _onTower(TowerPayload payload) {
@@ -2520,14 +2561,17 @@ class SpaceGame extends FlameGame
     if (level >= GameConfig.upgradeLimit(extended: extended)) {
       showNotice(
         level >= GameConfig.upgradeMaxLevel
-            ? 'HÖCHSTE STUFE'
-            : 'STUFE ${level + 1} IN DER VERLÄNGERUNG',
+            ? tr('HÖCHSTE STUFE', 'MAXIMUM LEVEL')
+            : tr(
+                'STUFE ${level + 1} IN DER VERLÄNGERUNG',
+                'LEVEL ${level + 1} IN THE EXTENSION',
+              ),
       );
       return;
     }
     final cost = kind.costFrom(level);
     if (credits.value < cost) {
-      showNotice('ZU WENIG MITTEL');
+      showNotice(tr('ZU WENIG MITTEL', 'NOT ENOUGH FUNDS'));
       return;
     }
     credits.value -= cost;
@@ -2540,7 +2584,12 @@ class SpaceGame extends FlameGame
       }
     }
     AudioService.play('go', volume: 0.5);
-    showNotice('${kind.label} STUFE ${level + 1}');
+    showNotice(
+      tr(
+        '${kind.label} STUFE ${level + 1}',
+        '${kind.label} LEVEL ${level + 1}',
+      ),
+    );
   }
 
   void _applyUpgrades(PlayerShip ship) {
@@ -2710,7 +2759,7 @@ class SpaceGame extends FlameGame
     }
     if (mine && !inventory.canTake(slot.type)) {
       if (notice.value == null) {
-        showNotice('INVENTAR VOLL');
+        showNotice(tr('INVENTAR VOLL', 'INVENTORY FULL'));
       }
       return;
     }
@@ -2866,7 +2915,12 @@ class SpaceGame extends FlameGame
     _extras.add(drone);
     world.add(drone);
     if (ship == myShip && prey != null) {
-      showNotice('JAGDDROHNE AUF ${_nameOf(prey).toUpperCase()}');
+      showNotice(
+        tr(
+          'JAGDDROHNE AUF ${_nameOf(prey).toUpperCase()}',
+          'HUNTER DRONE ON ${_nameOf(prey).toUpperCase()}',
+        ),
+      );
     }
   }
 
@@ -2908,8 +2962,11 @@ class SpaceGame extends FlameGame
     if (ship == myShip) {
       showNotice(
         prey == null
-            ? 'LUFTSCHLAG'
-            : 'LUFTSCHLAG AUF ${_nameOf(prey.playerId).toUpperCase()}',
+            ? tr('LUFTSCHLAG', 'AIR STRIKE')
+            : tr(
+                'LUFTSCHLAG AUF ${_nameOf(prey.playerId).toUpperCase()}',
+                'AIR STRIKE ON ${_nameOf(prey.playerId).toUpperCase()}',
+              ),
       );
     }
   }
@@ -4182,13 +4239,14 @@ class SpaceGame extends FlameGame
     }
     if (id.startsWith('inf-')) {
       final team = int.tryParse(id.substring(4)) ?? 0;
-      return 'INFANTERIE ${GameConfig.teamNames[team.clamp(0, 2)]}'.trim();
+      return '${tr('INFANTERIE', 'INFANTRY')} ${GameConfig.teamNames[team.clamp(0, 2)]}'
+          .trim();
     }
     final activeRound = round;
     if (activeRound != null && activeRound.isBot(id)) {
       return activeRound.botName(id);
     }
-    return _rosterMember(id)?.name ?? 'Panzer';
+    return _rosterMember(id)?.name ?? tr('Panzer', 'Tank');
   }
 
   String _nameOf(String id) =>
@@ -4422,7 +4480,7 @@ class SpaceGame extends FlameGame
           _rosterMember(winnerId)?.name ??
           (activeRound.isBot(winnerId)
               ? activeRound.botName(winnerId)
-              : 'Panzer');
+              : tr('Panzer', 'Tank'));
     }
     final won = teamWin ? myTeamWon : winnerId != null && winnerId == myId;
     if (activeRound.participants.contains(myId)) {
@@ -4487,7 +4545,7 @@ class SpaceGame extends FlameGame
     _respawnTimer = 0;
     respawnSeconds.value = 0;
     roundStats.finish(_secondsIntoRound);
-    winnerName.value = won ? 'Stützpunkt' : null;
+    winnerName.value = won ? tr('Stützpunkt', 'Base') : null;
     if (activeRound.participants.contains(myId)) {
       unawaited(
         progress.recordRound(
@@ -4564,8 +4622,14 @@ class SpaceGame extends FlameGame
     final host = isHost.value;
     _enterClosed(
       host
-          ? 'Du hast den Warteraum geschlossen.'
-          : 'Du hast den Warteraum verlassen.',
+          ? tr(
+              'Du hast den Warteraum geschlossen.',
+              'You closed the waiting room.',
+            )
+          : tr(
+              'Du hast den Warteraum verlassen.',
+              'You left the waiting room.',
+            ),
     );
     await (host ? net.closeRoom() : net.dispose());
   }
@@ -4584,7 +4648,12 @@ class SpaceGame extends FlameGame
         (owners.length == 1 && owners.single.id != id)) {
       return;
     }
-    _enterClosed('Der Gastgeber hat den Warteraum geschlossen.');
+    _enterClosed(
+      tr(
+        'Der Gastgeber hat den Warteraum geschlossen.',
+        'The host closed the waiting room.',
+      ),
+    );
     unawaited(net.dispose());
   }
 
@@ -4608,9 +4677,14 @@ class SpaceGame extends FlameGame
       return;
     }
     _enterClosed(
-      'Der Warteraum wurde nach '
-      '${GameConfig.lobbyIdleTimeout.inMinutes} Minuten ohne Aktivität '
-      'geschlossen.',
+      tr(
+        'Der Warteraum wurde nach '
+            '${GameConfig.lobbyIdleTimeout.inMinutes} Minuten ohne Aktivität '
+            'geschlossen.',
+        'The waiting room was closed after '
+            '${GameConfig.lobbyIdleTimeout.inMinutes} minutes without '
+            'activity.',
+      ),
     );
     unawaited(net.dispose());
   }

@@ -42,6 +42,15 @@
 
   <title>Panzergefecht</title>
   <link rel="manifest" href="manifest.json">
+  <script>
+    // The game speaks German on German browsers and English elsewhere.
+    if (!(navigator.language || '').toLowerCase().startsWith('de')) {
+      document.documentElement.lang = 'en';
+      var text = 'Panzergefecht – last-tank-standing multiplayer tank game in the browser. Play with friends until only one tank is left.';
+      document.querySelectorAll('meta[name="description"],meta[property="og:description"],meta[name="twitter:description"]')
+        .forEach(function (m) { m.setAttribute('content', text); });
+    }
+  </script>
 </head>
 <body>
   <!--

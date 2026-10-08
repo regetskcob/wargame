@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import '../../theme.dart';
 import 'demo_painter.dart';
 import 'tutorial_steps.dart';
+import '../../l10n/l10n.dart';
 
 /// The tutorial: first the controls, one card each, acted out on a small
 /// training ground with a thumb on the sticks or with keys and mouse. Then
@@ -244,11 +245,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       children: [
         const Icon(Icons.school, color: BwColors.amber, size: 20),
         const SizedBox(width: 8),
-        const Expanded(
+        Expanded(
           child: Text(
-            'EINWEISUNG',
+            tr('EINWEISUNG', 'BRIEFING'),
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
               color: BwColors.sand,
@@ -258,7 +259,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         TextButton.icon(
           onPressed: widget.onClose,
           icon: const Icon(Icons.close, size: 18),
-          label: const Text('ÜBERSPRINGEN'),
+          label: Text(tr('ÜBERSPRINGEN', 'SKIP')),
         ),
       ],
     );
@@ -267,12 +268,13 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Widget _card(TutorialStep step) {
     final controls = controlSteps(touch: _touch);
     final kicker = _index < controls
-        ? 'STEUERUNG ${_touch ? 'TOUCH' : 'TASTATUR & MAUS'} · '
+        ? '${tr('STEUERUNG', 'CONTROLS')} '
+              '${_touch ? 'TOUCH' : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '
               '${_index + 1}/$controls'
         : step.quick
-        ? 'SCHNELLDURCHLAUF · ${_index - controls + 1}/'
-              '${_steps.length - controls - 1}'
-        : 'ABGESCHLOSSEN';
+        ? '${tr('SCHNELLDURCHLAUF', 'QUICK TOUR')} · '
+              '${_index - controls + 1}/${_steps.length - controls - 1}'
+        : tr('ABGESCHLOSSEN', 'COMPLETE');
     // Phones in landscape: title and buttons share a line, so the scene
     // keeps room below the card.
     final compact = MediaQuery.sizeOf(context).height < 500;
@@ -301,7 +303,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         _keep(
           step.quick,
           IconButton(
-            tooltip: _playing ? 'Anhalten' : 'Weiterlaufen',
+            tooltip: _playing
+                ? tr('Anhalten', 'Pause')
+                : tr('Weiterlaufen', 'Resume'),
             visualDensity: VisualDensity.compact,
             onPressed: _togglePlay,
             icon: Icon(_playing ? Icons.pause : Icons.play_arrow),
@@ -309,7 +313,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         ),
         _keep(
           _index > 0,
-          TextButton(onPressed: _back, child: const Text('ZURÜCK')),
+          TextButton(onPressed: _back, child: Text(tr('ZURÜCK', 'BACK'))),
         ),
         const SizedBox(width: 4),
         FilledButton.icon(
@@ -325,8 +329,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           label: Stack(
             alignment: Alignment.center,
             children: [
-              _keep(!_last, const Text('WEITER')),
-              _keep(_last, const Text("LOS GEHT'S")),
+              _keep(!_last, Text(tr('WEITER', 'NEXT'))),
+              _keep(_last, Text(tr("LOS GEHT'S", "LET'S GO"))),
             ],
           ),
         ),

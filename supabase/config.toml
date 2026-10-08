@@ -250,11 +250,11 @@ otp_expiry = 3600
 # Sign-in and account mails of the game, with the code the lobby asks for.
 # The hosted project only takes custom templates with a custom SMTP server.
 [auth.email.template.magic_link]
-subject = "Dein Anmeldelink für Panzergefecht"
+subject = "Dein Anmeldelink für Panzergefecht / Your Panzergefecht sign-in link"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.email_change]
-subject = "Bestätige dein Panzergefecht-Konto"
+subject = "Bestätige dein Panzergefecht-Konto / Confirm your Panzergefecht account"
 content_path = "./supabase/templates/email_change.html"
 
 # Uncomment to customize notification email template

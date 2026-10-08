@@ -1,3 +1,4 @@
+import '../l10n/l10n.dart';
 import 'components/tank_painter.dart';
 
 /// What sets the vehicles apart on the field. The factors scale the
@@ -14,7 +15,8 @@ class TankStats {
     required this.barrels,
     required this.ammo,
     required this.sound,
-    required this.blurb,
+    required this.blurbDe,
+    required this.blurbEn,
   });
 
   final double maxHp;
@@ -34,7 +36,9 @@ class TankStats {
   /// Shots in a full magazine. A shot of the twin gun counts once.
   final int ammo;
   final String sound;
-  final String blurb;
+  final String blurbDe;
+  final String blurbEn;
+  String get blurb => tr(blurbDe, blurbEn);
 
   /// Damage the type can deal per second when every shot lands.
   double get dps => damage * barrels / fireCooldown;
@@ -54,7 +58,8 @@ class TankStats {
       bulletSpeed: 520,
       barrels: 1,
       sound: 'cannon',
-      blurb: 'Zäh und hart im Nehmen, langsame schwere Kanone',
+      blurbDe: 'Zäh und hart im Nehmen, langsame schwere Kanone',
+      blurbEn: 'Tough and hard to kill, slow heavy cannon',
     ),
     TankType.puma: TankStats(
       maxHp: 100,
@@ -67,7 +72,8 @@ class TankStats {
       bulletSpeed: 430,
       barrels: 1,
       sound: 'autocannon',
-      blurb: 'Schnellfeuer mit der Maschinenkanone',
+      blurbDe: 'Schnellfeuer mit der Maschinenkanone',
+      blurbEn: 'Rapid fire with the autocannon',
     ),
     TankType.gepard: TankStats(
       maxHp: 105,
@@ -80,7 +86,8 @@ class TankStats {
       bulletSpeed: 450,
       barrels: 2,
       sound: 'autocannon',
-      blurb: 'Zwei Rohre gleichzeitig, breite Salven',
+      blurbDe: 'Zwei Rohre gleichzeitig, breite Salven',
+      blurbEn: 'Two barrels at once, wide salvos',
     ),
     TankType.boxer: TankStats(
       maxHp: 70,
@@ -93,7 +100,8 @@ class TankStats {
       bulletSpeed: 400,
       barrels: 1,
       sound: 'autocannon',
-      blurb: 'Schnell und wendig, aber kaum gepanzert',
+      blurbDe: 'Schnell und wendig, aber kaum gepanzert',
+      blurbEn: 'Fast and nimble, but barely armoured',
     ),
     TankType.wiesel: TankStats(
       maxHp: 60,
@@ -106,7 +114,8 @@ class TankStats {
       bulletSpeed: 640,
       barrels: 1,
       sound: 'cannon',
-      blurb: 'Winzig und flink, die Panzerabwehrrakete trifft hart',
+      blurbDe: 'Winzig und flink, die Panzerabwehrrakete trifft hart',
+      blurbEn: 'Tiny and quick, the anti-tank missile hits hard',
     ),
     TankType.lynx: TankStats(
       maxHp: 135,
@@ -119,7 +128,8 @@ class TankStats {
       bulletSpeed: 470,
       barrels: 1,
       sound: 'autocannon',
-      blurb: 'Rheinmetall Lynx: 35-mm-Kanone, gut geschützt und flink',
+      blurbDe: 'Rheinmetall Lynx: 35-mm-Kanone, gut geschützt und flink',
+      blurbEn: 'Rheinmetall Lynx: 35 mm cannon, well protected and quick',
     ),
     TankType.panther: TankStats(
       maxHp: 190,
@@ -132,7 +142,10 @@ class TankStats {
       bulletSpeed: 580,
       barrels: 1,
       sound: 'cannon',
-      blurb: 'Rheinmetall Panther: 130-mm-Kanone, der schwerste Panzer im Feld',
+      blurbDe:
+          'Rheinmetall Panther: 130-mm-Kanone, der schwerste Panzer im Feld',
+      blurbEn:
+          'Rheinmetall Panther: 130 mm cannon, the heaviest tank in the field',
     ),
     TankType.pzh: TankStats(
       maxHp: 185,
@@ -145,8 +158,10 @@ class TankStats {
       bulletSpeed: 700,
       barrels: 1,
       sound: 'cannon',
-      blurb:
+      blurbDe:
           'Panzerhaubitze 2000: 155-mm-Rohr, lädt langsam, trifft verheerend',
+      blurbEn:
+          'Panzerhaubitze 2000: 155 mm gun, reloads slowly, hits devastatingly',
     ),
   };
 

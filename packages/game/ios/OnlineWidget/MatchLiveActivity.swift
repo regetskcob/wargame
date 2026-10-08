@@ -14,12 +14,12 @@ struct MatchLiveActivity: Widget {
       let attributes = context.attributes
       return DynamicIsland {
         DynamicIslandExpandedRegion(.leading, priority: 1) {
-          Stat(value: "\(state.alive)", label: state.defending(attributes) ? "Verteidiger" : "übrig")
+          Stat(value: "\(state.alive)", label: state.defending(attributes) ? tr("Verteidiger", "Defenders") : tr("übrig", "left"))
             .padding(.leading, 6)
             .frame(maxHeight: .infinity, alignment: .center)
         }
         DynamicIslandExpandedRegion(.trailing, priority: 1) {
-          Stat(value: "\(state.kills)", label: "Abschüsse", alignment: .trailing)
+          Stat(value: "\(state.kills)", label: tr("Abschüsse", "Kills"), alignment: .trailing)
             .padding(.trailing, 6)
             .frame(maxHeight: .infinity, alignment: .center)
         }
@@ -53,7 +53,7 @@ struct MatchLiveActivity: Widget {
         }
       } compactTrailing: {
         if state.phase == "roundOver" {
-          Text(state.outcome == "won" ? "SIEG" : "AUS")
+          Text(state.outcome == "won" ? tr("SIEG", "WIN") : tr("AUS", "OUT"))
             .font(.system(size: 13, weight: .heavy))
             .foregroundStyle(state.headlineColor)
         } else {
@@ -108,8 +108,8 @@ private struct LockScreenView: View {
             .lineLimit(1)
         }
         Spacer(minLength: 0)
-        Stat(value: "\(state.alive)/\(max(state.total, state.alive))", label: "übrig", alignment: .trailing)
-        Stat(value: "\(state.kills)", label: "Abschüsse", alignment: .trailing)
+        Stat(value: "\(state.alive)/\(max(state.total, state.alive))", label: tr("übrig", "left"), alignment: .trailing)
+        Stat(value: "\(state.kills)", label: tr("Abschüsse", "Kills"), alignment: .trailing)
       }
       Bars(attributes: attributes, state: state)
     }
@@ -143,10 +143,10 @@ private struct Bars: View {
   var body: some View {
     VStack(spacing: 6) {
       if state.phase != "spectating" {
-        Bar(label: "Panzerung", value: state.hp, color: state.hp > 0.3 ? Bw.olive : Bw.danger)
+        Bar(label: tr("Panzerung", "Armour"), value: state.hp, color: state.hp > 0.3 ? Bw.olive : Bw.danger)
       }
       if state.defending(attributes) {
-        Bar(label: "Basis", value: state.baseHp, color: state.baseHp > 0.3 ? Bw.sand : Bw.danger)
+        Bar(label: tr("Basis", "Base"), value: state.baseHp, color: state.baseHp > 0.3 ? Bw.sand : Bw.danger)
       }
     }
   }
@@ -181,7 +181,7 @@ private struct RoundClock: View {
 
   var body: some View {
     if state.phase == "roundOver" {
-      Text("Ende")
+      Text(tr("Ende", "End"))
     } else if let target = state.countdownTarget, target > .now {
       Text(timerInterval: Date.now...target, countsDown: true)
     } else {
@@ -202,31 +202,31 @@ extension MatchActivityAttributes.ContentState {
   func headline(_ attributes: MatchActivityAttributes) -> String {
     switch phase {
     case "countdown":
-      return "Gleich geht's los"
+      return tr("Gleich geht's los", "Starting soon")
     case "roundOver":
-      return outcome == "won" ? "Sieg!" : (defending(attributes) ? "Basis gefallen" : "Vernichtet")
+      return outcome == "won" ? tr("Sieg!", "Victory!") : (defending(attributes) ? tr("Basis gefallen", "Base fell") : tr("Vernichtet", "Destroyed"))
     case "spectating":
-      return "Abgeschossen"
+      return tr("Abgeschossen", "Knocked out")
     default:
       if defending(attributes) {
-        return wave == 0 ? "Stellung beziehen" : "Welle \(wave)/\(waves)"
+        return wave == 0 ? tr("Stellung beziehen", "Take position") : tr("Welle \(wave)/\(waves)", "Wave \(wave)/\(waves)")
       }
-      return "Im Gefecht"
+      return tr("Im Gefecht", "In battle")
     }
   }
 
   func subline(_ attributes: MatchActivityAttributes) -> String {
     switch phase {
     case "roundOver":
-      if let winner, outcome != "won" { return "Sieger: \(winner)" }
-      return "\(kills) Abschüsse in dieser Runde"
+      if let winner, outcome != "won" { return tr("Sieger: \(winner)", "Winner: \(winner)") }
+      return tr("\(kills) Abschüsse in dieser Runde", "\(kills) kills this round")
     case "spectating":
-      return spectating.map { "Du schaust \($0) zu" } ?? "Du schaust zu"
+      return spectating.map { tr("Du schaust \($0) zu", "You are watching \($0)") } ?? tr("Du schaust zu", "You are watching")
     default:
       switch attributes.mode {
-      case "solo": return "\(attributes.pilot) gegen CPU-Panzer"
-      case "defense": return nextWaveAt != nil ? "Nächste Welle rollt an" : "Haltet die Basis"
-      default: return "\(attributes.pilot) · Raum \(attributes.room)"
+      case "solo": return tr("\(attributes.pilot) gegen CPU-Panzer", "\(attributes.pilot) against CPU tanks")
+      case "defense": return nextWaveAt != nil ? tr("Nächste Welle rollt an", "Next wave incoming") : tr("Haltet die Basis", "Hold the base")
+      default: return "\(attributes.pilot) · \(tr("Raum", "Room")) \(attributes.room)"
       }
     }
   }

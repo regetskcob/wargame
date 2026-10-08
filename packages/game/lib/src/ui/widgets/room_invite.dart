@@ -9,6 +9,7 @@ import '../../net/payloads/lobby_presence.dart';
 import '../../net/room.dart';
 import '../../theme.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// Waiting room header: the room code, a link to hand around and how many
 /// pilots have gathered so far.
@@ -53,7 +54,10 @@ class _RoomInviteState extends State<RoomInvite> {
     final box = button.findRenderObject() as RenderBox?;
     final shared = await shareRoomLink(
       _link,
-      'Komm ins Panzergefecht, Raum $_room.',
+      tr(
+        'Komm ins Panzergefecht, Raum $_room.',
+        'Join the Panzergefecht, room $_room.',
+      ),
       origin: box == null ? null : box.localToGlobal(Offset.zero) & box.size,
     );
     if (!shared) {
@@ -86,9 +90,9 @@ class _RoomInviteState extends State<RoomInvite> {
           ),
         ),
         const SizedBox(height: 4),
-        const Text(
-          'ZUM SCANNEN',
-          style: TextStyle(
+        Text(
+          tr('ZUM SCANNEN', 'TO SCAN'),
+          style: const TextStyle(
             fontSize: 10,
             letterSpacing: 1.5,
             color: BwColors.textDim,
@@ -115,7 +119,7 @@ class _RoomInviteState extends State<RoomInvite> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  'WARTERAUM',
+                  tr('WARTERAUM', 'WAITING ROOM'),
                   style: Theme.of(context).textTheme.titleMedium,
                 ),
                 const SizedBox(height: 4),
@@ -137,8 +141,14 @@ class _RoomInviteState extends State<RoomInvite> {
                         .clamp(1, 999);
                     return Text(
                       waiting == 1
-                          ? 'Du wartest allein im Raum.'
-                          : '$waiting Piloten warten im Raum.',
+                          ? tr(
+                              'Du wartest allein im Raum.',
+                              'You are waiting alone in the room.',
+                            )
+                          : tr(
+                              '$waiting Piloten warten im Raum.',
+                              '$waiting pilots are waiting in the room.',
+                            ),
                       style: const TextStyle(
                         color: BwColors.textDim,
                         fontSize: 12,
@@ -154,11 +164,20 @@ class _RoomInviteState extends State<RoomInvite> {
               children: [
                 Text(
                   hasLink
-                      ? 'Schick den Link weiter oder lass den QR-Code '
-                            'scannen. Wer ihn öffnet, landet hier. Starte, '
-                            'sobald alle da sind.'
-                      : 'Wer den Raumcode kennt, kann beitreten. Starte, '
-                            'sobald alle da sind.',
+                      ? tr(
+                          'Schick den Link weiter oder lass den QR-Code '
+                              'scannen. Wer ihn öffnet, landet hier. Starte, '
+                              'sobald alle da sind.',
+                          'Pass the link on or have the QR code scanned. '
+                              'Whoever opens it lands here. Start as soon '
+                              'as everyone is here.',
+                        )
+                      : tr(
+                          'Wer den Raumcode kennt, kann beitreten. Starte, '
+                              'sobald alle da sind.',
+                          'Anyone who knows the room code can join. Start '
+                              'as soon as everyone is here.',
+                        ),
                   style: const TextStyle(color: BwColors.textDim, fontSize: 12),
                 ),
                 if (hasLink) ...[
@@ -185,7 +204,9 @@ class _RoomInviteState extends State<RoomInvite> {
                           onPressed: _copy,
                           icon: Icon(_copied ? Icons.check : Icons.copy),
                           label: Text(
-                            _copied ? 'KOPIERT' : 'KOPIEREN',
+                            _copied
+                                ? tr('KOPIERT', 'COPIED')
+                                : tr('KOPIEREN', 'COPY'),
                             maxLines: 1,
                           ),
                         ),
@@ -196,7 +217,7 @@ class _RoomInviteState extends State<RoomInvite> {
                           builder: (button) => OutlinedButton.icon(
                             onPressed: () => _share(button),
                             icon: const Icon(Icons.ios_share),
-                            label: const Text('TEILEN', maxLines: 1),
+                            label: Text(tr('TEILEN', 'SHARE'), maxLines: 1),
                           ),
                         ),
                       ),

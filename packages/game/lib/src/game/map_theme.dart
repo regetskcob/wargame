@@ -1,12 +1,15 @@
 import 'dart:ui';
 
+import '../l10n/l10n.dart';
+
 /// How a ground looks, which objects stand on it and how many of them.
 ///
 /// The map of a round follows from its seed alone ([MapTheme.forSeed]), so all
 /// clients agree on it without extra network traffic.
 class MapTheme {
   const MapTheme({
-    required this.name,
+    required this.nameDe,
+    required this.nameEn,
     required this.ground,
     required this.patches,
     required this.ring,
@@ -26,7 +29,8 @@ class MapTheme {
     required this.buildingCount,
     required this.barrierCount,
     required this.treeCount,
-    required this.mudName,
+    required this.mudNameDe,
+    required this.mudNameEn,
     required this.mud,
     required this.mudRim,
     required this.mudCount,
@@ -34,7 +38,9 @@ class MapTheme {
     this.roads = false,
   });
 
-  final String name;
+  final String nameDe;
+  final String nameEn;
+  String get name => tr(nameDe, nameEn);
 
   final Color ground;
   final List<Color> patches;
@@ -62,7 +68,9 @@ class MapTheme {
   final int treeCount;
 
   /// Soft ground that slows tanks: swamp, quicksand, deep snow, puddles.
-  final String mudName;
+  final String mudNameDe;
+  final String mudNameEn;
+  String get mudName => tr(mudNameDe, mudNameEn);
   final Color mud;
   final Color mudRim;
   final int mudCount;
@@ -74,7 +82,8 @@ class MapTheme {
   final bool roads;
 
   static const forest = MapTheme(
-    name: 'Gefechtsplatz',
+    nameDe: 'Gefechtsplatz',
+    nameEn: 'Battlefield',
     ground: Color(0xFF424F29),
     patches: [
       Color(0xFF4A5A2E),
@@ -99,14 +108,16 @@ class MapTheme {
     buildingCount: 7,
     barrierCount: 14,
     treeCount: 50,
-    mudName: 'Sumpf',
+    mudNameDe: 'Sumpf',
+    mudNameEn: 'Swamp',
     mud: Color(0xFF2F3A1F),
     mudRim: Color(0xFF1E2714),
     mudCount: 7,
   );
 
   static const desert = MapTheme(
-    name: 'Wüste',
+    nameDe: 'Wüste',
+    nameEn: 'Desert',
     ground: Color(0xFFC9A66B),
     patches: [
       Color(0xFFD9B97F),
@@ -131,7 +142,8 @@ class MapTheme {
     buildingCount: 4,
     barrierCount: 16,
     treeCount: 40,
-    mudName: 'Treibsand',
+    mudNameDe: 'Treibsand',
+    mudNameEn: 'Quicksand',
     mud: Color(0xFFA8844A),
     mudRim: Color(0xFF86683A),
     mudCount: 6,
@@ -139,7 +151,8 @@ class MapTheme {
   );
 
   static const winter = MapTheme(
-    name: 'Winter',
+    nameDe: 'Winter',
+    nameEn: 'Winter',
     ground: Color(0xFFDCE6EC),
     patches: [
       Color(0xFFF4F8FA),
@@ -164,14 +177,16 @@ class MapTheme {
     buildingCount: 5,
     barrierCount: 12,
     treeCount: 60,
-    mudName: 'Tiefschnee',
+    mudNameDe: 'Tiefschnee',
+    mudNameEn: 'Deep snow',
     mud: Color(0xFFF7FBFD),
     mudRim: Color(0xFFA9BFCC),
     mudCount: 8,
   );
 
   static const city = MapTheme(
-    name: 'Stadt',
+    nameDe: 'Stadt',
+    nameEn: 'City',
     ground: Color(0xFF4A4D50),
     patches: [
       Color(0xFF3E4144),
@@ -196,7 +211,8 @@ class MapTheme {
     buildingCount: 14,
     barrierCount: 20,
     treeCount: 12,
-    mudName: 'Schlammpfütze',
+    mudNameDe: 'Schlammpfütze',
+    mudNameEn: 'Mud puddle',
     mud: Color(0xFF4A3B2A),
     mudRim: Color(0xFF2E2418),
     mudCount: 6,

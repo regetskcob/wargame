@@ -4,6 +4,7 @@ import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
 import '../../theme.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// Rank with the way to the next one, the rating and the badges.
 class PilotCard extends StatelessWidget {
@@ -37,7 +38,7 @@ class PilotCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${rank.title.toUpperCase()} · STUFE ${rank.level}',
+                          '${rank.title.toUpperCase()} · ${tr('STUFE', 'LEVEL')} ${rank.level}',
                           style: const TextStyle(
                             fontWeight: FontWeight.w800,
                             letterSpacing: 1,
@@ -55,7 +56,7 @@ class PilotCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          '${rank.xp} / ${rank.next} EP',
+                          '${rank.xp} / ${rank.next} ${tr('EP', 'XP')}',
                           style: const TextStyle(
                             fontSize: 11,
                             color: BwColors.textDim,
@@ -76,9 +77,9 @@ class PilotCard extends StatelessWidget {
                           color: BwColors.amber,
                         ),
                       ),
-                      const Text(
-                        'WERTUNG',
-                        style: TextStyle(
+                      Text(
+                        tr('WERTUNG', 'RATING'),
+                        style: const TextStyle(
                           fontSize: 11,
                           letterSpacing: 1.4,
                           color: BwColors.textDim,
@@ -163,7 +164,8 @@ class BadgeChip extends StatelessWidget {
         ? BwColors.sand
         : const Color(0x559DA58A);
     return Tooltip(
-      message: '${achievement.description}${earned ? '' : ' (noch offen)'}',
+      message:
+          '${achievement.description}${earned ? '' : ' (${tr('noch offen', 'not yet earned')})'}',
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
         decoration: ShapeDecoration(

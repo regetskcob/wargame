@@ -1,29 +1,34 @@
 import 'dart:math';
 import 'dart:ui';
 
+import '../../l10n/l10n.dart';
+
 /// The vehicles a player can pick, all drawn in code from above.
 enum TankType {
-  leopard('LEOPARD 2', 'Kampfpanzer', level: 3),
-  puma('PUMA', 'Schützenpanzer'),
-  gepard('GEPARD', 'Flugabwehr', level: 2),
-  boxer('BOXER', 'Radpanzer'),
-  wiesel('WIESEL', 'Waffenträger'),
+  leopard('LEOPARD 2', 'Kampfpanzer', 'Main battle tank', level: 3),
+  puma('PUMA', 'Schützenpanzer', 'Infantry fighting vehicle'),
+  gepard('GEPARD', 'Flugabwehr', 'Anti-aircraft', level: 2),
+  boxer('BOXER', 'Radpanzer', 'Wheeled armoured vehicle'),
+  wiesel('WIESEL', 'Waffenträger', 'Weapon carrier'),
 
   /// Rheinmetall's tracked infantry fighting vehicle with the 35 mm gun.
-  lynx('LYNX KF41', 'Schützenpanzer', level: 5),
+  lynx('LYNX KF41', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
 
   /// Rheinmetall's main battle tank with the 130 mm gun.
-  panther('PANTHER KF51', 'Kampfpanzer', level: 8),
+  panther('PANTHER KF51', 'Kampfpanzer', 'Main battle tank', level: 8),
 
   /// The self-propelled howitzer with the 155 mm gun and its big turret at
   /// the back. New vehicles always go at the end: the index travels over
   /// the wire and is kept in the players' looks.
-  pzh('PZH 2000', 'Panzerhaubitze', level: 4);
+  pzh('PZH 2000', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
 
-  const TankType(this.label, this.role, {this.level = 1});
+  const TankType(this.label, this._roleDe, this._roleEn, {this.level = 1});
 
   final String label;
-  final String role;
+  final String _roleDe;
+  final String _roleEn;
+
+  String get role => tr(_roleDe, _roleEn);
 
   /// Rank a pilot needs to drive it. New vehicles come with promotions.
   final int level;

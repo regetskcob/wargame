@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../legal/legal_text.dart';
 import '../../theme.dart';
 import 'panel.dart';
+import '../../l10n/l10n.dart';
 
 /// "Impressum · Datenschutz" along the bottom edge of the welcome and the
 /// start page. Each opens its text in a dialog.
@@ -17,13 +18,21 @@ class LegalLinks extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
           TextButton(
-            onPressed: () => _show(context, 'IMPRESSUM', imprint),
-            child: const Text('Impressum', style: style),
+            onPressed: () => _show(
+              context,
+              tr('IMPRESSUM', 'LEGAL NOTICE'),
+              L10n.current == AppLang.de ? imprint : imprintEn,
+            ),
+            child: Text(tr('Impressum', 'Legal notice'), style: style),
           ),
           const Text('·', style: style),
           TextButton(
-            onPressed: () => _show(context, 'DATENSCHUTZ', privacy),
-            child: const Text('Datenschutz', style: style),
+            onPressed: () => _show(
+              context,
+              tr('DATENSCHUTZ', 'PRIVACY POLICY'),
+              L10n.current == AppLang.de ? privacy : privacyEn,
+            ),
+            child: Text(tr('Datenschutz', 'Privacy'), style: style),
           ),
         ],
       ),
@@ -52,7 +61,7 @@ class LegalLinks extends StatelessWidget {
                       ),
                     ),
                     IconButton(
-                      tooltip: 'Schließen',
+                      tooltip: tr('Schließen', 'Close'),
                       onPressed: () => Navigator.of(context).pop(),
                       icon: const Icon(Icons.close),
                     ),
