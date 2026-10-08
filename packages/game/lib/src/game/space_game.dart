@@ -4420,7 +4420,9 @@ class SpaceGame extends FlameGame
       winnerName.value =
           remoteShips[winnerId]?.playerName ??
           _rosterMember(winnerId)?.name ??
-          'Panzer';
+          (activeRound.isBot(winnerId)
+              ? activeRound.botName(winnerId)
+              : 'Panzer');
     }
     final won = teamWin ? myTeamWon : winnerId != null && winnerId == myId;
     if (activeRound.participants.contains(myId)) {
