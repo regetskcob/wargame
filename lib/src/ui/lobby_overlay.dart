@@ -9,7 +9,6 @@ import '../game/game_mode.dart';
 import '../game/map_theme.dart';
 import '../game/tank_game.dart';
 import '../net/payloads/lobby_presence.dart';
-import '../net/room.dart';
 import '../game/components/tank_painter.dart';
 import 'theme.dart';
 import 'launch_view.dart';
@@ -17,9 +16,7 @@ import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
-import 'widgets/call_sign.dart';
 import 'widgets/panel.dart';
-import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
@@ -82,7 +79,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Title, what the round is about and the sound switch.
-  Widget _header(BuildContext context, String title) {
+  Widget _header(BuildContext context, String title, {Widget? extra}) {
     final game = widget.game;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,6 +97,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ),
             ),
+            ?extra,
             AccountButton(game: game),
             const MuteButton(),
           ],
@@ -137,29 +135,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         builder: (context, mode, _) => Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (mode == GameMode.multi &&
-                roomLink(game.net.room).isNotEmpty) ...[
-              _label(context, tr('SICHTBARKEIT', 'VISIBILITY')),
-              ValueListenableBuilder<bool>(
-                valueListenable: game.publicRoom,
-                builder: (context, public, _) => ChoiceRow<bool>(
-                  options: [
-                    (false, tr('PRIVAT', 'PRIVATE'), null),
-                    (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
-                  ],
-                  selected: public,
-                  onSelected: (v) => game.publicRoom.value = v ?? false,
-                ),
-              ),
-              const SizedBox(height: 6),
-              _hint(
-                tr(
-                  'Öffentliche Räume stehen in der Raumliste der Startseite.',
-                  'Public rooms are listed on the start page.',
-                ),
-              ),
-              const SizedBox(height: 14),
-            ],
             _label(context, tr('SCHWIERIGKEIT', 'DIFFICULTY')),
             ValueListenableBuilder<BotLevel>(
               valueListenable: game.botLevel,
@@ -304,24 +279,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Call sign, rank and badges of the player. The call sign and the
-  /// account are changed behind the profile button.
-  Widget _pilotSection(BuildContext context) {
-    final game = widget.game;
-    return _Section(
-      icon: Icons.military_tech_outlined,
-      title: tr('PILOT', 'PILOT'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CallSign(game: game),
-          const SizedBox(height: 12),
-          PilotCard(progress: game.progress),
-        ],
-      ),
-    );
-  }
-
   /// The vehicles the player may drive, and the next one to earn. The
   /// rest stays out of sight until it comes closer.
   List<TankType> _offeredVehicles() {
@@ -339,7 +296,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label(context, tr('FAHRZEUG', 'VEHICLE')),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.roster,
@@ -463,12 +419,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
               ),
             ),
-            if (game.isHost.value)
-              OutlinedButton.icon(
-                onPressed: game.editSettings,
-                icon: const Icon(Icons.tune),
-                label: Text(tr('EINSTELLUNGEN', 'SETTINGS')),
-              ),
             if (live != null)
               OutlinedButton.icon(
                 onPressed: game.spectateLiveMatch,
@@ -492,31 +442,39 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       ),
                     ),
             ),
-            OutlinedButton.icon(
-              onPressed: _confirmClose,
-              style: _closeArmed
-                  ? OutlinedButton.styleFrom(
-                      foregroundColor: BwColors.danger,
-                      side: const BorderSide(color: BwColors.danger),
-                    )
-                  : null,
-              icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
-              label: Text(switch ((_closeArmed, game.isHost.value)) {
-                (true, true) => tr(
-                  'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                  'REALLY CLOSE FOR EVERYONE?',
-                ),
-                (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
-                (false, true) => tr(
-                  'WARTERAUM SCHLIESSEN',
-                  'CLOSE WAITING ROOM',
-                ),
-                (false, false) => tr(
-                  'WARTERAUM VERLASSEN',
-                  'LEAVE WAITING ROOM',
-                ),
-              }),
-            ),
+            // Alone there is nobody to close the room for: just go back.
+            if (game.mode.value == GameMode.solo && game.isHost.value)
+              OutlinedButton.icon(
+                onPressed: game.changeMode,
+                icon: const Icon(Icons.arrow_back),
+                label: Text(tr('ZURÜCK', 'BACK')),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _confirmClose,
+                style: _closeArmed
+                    ? OutlinedButton.styleFrom(
+                        foregroundColor: BwColors.danger,
+                        side: const BorderSide(color: BwColors.danger),
+                      )
+                    : null,
+                icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+                label: Text(switch ((_closeArmed, game.isHost.value)) {
+                  (true, true) => tr(
+                    'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                    'REALLY CLOSE FOR EVERYONE?',
+                  ),
+                  (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
+                  (false, true) => tr(
+                    'WARTERAUM SCHLIESSEN',
+                    'CLOSE WAITING ROOM',
+                  ),
+                  (false, false) => tr(
+                    'WARTERAUM VERLASSEN',
+                    'LEAVE WAITING ROOM',
+                  ),
+                }),
+              ),
           ],
         );
       },
@@ -653,8 +611,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// First step for the host: how the round goes. Nobody sees the room in
-  /// the public list yet.
+  /// The settings of the round, opened by the host from the waiting room.
   Widget _settings(BuildContext context, {required bool narrow}) {
     final game = widget.game;
     return Column(
@@ -668,81 +625,69 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           narrow: narrow,
         ),
         const SizedBox(height: 18),
-        ValueListenableBuilder<GameMode>(
-          valueListenable: game.mode,
-          builder: (context, mode, _) => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              FilledButton.icon(
-                onPressed: game.openWaitingRoom,
-                icon: Icon(
-                  mode.withOthers
-                      ? Icons.meeting_room_outlined
-                      : Icons.chevron_right,
-                ),
-                label: Text(
-                  mode.withOthers
-                      ? tr('WARTERAUM ÖFFNEN', 'OPEN WAITING ROOM')
-                      : tr('WEITER', 'CONTINUE'),
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: game.changeMode,
-                icon: const Icon(Icons.arrow_back),
-                label: Text(tr('ZURÜCK', 'BACK')),
-              ),
-            ],
-          ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            FilledButton.icon(
+              onPressed: game.closeSettings,
+              icon: const Icon(Icons.check),
+              label: Text(tr('FERTIG', 'DONE')),
+            ),
+            OutlinedButton.icon(
+              onPressed: game.changeMode,
+              icon: const Icon(Icons.swap_horiz),
+              label: Text(tr('MODUS WECHSELN', 'CHANGE MODE')),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  /// Second step: who is here, the player's own tank and the start. The
-  /// host sees the settings in short, guests that they wait for the host.
+  /// The waiting room: who is here, the player's own tank and the start.
+  /// The host reaches the settings through the gear in the heading.
   Widget _room(BuildContext context, {required bool narrow}) {
     final host = widget.game.isHost.value;
     return ValueListenableBuilder<GameMode>(
       valueListenable: widget.game.mode,
-      builder: (context, mode, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _header(
-            context,
-            mode.withOthers
-                ? tr('WARTERAUM', 'WAITING ROOM')
-                : tr('BEREITSTELLUNG', 'GET READY'),
-          ),
-          const SizedBox(height: 18),
-          _columns(
-            [
-              if (!host) const _JoinedBanner(),
-              if (mode.withOthers) ...[
-                if (host) RoomInvite(game: widget.game),
-                _crewSection(),
-              ],
-              // The pilot goes where there is room: below the settings when
-              // playing alone, next to the tank when the invite and the
-              // crew fill the left side.
-              if (!mode.withOthers) _pilotSection(context),
-              if (!narrow) _Section(child: _controls()),
-            ],
-            [
-              if (mode.withOthers) _pilotSection(context),
-              _tankSection(context),
-            ],
-            narrow: narrow,
-          ),
-          // On a phone the controls come last, below the tank.
-          if (narrow) ...[
-            const SizedBox(height: 14),
-            _Section(child: _controls()),
+      builder: (context, mode, _) {
+        // Who is here and how to get others in. Alone, the tank is all.
+        final room = [
+          if (!host) const _JoinedBanner(),
+          if (mode.withOthers) ...[
+            if (host) RoomInvite(game: widget.game),
+            _crewSection(),
           ],
-          const SizedBox(height: 18),
-          _actions(),
-        ],
-      ),
+        ];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _header(
+              context,
+              mode.withOthers
+                  ? tr('WARTERAUM', 'WAITING ROOM')
+                  : tr('BEREITSTELLUNG', 'GET READY'),
+              extra: host
+                  ? IconButton(
+                      tooltip: tr('Einstellungen', 'Settings'),
+                      onPressed: widget.game.editSettings,
+                      icon: const Icon(Icons.settings_outlined),
+                    )
+                  : null,
+            ),
+            const SizedBox(height: 18),
+            if (room.isEmpty)
+              _tankSection(context)
+            else
+              _columns(room, [_tankSection(context)], narrow: narrow),
+            const SizedBox(height: 18),
+            _actions(),
+            const SizedBox(height: 8),
+            _controls(),
+          ],
+        );
+      },
     );
   }
 

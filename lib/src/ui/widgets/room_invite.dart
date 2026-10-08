@@ -5,8 +5,10 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../game/tank_game.dart';
+import '../../game/game_mode.dart';
 import '../../net/room.dart';
 import '../theme.dart';
+import 'choice_row.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
@@ -154,6 +156,21 @@ class _RoomInviteState extends State<RoomInvite> {
             ),
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
+        // Only rounds against each other show up in the room list.
+        if (hasLink && widget.game.mode.value == GameMode.multi) ...[
+          const SizedBox(height: 10),
+          ValueListenableBuilder<bool>(
+            valueListenable: widget.game.publicRoom,
+            builder: (context, public, _) => ChoiceRow<bool>(
+              options: [
+                (false, tr('PRIVAT', 'PRIVATE'), null),
+                (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
+              ],
+              selected: public,
+              onSelected: (v) => widget.game.publicRoom.value = v ?? false,
+            ),
+          ),
+        ],
       ],
     );
     return DecoratedBox(

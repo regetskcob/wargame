@@ -105,7 +105,6 @@ class TankGame extends FlameGame
   }) : super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
-    configuring.addListener(_wake);
   }
 
   final NetService net;
@@ -246,26 +245,25 @@ class TankGame extends FlameGame
   /// play. Players who joined by a link go straight to the waiting room.
   late final choosingMode = ValueNotifier<bool>(net.isHost);
 
-  /// Whether the host sets up the round: difficulty, field and who may
-  /// join, before the waiting room opens. Players who joined by a link
-  /// never see it.
+  /// Whether the host looks at the settings of the round, opened from the
+  /// waiting room. Rounds start with the defaults until then.
   final configuring = ValueNotifier<bool>(false);
 
-  /// Start page: take [value] and move on to setting up the round.
+  /// Start page: take [value] and move on to the waiting room.
   void chooseMode(GameMode value) {
     mode.value = value;
-    configuring.value = true;
+    configuring.value = false;
     choosingMode.value = false;
   }
 
-  /// Back from the settings to the start page.
+  /// Back to the start page, to play another way.
   void changeMode() => choosingMode.value = true;
 
-  /// The round is set up: open the waiting room.
-  void openWaitingRoom() => configuring.value = false;
-
-  /// Back from the waiting room to the settings of the round.
+  /// From the waiting room to the settings of the round.
   void editSettings() => configuring.value = true;
+
+  /// The settings are done: back to the waiting room.
+  void closeSettings() => configuring.value = false;
 
   /// Whether this player runs the room: picks mode and map and starts the
   /// round. The one who opened the room keeps the role for good. Only when
@@ -548,7 +546,6 @@ class TankGame extends FlameGame
     for (final notifier in <Listenable>[
       publicRoom,
       choosingMode,
-      configuring,
       welcomed,
       mode,
       isHost,
@@ -4722,11 +4719,9 @@ class TankGame extends FlameGame
   }
 
   /// Whether the player still looks at the welcome page or, as host, at
-  /// the start page or the settings: the room is joined, but no waiting
-  /// room is shown.
+  /// the start page: the room is joined, but no waiting room is shown.
   bool get beforeWaitingRoom =>
-      !welcomed.value ||
-      ((choosingMode.value || configuring.value) && isHost.value);
+      !welcomed.value || (choosingMode.value && isHost.value);
 
   /// Left the room quietly after a long time on the start or welcome page.
   @visibleForTesting
