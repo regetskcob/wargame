@@ -518,6 +518,11 @@ extension TankGameLobby on TankGame {
     _watchSlot();
   }
 
+  /// Pilots in the room that Realtime carries: the second player on this
+  /// device talks to this game directly and costs nothing.
+  int get _pilotsOnline =>
+      roster.value.where((member) => !net.isLocalPeer(member.id)).length;
+
   /// A phone steers somebody's tank in this room, this game's included.
   bool get roomHasPhone =>
       padSteered.value || roster.value.any((member) => member.pad);
@@ -525,7 +530,7 @@ extension TankGameLobby on TankGame {
   /// Realtime messages a second this room costs. With a phone in it there
   /// are no CPU tanks, except in defense, where the enemies are CPU tanks.
   int get _roomLoad => GameConfig.roomLoad(
-    roster.value.length,
+    _pilotsOnline,
     cpu: !roomHasPhone || mode.value == GameMode.defense,
   );
 
@@ -540,8 +545,7 @@ extension TankGameLobby on TankGame {
   void _watchSlot() {
     // The second player on this device costs nothing: only people on other
     // devices make the room take a slot.
-    final others = roster.value.where((m) => !net.isLocalPeer(m.id));
-    final shared = others.length > 1 && phase.value != GamePhase.closed;
+    final shared = _pilotsOnline > 1 && phase.value != GamePhase.closed;
     if (!shared) {
       // Alone again, for now: no refresh, but a room that held its slot
       // keeps counting as one when the others come back.
@@ -563,7 +567,7 @@ extension TankGameLobby on TankGame {
   /// Claims the room's slot again at once, as the pairing does before the
   /// phones claim theirs. Nothing while the pilot is alone.
   Future<void> refreshRoomSlot() async {
-    if (roster.value.length > 1 && phase.value != GamePhase.closed) {
+    if (_pilotsOnline > 1 && phase.value != GamePhase.closed) {
       await _claimSlot();
     }
   }
