@@ -53,3 +53,37 @@ class TankStatePayload {
     };
   }
 }
+
+/// The states of every CPU tank a host drives, in one message: Realtime
+/// counts messages, not their size.
+class TankStatesPayload {
+  const TankStatesPayload({required this.id, required this.states});
+
+  factory TankStatesPayload.fromJson(Map<String, dynamic> json) {
+    final list = json['states'] as List<dynamic>;
+    if (list.length > maxStates) {
+      throw const FormatException('too many tank states');
+    }
+    return TankStatesPayload(
+      id: json['id'] as String,
+      states: [
+        for (final state in list)
+          TankStatePayload.fromJson(
+            (state as Map<dynamic, dynamic>).cast<String, dynamic>(),
+          ),
+      ],
+    );
+  }
+
+  /// More CPU tanks than any round has at once.
+  static const maxStates = 24;
+
+  /// Who sent it, the host.
+  final String id;
+  final List<TankStatePayload> states;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'states': [for (final state in states) state.toJson()],
+  };
+}

@@ -1,5 +1,8 @@
 enum NetEvent {
   state,
+
+  /// The CPU tanks of the host, all in one message.
+  states,
   shoot,
   hit,
   death,

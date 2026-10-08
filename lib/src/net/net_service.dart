@@ -96,6 +96,11 @@ class NetService {
       NetEvent.state,
       (json) => onTankState?.call(TankStatePayload.fromJson(json)),
     );
+    _listen(channel, NetEvent.states, (json) {
+      for (final state in TankStatesPayload.fromJson(json).states) {
+        onTankState?.call(state);
+      }
+    });
     _listen(
       channel,
       NetEvent.shoot,

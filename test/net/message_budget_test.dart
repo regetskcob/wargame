@@ -20,6 +20,12 @@ import '../helpers/fakes.dart';
 /// RealtimeChannel.count and MessageDispatcher.
 const _freePlanPerSecond = 100;
 
+/// The same on the Pro plan.
+const _proPlanPerSecond = 500;
+
+/// How long each measured round runs.
+const _length = Duration(seconds: 20);
+
 /// Counts what would have gone onto the channel.
 class _CountingNet extends FakeNet {
   final sent = <NetEvent, int>{};
@@ -50,7 +56,7 @@ Future<_Measured> _playRound({
   required GameMode mode,
   required bool bots,
   required bool othersPresent,
-  Duration length = const Duration(seconds: 20),
+  Duration length = _length,
 }) async {
   final net = _CountingNet()..othersPresent = othersPresent;
   final game = offlineGame(net: net)..onGameResize(Vector2(1280, 720));
@@ -182,32 +188,43 @@ void main() {
       expect(solo.perSecond, 0, reason: '$solo');
     });
 
-    test('a pilot sends at most about twenty messages a second', () {
+    test('a pilot sends about ten messages a second', () {
       expect(pilot.bots, 0);
-      expect(pilot.perSecond, inInclusiveRange(15, 23), reason: '$pilot');
+      expect(pilot.perSecond, inInclusiveRange(8, 13), reason: '$pilot');
     });
 
-    test('every CPU tank adds no more than one more pilot', () {
-      expect(host.bots, greaterThan(0));
-      final perBot = (host.perSecond - pilot.perSecond) / host.bots;
-      expect(perBot, lessThanOrEqualTo(23), reason: '$host');
+    test('all CPU tanks of a host move in one stream of ten a second', () {
+      expect(host.bots, greaterThan(1));
+      final seconds = _length.inMilliseconds / 1000;
+      expect(
+        (host.sent[NetEvent.states] ?? 0) / seconds,
+        lessThanOrEqualTo(10.5),
+        reason: '$host',
+      );
+      // The host's own tank sends no more than any other pilot's.
+      expect(host.sent[NetEvent.state], pilot.sent[NetEvent.state]);
     });
 
-    test('two pilots without CPU tanks fit the free plan', () {
-      final load = _roomLoad(pilots: 2, pilot: pilot);
+    test('two pilots with CPU tanks fit the free plan', () {
+      final load = _roomLoad(pilots: 2, pilot: pilot, host: host);
       expect(load, lessThan(_freePlanPerSecond), reason: 'room: $load/s');
     });
 
     test(
-      'two pilots with CPU tanks fit the free plan',
+      'three pilots fit the free plan',
       () {
-        final load = _roomLoad(pilots: 2, pilot: pilot, host: host);
-        expect(load, lessThan(_freePlanPerSecond), reason: 'room: $load/s');
+        final load = _roomLoad(pilots: 3, pilot: pilot);
+        expect(load, lessThan(_freePlanPerSecond * 0.8), reason: '$load/s');
       },
       skip:
-          'Not yet: about 210 a second. Every CPU tank sends its own '
-          'state 20 times a second.',
+          'On the edge: about 98 a second, with no room left for a second '
+          'room playing at the same time.',
     );
+
+    test('a room of four with CPU tanks fits the Pro plan', () {
+      final load = _roomLoad(pilots: 4, pilot: pilot, host: host);
+      expect(load, lessThan(_proPlanPerSecond), reason: 'room: $load/s');
+    });
 
     test(
       'a room of four pilots fits the free plan',
@@ -216,8 +233,8 @@ void main() {
         expect(load, lessThan(_freePlanPerSecond), reason: 'room: $load/s');
       },
       skip:
-          'Not yet: about 330 a second. Load grows with the square of the '
-          'pilots in a room.',
+          'Not on the free plan: about 175 a second. The load grows with '
+          'the square of the pilots in a room.',
     );
   });
 }

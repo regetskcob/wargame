@@ -34,7 +34,10 @@ class GameConfig {
   static const bulletDamage = 15.0;
   static const treeBumpDamage = 5.0;
 
-  static const stateSyncInterval = 0.05;
+  /// Ten states a second: the other side moves the tank on with its speed
+  /// in between. Realtime's free plan allows 100 messages a second for the
+  /// whole project, and every state counts once per receiver.
+  static const stateSyncInterval = 0.1;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
