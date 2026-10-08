@@ -11,6 +11,7 @@ import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/ship_state_payload.dart';
 import '../defense/defense_map.dart';
+import '../bot_level.dart';
 import '../game_phase.dart';
 import '../inventory.dart';
 import '../special_weapon.dart';
@@ -406,7 +407,11 @@ class PlayerShip extends ShipBase
     double? target;
     final stick = input.aim;
     var assisted = false;
-    if (!isBot && input.assist && !input.aimHeld) {
+    // On hard there is no aim assist: the turret is the player's own job.
+    if (!isBot &&
+        input.assist &&
+        !input.aimHeld &&
+        gameRef.difficulty != BotLevel.hard) {
       final prey = gameRef.assistTarget(this);
       if (prey != null) {
         final flight = prey.position.distanceTo(position) / stats.bulletSpeed;

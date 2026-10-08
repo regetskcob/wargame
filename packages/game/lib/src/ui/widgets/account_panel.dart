@@ -330,7 +330,7 @@ class _AccountPanelState extends State<AccountPanel> {
     final fresh = widget.embedded;
     return [
       if (fresh) ...[
-        const SizedBox(height: 12),
+        const SizedBox(height: 16),
         ChoiceRow<bool>(
           options: const [
             (true, 'ANMELDEN', null),
@@ -340,7 +340,7 @@ class _AccountPanelState extends State<AccountPanel> {
           onSelected: (v) => _switchTo(signIn: v ?? _signIn),
         ),
       ],
-      const SizedBox(height: 6),
+      SizedBox(height: fresh ? 14 : 6),
       Text(switch ((_signIn, fresh)) {
         (true, true) =>
           'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
@@ -357,7 +357,7 @@ class _AccountPanelState extends State<AccountPanel> {
               '${kIsWeb ? 'Browser' : 'Gerät'}. Sichere dein '
               'Konto, damit Rang, Wertung und Abzeichen bleiben.',
       }, style: dim),
-      const SizedBox(height: 10),
+      SizedBox(height: fresh ? 16 : 10),
       if (_step == _Step.idle) ...[
         if (!_signIn) ...[
           TextField(
@@ -379,7 +379,7 @@ class _AccountPanelState extends State<AccountPanel> {
           decoration: const InputDecoration(labelText: 'E-MAIL'),
           onSubmitted: (_) => _sendMail(),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: fresh ? 16 : 8),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -416,7 +416,7 @@ class _AccountPanelState extends State<AccountPanel> {
           ),
           onSubmitted: (_) => _verify(),
         ),
-        const SizedBox(height: 8),
+        SizedBox(height: fresh ? 16 : 8),
         Wrap(
           spacing: 8,
           children: [
