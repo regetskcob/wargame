@@ -866,7 +866,8 @@ messages a second, a fifth kept in reserve:
 | One room of 2 pilots and a phone controller | ~76/s | fits, just |
 | Two rooms of 2 pilots | ~88/s | below 100, no reserve |
 | One room of 3 pilots | ~98/s | only on its own, at the limit |
-| Apple TV duel with two phones | ~95/s | only on its own, at the limit |
+| Apple TV, two players (split screen or duel) | ~70/s | fits, takes the room |
+| Apple TV, two players on two phones | ~135/s | does not fit |
 | One room of 3 pilots with CPU tanks | ~138/s | does not fit |
 | One room of 4 pilots | ~174/s | does not fit |
 
@@ -909,7 +910,7 @@ plan with:
 | 4 pilots | ~174/s | none | 2 | 14, safely 11 |
 | 4 pilots with CPU tanks | ~227/s | none | 2, safely 1 | 11, safely 8 |
 | Phone controller, per pair | ~32/s | on top of its room | | |
-| Apple TV duel with two phones | ~95/s | 1, at the limit | 5, safely 4 | 26, safely 21 |
+| Apple TV, two players (split screen or duel) | ~70/s | 1 | 7, safely 5 | 35, safely 28 |
 
 Rooms of different sizes add up. Combinations that still fit, with the
 reserve:
@@ -935,17 +936,18 @@ reserve:
 | 4 pilots | ~630,000 | ~3 h | ~8 h | ~$1.57 |
 | 4 pilots with CPU tanks | ~820,000 | ~2.5 h | ~6 h | ~$2.04 |
 | Phone controller, on top | ~115,000 | ~17 h | ~43 h | ~$0.29 |
-| Apple TV duel with two phones | ~340,000 | ~6 h | ~15 h | ~$0.86 |
+| Apple TV, two players (split screen or duel) | ~250,000 | ~8 h | ~20 h | ~$0.63 |
 
 The hours are for the whole project and month, shared by all rooms: two
 rooms of two playing for an hour use two hours of the "2 pilots" row.
 
-An Apple TV duel plays both halves in private rooms of their own, which
-cost nothing; with controllers or the Siri Remote the duel is free. Two
-phones share one pad channel with the television, so every input and
+Two players on one Apple TV, on a split screen or in a duel, share one
+room: the second player's game is a pilot like any other, so it costs
+what a room of two pilots with CPU tanks costs and takes one of the room
+slots. Phones as their controllers come on top, about 32 a second each.
+Two phones share one pad channel with the television, so every input and
 status reaches both other ends, the other phone included: that third is
-wasted, and a pad channel per phone would bring the duel down to about
-63 a second.
+wasted, and a pad channel per phone would save it.
 
 The other Realtime limits do not bind before these: every client holds
 one connection however many channels it joins (200 at once on the free
@@ -1012,18 +1014,17 @@ at once whether a change still fits the plan.
   and full rooms of four need the Pro plan. Bigger rooms would need a relay
   of our own instead of Broadcast. See
   [Rooms and room sizes](#rooms-and-room-sizes).
-- Room slots only cover rooms. Phone controllers and the Apple TV duel
-  with two phones talk on their own pad channels and take no slot, though
-  a duel with two phones uses nearly the whole free plan.
+- Room slots only cover rooms. Phone controllers talk on their own pad
+  channels and take no slot. Two players on one Apple TV share a room and
+  take its slot like any other room of two.
 - Clients from before migration 0015 take no slot and do not know the
   room limit of two.
 - Shots, hits and the other events are not counted against a budget yet;
   in a busy fight with many CPU tanks they add a few messages a second per
   tank.
 - A paired phone still costs about 32 a second, on top of its room.
-- An Apple TV duel with two phones costs about 95 a second, nearly the
-  whole free plan, because both phones share one pad channel. A channel
-  per phone would bring it to about 63.
+- Two players on one Apple TV cost about 70 a second, with two phones as
+  controllers about 135, more than the free plan carries.
 - The free plan's monthly quota, see [Monthly quota](#monthly-quota): the
   decision for the Pro plan is due before real players come.
 - Clients older than these changes still run in TestFlight builds: they
