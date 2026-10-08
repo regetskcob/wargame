@@ -6,12 +6,17 @@ description: Start Panzergefecht locally and look at it - the web build in the b
 # Play it locally
 
 **Web (fastest).** `preview_start` with the name `web` from
-`.claude/launch.json` runs `flutter run -d web-server` on port 8080 with
-`ROOM=dev`, against the hosted Supabase project. Open a second tab on the
-same URL for a second player: both land in room `dev`. Flame draws on a
-canvas, so use screenshots for the battlefield and `read_page` only for the
-Flutter overlays (with semantics on). Keyboard: WASD/arrows drive, space
-fires, 1-6 use inventory slots, Esc leaves a replay.
+`.claude/launch.json` runs `flutter run -d web-server` on port 8080 against
+the hosted Supabase project. The first compile takes about half a minute and
+the tab opened before it is blank (`main.dart.js` with MIME type text/html):
+navigate to the URL again once the log stops at "Waiting for connection".
+In the browser the room comes from the URL (`?room=XXXXX`), so open the same
+URL in a second tab for a second player. Flame draws on a canvas: use
+screenshots for the battlefield, `read_page` only for Flutter overlays.
+Keyboard: WASD/arrows drive, space fires, B builds or upgrades a gun and V
+switches its type in defense, 1-6 use inventory slots, Esc leaves a replay.
+Single key taps from the browser tool are often shorter than a frame and get
+lost, so check effects (ammo, credits) rather than assuming a shot fired.
 
 **Against the local stack** (needs Docker): `supabase start`, then add
 `--dart-define=SUPABASE_URL=http://127.0.0.1:54621` and the local

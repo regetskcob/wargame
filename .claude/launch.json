@@ -9,8 +9,7 @@
         "-d",
         "web-server",
         "--web-port",
-        "8080",
-        "--dart-define=ROOM=dev"
+        "8080"
       ],
       "port": 8080
     }
