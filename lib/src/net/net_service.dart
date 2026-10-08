@@ -33,6 +33,7 @@ class NetService {
   final bool isHost;
 
   void Function(TankStatePayload payload)? onTankState;
+  void Function(TankStatesPayload payload)? onTankStates;
   void Function(ShootPayload payload)? onShoot;
   void Function(HitPayload payload)? onHit;
   void Function(DeathPayload payload)? onDeath;
@@ -101,11 +102,11 @@ class NetService {
       NetEvent.state,
       (json) => onTankState?.call(TankStatePayload.fromJson(json)),
     );
-    _listen(channel, NetEvent.states, (json) {
-      for (final state in TankStatesPayload.fromJson(json).states) {
-        onTankState?.call(state);
-      }
-    });
+    _listen(
+      channel,
+      NetEvent.states,
+      (json) => onTankStates?.call(TankStatesPayload.fromJson(json)),
+    );
     _listen(
       channel,
       NetEvent.shoot,

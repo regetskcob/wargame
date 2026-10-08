@@ -22,6 +22,7 @@ import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
+import '../tv/tv_input.dart';
 
 class LobbyOverlay extends StatefulWidget {
   const LobbyOverlay({required this.game, super.key});
@@ -514,7 +515,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         backgroundColor: BwColors.surface,
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
-          touch
+          onTv
+              ? tr(
+                  'Controller: Linker Stick fährt, rechter Stick zielt, R2 '
+                      'oder A feuert, L2 löst Waffen wie Granatwerfer, Mörser '
+                      'und Drohne aus. X, Y und das Steuerkreuz setzen das '
+                      'Inventar am linken Rand ein. In der Verteidigung baut '
+                      'R1 ein Geschütz, L1 wechselt den Typ. Siri Remote: Der '
+                      'Daumen auf der Touchfläche zeigt die Fahrtrichtung, '
+                      'die Zielhilfe zielt, ein Klick feuert, Play/Pause '
+                      'löst die Waffe oder das oberste Inventarfeld aus.',
+                  'Controller: the left stick drives, the right stick aims, '
+                      'R2 or A fires, L2 fires weapons such as grenade '
+                      'launcher, mortar and drone. X, Y and the d-pad use the '
+                      'inventory on the left edge. In defense, R1 builds a '
+                      'turret and L1 switches the type. Siri Remote: your '
+                      'thumb on the touch surface sets the direction, the '
+                      'aim assist aims, a click fires, play/pause fires the '
+                      'weapon or uses the top inventory slot.',
+                )
+              : touch
               ? tr(
                   'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus und feuert, sobald '
@@ -730,10 +750,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Phones and the apps on tablets show the menu without the outer plate:
-  /// the screen edge already frames it.
+  /// the screen edge already frames it. The television keeps it.
   bool _frameless(BuildContext context) =>
       MediaQuery.sizeOf(context).width < 600 ||
       (!kIsWeb &&
+          !onTv &&
           (defaultTargetPlatform == TargetPlatform.iOS ||
               defaultTargetPlatform == TargetPlatform.android));
 

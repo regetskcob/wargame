@@ -5,6 +5,7 @@ import '../theme.dart';
 import 'demo_painter.dart';
 import 'tutorial_steps.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// The tutorial: first the controls, one card each, acted out on a small
 /// training ground with a thumb on the sticks or with keys and mouse. Then
@@ -269,7 +270,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final controls = controlSteps(touch: _touch);
     final kicker = _index < controls
         ? '${tr('STEUERUNG', 'CONTROLS')} '
-              '${_touch ? 'TOUCH' : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '
+              '${onTv
+                  ? 'CONTROLLER & REMOTE'
+                  : _touch
+                  ? 'TOUCH'
+                  : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '
               '${_index + 1}/$controls'
         : step.quick
         ? '${tr('SCHNELLDURCHLAUF', 'QUICK TOUR')} · '

@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
+import '../../tv/tv_input.dart';
+
 /// Shortest side from which a screen counts as a tablet.
 const tabletShortSide = 600.0;
 
@@ -16,6 +18,10 @@ double hudScaleFor(Size size) {
   return (short / 430).clamp(1.0, 1.4);
 }
 
+/// How much larger the Apple TV draws everything than a desktop browser on
+/// a screen of the same size, as it is seen from across the room.
+const tvScale = 1.4;
+
 /// Lays [child] out on a screen smaller by [hudScaleFor] and draws it
 /// magnified, so the phone layouts and their breakpoints work unchanged.
 class TabletScale extends StatelessWidget {
@@ -25,11 +31,27 @@ class TabletScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final scale = hudScaleFor(media.size);
+    return FixedScale(
+      // The Apple TV scales the whole app already.
+      scale: onTv ? 1 : hudScaleFor(MediaQuery.sizeOf(context)),
+      child: child,
+    );
+  }
+}
+
+/// Lays [child] out on a screen smaller by [scale] and draws it magnified.
+class FixedScale extends StatelessWidget {
+  const FixedScale({required this.scale, required this.child, super.key});
+
+  final double scale;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     if (scale == 1) {
       return child;
     }
+    final media = MediaQuery.of(context);
     final inner = Size(media.size.width / scale, media.size.height / scale);
     return Transform.scale(
       scale: scale,

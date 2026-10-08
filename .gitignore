@@ -27,6 +27,7 @@ migrate_working_dir/
 **/doc/api/
 **/ios/Flutter/.last_build_id
 .dart_tool/
+.flutter-plugins
 .flutter-plugins-dependencies
 .pub-cache/
 .pub/
@@ -50,3 +51,7 @@ app.*.map.json
 # Supabase CLI
 supabase/.temp/
 supabase/.branches/
+
+# Claude Code: worktrees and personal settings stay local
+.claude/worktrees/
+.claude/settings.local.json

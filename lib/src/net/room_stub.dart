@@ -8,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../app/env.dart';
+import '../tv/tv_input.dart';
 import 'room_code.dart';
 
 const _guestKey = 'panzergefecht.guest';
@@ -58,8 +59,9 @@ StreamSubscription<Uri>? _links;
 /// Room links opened on this device, from the camera, a message or the
 /// browser, lead straight into their room, also when they start the app.
 void listenForRoomLinks() {
-  // app_links has no watchOS implementation, and nobody opens links there.
-  if (FlutterWatchosPlatform.isWatch) {
+  // app_links has no watchOS or tvOS implementation, and nobody opens links
+  // there.
+  if (FlutterWatchosPlatform.isWatch || onTv) {
     return;
   }
   void open(Uri? uri) {

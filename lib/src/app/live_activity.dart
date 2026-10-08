@@ -8,6 +8,7 @@ import '../game/game_phase.dart';
 import '../game/tank_game.dart';
 import '../game/game_config.dart';
 import '../net/payloads/defense_payload.dart';
+import '../tv/tv_input.dart';
 
 /// Mirrors a running round into a Live Activity on iOS: the lock screen and
 /// the Dynamic Island show the countdown, the tanks still standing, the own
@@ -25,7 +26,7 @@ class LiveActivityBridge {
   static const _throttle = Duration(seconds: 1);
 
   static bool get supported =>
-      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS;
+      !kIsWeb && defaultTargetPlatform == TargetPlatform.iOS && !onTv;
 
   var _running = false;
   Timer? _pending;

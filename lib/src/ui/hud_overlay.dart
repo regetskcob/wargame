@@ -24,6 +24,7 @@ import 'widgets/panel.dart';
 import 'widgets/touch_controls.dart';
 import 'widgets/vitals_plate.dart';
 import '../l10n/l10n.dart';
+import '../tv/tv_input.dart';
 
 class HudOverlay extends StatefulWidget {
   const HudOverlay({required this.game, super.key});
@@ -183,11 +184,22 @@ class _HudOverlayState extends State<HudOverlay> {
                   : const Alignment(-1, 0.1),
               child: _HudButtons(
                 game: game,
-                child: InventoryBar(
-                  inventory: game.inventory,
-                  onUse: game.useItem,
-                  compact: touch,
-                ),
+                child: onTv
+                    ? ValueListenableBuilder<TvPadKind>(
+                        valueListenable: TvInput.instance.kind,
+                        builder: (context, kind, _) => InventoryBar(
+                          inventory: game.inventory,
+                          onUse: game.useItem,
+                          labels: kind == TvPadKind.remote
+                              ? const ['⏯']
+                              : tvGamepadSlotLabels,
+                        ),
+                      )
+                    : InventoryBar(
+                        inventory: game.inventory,
+                        onUse: game.useItem,
+                        compact: touch,
+                      ),
               ),
             ),
           ),
@@ -694,10 +706,15 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          tr(
-            'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
-            'FUNDS $credits   ·   B builds/upgrades, V switches',
-          ),
+          onTv
+              ? tr(
+                  'MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt',
+                  'FUNDS $credits   ·   R1 builds/upgrades, L1 switches',
+                )
+              : tr(
+                  'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
+                  'FUNDS $credits   ·   B builds/upgrades, V switches',
+                ),
           style: const TextStyle(
             color: BwColors.amber,
             fontWeight: FontWeight.w800,

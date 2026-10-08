@@ -7,6 +7,7 @@ import '../../game/defense/tower.dart';
 import '../../game/map_theme.dart';
 import '../../game/game_config.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 import '../theme.dart';
 
 /// What the stage behind a tutorial card acts out.
@@ -58,16 +59,100 @@ class TutorialStep {
   bool get quick => scene == DemoScene.tour || scene == DemoScene.vehicles;
 }
 
-/// The controls for [touch] or for keyboard and mouse, then the quick tour
-/// through everything the game has, and a last card to start.
+/// The controls for [touch] or for keyboard and mouse, on the Apple TV for
+/// controller and remote, then the quick tour through everything the game
+/// has, and a last card to start.
 List<TutorialStep> tutorialSteps({required bool touch}) => [
-  ...touch ? _touch : _desktop,
+  ..._controls(touch),
   ..._tour,
   _ready,
 ];
 
 /// How many of the steps for [touch] explain the controls.
-int controlSteps({required bool touch}) => (touch ? _touch : _desktop).length;
+int controlSteps({required bool touch}) => _controls(touch).length;
+
+List<TutorialStep> _controls(bool touch) =>
+    onTv ? _tv : (touch ? _touch : _desktop);
+
+List<TutorialStep> get _tv => [
+  TutorialStep(
+    title: tr('FAHREN', 'DRIVE'),
+    icon: Icons.sports_esports,
+    scene: DemoScene.drive,
+    text: tr(
+      'Controller: Der linke Stick zeigt, wohin der Panzer soll, er dreht '
+          'sich von selbst und fährt los. Siri Remote: Leg den Daumen auf die '
+          'Touchfläche, dorthin, wohin es gehen soll.',
+      'Controller: the left stick points where the tank should go, it turns '
+          'by itself and drives off. Siri Remote: rest your thumb on the '
+          'touch surface where you want to go.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELEN', 'AIM'),
+    icon: Icons.track_changes,
+    scene: DemoScene.aim,
+    text: tr(
+      'Controller: Der rechte Stick richtet den Turm aus. Lässt du ihn los, '
+          'dreht die Zielhilfe den Turm auf den nächsten Gegner. Mit der '
+          'Remote zielt immer die Zielhilfe. Auf Schwer gibt es keine.',
+      'Controller: the right stick aims the turret. Let go and the aim '
+          'assist turns it to the nearest enemy. With the remote the aim '
+          'assist always aims. On Hard there is none.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('FEUERN', 'FIRE'),
+    icon: Icons.local_fire_department,
+    scene: DemoScene.fire,
+    text: tr(
+      'R2 oder A feuert, mit der Remote ein Klick auf die Touchfläche. Die '
+          'Zielhilfe feuert auch selbst. Die Munition ist begrenzt, blaue '
+          'Gems füllen sie auf.',
+      'R2 or A fires, with the remote a click on the touch surface. The aim '
+          'assist fires by itself too. Ammunition is limited, blue gems '
+          'refill it.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('INVENTAR', 'INVENTORY'),
+    icon: Icons.inventory_2,
+    scene: DemoScene.inventory,
+    text: tr(
+      'Kisten und Gems landen im Inventar am linken Rand. X, Y und das '
+          'Steuerkreuz setzen sie ein, das Zeichen steht am Feld. Mit der '
+          'Remote setzt Play/Pause das oberste ein.',
+      'Crates and gems land in the inventory on the left edge. X, Y and the '
+          'd-pad use them, the sign is on the slot. With the remote, '
+          'play/pause uses the top one.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
+    icon: Icons.sports_baseball,
+    scene: DemoScene.special,
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems feuert L2, mit der Remote '
+          'Play/Pause.',
+      'Grenade launcher, mortar and drone from gems fire with L2, with the '
+          'remote with play/pause.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
+    icon: Icons.shield,
+    scene: DemoScene.defense,
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
+          'neben deinem Panzer oder rüstet das auf, an dem er steht, L1 '
+          'wechselt die Art. Mit der Remote baut Play/Pause, wenn das '
+          'Inventar leer ist.',
+      'In defense mode kills bring money. R1 builds a turret next to your '
+          'tank or upgrades the one it stands at, L1 switches the kind. With '
+          'the remote, play/pause builds while the inventory is empty.',
+    ),
+  ),
+];
 
 List<TutorialStep> get _touch => [
   TutorialStep(

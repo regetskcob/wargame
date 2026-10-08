@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
+import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
 
 import '../helpers/fakes.dart';

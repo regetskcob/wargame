@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
+import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/payloads/round_start_payload.dart';
 import 'package:wargame/src/net/replay.dart';
