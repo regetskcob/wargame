@@ -88,7 +88,7 @@ class _RoomInviteState extends State<RoomInvite> {
         const Text(
           'ZUM SCANNEN',
           style: TextStyle(
-            fontSize: 9,
+            fontSize: 10,
             letterSpacing: 1.5,
             color: BwColors.textDim,
           ),

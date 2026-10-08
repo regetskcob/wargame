@@ -20,10 +20,22 @@ class RoundRewards extends StatelessWidget {
         progress.lastRecord,
         progress.newBadges,
         progress.rankedUp,
+        progress.unranked,
       ]),
       builder: (context, _) {
         final record = progress.lastRecord.value;
         final badges = progress.newBadges.value;
+        if (progress.unranked.value) {
+          return const Padding(
+            padding: EdgeInsets.only(top: 16),
+            child: Text(
+              'Als Gast wird nicht gewertet. Mit einem Konto sammelst du '
+              'EP, Wertung und Abzeichen und schaltest Fahrzeuge frei.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: BwColors.textDim, fontSize: 13),
+            ),
+          );
+        }
         if (record == null && badges.isEmpty) {
           return const SizedBox();
         }

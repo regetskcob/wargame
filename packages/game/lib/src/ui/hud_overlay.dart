@@ -280,7 +280,7 @@ class _HudOverlayState extends State<HudOverlay> {
                               Text(
                                 _zoneLabel(compact: true),
                                 style: const TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 11,
                                   color: BwColors.amber,
                                 ),
                               ),
@@ -727,7 +727,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         child: Text(
           '${kind.label} ${'●' * level}${'○' * (limit - level)}'
           '${maxed ? '' : ' $cost'}',
-          style: const TextStyle(fontSize: 10),
+          style: const TextStyle(fontSize: 11),
         ),
       ),
     );
@@ -861,7 +861,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               const SizedBox(width: 10),
               Text(
                 widget.waveLabel,
-                style: const TextStyle(fontSize: 10, color: BwColors.amber),
+                style: const TextStyle(fontSize: 11, color: BwColors.amber),
               ),
             ],
           );
@@ -890,7 +890,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           if (touch) ...[
             Text(
               widget.counts,
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w800),
+              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 3),
           ],

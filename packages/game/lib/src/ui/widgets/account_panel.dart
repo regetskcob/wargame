@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -18,6 +17,7 @@ class AccountPanel extends StatefulWidget {
     this.onCallSign,
     this.callSign,
     this.onSignedOut,
+    this.initiallyOpen = false,
     super.key,
   });
 
@@ -39,6 +39,10 @@ class AccountPanel extends StatefulWidget {
   /// a new one.
   final bool embedded;
 
+  /// Starts with securing and signing in shown, for a guest who opened the
+  /// account to do just that.
+  final bool initiallyOpen;
+
   @override
   State<AccountPanel> createState() => _AccountPanelState();
 }
@@ -54,7 +58,7 @@ class _AccountPanelState extends State<AccountPanel> {
   /// The names the game hands out to fresh guests, not worth keeping.
   static final _generated = RegExp(r'^Panzer-\d{4}$');
   final _code = TextEditingController();
-  var _open = false;
+  late var _open = widget.initiallyOpen;
   late var _signIn = widget.embedded;
   var _step = _Step.idle;
   var _busy = false;
@@ -366,9 +370,8 @@ class _AccountPanelState extends State<AccountPanel> {
           'Lege ein Konto mit deiner E-Mail an. Rang, Wertung und Abzeichen '
               'bleiben dann auf jedem Gerät erhalten.',
         (false, false) =>
-          'Als Gast hängt dein Fortschritt an diesem '
-              '${kIsWeb ? 'Browser' : 'Gerät'}. Sichere dein '
-              'Konto, damit Rang, Wertung und Abzeichen bleiben.',
+          'Als Gast spielst du ohne Wertung. Lege ein Konto an, um EP, Rang, '
+              'Wertung und Abzeichen zu sammeln und Fahrzeuge freizuschalten.',
       }, style: dim),
       SizedBox(height: fresh ? 16 : 10),
       if (_step == _Step.idle) ...[

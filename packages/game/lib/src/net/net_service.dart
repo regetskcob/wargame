@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'net_events.dart';
@@ -50,6 +52,10 @@ class NetService {
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
   void Function(String id)? onPeerLeft;
+
+  /// Ids that more than one presence in the room claims: somebody poses
+  /// as another player.
+  Set<String> duplicateIds = const {};
 
   /// Keeps the messages of the current round for a replay.
   ReplayRecorder? recorder;
@@ -223,8 +229,15 @@ class NetService {
         if (json['id'] == myId || muted) {
           return;
         }
+        // Anybody can send anything on the channel: a message that does not
+        // parse is dropped instead of breaking off the game half way.
+        try {
+          handler(json);
+        } on Object catch (error) {
+          debugPrint('Dropped ${event.name} message: $error');
+          return;
+        }
         recorder?.add(event, json);
-        handler(json);
       }),
     );
   }
@@ -271,18 +284,21 @@ class NetService {
       return;
     }
     final byId = <String, LobbyPresence>{};
+    final seen = <String>{};
+    final twice = <String>{};
     for (final state in channel.presenceState()) {
       for (final presence in state.presences) {
-        final json = presence.payload;
-        if (json['id'] is String &&
-            json['name'] is String &&
-            json['color'] is int &&
-            json['phase'] is String) {
-          final member = LobbyPresence.fromJson(json);
-          byId[member.id] = member;
+        final member = LobbyPresence.tryParse(presence.payload);
+        if (member == null) {
+          continue;
         }
+        if (!seen.add(member.id)) {
+          twice.add(member.id);
+        }
+        byId[member.id] = member;
       }
     }
+    duplicateIds = twice;
     onRosterChanged?.call(byId.values.toList());
   }
 

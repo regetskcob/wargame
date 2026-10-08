@@ -166,10 +166,10 @@ class _AssistToggleState extends State<_AssistToggle> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.gps_fixed, size: 20, color: color),
+            Icon(Icons.gps_fixed, size: 18, color: color),
             const Text(
               'ZIELHILFE',
-              style: TextStyle(fontSize: 7, letterSpacing: 0.5),
+              style: TextStyle(fontSize: 10, letterSpacing: 0.3),
             ),
             Text(
               on ? 'AN' : 'AUS',
@@ -236,12 +236,12 @@ class _SpecialButtonState extends State<_SpecialButton> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond, size: 20, color: color),
+            Icon(Icons.diamond, size: 18, color: color),
             Text(switch (widget.weapon) {
               SpecialWeapon.drone => 'DROHNE',
               SpecialWeapon.mortar => 'MÖRSER',
               _ => 'GRANATE',
-            }, style: const TextStyle(fontSize: 8, letterSpacing: 1)),
+            }, style: const TextStyle(fontSize: 10, letterSpacing: 0.5)),
             Text(
               '×${widget.charges}',
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
@@ -445,7 +445,7 @@ class _StickFace extends StatelessWidget {
           child: Text(
             label,
             style: const TextStyle(
-              fontSize: 9,
+              fontSize: 10,
               letterSpacing: 1.5,
               color: BwColors.textDim,
             ),

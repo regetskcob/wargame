@@ -110,32 +110,67 @@ void main() {
     await clientB.removeChannel(channelB);
   });
 
-  test('typed scores table: upsert and select through the draft API', () async {
+  test('scores are written only through record_round', () async {
     final id = clientA.auth.currentUser!.id;
 
-    final before = await clientA
-        .table(Scores.table)
-        .select()
-        .where(Scores.id.eq(id))
-        .maybeSingle();
-
-    await clientA
-        .table(Scores.table)
-        .upsert(
-          ScoresInsert(
-            id: id,
-            name: 'SmokeTestPilot',
-            wins: (before?.wins ?? 0) + 1,
-            updatedAt: DateTime.now(),
+    // Writing the own row straight away is refused since migration 0011.
+    await expectLater(
+      clientA
+          .table(Scores.table)
+          .upsert(
+            ScoresInsert(
+              id: id,
+              name: 'SmokeTestPilot',
+              wins: 9999,
+              updatedAt: DateTime.now(),
+            ),
           ),
+      throwsA(isA<PostgrestApiException>()),
+    );
+
+    Future<List<dynamic>> record(SupabaseClient client) =>
+        client.rpc<List<dynamic>>(
+          'record_round',
+          params: {
+            'p_name': 'SmokeTestPilot',
+            'p_tank': 0,
+            'p_won': true,
+            'p_kills': 1,
+            'p_damage': 100,
+            'p_shots': 3,
+            'p_hits': 2,
+            'p_survival': 30,
+            // A made up opponent does not count.
+            'p_beaten': ['00000000-0000-0000-0000-000000000001'],
+          },
         );
 
-    final after = await clientA
+    // Guests are not ranked since migration 0012.
+    await expectLater(record(clientA), throwsA(isA<PostgrestApiException>()));
+
+    // A pilot with an account is. The local stack confirms mails at once.
+    final account = SupabaseClient(
+      _url,
+      _key,
+      authOptions: AuthClientOptions(asyncStorage: MemoryAuthAsyncStorage()),
+    );
+    addTearDown(account.dispose);
+    final signUp = await account.auth.signUp(
+      email: 'smoke-${DateTime.now().microsecondsSinceEpoch}@example.com',
+      password: 'smoke-test-password',
+    );
+    final accountId = signUp.user!.id;
+
+    final rows = await record(account);
+    final row = rows.single as Map<String, dynamic>;
+    expect(row['rating_change'], 0);
+
+    final after = await account
         .table(Scores.table)
         .select()
-        .where(Scores.id.eq(id))
+        .where(Scores.id.eq(accountId))
         .single();
     expect(after.name, 'SmokeTestPilot');
-    expect(after.wins, (before?.wins ?? 0) + 1);
+    expect(after.wins, greaterThanOrEqualTo(1));
   });
 }

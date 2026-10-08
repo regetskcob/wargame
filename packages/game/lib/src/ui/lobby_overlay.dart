@@ -652,6 +652,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  Widget _frame({
+    required bool phone,
+    required bool narrow,
+    required Widget child,
+  }) {
+    if (phone) {
+      return Padding(padding: const EdgeInsets.all(8), child: child);
+    }
+    return Panel(padding: EdgeInsets.all(narrow ? 14 : 24), child: child);
+  }
+
   Widget _build(BuildContext context) {
     return ListenableBuilder(
       listenable: Listenable.merge([
@@ -659,7 +670,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         widget.game.welcomed,
       ]),
       builder: (context, _) => ColoredBox(
-        color: const Color(0xAA000000),
+        // Without the plate on phones the backdrop carries the contrast.
+        color: MediaQuery.sizeOf(context).width < 600
+            ? BwColors.panel
+            : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         child: SafeArea(
@@ -679,8 +693,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   padding: EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 1040),
-                    child: Panel(
-                      padding: EdgeInsets.all(narrow ? 14 : 24),
+                    child: _frame(
+                      // Phones show the menu without the outer plate: the
+                      // screen edge already frames it.
+                      phone: constraints.maxWidth < 600,
+                      narrow: narrow,
                       child: !widget.game.welcomed.value
                           ? WelcomeView(game: widget.game)
                           : widget.game.choosingMode.value &&

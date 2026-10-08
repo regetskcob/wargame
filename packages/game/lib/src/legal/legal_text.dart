@@ -60,10 +60,11 @@ const privacy = [
     'Für Spielstände, Bestenliste und Mehrspieler nutzt das Spiel Supabase '
         '(Supabase Inc.) mit Servern in Irland (EU). Beim ersten Start wird '
         'ein anonymes Gastkonto mit einer zufälligen Kennung angelegt. Dazu '
-        'werden gespeichert: dein Rufname, das gewählte Fahrzeug mit Tarnung, '
+        'werden gespeichert: dein Rufname und das gewählte Fahrzeug mit '
+        'Tarnung. Gäste spielen ohne Wertung. Mit einem Konto kommen '
         'Spielstatistiken (Runden, Siege, Abschüsse, Schaden, Treffer, '
         'Überlebenszeit), Erfahrung, Rang, Wertung, Abzeichen und die '
-        'Ergebnisse einzelner Runden. Rechtsgrundlage ist Art. 6 Abs. 1 '
+        'Ergebnisse einzelner Runden dazu. Rechtsgrundlage ist Art. 6 Abs. 1 '
         'lit. b DSGVO, denn ohne diese Daten lässt sich das Spiel mit '
         'Fortschritt und Bestenliste nicht anbieten.',
   ),
