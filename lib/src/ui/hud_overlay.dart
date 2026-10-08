@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../game/bot_level.dart';
 import '../game/components/storm_zone.dart';
+import '../net/pad_link.dart';
 import '../net/payloads/defense_payload.dart';
 import '../game/defense/tower.dart';
 import '../game/special_weapon.dart';
@@ -162,11 +163,17 @@ class _HudOverlayState extends State<HudOverlay> {
               ),
             ),
           EnemyIndicators(game: game),
+          // A paired phone brings its own sticks.
           if (touch)
-            TouchControls(
-              input: game.touch,
-              special: game.specialNotifier,
-              assist: game.difficulty != BotLevel.hard,
+            ValueListenableBuilder<String?>(
+              valueListenable: PadScreen.instance.paired,
+              builder: (context, paired, _) => paired != null
+                  ? const SizedBox.shrink()
+                  : TouchControls(
+                      input: game.touch,
+                      special: game.specialNotifier,
+                      assist: game.difficulty != BotLevel.hard,
+                    ),
             ),
           SafeArea(
             minimum: const EdgeInsets.all(8),

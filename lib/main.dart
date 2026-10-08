@@ -10,6 +10,7 @@ import 'src/audio/audio_service.dart';
 import 'src/db/account_service.dart';
 import 'src/app/env.dart';
 import 'src/l10n/l10n.dart';
+import 'src/net/pad_link.dart';
 import 'src/net/room.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 
@@ -59,6 +60,12 @@ Future<void> main() async {
   if (fromMail) {
     AccountService.mailLinkFailed = auth.currentUser?.isAnonymous ?? true;
     leaveMailLink();
+  }
+  // A phone browser that opened a pairing link steers the game elsewhere.
+  final pad = padCodeFrom(padCodeOfPage() ?? '');
+  if (pad != null) {
+    runApp(ControllerApp(code: pad));
+    return;
   }
   unawaited(AudioService.init());
   runApp(const GameApp());

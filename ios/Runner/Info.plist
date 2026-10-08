@@ -31,7 +31,7 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Die Kamera liest den QR-Code eines Warteraums, damit du ihm beitreten kannst.</string>
+	<string>Die Kamera liest den QR-Code eines Warteraums, damit du ihm beitreten kannst, oder den Kopplungscode eines Bildschirms, damit du das Spiel dort steuern kannst.</string>
 	<key>NSSupportsLiveActivities</key>
 	<true/>
 	<key>UIApplicationSceneManifest</key>
