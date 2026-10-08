@@ -9,6 +9,7 @@ import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
+import '../net/pad_link.dart';
 
 /// Whether this is the Apple TV build. Always false elsewhere, also in the
 /// browser, where `dart:io` has no platform to ask.
@@ -83,9 +84,23 @@ class TvInput {
   /// The kind of the controller in charge, for the hints on screen.
   final kind = ValueNotifier<TvPadKind>(TvPadKind.none);
 
-  var state = const TvPadState();
+  /// How many controllers are in, the Siri Remote counted. Two play a duel.
+  final count = ValueNotifier<int>(0);
+
+  /// Every controller, those with two sticks first, the remote last.
+  var pads = const <TvPadState>[];
+
+  /// The controller in charge: the first one.
+  TvPadState get state => player(0);
+
+  /// The controller of [index], the first one for 0. Nothing when there
+  /// are fewer.
+  TvPadState player(int index) =>
+      index < pads.length ? pads[index] : const TvPadState();
+
   StreamSubscription<Object?>? _sub;
-  bool? _awake;
+  final _awake = <Object>{};
+  bool? _sent;
 
   /// Starts listening. Does nothing off the Apple TV.
   void start() {
@@ -94,20 +109,38 @@ class TvInput {
     }
     _sub = _events.receiveBroadcastStream().listen((event) {
       if (event is Map) {
-        state = TvPadState.fromMap(event);
-        kind.value = state.kind;
+        receive(event);
       }
     }, onError: (Object _) {});
   }
 
-  /// Keeps the screen saver away while [on], as during a round.
-  void keepAwake(bool on) {
-    if (!onTv || _awake == on) {
+  /// Takes one report of the native side: `{pads: [...]}`.
+  @visibleForTesting
+  void receive(Map<Object?, Object?> event) {
+    final list = event['pads'];
+    pads = [
+      if (list is List)
+        for (final pad in list)
+          if (pad is Map) TvPadState.fromMap(pad),
+    ];
+    kind.value = state.kind;
+    count.value = pads.length;
+  }
+
+  /// Keeps the screen saver away while any [who] wants it, as during a
+  /// round. A duel has two games asking.
+  void keepAwake(Object who, bool on) {
+    if (!onTv) {
       return;
     }
-    _awake = on;
+    on ? _awake.add(who) : _awake.remove(who);
+    final awake = _awake.isNotEmpty;
+    if (_sent == awake) {
+      return;
+    }
+    _sent = awake;
     unawaited(
-      _methods.invokeMethod<void>('keepAwake', on).catchError((Object _) {}),
+      _methods.invokeMethod<void>('keepAwake', awake).catchError((Object _) {}),
     );
   }
 }
@@ -152,15 +185,21 @@ class TvSteering {
     final input = game.touch;
     final phase = game.phase.value;
     TvInput.instance.keepAwake(
+      game,
       phase == GamePhase.countdown ||
           phase == GamePhase.playing ||
           phase == GamePhase.spectating,
     );
-    final state = TvInput.instance.state;
+    final state = TvInput.instance.player(game.tvPlayer);
     final before = _before;
     _before = state;
+    // A paired phone steers instead: its sticks must not be overwritten.
+    final phone =
+        PadScreen.instance.paired.value != null &&
+        identical(PadScreen.instance.game, game);
     if (phase != GamePhase.playing ||
         game.myTank == null ||
+        phone ||
         state.kind == TvPadKind.none) {
       if (_active) {
         _active = false;

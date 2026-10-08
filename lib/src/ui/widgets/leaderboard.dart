@@ -8,6 +8,7 @@ import '../../game/tank_game.dart';
 import '../theme.dart';
 import 'choice_row.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 enum _View { total, week, vehicles }
 
@@ -129,21 +130,38 @@ class _LeaderboardState extends State<Leaderboard> {
   );
 
   Widget _table(List<String> labels, List<TableRow> rows) {
+    final table = Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      columnWidths: const {0: FixedColumnWidth(48), 1: FlexColumnWidth(2.4)},
+      children: [_headerOf(labels), ...rows],
+    );
+    // The Apple TV shows it in a column beside the menu and has no way to
+    // scroll sideways: there the table shrinks to the column instead.
+    if (onTv) {
+      return LayoutBuilder(
+        builder: (context, box) => box.maxWidth >= _tvTableWidth
+            ? table
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: SizedBox(width: _tvTableWidth, child: table),
+              ),
+      );
+    }
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 740),
-        child: Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: const {
-            0: FixedColumnWidth(48),
-            1: FlexColumnWidth(2.4),
-          },
-          children: [_headerOf(labels), ...rows],
-        ),
+        constraints: const BoxConstraints(minWidth: _tableWidth),
+        child: table,
       ),
     );
   }
+
+  /// Below this width the columns get too tight to read.
+  static const _tableWidth = 740.0;
+
+  /// The television draws larger, its columns stay readable a bit tighter.
+  static const _tvTableWidth = 520.0;
 
   TableRow _plainRow(List<String> cells, {bool mine = false, int? rank}) {
     final base = TextStyle(

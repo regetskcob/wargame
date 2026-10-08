@@ -52,7 +52,21 @@ class FixedScale extends StatelessWidget {
       return child;
     }
     final media = MediaQuery.of(context);
-    final inner = Size(media.size.width / scale, media.size.height / scale);
+    // The room it is given, which is the screen unless it shares it, as
+    // the halves of a duel do.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final outer = Size(
+          box.hasBoundedWidth ? box.maxWidth : media.size.width,
+          box.hasBoundedHeight ? box.maxHeight : media.size.height,
+        );
+        return _scaled(media, outer);
+      },
+    );
+  }
+
+  Widget _scaled(MediaQueryData media, Size outer) {
+    final inner = Size(outer.width / scale, outer.height / scale);
     return Transform.scale(
       scale: scale,
       alignment: Alignment.topLeft,
