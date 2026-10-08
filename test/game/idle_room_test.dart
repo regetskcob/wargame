@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
+import 'package:wargame/src/game/tank_game.dart';
 
 import '../helpers/fakes.dart';
 

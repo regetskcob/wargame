@@ -292,7 +292,7 @@ still a win.
   messages of the round, instead of trusting what each client reports.
   Until then kills, damage and wins are only clamped.
 - Tests for what is not covered yet (about 20 % of the code):
-  - the defense rules as a pure function out of `tank_game.dart`, with an
+  - the defense rules as a pure function out of `tank_game/defense.dart`, with an
     injected clock: the decision after wave 8, extending, pulling out, the
     wave bonus counted once, only the host deciding;
   - `record_round` and the policies with pgTAP in CI (`supabase test db`),
@@ -324,6 +324,7 @@ A standard Flutter app, everything lives in the repository root:
 | `lib/src/audio` | Sound playback for web and native |
 | `lib/src/db` | Supabase services and the generated schema |
 | `lib/src/game` | The Flame game (`TankGame`), its rules, config and bots |
+| `lib/src/game/tank_game` | The methods of `TankGame` by topic (lobby, round, replay, defense, air, infantry, items, combat, targeting, view), as extensions in `part` files of `tank_game.dart` |
 | `lib/src/game/components` | Tanks, shells, terrain and other Flame components |
 | `lib/src/game/defense` | The defense mode: map, towers, aircraft, director |
 | `lib/src/l10n` | German and English texts |

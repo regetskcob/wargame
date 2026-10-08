@@ -19,9 +19,12 @@ event touches these places, in this order:
 3. **NetService** `lib/src/net/net_service.dart`: a callback field
    `onXyz`, a `_listen(channel, NetEvent.xyz, ...)` line, and a send helper
    if the others have one.
-4. **TankGame** `lib/src/game/tank_game.dart`: wire `net.onXyz` to a handler
-   `_onXyz`, and add the same case to the `switch` in `_playReplay`, or the
-   event is missing from replays.
+4. **TankGame**: wire `net.onXyz` to a handler `_onXyz` in `onLoad`
+   (`lib/src/game/tank_game.dart`), write the handler in the extension of its
+   topic under `lib/src/game/tank_game/` (`combat.dart`, `items.dart`,
+   `defense.dart`, ...), and add the same case to the `switch` in
+   `_playReplay` (`tank_game/replay.dart`), or the event is missing from
+   replays.
 5. **Authority**: decide who may send it (owner of the tank, the host in
    defense mode via `runsShooter` / host checks) and ignore it from anyone
    else. If it changes health, ammo or items, add a rule in

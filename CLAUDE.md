@@ -40,7 +40,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 
 | Thema | Ort |
 | --- | --- |
-| Herzstück, ~5000 Zeilen | `lib/src/game/tank_game.dart` (`TankGame`). Per Methodenname greppen, z. B. `_enterRound`, `_onShoot`, `_onHit`, `_checkRoundEnd`, `_applyDefense`, `collectPowerUp`, `_applyItem`, `fireFrom`, `_playReplay` |
+| Herzstück `TankGame` | `lib/src/game/tank_game.dart` hält nur Felder, Konstruktor und die Flame-Overrides (`onLoad`, `update`, `render`, `onKeyEvent`, `onGameResize`). Die Methoden stehen nach Thema in `lib/src/game/tank_game/` als `extension TankGameXyz on TankGame` (`part`-Dateien, private Namen bleiben sichtbar): `lobby` (Warteraum, Pilot, Host, Raum schließen), `round` (Rundenstart bis Rundenende, Tode, Zuschauen), `replay`, `defense` (Wellen, Stützpunkt, Geschütze), `air`, `infantry`, `items` (Kisten, Gems, Inventar, Upgrades, Minen, Artillerie), `combat` (Schüsse, Treffer, Explosionen), `targeting` (nächster Gegner, Sicht), `view` (Kamera, Shake, Hinweise) |
 | Balancing-Zahlen | `lib/src/game/game_config.dart`, `tank_stats.dart`, `upgrades.dart`, `bot_level.dart` |
 | Bots | `bot_brain.dart`, `bot_items.dart`, `defense/defense_brain.dart`, `defense/ally_brain.dart` |
 | Verteidigung | `lib/src/game/defense/` (`defense_director.dart` = Wellen, `tower.dart`, `aircraft.dart`, `defense_map.dart`) |
@@ -78,6 +78,12 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   Roadmap) mitpflegen, wenn sich Verhalten ändert.
 - `dart format` ist in CI Pflicht.
 - Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
+- `TankGame` wächst nicht wieder zu: neue Felder in `tank_game.dart`, neue
+  Methoden in die passende Datei unter `tank_game/` (oder eine neue
+  `part`-Datei mit eigener Extension). Statische Member dort mit
+  `TankGame.` ansprechen. Dateien, die Methoden von `TankGame` aufrufen,
+  müssen `tank_game.dart` selbst importieren, sonst sieht Dart die
+  Extensions nicht.
 
 ## Stolperfallen
 

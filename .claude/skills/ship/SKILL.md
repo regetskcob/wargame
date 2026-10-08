@@ -12,7 +12,7 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    English, one imperative sentence per commit, no prefix, ending with the
    attribution lines from the system reminder.
 2. Merge `origin/main` into the branch (in an app-made worktree use the
-   `sync_with_base_branch` tool). Resolve conflicts; `tank_game.dart`,
+   `sync_with_base_branch` tool). Resolve conflicts; the files under `lib/src/game/tank_game/`,
    `l10n.dart` and `README.md` are the usual hot spots, keep both sides.
 3. Run `tool/verify.sh` (format, analyze, tests, web, iOS, Android). It takes
    a few minutes; run it in the background and wait for it. Fix and rerun
