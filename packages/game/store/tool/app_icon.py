@@ -1,4 +1,4 @@
-"""Draws the app icon: the tank from above on the ground of the battle map.
+"""Draws the app icon: the tank from above on the plain ground of the battle map.
 
     python3 store/tool/app_icon.py
 
@@ -28,12 +28,6 @@ GROUND = (0x5E, 0x6B, 0x3A)
 PATCHES = [(0x66, 0x76, 0x3F), (0x55, 0x62, 0x34), (0x74, 0x6B, 0x48),
            (0x6C, 0x7A, 0x42)]
 DIRT = (0x8F, 0x7E, 0x55)
-DIRT_DARK = (0x7A, 0x6A, 0x46)
-TREE_OUTER = (0x2E, 0x4A, 0x22)
-TREE_INNER = (0x3C, 0x5C, 0x2C)
-TREE_EDGE = (0x1F, 0x33, 0x18)
-GRASS = (0x47, 0x58, 0x2B)
-STONE = (0x9C, 0x8E, 0x70)
 
 OUTLINE = (0x1B, 0x26, 0x16)
 TRACK = (0x3D, 0x3D, 0x3D)
@@ -73,41 +67,12 @@ def terrain(seed=7):
     shade = shade.filter(ImageFilter.GaussianBlur(120 * SS))
     img = Image.composite(Image.new("RGB", (s, s), (0, 0, 0)), img, shade)
 
-    d = ImageDraw.Draw(img)
     # Churned dirt lane the tank drives along.
     lane = Image.new("L", (s, s), 0)
     ImageDraw.Draw(lane).rounded_rectangle(_box(-60, 360, SIZE + 60, 664),
                                            radius=120 * SS, fill=190)
     lane = lane.filter(ImageFilter.GaussianBlur(22 * SS))
     img = Image.composite(Image.new("RGB", (s, s), DIRT), img, lane)
-    d = ImageDraw.Draw(img)
-    # Tread marks behind the tank.
-    for y in (350, 634):
-        for x in range(-20, 260, 34):
-            d.rectangle(_box(x, y + 6, x + 18, y + 34), fill=DIRT_DARK)
-
-    # Grass tufts and stones on the meadow, kept off the lane.
-    for _ in range(70):
-        x, y = rnd.uniform(20, SIZE - 20), rnd.uniform(20, SIZE - 20)
-        if 330 < y < 700:
-            continue
-        if rnd.random() < 0.25:
-            r = rnd.uniform(5, 10)
-            d.ellipse(_box(x - r, y - r, x + r, y + r), fill=STONE)
-        else:
-            for dx in (-7, 0, 7):
-                d.line(_box(x, y, x + dx, y - rnd.uniform(14, 22)),
-                       fill=GRASS, width=4 * SS)
-
-    # Clumps of trees in the corners, cut by the icon mask on the edge.
-    for cx, cy, r in ((90, 120, 130), (210, 40, 90), (960, 930, 150),
-                      (820, 1010, 100), (1000, 140, 80)):
-        d.ellipse(_box(cx - r - 8, cy - r - 8, cx + r + 8, cy + r + 8),
-                  fill=TREE_EDGE)
-        d.ellipse(_box(cx - r, cy - r, cx + r, cy + r), fill=TREE_OUTER)
-        ir = r * 0.55
-        d.ellipse(_box(cx - ir - r * 0.15, cy - ir - r * 0.15,
-                       cx + ir - r * 0.15, cy + ir - r * 0.15), fill=TREE_INNER)
     return img.resize((SIZE, SIZE), Image.LANCZOS)
 
 
