@@ -3,6 +3,7 @@ import 'dart:math';
 import 'dart:ui' show Rect;
 
 import 'package:app_links/app_links.dart';
+import 'package:flutter_watchos/flutter_watchos.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -57,6 +58,10 @@ StreamSubscription<Uri>? _links;
 /// Room links opened on this device, from the camera, a message or the
 /// browser, lead straight into their room, also when they start the app.
 void listenForRoomLinks() {
+  // app_links has no watchOS implementation, and nobody opens links there.
+  if (FlutterWatchosPlatform.isWatch) {
+    return;
+  }
   void open(Uri? uri) {
     final pad = uri?.queryParameters['pad'];
     if (pad != null) {

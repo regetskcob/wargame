@@ -218,6 +218,7 @@
 				9705A1C41CF9048500538489 /* Embed Frameworks */,
 				4F0E1A112E9A000100A1B2C3 /* Embed Foundation Extensions */,
 				3B06AD1E1E4923F5004D2608 /* Thin Binary */,
+				FA0000000000000000000001 /* Embed Prebuilt watchOS App */,
 			);
 			buildRules = (
 			);
@@ -354,6 +355,21 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+		};
+		FA0000000000000000000001 /* Embed Prebuilt watchOS App */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "Embed Prebuilt watchOS App";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/bash;
+			shellScript = "if [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  WATCHOS_CONF=\"Debug-watchsimulator\"\nelse\n  WATCHOS_CONF=\"Release-watchos\"\nfi\n\nWATCHOS_APP_SRC=\"${SRCROOT}/../build/watchos/${WATCHOS_CONF}/Runner.app\"\nWATCHOS_APP_DST=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Watch\"\n\nif [ -d \"$WATCHOS_APP_SRC\" ]; then\n  mkdir -p \"$WATCHOS_APP_DST\"\n  cp -R \"$WATCHOS_APP_SRC\" \"$WATCHOS_APP_DST/\"\n  echo \"Embedded watchOS app from $WATCHOS_APP_SRC\"\nelse\n  echo \"warning: watchOS app not found at $WATCHOS_APP_SRC. Run flutter-watchos build watchos --release (device) or --simulator first.\"\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

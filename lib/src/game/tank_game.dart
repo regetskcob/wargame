@@ -17,6 +17,8 @@ import '../db/account_service.dart';
 import '../db/profile_service.dart';
 import '../db/score_service.dart';
 import '../app/env.dart';
+import '../haptics.dart';
+import '../watch/watch_support.dart';
 import 'game_config.dart';
 import '../net/net_events.dart';
 import '../net/net_service.dart';
@@ -141,6 +143,7 @@ class TankGame extends FlameGame
         defaultTargetPlatform == TargetPlatform.android,
   );
   final touch = TouchInput();
+  late final _watchSteering = WatchSteering(touch);
 
   /// Mouse position in widget pixels, null until a mouse is seen. The turret
   /// follows it.
@@ -408,6 +411,7 @@ class TankGame extends FlameGame
   /// a second.
   void shake(double strength) {
     _shake = min(14.0, _shake + strength);
+    Haptics.shake(strength);
   }
 
   /// Shakes by [strength], weaker the further [at] is from the middle of the
@@ -634,13 +638,21 @@ class TankGame extends FlameGame
       if (seconds > 0 && seconds != _lastTick) {
         _lastTick = seconds;
         AudioService.play('tick');
+        Haptics.tick();
       }
       if (remainingMs <= 0) {
         _lastTick = -1;
         _setPhase(GamePhase.playing);
         AudioService.play('go');
+        Haptics.go();
       }
     }
+    _watchSteering.update(
+      playing: phase.value == GamePhase.playing,
+      tank: myTank,
+      tankAngle: myTank?.angle ?? 0,
+      hard: difficulty == BotLevel.hard,
+    );
     _playReplay();
     _updatePowerUps();
     _updateRespawn(dt);
@@ -3922,6 +3934,7 @@ class TankGame extends FlameGame
       shake(12);
       _addWreck(tank);
       AudioService.play('explosion');
+      Haptics.destroyed();
       tank.removeFromParent();
       myTank = null;
       camera.stop();
@@ -3938,6 +3951,7 @@ class TankGame extends FlameGame
     shake(12);
     _addWreck(tank);
     AudioService.play('explosion');
+    Haptics.destroyed();
     outcome.value = RoundOutcome.lost;
     tank.removeFromParent();
     myTank = null;
@@ -4538,9 +4552,11 @@ class TankGame extends FlameGame
     if (won) {
       outcome.value = RoundOutcome.won;
       AudioService.play('win');
+      Haptics.roundOver(won: true);
     } else if (activeRound.participants.contains(myId)) {
       outcome.value = RoundOutcome.lost;
       AudioService.play('lose');
+      Haptics.roundOver(won: false);
     }
     if (winnerId != null) {
       final winner = winnerId == myId
@@ -4591,6 +4607,7 @@ class TankGame extends FlameGame
       );
       outcome.value = won ? RoundOutcome.won : RoundOutcome.lost;
       AudioService.play(won ? 'win' : 'lose');
+      Haptics.roundOver(won: won);
     }
     final base = _defenseField?.headquarters;
     if (base != null) {

@@ -28,6 +28,9 @@ import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
 import '../ui/widgets/tablet_scale.dart';
+import '../watch/watch_lobby.dart';
+import '../watch/watch_overlays.dart';
+import '../watch/watch_support.dart';
 import 'live_activity.dart';
 import 'overlay_ids.dart';
 
@@ -204,26 +207,44 @@ class _GameAppState extends State<GameApp> {
               game: game,
               focusNode: _gameFocus,
               autofocus: true,
-              overlayBuilderMap: {
-                OverlayIds.lobby: (context, game) => LobbyOverlay(game: game),
-                OverlayIds.countdown: (context, game) =>
-                    CountdownOverlay(game: game),
-                OverlayIds.hud: (context, game) =>
-                    TabletScale(child: HudOverlay(game: game)),
-                OverlayIds.spectator: (context, game) =>
-                    SpectatorOverlay(game: game),
-                OverlayIds.roundOver: (context, game) =>
-                    RoundOverOverlay(game: game),
-                OverlayIds.closed: (context, game) => ClosedOverlay(game: game),
-                OverlayIds.tutorial: (context, game) =>
-                    ValueListenableBuilder<bool>(
-                      valueListenable: game.touchMode,
-                      builder: (context, touch, _) => TutorialOverlay(
-                        touch: touch,
-                        onClose: game.closeTutorial,
-                      ),
-                    ),
-              },
+              overlayBuilderMap: onWatch
+                  ? {
+                      OverlayIds.lobby: (context, game) =>
+                          WatchLobby(game: game),
+                      OverlayIds.countdown: (context, game) =>
+                          WatchCountdown(game: game),
+                      OverlayIds.hud: (context, game) => WatchHud(game: game),
+                      OverlayIds.spectator: (context, game) =>
+                          WatchSpectator(game: game),
+                      OverlayIds.roundOver: (context, game) =>
+                          WatchRoundOver(game: game),
+                      OverlayIds.closed: (context, game) =>
+                          WatchClosed(game: game),
+                      OverlayIds.tutorial: (context, game) =>
+                          const SizedBox.shrink(),
+                    }
+                  : {
+                      OverlayIds.lobby: (context, game) =>
+                          LobbyOverlay(game: game),
+                      OverlayIds.countdown: (context, game) =>
+                          CountdownOverlay(game: game),
+                      OverlayIds.hud: (context, game) =>
+                          TabletScale(child: HudOverlay(game: game)),
+                      OverlayIds.spectator: (context, game) =>
+                          SpectatorOverlay(game: game),
+                      OverlayIds.roundOver: (context, game) =>
+                          RoundOverOverlay(game: game),
+                      OverlayIds.closed: (context, game) =>
+                          ClosedOverlay(game: game),
+                      OverlayIds.tutorial: (context, game) =>
+                          ValueListenableBuilder<bool>(
+                            valueListenable: game.touchMode,
+                            builder: (context, touch, _) => TutorialOverlay(
+                              touch: touch,
+                              onClose: game.closeTutorial,
+                            ),
+                          ),
+                    },
             ),
           ),
         ),
