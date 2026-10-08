@@ -18,8 +18,9 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    a few minutes; run it in the background and wait for it. Fix and rerun
    until it ends with "All green".
 4. If a migration is part of the change, push it to the hosted project
-   before the game (see `/db-migration`), because the client must never call
-   functions the database lacks.
+   before the game, without asking (standing go-ahead; see
+   `/db-migration`, it must have passed the PGlite check), because the
+   client must never call functions the database lacks.
 5. `git push origin HEAD:main`. If main moved meanwhile, merge again and
    repeat from 3.
 6. `gh run list --branch main --limit 3` and `gh run watch <id>` for `ci` and
