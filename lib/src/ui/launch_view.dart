@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
-import '../game/game_config.dart';
 import '../net/room.dart';
 import 'theme.dart';
 import 'widgets/leaderboard.dart';
@@ -71,19 +70,9 @@ class LaunchView extends StatelessWidget {
           },
         ),
         const SizedBox(height: 4),
-        Wrap(
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
-          children: [
-            Text(
-              tr(
-                'Wähle, wie du spielen willst.',
-                'Choose how you want to play.',
-              ),
-              style: const TextStyle(color: BwColors.textDim),
-            ),
-            TutorialButton(game: game),
-          ],
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TutorialButton(game: game),
         ),
         const SizedBox(height: 16),
         PilotCard(progress: game.progress),
@@ -102,7 +91,6 @@ class LaunchView extends StatelessWidget {
                       Expanded(
                         child: _ModeCard(
                           option: option,
-                          stretched: true,
                           onTap: () => game.chooseMode(option.mode),
                         ),
                       ),
@@ -138,13 +126,7 @@ class LaunchView extends StatelessWidget {
   }
 }
 
-typedef _Option = ({
-  GameMode mode,
-  IconData icon,
-  String title,
-  String kicker,
-  String text,
-});
+typedef _Option = ({GameMode mode, IconData icon, String title, String kicker});
 
 List<_Option> get _options => [
   (
@@ -152,120 +134,74 @@ List<_Option> get _options => [
     icon: Icons.person,
     title: tr('EINZELSPIELER', 'SINGLE PLAYER'),
     kicker: tr('ALLEIN GEGEN CPU', 'ALONE AGAINST THE CPU'),
-    text: tr(
-      'Du gegen ${GameConfig.minBots} bis ${GameConfig.maxBots} '
-          'CPU-Panzer auf drei Stufen. Der letzte Panzer im Feld gewinnt.',
-      'You against ${GameConfig.minBots} to ${GameConfig.maxBots} '
-          'CPU tanks on three levels. The last tank in the field wins.',
-    ),
   ),
   (
     mode: GameMode.multi,
     icon: Icons.groups,
     title: tr('MEHRSPIELER', 'MULTIPLAYER'),
     kicker: tr('GEFECHT MIT ANDEREN', 'BATTLE WITH OTHERS'),
-    text: tr(
-      'Lade per Link oder Code ein, alle gegen alle oder Rot gegen Blau. '
-          'CPU-Panzer füllen auf Wunsch auf.',
-      'Invite by link or code, free for all or red against blue. '
-          'CPU tanks fill up on request.',
-    ),
   ),
   (
     mode: GameMode.defense,
     icon: Icons.shield,
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
-    kicker: 'TOWER DEFENSE',
-    text: tr(
-      'Haltet gemeinsam den Stützpunkt gegen ${GameConfig.defenseWaves} '
-          'Wellen, danach nach Wunsch weiter. Abschüsse bringen Mittel für '
-          'Geschütze.',
-      'Hold the base together against ${GameConfig.defenseWaves} waves, '
-          'then carry on if you like. Kills bring funds for turrets.',
-    ),
+    kicker: tr('STÜTZPUNKT HALTEN', 'HOLD THE BASE'),
   ),
 ];
 
 class _ModeCard extends StatelessWidget {
-  const _ModeCard({
-    required this.option,
-    required this.onTap,
-    this.stretched = false,
-  });
+  const _ModeCard({required this.option, required this.onTap});
 
   final _Option option;
   final VoidCallback onTap;
 
-  /// Side by side the card is as tall as its neighbours, and WEITER sits at
-  /// the bottom.
-  final bool stretched;
-
   @override
   Widget build(BuildContext context) {
-    final shape = BwShapes.card();
     return Material(
       color: const Color(0x44000000),
-      shape: shape,
+      shape: BwShapes.card(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
         hoverColor: const Color(0x22FFB300),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          child: Row(
             children: [
-              Icon(option.icon, color: BwColors.amber, size: 36),
-              const SizedBox(height: 12),
-              // Shrinks on narrow cards instead of breaking the word.
-              FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  option.title,
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 2,
-                    color: BwColors.sand,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                option.kicker,
-                style: const TextStyle(
-                  color: BwColors.amber,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.5,
-                ),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                option.text,
-                style: const TextStyle(
-                  color: BwColors.text,
-                  fontSize: 14,
-                  height: 1.35,
-                ),
-              ),
-              if (stretched) const Spacer(),
-              const SizedBox(height: 14),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Text(
-                    tr('WEITER', 'NEXT'),
-                    style: const TextStyle(
-                      color: BwColors.amber,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
+              Icon(option.icon, color: BwColors.amber, size: 30),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Shrinks on narrow cards instead of breaking the word.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        option.title,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                          color: BwColors.sand,
+                        ),
+                      ),
                     ),
-                  ),
-                  const Icon(Icons.chevron_right, color: BwColors.amber),
-                ],
+                    const SizedBox(height: 2),
+                    Text(
+                      option.kicker,
+                      style: const TextStyle(
+                        color: BwColors.amber,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              const Icon(Icons.chevron_right, color: BwColors.amber),
             ],
           ),
         ),

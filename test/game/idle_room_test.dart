@@ -27,8 +27,6 @@ void main() {
     expect(net.disposes, 1);
 
     game.chooseMode(GameMode.solo);
-    expect(game.dozing, isTrue, reason: 'still setting up the round');
-    game.openWaitingRoom();
     expect(game.dozing, isFalse);
     expect(net.connects, 1);
     expect(game.phase.value, GamePhase.lobby);
@@ -38,8 +36,7 @@ void main() {
     final net = FakeNet();
     final game = offlineGame(net: net)
       ..onGameResize(Vector2(1280, 720))
-      ..chooseMode(GameMode.multi)
-      ..openWaitingRoom();
+      ..chooseMode(GameMode.multi);
     game.overlays.addEntry(OverlayIds.closed, (_, _) => const SizedBox());
     expect(game.beforeWaitingRoom, isFalse);
 
@@ -55,8 +52,7 @@ void main() {
     final net = FakeNet();
     final game = offlineGame(net: net)
       ..onGameResize(Vector2(1280, 720))
-      ..chooseMode(GameMode.multi)
-      ..openWaitingRoom();
+      ..chooseMode(GameMode.multi);
     game.overlays
       ..addEntry(OverlayIds.closed, (_, _) => const SizedBox())
       ..addEntry(OverlayIds.lobby, (_, _) => const SizedBox());
@@ -70,17 +66,15 @@ void main() {
     expect(game.closedReason.value, isNull);
   });
 
-  test('the host sets up the round before the waiting room opens', () {
+  test('the waiting room opens with the defaults, the settings on demand', () {
     final game = offlineGame()..chooseMode(GameMode.multi);
-    expect(game.configuring.value, isTrue);
-    expect(game.beforeWaitingRoom, isTrue, reason: 'not listed yet');
-
-    game.openWaitingRoom();
+    expect(game.configuring.value, isFalse);
     expect(game.beforeWaitingRoom, isFalse);
 
     game.editSettings();
     expect(game.configuring.value, isTrue);
-    game.changeMode();
-    expect(game.choosingMode.value, isTrue);
+    expect(game.beforeWaitingRoom, isFalse, reason: 'the room stays open');
+    game.closeSettings();
+    expect(game.configuring.value, isFalse);
   });
 }

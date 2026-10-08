@@ -15,7 +15,7 @@ enum _View { total, week, vehicles }
 /// the current week, and the player's own numbers per vehicle. The own row
 /// is highlighted, and added below the list when it is further down.
 class Leaderboard extends StatefulWidget {
-  const Leaderboard({required this.game, this.rows = 10, super.key});
+  const Leaderboard({required this.game, this.rows = 5, super.key});
 
   final TankGame game;
 
@@ -89,9 +89,6 @@ class _LeaderboardState extends State<Leaderboard> {
     }
     return shown;
   }
-
-  static String _time(int seconds) =>
-      '${seconds ~/ 60}:${(seconds % 60).toString().padLeft(2, '0')}';
 
   @override
   Widget build(BuildContext context) {
@@ -195,8 +192,6 @@ class _LeaderboardState extends State<Leaderboard> {
             'PILOT',
             tr('EP', 'XP'),
             tr('SIEGE', 'WINS'),
-            tr('RUNDEN', 'ROUNDS'),
-            tr('ABSCHÜSSE', 'KILLS'),
             tr('± WERTUNG', '± RATING'),
           ],
           [
@@ -207,8 +202,6 @@ class _LeaderboardState extends State<Leaderboard> {
                   row.name ?? '',
                   '${row.xp ?? 0}',
                   '${row.wins ?? 0}',
-                  '${row.rounds ?? 0}',
-                  '${row.kills ?? 0}',
                   _signed(row.ratingChange ?? 0),
                 ],
                 mine: row.id == me,
@@ -242,7 +235,6 @@ class _LeaderboardState extends State<Leaderboard> {
             tr('RUNDEN', 'ROUNDS'),
             tr('SIEGE', 'WINS'),
             tr('ABSCHÜSSE', 'KILLS'),
-            tr('SCHADEN', 'DAMAGE'),
             tr('TREFFER', 'HITS'),
           ],
           [
@@ -254,7 +246,6 @@ class _LeaderboardState extends State<Leaderboard> {
                   '${row.rounds ?? 0}',
                   '${row.wins ?? 0}',
                   '${row.kills ?? 0}',
-                  '${row.damage ?? 0}',
                   (row.shots ?? 0) == 0
                       ? '-'
                       : '${((row.hits ?? 0) * 100 / row.shots!).round()} %',
@@ -333,11 +324,7 @@ class _LeaderboardState extends State<Leaderboard> {
     'PILOT',
     tr('WERTUNG', 'RATING'),
     tr('SIEGE', 'WINS'),
-    tr('RUNDEN', 'ROUNDS'),
     tr('ABSCHÜSSE', 'KILLS'),
-    tr('SCHADEN', 'DAMAGE'),
-    tr('TREFFER', 'HITS'),
-    tr('Ø ÜBERLEBT', 'Ø SURVIVED'),
   ];
 
   TableRow _headerOf(List<String> labels) {
@@ -368,12 +355,6 @@ class _LeaderboardState extends State<Leaderboard> {
       fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
       color: mine ? BwColors.amber : BwColors.text,
     );
-    final accuracy = row.shots == 0
-        ? '-'
-        : '${(row.hits * 100 / row.shots).round()} %';
-    final survived = row.rounds == 0
-        ? '-'
-        : _time((row.survivalSeconds / row.rounds).round());
     return TableRow(
       decoration: BoxDecoration(
         color: mine ? const Color(0x33FFB300) : null,
@@ -390,11 +371,7 @@ class _LeaderboardState extends State<Leaderboard> {
         _cell(row.name, style: base, align: TextAlign.left),
         _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
         _cell('${row.wins}', style: base),
-        _cell('${row.rounds}', style: base),
         _cell('${row.kills}', style: base),
-        _cell('${row.damage}', style: base),
-        _cell(accuracy, style: base),
-        _cell(survived, style: base),
       ],
     );
   }

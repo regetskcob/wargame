@@ -6,11 +6,21 @@ import '../theme.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
-/// Rank with the way to the next one, the rating and the badges.
-class PilotCard extends StatelessWidget {
+/// Rank with the way to the next one and the rating in one line. The
+/// badges fold out on demand.
+class PilotCard extends StatefulWidget {
   const PilotCard({required this.progress, super.key});
 
   final PilotProgress progress;
+
+  @override
+  State<PilotCard> createState() => _PilotCardState();
+}
+
+class _PilotCardState extends State<PilotCard> {
+  var _badgesOpen = false;
+
+  PilotProgress get progress => widget.progress;
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +65,21 @@ class PilotCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          '${rank.xp} / ${rank.next} ${tr('EP', 'XP')}',
-                          style: const TextStyle(
-                            fontSize: 11,
-                            color: BwColors.textDim,
-                          ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '${rank.xp} / ${rank.next} ${tr('EP', 'XP')}',
+                                maxLines: 1,
+                                softWrap: false,
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  color: BwColors.textDim,
+                                ),
+                              ),
+                            ),
+                            _badgeToggle(),
+                          ],
                         ),
                       ],
                     ),
@@ -89,22 +108,64 @@ class PilotCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  for (final achievement in Achievement.all)
-                    BadgeChip(
-                      achievement: achievement,
-                      earned: progress.badges.value.contains(achievement.code),
-                    ),
-                ],
-              ),
+              if (_badgesOpen) ...[
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    for (final achievement in Achievement.all)
+                      BadgeChip(
+                        achievement: achievement,
+                        earned: progress.badges.value.contains(
+                          achievement.code,
+                        ),
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  /// Earned badges out of all, opens and closes the list of them.
+  Widget _badgeToggle() {
+    final earned = Achievement.all
+        .where((a) => progress.badges.value.contains(a.code))
+        .length;
+    // The count alone keeps the line short, the word comes on hover.
+    return Tooltip(
+      message: tr('Abzeichen', 'Badges'),
+      child: InkWell(
+        onTap: () => setState(() => _badgesOpen = !_badgesOpen),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.military_tech, size: 14, color: BwColors.sand),
+              const SizedBox(width: 3),
+              Text(
+                '$earned/${Achievement.all.length}',
+                style: const TextStyle(
+                  fontSize: 11,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w700,
+                  color: BwColors.sand,
+                ),
+              ),
+              Icon(
+                _badgesOpen ? Icons.expand_less : Icons.expand_more,
+                size: 16,
+                color: BwColors.sand,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

@@ -9,7 +9,6 @@ import '../game/game_mode.dart';
 import '../game/map_theme.dart';
 import '../game/tank_game.dart';
 import '../net/payloads/lobby_presence.dart';
-import '../net/room.dart';
 import '../game/components/tank_painter.dart';
 import 'theme.dart';
 import 'launch_view.dart';
@@ -17,13 +16,10 @@ import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/choice_row.dart';
-import 'widgets/call_sign.dart';
 import 'widgets/panel.dart';
-import 'widgets/pilot_card.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
 import 'widgets/tank_choice.dart';
-import 'widgets/tutorial_button.dart';
 import '../l10n/l10n.dart';
 
 class LobbyOverlay extends StatefulWidget {
@@ -82,7 +78,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Title, what the round is about and the sound switch.
-  Widget _header(BuildContext context, String title) {
+  Widget _header(
+    BuildContext context,
+    String title, {
+    List<Widget> extra = const [],
+  }) {
     final game = widget.game;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -100,6 +100,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ),
             ),
+            ...extra,
             AccountButton(game: game),
             const MuteButton(),
           ],
@@ -123,94 +124,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           }, style: const TextStyle(color: BwColors.textDim)),
         ),
       ],
-    );
-  }
-
-  /// Way to play, who may join and the link to share. Host only.
-  Widget _roundSection(BuildContext context) {
-    final game = widget.game;
-    return _Section(
-      icon: Icons.flag_outlined,
-      title: tr('RUNDE', 'ROUND'),
-      child: ValueListenableBuilder<GameMode>(
-        valueListenable: game.mode,
-        builder: (context, mode, _) => Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                ChoiceRow<GameMode>(
-                  options: [
-                    (
-                      mode,
-                      switch (mode) {
-                        GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
-                        GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
-                        GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
-                      },
-                      null,
-                    ),
-                  ],
-                  selected: mode,
-                  onSelected: (_) => game.changeMode(),
-                ),
-                TextButton.icon(
-                  onPressed: game.changeMode,
-                  icon: const Icon(Icons.swap_horiz),
-                  label: Text(tr('ÄNDERN', 'CHANGE')),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            _hint(switch (mode) {
-              GameMode.solo => tr(
-                'Du spielst allein gegen ${GameConfig.minBots} bis '
-                    '${GameConfig.maxBots} CPU-Panzer, jede Runde neu '
-                    'ausgewürfelt.',
-                'You play alone against ${GameConfig.minBots} to '
-                    '${GameConfig.maxBots} CPU tanks, rolled anew every round.',
-              ),
-              GameMode.multi => tr(
-                'Den Link zum Einladen gibt es im Warteraum. Ein '
-                    'öffentlicher Raum steht außerdem in der Raumliste der '
-                    'Startseite.',
-                'The link to invite others comes in the waiting room. A '
-                    'public room is also listed in the room list on the '
-                    'start page.',
-              ),
-              GameMode.defense => tr(
-                'Die Feinde rollen über die Straße zum Stützpunkt, ab der '
-                    'zweiten Welle auch aus der Luft. Abschüsse bringen '
-                    'Mittel für Geschütze${game.touchMode.value ? '' : ' (B)'} '
-                    'und Upgrades.',
-                'The enemies roll down the road to the base, from the '
-                    'second wave also through the air. Kills bring funds '
-                    'for turrets${game.touchMode.value ? '' : ' (B)'} '
-                    'and upgrades.',
-              ),
-            }),
-            if (mode == GameMode.multi &&
-                roomLink(game.net.room).isNotEmpty) ...[
-              const SizedBox(height: 12),
-              _label(context, tr('SICHTBARKEIT', 'VISIBILITY')),
-              ValueListenableBuilder<bool>(
-                valueListenable: game.publicRoom,
-                builder: (context, public, _) => ChoiceRow<bool>(
-                  options: [
-                    (false, tr('PRIVAT', 'PRIVATE'), null),
-                    (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
-                  ],
-                  selected: public,
-                  onSelected: (v) => game.publicRoom.value = v ?? false,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
     );
   }
 
@@ -279,15 +192,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.fillWithBots.value = v ?? false,
                 ),
               ),
-              const SizedBox(height: 6),
-              _hint(
-                tr(
-                  'Auffüllen bringt das Feld auf ${GameConfig.fillTo} Panzer '
-                      'und gleicht bei Teams die Seiten aus.',
-                  'Filling brings the field up to ${GameConfig.fillTo} tanks '
-                      'and evens out the sides in teams.',
-                ),
-              ),
             ],
             if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),
@@ -333,10 +237,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             const SizedBox(height: 6),
             _hint(
               tr(
-                'AUTO füllt das kleinere Team. Eigene Teammitglieder und '
-                    'Trupps triffst du nicht.',
-                'AUTO fills the smaller team. You do not hit your own '
-                    'teammates and squads.',
+                'AUTO füllt das kleinere Team.',
+                'AUTO fills the smaller team.',
               ),
             ),
           ],
@@ -354,7 +256,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _label(context, tr('GELÄNDE', 'TERRAIN')),
           ValueListenableBuilder<int?>(
             valueListenable: game.mapChoice,
             builder: (context, choice, _) => ChoiceRow<int>(
@@ -370,14 +271,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 6),
           _hint(
             tr(
-              'Ohne Auswahl wird zufällig bestimmt. Tag und Nacht wechseln '
-                  'sich regelmäßig ab, das Wetter würfelt jede Runde selbst aus und '
-                  'schlägt in langen Runden um. Nachts, im Nebel und im Sandsturm '
-                  'siehst du nur, was nah ist.',
-              'Without a choice it is picked at random. Day and night '
-                  'alternate regularly, the weather rolls itself every round '
-                  'and changes in long rounds. At night, in fog and in a '
-                  'sandstorm you only see what is close.',
+              'Ohne Auswahl zufällig. Wetter und Tageszeit wechseln von '
+                  'selbst.',
+              'Random without a choice. Weather and time of day change by '
+                  'themselves.',
             ),
           ),
         ],
@@ -385,70 +282,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// What the host set up, in short, with the way back to change it.
-  Widget _summarySection(BuildContext context) {
-    final game = widget.game;
-    return ListenableBuilder(
-      listenable: Listenable.merge([
-        game.mode,
-        game.botLevel,
-        game.fillWithBots,
-        game.teamMode,
-        game.mapChoice,
-        game.publicRoom,
-      ]),
-      builder: (context, _) {
-        final mode = game.mode.value;
-        final map = game.mapChoice.value;
-        final facts = [
-          switch (mode) {
-            GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
-            GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
-            GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
-          },
-          game.botLevel.value.label,
-          if (mode == GameMode.multi)
-            game.fillWithBots.value
-                ? tr('MIT CPU AUFFÜLLEN', 'FILL WITH CPU')
-                : tr('NUR MENSCHEN', 'HUMANS ONLY'),
-          if (mode != GameMode.defense)
-            game.teamMode.value
-                ? 'TEAMS'
-                : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
-          map == null
-              ? tr('ZUFÄLLIGES GELÄNDE', 'RANDOM TERRAIN')
-              : MapTheme.all[map].name.toUpperCase(),
-          if (mode == GameMode.multi && roomLink(game.net.room).isNotEmpty)
-            game.publicRoom.value
-                ? tr('ÖFFENTLICH', 'PUBLIC')
-                : tr('PRIVAT', 'PRIVATE'),
-        ];
-        return _Section(
-          icon: Icons.tune,
-          title: tr('EINSTELLUNGEN', 'SETTINGS'),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [for (final fact in facts) _Fact(fact)],
-              ),
-              const SizedBox(height: 8),
-              TextButton.icon(
-                onPressed: game.editSettings,
-                icon: const Icon(Icons.edit_outlined),
-                label: Text(tr('ÄNDERN', 'CHANGE')),
-              ),
-            ],
-          ),
-        );
-      },
-    );
+  /// The vehicles the player may drive, and the next one to earn. The
+  /// rest stays out of sight until it comes closer.
+  List<TankType> _offeredVehicles() {
+    final unlocked = widget.game.progress.vehicleUnlocked;
+    final all = StatBars.ordered(unlocked);
+    return [...all.where(unlocked), ...all.where((t) => !unlocked(t)).take(1)];
   }
 
-  /// Call sign, vehicle and paint: what every player sets. The call sign
-  /// and the account are changed behind the profile button.
+  /// Vehicle and paint: what every player sets.
   Widget _tankSection(BuildContext context) {
     final game = widget.game;
     return _Section(
@@ -457,10 +299,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          PilotCard(progress: game.progress),
-          const SizedBox(height: 12),
-          CallSign(game: game),
-          _label(context, tr('FAHRZEUG', 'VEHICLE')),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.roster,
@@ -478,9 +316,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final type in StatBars.ordered(
-                      game.progress.vehicleUnlocked,
-                    ))
+                    for (final type in _offeredVehicles())
                       TankChoice(
                         type: type,
                         width: width.floorToDouble(),
@@ -499,15 +335,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 14),
           ValueListenableBuilder<GameMode>(
             valueListenable: game.mode,
+            // With others every tank drives in its own colour.
             builder: (context, mode, _) => mode.withOthers
-                ? _hint(
-                    tr(
-                      'Mit anderen fährt jeder Panzer in einer eigenen Farbe '
-                          'statt in Tarnung.',
-                      'With others every tank drives in its own colour '
-                          'instead of camouflage.',
-                    ),
-                  )
+                ? const SizedBox.shrink()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -615,93 +445,101 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       ),
                     ),
             ),
-            OutlinedButton.icon(
-              onPressed: _confirmClose,
-              style: _closeArmed
-                  ? OutlinedButton.styleFrom(
-                      foregroundColor: BwColors.danger,
-                      side: const BorderSide(color: BwColors.danger),
-                    )
-                  : null,
-              icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
-              label: Text(switch ((_closeArmed, game.isHost.value)) {
-                (true, true) => tr(
-                  'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                  'REALLY CLOSE FOR EVERYONE?',
-                ),
-                (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
-                (false, true) => tr(
-                  'WARTERAUM SCHLIESSEN',
-                  'CLOSE WAITING ROOM',
-                ),
-                (false, false) => tr(
-                  'WARTERAUM VERLASSEN',
-                  'LEAVE WAITING ROOM',
-                ),
-              }),
-            ),
+            // Alone there is nobody to close the room for: just go back.
+            if (game.mode.value == GameMode.solo && game.isHost.value)
+              OutlinedButton.icon(
+                onPressed: game.changeMode,
+                icon: const Icon(Icons.arrow_back),
+                label: Text(tr('ZURÜCK', 'BACK')),
+              )
+            else
+              OutlinedButton.icon(
+                onPressed: _confirmClose,
+                style: _closeArmed
+                    ? OutlinedButton.styleFrom(
+                        foregroundColor: BwColors.danger,
+                        side: const BorderSide(color: BwColors.danger),
+                      )
+                    : null,
+                icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+                label: Text(switch ((_closeArmed, game.isHost.value)) {
+                  (true, true) => tr(
+                    'WIRKLICH FÜR ALLE SCHLIESSEN?',
+                    'REALLY CLOSE FOR EVERYONE?',
+                  ),
+                  (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
+                  (false, true) => tr(
+                    'WARTERAUM SCHLIESSEN',
+                    'CLOSE WAITING ROOM',
+                  ),
+                  (false, false) => tr(
+                    'WARTERAUM VERLASSEN',
+                    'LEAVE WAITING ROOM',
+                  ),
+                }),
+              ),
           ],
         );
       },
     );
   }
 
-  /// How to steer, folded away until asked for.
-  Widget _controls() {
+  /// How to steer, behind the question mark in the heading, with the way
+  /// into the briefing.
+  void _showControls(BuildContext context) {
     final game = widget.game;
-    return ValueListenableBuilder<bool>(
-      valueListenable: game.touchMode,
-      builder: (context, touch, _) => Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.zero,
-          leading: const Icon(Icons.sports_esports, color: BwColors.amber),
-          title: Text(
-            tr('STEUERUNG', 'CONTROLS'),
-            style: const TextStyle(
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1.5,
-            ),
-          ),
-          childrenPadding: const EdgeInsets.only(bottom: 8),
-          expandedCrossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _hint(
-              touch
-                  ? tr(
-                      'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
-                          'Rechter Stick richtet den Turm aus und feuert, sobald '
-                          'du über den Ring schiebst. Kisten und Gems landen im '
-                          'Inventar am linken Rand, ein Tipp setzt sie ein. '
-                          'Waffen wie Granatwerfer, Mörser und Drohne löst du '
-                          'danach mit dem runden Knopf über dem rechten Stick aus.',
-                      'The left stick drives: up for forward, sideways to '
-                          'steer. The right stick aims the turret and fires '
-                          'as soon as you push past the ring. Crates and gems '
-                          'land in the inventory on the left edge, a tap uses '
-                          'them. Weapons such as grenade launcher, mortar and '
-                          'drone are then fired with the round button above '
-                          'the right stick.',
-                    )
-                  : tr(
-                      'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
-                          'Maus (oder Q und E), Feuer mit Leertaste oder '
-                          'Linksklick. Kisten und Gems wandern ins Inventar am '
-                          'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
-                          'ein. Waffen löst du danach mit F aus. In der '
-                          'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
-                      'Drive with WASD or the arrow keys, the turret aims at '
-                          'the mouse (or Q and E), fire with space or left '
-                          'click. Crates and gems go to the inventory on the '
-                          'left edge, use them with 1 to 6 or a click. '
-                          'Weapons are then fired with F. In defense, B builds '
-                          'a turret and V switches the type.',
-                    ),
-            ),
-            const SizedBox(height: 4),
-            TutorialButton(game: game),
-          ],
+    final touch = game.touchMode.value;
+    showDialog<void>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        backgroundColor: BwColors.surface,
+        title: Text(tr('STEUERUNG', 'CONTROLS')),
+        content: Text(
+          touch
+              ? tr(
+                  'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
+                      'Rechter Stick richtet den Turm aus und feuert, sobald '
+                      'du über den Ring schiebst. Kisten und Gems landen im '
+                      'Inventar am linken Rand, ein Tipp setzt sie ein. '
+                      'Waffen wie Granatwerfer, Mörser und Drohne löst du '
+                      'danach mit dem runden Knopf über dem rechten Stick aus.',
+                  'The left stick drives: up for forward, sideways to '
+                      'steer. The right stick aims the turret and fires '
+                      'as soon as you push past the ring. Crates and gems '
+                      'land in the inventory on the left edge, a tap uses '
+                      'them. Weapons such as grenade launcher, mortar and '
+                      'drone are then fired with the round button above '
+                      'the right stick.',
+                )
+              : tr(
+                  'Fahren mit WASD oder Pfeiltasten, der Turm zielt auf die '
+                      'Maus (oder Q und E), Feuer mit Leertaste oder '
+                      'Linksklick. Kisten und Gems wandern ins Inventar am '
+                      'linken Rand, du setzt sie mit 1 bis 6 oder einem Klick '
+                      'ein. Waffen löst du danach mit F aus. In der '
+                      'Verteidigung baut B ein Geschütz, V wechselt den Typ.',
+                  'Drive with WASD or the arrow keys, the turret aims at '
+                      'the mouse (or Q and E), fire with space or left '
+                      'click. Crates and gems go to the inventory on the '
+                      'left edge, use them with 1 to 6 or a click. '
+                      'Weapons are then fired with F. In defense, B builds '
+                      'a turret and V switches the type.',
+                ),
         ),
+        actions: [
+          TextButton.icon(
+            onPressed: () {
+              Navigator.of(dialog).pop();
+              game.showTutorial();
+            },
+            icon: const Icon(Icons.school, size: 18),
+            label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialog).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }
@@ -776,8 +614,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// First step for the host: how the round goes. Nobody sees the room in
-  /// the public list yet.
+  /// The settings of the round, opened by the host from the waiting room.
   Widget _settings(BuildContext context, {required bool narrow}) {
     final game = widget.game;
     return Column(
@@ -785,83 +622,79 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       children: [
         _header(context, tr('EINSTELLUNGEN', 'SETTINGS')),
         const SizedBox(height: 18),
-        if (narrow)
-          _column([
-            _roundSection(context),
-            _battleSection(context),
-            _fieldSection(context),
-          ])
-        else
-          _columns(
-            [_roundSection(context), _fieldSection(context)],
-            [_battleSection(context)],
-            narrow: narrow,
-          ),
+        _columns(
+          [_battleSection(context)],
+          [_fieldSection(context)],
+          narrow: narrow,
+        ),
         const SizedBox(height: 18),
-        ValueListenableBuilder<GameMode>(
-          valueListenable: game.mode,
-          builder: (context, mode, _) => Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              FilledButton.icon(
-                onPressed: game.openWaitingRoom,
-                icon: Icon(
-                  mode.withOthers
-                      ? Icons.meeting_room_outlined
-                      : Icons.chevron_right,
-                ),
-                label: Text(
-                  mode.withOthers
-                      ? tr('WARTERAUM ÖFFNEN', 'OPEN WAITING ROOM')
-                      : tr('WEITER', 'CONTINUE'),
-                ),
-              ),
-              OutlinedButton.icon(
-                onPressed: game.changeMode,
-                icon: const Icon(Icons.arrow_back),
-                label: Text(tr('ZURÜCK', 'BACK')),
-              ),
-            ],
-          ),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: [
+            FilledButton.icon(
+              onPressed: game.closeSettings,
+              icon: const Icon(Icons.check),
+              label: Text(tr('FERTIG', 'DONE')),
+            ),
+            OutlinedButton.icon(
+              onPressed: game.changeMode,
+              icon: const Icon(Icons.swap_horiz),
+              label: Text(tr('MODUS WECHSELN', 'CHANGE MODE')),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  /// Second step: who is here, the player's own tank and the start. The
-  /// host sees the settings in short, guests that they wait for the host.
+  /// The waiting room: who is here, the player's own tank and the start.
+  /// The host reaches the settings through the gear in the heading.
   Widget _room(BuildContext context, {required bool narrow}) {
     final host = widget.game.isHost.value;
     return ValueListenableBuilder<GameMode>(
       valueListenable: widget.game.mode,
-      builder: (context, mode, _) => Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _header(
-            context,
-            mode.withOthers
-                ? tr('WARTERAUM', 'WAITING ROOM')
-                : tr('BEREITSTELLUNG', 'GET READY'),
-          ),
-          const SizedBox(height: 18),
-          _columns(
-            [
-              if (host) _summarySection(context) else const _JoinedBanner(),
-              if (mode.withOthers) ...[
-                if (host) RoomInvite(game: widget.game),
-                _crewSection(),
+      builder: (context, mode, _) {
+        // Who is here and how to get others in. Alone, the tank is all.
+        final room = [
+          if (!host) const _JoinedBanner(),
+          if (mode.withOthers) ...[
+            if (host) RoomInvite(game: widget.game),
+            _crewSection(),
+          ],
+        ];
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _header(
+              context,
+              mode.withOthers
+                  ? tr('WARTERAUM', 'WAITING ROOM')
+                  : tr('BEREITSTELLUNG', 'GET READY'),
+              extra: [
+                IconButton(
+                  tooltip: tr('Steuerung', 'Controls'),
+                  onPressed: () => _showControls(context),
+                  icon: const Icon(Icons.help_outline),
+                ),
+                if (host)
+                  IconButton(
+                    tooltip: tr('Einstellungen', 'Settings'),
+                    onPressed: widget.game.editSettings,
+                    icon: const Icon(Icons.settings_outlined),
+                  ),
               ],
-            ],
-            [_tankSection(context)],
-            narrow: narrow,
-          ),
-          const SizedBox(height: 18),
-          _actions(),
-          const SizedBox(height: 8),
-          _controls(),
-        ],
-      ),
+            ),
+            const SizedBox(height: 18),
+            if (room.isEmpty)
+              _tankSection(context)
+            else
+              _columns(room, [_tankSection(context)], narrow: narrow),
+            const SizedBox(height: 18),
+            _actions(),
+          ],
+        );
+      },
     );
   }
 
@@ -912,7 +745,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              return Center(
+              // Starts at the top: short pages leave the room below them
+              // instead of floating in the middle of the screen.
+              return Align(
+                alignment: Alignment.topCenter,
                 child: SingleChildScrollView(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
@@ -986,38 +822,6 @@ class _Section extends StatelessWidget {
             ],
             child,
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// One setting in the summary, as a small framed tag.
-class _Fact extends StatelessWidget {
-  const _Fact(this.text);
-
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x33000000),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(4),
-          side: const BorderSide(color: BwColors.sand, width: 1),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: Text(
-          text,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1,
-            color: BwColors.sand,
-          ),
         ),
       ),
     );
