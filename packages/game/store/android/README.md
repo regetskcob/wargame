@@ -1,6 +1,6 @@
 # Google Play
 
-Alles, was die Play Console für Wargame braucht. Die Ordner folgen dem
+Alles, was die Play Console für Panzergefecht braucht. Die Ordner folgen dem
 Aufbau von `fastlane supply`: Der Workflow `play` lädt Bundle, Texte und
 Bilder hoch (siehe [Deployment](#deployment)). Von Hand lassen sie sich genauso
 in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
@@ -34,7 +34,7 @@ zeichnet auf Android dasselbe Bild.
 
 ## Build und Signieren
 
-App-ID `de.regetskcob.wargame` wie auf iOS, Name Wargame. Die App-ID lässt sich
+App-ID `de.regetskcob.wargame` wie auf iOS, Name Panzergefecht. Die App-ID lässt sich
 nach dem ersten Upload nie mehr ändern.
 
 1. Upload-Schlüssel einmalig anlegen und `android/key.properties` nach
@@ -66,8 +66,8 @@ Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
 
 ### Einmalig einrichten
 
-1. **App anlegen:** Play Console > App erstellen, Name „Wargame –
-   Panzergefecht“, Sprache Deutsch, Spiel, kostenlos.
+1. **App anlegen:** Play Console > App erstellen, Name
+   „Panzergefecht“, Sprache Deutsch, Spiel, kostenlos.
 2. **Erster Upload von Hand:** Die API kann erst mit einer App arbeiten, die
    schon ein Bundle hat. Lokal mit `key.properties` bauen und
    `app-release.aab` unter Testen > Interner Test hochladen. Dabei Play App
@@ -75,7 +75,7 @@ Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
 3. **Dienstkonto:** In der Google Cloud Console (Projekt der Play Console)
    die *Google Play Android Developer API* aktivieren, ein Dienstkonto anlegen
    und einen JSON-Schlüssel erzeugen. In der Play Console unter Nutzer und
-   Berechtigungen das Dienstkonto einladen, für Wargame mit „Releases
+   Berechtigungen das Dienstkonto einladen, für Panzergefecht mit „Releases
    verwalten“ und „Store-Präsenz verwalten“.
 4. **GitHub-Secrets** (Settings > Secrets and variables > Actions):
 

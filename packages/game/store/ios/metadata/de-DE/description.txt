@@ -1,4 +1,4 @@
-Wargame ist ein schnelles Panzergefecht von oben. Du fährst mit dem linken Daumen, zielst mit dem rechten und feuerst, sobald du den Stick über den Ring schiebst. Der letzte Panzer im Feld gewinnt.
+Panzergefecht ist ein schnelles Panzerduell von oben. Du fährst mit dem linken Daumen, zielst mit dem rechten und feuerst, sobald du den Stick über den Ring schiebst. Der letzte Panzer im Feld gewinnt.
 
 DREI SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer auf drei Schwierigkeitsstufen, jede Runde neu ausgewürfelt.
@@ -22,4 +22,4 @@ Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer 
 
 Keine Werbung, keine Käufe in der App, kein Tracking.
 
-Wargame ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zur Bundeswehr oder zu den Herstellern der gezeigten Fahrzeuge.
+Panzergefecht ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zur Bundeswehr oder zu den Herstellern der gezeigten Fahrzeuge.
