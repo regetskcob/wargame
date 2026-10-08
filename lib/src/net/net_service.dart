@@ -17,6 +17,7 @@ import 'payloads/round_start_payload.dart';
 import 'payloads/tank_state_payload.dart';
 import 'payloads/shoot_payload.dart';
 import 'payloads/strike_payload.dart';
+import 'presence_throttle.dart';
 import 'replay.dart';
 
 class NetService {
@@ -68,7 +69,13 @@ class NetService {
   void Function(String id)? onClose;
 
   RealtimeChannel? _channel;
+  PresenceThrottle? _presence;
   LobbyPresence? _me;
+
+  /// Whether anybody else is in the room. Alone, nothing is sent: nobody
+  /// would hear it, and every message counts against the project's limit
+  /// of messages per second, which closes all channels once it is hit.
+  bool _othersPresent = false;
   bool _disposed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
@@ -82,6 +89,7 @@ class NetService {
       options: const RealtimeChannelConfig(self: false),
     );
     _channel = channel;
+    _presence = PresenceThrottle(channel);
     _listen(
       channel,
       NetEvent.state,
@@ -204,11 +212,11 @@ class NetService {
       }),
     );
     _subscriptions.add(
-      channel.onStatusChange.listen((change) async {
+      channel.onStatusChange.listen((change) {
         if (change.status == RealtimeSubscribeStatus.subscribed) {
           final me = _me;
           if (me != null) {
-            await channel.track(me.toJson());
+            _presence?.track(me.toJson());
           }
         } else if (change.status == RealtimeSubscribeStatus.channelError ||
             change.status == RealtimeSubscribeStatus.closed) {
@@ -265,7 +273,7 @@ class NetService {
     }
     recorder?.add(event, payload);
     final channel = _channel;
-    if (channel == null) {
+    if (channel == null || !_othersPresent) {
       return;
     }
     unawaited(
@@ -275,7 +283,7 @@ class NetService {
 
   Future<void> updatePresence(LobbyPresence me) async {
     _me = me;
-    await _channel?.track(me.toJson());
+    _presence?.track(me.toJson());
   }
 
   void _emitRoster() {
@@ -299,6 +307,7 @@ class NetService {
       }
     }
     duplicateIds = twice;
+    _othersPresent = byId.keys.any((id) => id != myId);
     onRosterChanged?.call(byId.values.toList());
   }
 
@@ -307,6 +316,9 @@ class NetService {
       await subscription.cancel();
     }
     _subscriptions.clear();
+    _presence?.close();
+    _presence = null;
+    _othersPresent = false;
     final channel = _channel;
     _channel = null;
     if (channel != null) {
