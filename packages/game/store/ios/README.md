@@ -99,6 +99,10 @@ einmal, die Texte dafür stehen in `metadata/de-DE/testflight.txt`.
    and screenshots“ laufen lassen.
 2. **In App Store Connect von Hand:** App Privacy (siehe oben),
    Altersfreigabe, Preis (kostenlos), danach zur Prüfung einreichen.
+3. **Den TestFlight-Build auf einem echten iPhone spielen:** Der Simulator
+   kann nur Debug-Builds. Auf Android stürzte der Release-Build an einer
+   Stelle ab, an der Debug lief (siehe `SpaceGame._renderWeather`). Das ist
+   behoben, auf iOS aber noch nicht im Release ausprobiert.
 
 ## Universal Links
 
