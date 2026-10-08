@@ -136,17 +136,25 @@ SPIELEN“). Den Text aus `../ios/metadata/review_notes.txt` als Hinweis
 **Werbung:** Nein. **Kategorie:** Spiele > Action, Tags Strategie und
 Mehrspieler.
 
+**Kamera:** Die App fragt nach der Kamera nur, um den QR-Code eines
+Warteraums zu lesen. Das Bild bleibt auf dem Gerät, in der Datensicherheit
+wird dafür nichts angegeben. Die Kamera ist als optional deklariert, Geräte
+ohne Kamera bleiben im Store.
+
+**Datenschutz-URL:** `https://www.regetskcob.de/wargame/datenschutz/` (wie im
+App Store, erreichbar nach dem nächsten Web-Deploy).
+
+**Kontolöschung (Datensicherheit):** In der App über Konto > „Konto löschen“.
+Als Web-Adresse für Löschanfragen ohne App dieselbe Datenschutz-URL angeben,
+sie nennt die Löschung per E-Mail.
+
 ## Vor der Veröffentlichung offen
 
 1. **Geschlossener Test:** Neue private Entwicklerkonten müssen vor der
-   Produktion mindestens 12 Tester 14 Tage lang im geschlossenen Test haben.
-   Tester-Liste per E-Mail anlegen, `testflight.txt` aus dem iOS-Ordner taugt
-   als Testhinweis.
-2. **Datenschutz-URL:** Wie bei iOS Pflicht, die Erklärung steht bisher nur im
-   Spiel (`lib/src/ui/widgets/legal.dart`) und beschreibt nur den Browser.
-3. **Konto löschen:** Play verlangt das Löschen in der App **und** eine
-   Web-Adresse, unter der man die Löschung ohne die App beantragen kann
-   (Datensicherheit > Kontolöschung). Beides fehlt noch.
-4. **Raumcodes:** Wie auf iOS trifft sich Mehrspieler in der App immer im Raum
-   `main`, die Startkarte verspricht trotzdem „Lade per Link oder Code ein“
-   (zu sehen auf `phoneScreenshots/06-modi.png`).
+   Produktion mindestens 12 Tester 14 Tage lang im geschlossenen Test
+   (`alpha`) haben. Tester-Liste per E-Mail anlegen, `testflight.txt` aus dem
+   iOS-Ordner taugt als Testhinweis.
+2. **Migration 0010 einspielen:** `supabase db push` legt `delete_account` an,
+   ohne sie bricht „Konto löschen“ ab. Play prüft das.
+3. **Einrichtung oben:** App anlegen, erster Upload von Hand, Dienstkonto und
+   Secrets.
