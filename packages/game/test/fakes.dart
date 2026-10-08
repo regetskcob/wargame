@@ -4,6 +4,7 @@ import 'package:game/src/db/profile_service.dart';
 import 'package:game/src/db/score_service.dart';
 import 'package:game/src/game/space_game.dart';
 import 'package:game/src/net/net_service.dart';
+import 'package:game/src/net/payloads/lobby_presence.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 User _user({required bool guest}) => User(
@@ -71,12 +72,29 @@ class FakeScores implements ScoreService {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
+/// Never reaches a server, only counts joining and leaving the room.
+class FakeNet extends NetService {
+  FakeNet({super.isHost}) : super(myId: 'me', room: 'TEST1');
+
+  var connects = 0;
+  var disposes = 0;
+
+  @override
+  Future<void> connect(LobbyPresence me) async => connects++;
+
+  @override
+  Future<void> dispose() async => disposes++;
+}
+
 /// A game that never connects: enough for the pages around it.
-SpaceGame offlineGame({AccountService? accounts, ProfileService? profiles}) =>
-    SpaceGame(
-      net: NetService(myId: 'me', room: 'TEST1'),
-      myId: 'me',
-      scoreService: FakeScores(),
-      profiles: profiles ?? FakeProfiles(),
-      accounts: accounts ?? FakeAccounts(),
-    );
+SpaceGame offlineGame({
+  AccountService? accounts,
+  ProfileService? profiles,
+  NetService? net,
+}) => SpaceGame(
+  net: net ?? FakeNet(),
+  myId: 'me',
+  scoreService: FakeScores(),
+  profiles: profiles ?? FakeProfiles(),
+  accounts: accounts ?? FakeAccounts(),
+);
