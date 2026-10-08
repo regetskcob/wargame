@@ -14,6 +14,8 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
+import app_icon
+
 ROOT = Path(__file__).resolve().parents[2]
 FONTS = ROOT / "assets" / "fonts"
 IOS = ROOT / "store" / "ios" / "screenshots" / "de-DE"
@@ -148,19 +150,12 @@ def feature_graphic():
     """The 1024 x 500 banner Google Play shows above the screenshots."""
     w, h = 1024, 500
     canvas = backdrop((w, h), "feature")
-    icon = Image.open(ROOT / "store" / "ios" / "icon" / "AppIcon-1024.png")
-    # Only the tank, without the flat background of the icon.
-    icon = icon.convert("RGB")
-    flat = icon.getpixel((0, 0))
-    mask = Image.eval(icon.convert("L"), lambda _: 0)
-    mask.putdata([0 if sum(abs(a - b) for a, b in zip(p, flat)) < 12 else 255
-                  for p in icon.getdata()])
-    mask = mask.filter(ImageFilter.GaussianBlur(2))
-    box = (200, 290, 944, 734)
+    # Only the tank with its shadow, without the terrain of the icon.
+    layer = app_icon.tank()
+    box = (200, 290, 960, 760)
     size = (round((box[2] - box[0]) * 0.46), round((box[3] - box[1]) * 0.46))
-    tank = icon.crop(box).resize(size, Image.LANCZOS)
-    mask = mask.crop(box).resize(size, Image.LANCZOS)
-    canvas.paste(tank, (70, (h - tank.height) // 2), mask)
+    tank = layer.crop(box).resize(size, Image.LANCZOS)
+    canvas.paste(tank, (70, (h - tank.height) // 2), tank)
     draw = ImageDraw.Draw(canvas)
     head = font("Roboto-Black.ttf", 92)
     sub = font("Roboto-Medium.ttf", 34)
