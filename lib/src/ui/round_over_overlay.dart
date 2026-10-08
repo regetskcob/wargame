@@ -7,6 +7,7 @@ import '../game/game_config.dart';
 import '../net/payloads/defense_payload.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
+import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/round_rewards.dart';
 import '../l10n/l10n.dart';
@@ -70,7 +71,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                     builder: (context, box) {
                       final narrow = box.maxWidth < 480;
                       return Center(
-                        child: SingleChildScrollView(
+                        child: FitOrScroll(
                           padding: EdgeInsets.all(narrow ? 12 : 16),
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 560),

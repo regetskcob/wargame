@@ -1,9 +1,15 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../db/server_status.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../net/room.dart';
+import '../tv/duel_view.dart';
+import '../net/pad_link.dart';
+import '../tv/tv_controllers.dart';
+import '../tv/tv_input.dart';
 import 'theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
@@ -24,82 +30,128 @@ class LaunchView extends StatelessWidget {
 
   final TankGame game;
 
+  /// From this width the leaderboard moves into a column of its own, as on
+  /// the television, so the page fits without scrolling.
+  static const _twoColumns = 1100.0;
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        LayoutBuilder(
-          builder: (context, box) {
-            final title = Expanded(
-              child: FittedBox(
-                fit: BoxFit.scaleDown,
-                alignment: Alignment.centerLeft,
-                child: Text(
-                  'PANZERGEFECHT',
-                  maxLines: 1,
-                  style: Theme.of(context).textTheme.headlineLarge,
+    return LayoutBuilder(
+      builder: (context, box) {
+        if (box.maxWidth < _twoColumns) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [..._main(context), ..._ranking()],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Each column a group of its own: a remote walks down the left
+            // one before it moves on to the right.
+            Expanded(
+              child: FocusTraversalGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _main(context),
                 ),
               ),
-            );
-            // Upright phones: the call sign gets a line of its own instead
-            // of squeezing the title.
-            if (box.maxWidth < 480) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      title,
-                      AccountButton(game: game),
-                      const MuteButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
-                  CallSign(game: game),
-                ],
-              );
-            }
-            return Row(
+            ),
+            const SizedBox(width: 28),
+            Expanded(
+              child: FocusTraversalGroup(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  // Level with the call sign row.
+                  children: [const SizedBox(height: 4), ..._ranking(top: 0)],
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  /// Leaderboard and the legal links, on the television first the
+  /// controllers.
+  List<Widget> _ranking({double top = 28}) => [
+    SizedBox(height: top),
+    if (onTv) ...[TvControllers(game: game), const SizedBox(height: 20)],
+    Leaderboard(game: game),
+    const SizedBox(height: 16),
+    const LegalLinks(),
+  ];
+
+  /// Name, rank, the three ways to play and the open rooms.
+  List<Widget> _main(BuildContext context) {
+    return [
+      LayoutBuilder(
+        builder: (context, box) {
+          final title = Expanded(
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'PANZERGEFECHT',
+                maxLines: 1,
+                style: Theme.of(context).textTheme.headlineLarge,
+              ),
+            ),
+          );
+          // Upright phones: the call sign gets a line of its own instead
+          // of squeezing the title.
+          if (box.maxWidth < 480) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                title,
-                const SizedBox(width: 12),
+                Row(
+                  children: [
+                    title,
+                    AccountButton(game: game),
+                    const MuteButton(),
+                  ],
+                ),
+                const SizedBox(height: 8),
                 CallSign(game: game),
-                AccountButton(game: game),
-                const MuteButton(),
               ],
             );
-          },
-        ),
-        const SizedBox(height: 4),
-        Align(
-          alignment: Alignment.centerLeft,
-          child: TutorialButton(game: game),
-        ),
-        const SizedBox(height: 16),
-        PilotCard(progress: game.progress),
-        const SizedBox(height: 20),
-        const ServerNotice(),
-        ValueListenableBuilder<bool>(
-          valueListenable: ServerStatus.available,
-          builder: (context, online, _) => _modes(online),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: ServerStatus.available,
-          builder: (context, online, _) =>
-              online && roomLink(game.net.room).isNotEmpty
-              ? Padding(
-                  padding: const EdgeInsets.only(top: 28),
-                  child: RoomList(game: game),
-                )
-              : const SizedBox.shrink(),
-        ),
-        const SizedBox(height: 28),
-        Leaderboard(game: game),
-        const SizedBox(height: 16),
-        const LegalLinks(),
-      ],
-    );
+          }
+          return Row(
+            children: [
+              title,
+              const SizedBox(width: 12),
+              CallSign(game: game),
+              AccountButton(game: game),
+              const MuteButton(),
+            ],
+          );
+        },
+      ),
+      const SizedBox(height: 4),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TutorialButton(game: game),
+      ),
+      const SizedBox(height: 16),
+      PilotCard(progress: game.progress),
+      const SizedBox(height: 20),
+      const ServerNotice(),
+      ValueListenableBuilder<bool>(
+        valueListenable: ServerStatus.available,
+        builder: (context, online, _) => _modes(online),
+      ),
+      ValueListenableBuilder<bool>(
+        valueListenable: ServerStatus.available,
+        builder: (context, online, _) =>
+            online && roomLink(game.net.room).isNotEmpty
+            ? Padding(
+                padding: const EdgeInsets.only(top: 28),
+                child: RoomList(game: game),
+              )
+            : const SizedBox.shrink(),
+      ),
+    ];
   }
 
   /// Playing with others needs the server; alone the game goes on without.
@@ -108,29 +160,44 @@ class LaunchView extends StatelessWidget {
         online || mode != GameMode.multi ? () => game.chooseMode(mode) : null;
     return LayoutBuilder(
       builder: (context, box) {
-        // Three cards side by side when there is room, else one per row.
-        // All three equally tall, so the row reads calmly.
-        if (box.maxWidth >= 640) {
-          return IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                for (final (i, option) in _options.indexed) ...[
-                  if (i > 0) const SizedBox(width: 12),
-                  Expanded(
-                    child: _ModeCard(option: option, onTap: start(option.mode)),
-                  ),
-                ],
-              ],
+        final cards = <Widget>[
+          for (final option in _options)
+            _ModeCard(
+              icon: option.icon,
+              title: option.title,
+              kicker: option.kicker,
+              onTap: start(option.mode),
             ),
-          );
-        }
+          if (onTv) const _DuelCard(),
+        ];
+        // Two by two on the television, with the duel as the fourth.
+        // Elsewhere three side by side when there is room, else one per
+        // row. Cards in a row are equally tall, so it reads calmly.
+        final perRow = onTv
+            ? 2
+            : box.maxWidth >= 640
+            ? 3
+            : 1;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            for (final (i, option) in _options.indexed) ...[
-              if (i > 0) const SizedBox(height: 12),
-              _ModeCard(option: option, onTap: start(option.mode)),
+            for (var row = 0; row < cards.length; row += perRow) ...[
+              if (row > 0) const SizedBox(height: 12),
+              IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var i = row; i < row + perRow; i++) ...[
+                      if (i > row) const SizedBox(width: 12),
+                      Expanded(
+                        child: i < cards.length
+                            ? cards[i]
+                            : const SizedBox.shrink(),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
           ],
         );
@@ -163,69 +230,138 @@ List<_Option> get _options => [
 ];
 
 class _ModeCard extends StatelessWidget {
-  const _ModeCard({required this.option, required this.onTap});
+  const _ModeCard({
+    required this.icon,
+    required this.title,
+    required this.kicker,
+    required this.onTap,
+  });
 
-  final _Option option;
+  final IconData icon;
+  final String title;
+  final String kicker;
 
   /// Null while the mode cannot be played, which greys the card out.
   final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: onTap == null ? 0.45 : 1,
-      child: Material(
-        color: const Color(0x44000000),
-        shape: BwShapes.card(),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onTap,
-          hoverColor: const Color(0x22FFB300),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-            child: Row(
-              children: [
-                Icon(option.icon, color: BwColors.amber, size: 30),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Shrinks on narrow cards instead of breaking the word.
-                      FittedBox(
-                        fit: BoxFit.scaleDown,
-                        alignment: Alignment.centerLeft,
-                        child: Text(
-                          option.title,
-                          maxLines: 1,
-                          style: Theme.of(context).textTheme.titleLarge
-                              ?.copyWith(
-                                fontWeight: FontWeight.w900,
-                                letterSpacing: 2,
-                                color: BwColors.sand,
-                              ),
+    return Opacity(opacity: onTap == null ? 0.45 : 1, child: _card(context));
+  }
+
+  Widget _card(BuildContext context) {
+    return Material(
+      color: const Color(0x44000000),
+      shape: BwShapes.card(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        hoverColor: const Color(0x22FFB300),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          child: Row(
+            children: [
+              Icon(icon, color: BwColors.amber, size: 30),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Shrinks on narrow cards instead of breaking the word.
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        title,
+                        maxLines: 1,
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 2,
+                          color: BwColors.sand,
                         ),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        onTap == null
-                            ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
-                            : option.kicker,
-                        style: const TextStyle(
-                          color: BwColors.amber,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.5,
-                        ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      onTap == null
+                          ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
+                          : kicker,
+                      style: const TextStyle(
+                        color: BwColors.amber,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                const Icon(Icons.chevron_right, color: BwColors.amber),
-              ],
-            ),
+              ),
+              const Icon(Icons.chevron_right, color: BwColors.amber),
+            ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The Apple TV's fourth way to play: two players, two controllers, one
+/// screen split in half.
+class _DuelCard extends StatelessWidget {
+  const _DuelCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        TvInput.instance.count,
+        PadScreen.instance.phones,
+      ]),
+      builder: (context, _) => _card(context, duelSeats().length),
+    );
+  }
+
+  Widget _card(BuildContext context, int count) {
+    return _ModeCard(
+      icon: Icons.splitscreen,
+      title: tr('DUELL', 'DUEL'),
+      kicker: count >= 2
+          ? tr('1 GEGEN 1 VERTEIDIGEN', '1 ON 1 DEFENSE')
+          : tr('ZWEITER SPIELER FEHLT', 'NEEDS A SECOND PLAYER'),
+      onTap: () => count >= 2
+          ? unawaited(DuelView.open(context))
+          : unawaited(_explain(context)),
+    );
+  }
+
+  Future<void> _explain(BuildContext context) {
+    return showDialog<void>(
+      context: context,
+      builder: (dialog) => AlertDialog(
+        backgroundColor: BwColors.surface,
+        title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
+        content: Text(
+          tr(
+            'Im Duell verteidigt jeder seinen eigenen Stützpunkt, auf einem '
+                'geteilten Bildschirm. Jeder braucht etwas zum Steuern: einen '
+                'Controller (in den Einstellungen des Apple TV unter '
+                'Fernbedienungen und Geräte > Bluetooth), ein Handy (rechts '
+                'über Handy koppeln, zwei Handys scannen denselben Code) oder '
+                'die Siri Remote.',
+            'In a duel each player defends a base of their own on a split '
+                'screen. Each needs something to steer with: a controller (in '
+                'the Apple TV settings under Remotes and Devices > Bluetooth), '
+                'a phone (with Pair phone on the right, two phones scan the '
+                'same code) or the Siri Remote.',
+          ),
+        ),
+        actions: [
+          FilledButton(
+            autofocus: true,
+            onPressed: () => Navigator.of(dialog).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

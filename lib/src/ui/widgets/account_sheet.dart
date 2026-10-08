@@ -8,10 +8,12 @@ import '../../net/room.dart';
 import '../theme.dart';
 import 'account_panel.dart';
 import 'choice_row.dart';
+import 'fit_or_scroll.dart';
 import 'legal.dart';
 import 'pad_pairing.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// Round profile button in the corner of the start page and the waiting
 /// room. Opens the account: who you play as, securing or signing in, and
@@ -43,7 +45,10 @@ class AccountSheet extends StatefulWidget {
         backgroundColor: Colors.transparent,
         insetPadding: const EdgeInsets.all(16),
         child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 560, maxHeight: 760),
+          constraints: BoxConstraints(
+            maxWidth: onTv ? 1100 : 560,
+            maxHeight: 760,
+          ),
           // Picking another language below redraws the whole sheet in it.
           child: ValueListenableBuilder<AppLang>(
             valueListenable: L10n.lang,
@@ -156,6 +161,118 @@ class _AccountSheetState extends State<AccountSheet> {
   @override
   Widget build(BuildContext context) {
     final accounts = _game.accounts;
+    // Name, language and controllers, then the account itself.
+    final left = <Widget>[
+      TextField(
+        controller: _name,
+        maxLength: 16,
+        decoration: InputDecoration(
+          labelText: tr('RUFNAME', 'CALL SIGN'),
+          helperText: tr(
+            'Öffentlich sichtbar, zum Beispiel in der '
+                'Bestenliste',
+            'Publicly visible, for example on the leaderboard',
+          ),
+        ),
+        onChanged: _rename,
+      ),
+      const SizedBox(height: 12),
+      Text(
+        tr('SPRACHE', 'LANGUAGE'),
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 8),
+      // The game keeps the choice with the account, so it
+      // comes along to every device.
+      ChoiceRow<AppLang>(
+        options: [
+          for (final lang in AppLang.values)
+            (lang, lang.label.toUpperCase(), null),
+        ],
+        selected: L10n.current,
+        onSelected: (lang) {
+          if (lang != null) {
+            unawaited(L10n.set(lang));
+          }
+        },
+      ),
+      const SizedBox(height: 16),
+      ControllerSection(game: _game),
+    ];
+    final right = <Widget>[
+      if (Env.accounts)
+        AccountPanel(
+          accounts: accounts,
+          onCallSign: _game.claimCallSign,
+          callSign: _game.myName,
+          onSignedOut: () => Navigator.of(context).pop(),
+          initiallyOpen: true,
+        )
+      else
+        Text(
+          tr(
+            'Du spielst als Gast, ohne Wertung.',
+            'You play as a guest, without ranking.',
+          ),
+        ),
+      // A guest has nothing lasting to delete, signing in or
+      // securing the account above is what they are offered.
+      ValueListenableBuilder(
+        valueListenable: accounts.user,
+        builder: (context, _, _) => accounts.isGuest
+            ? const SizedBox.shrink()
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: 20),
+                  Text(
+                    tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    tr(
+                      'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
+                          'Spielständen und deinem Rufnamen. Danach spielst du als '
+                          'neuer Gast weiter.',
+                      'Deletes your account with rank, rating, badges, all '
+                          'saved games and your call sign. Afterwards you '
+                          'carry on as a new guest.',
+                    ),
+                    style: const TextStyle(
+                      color: BwColors.textDim,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: BwColors.danger,
+                      side: const BorderSide(color: BwColors.danger),
+                    ),
+                    onPressed: _busy ? null : _delete,
+                    icon: _busy
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_forever),
+                    label: Text(tr('KONTO LÖSCHEN', 'DELETE ACCOUNT')),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      _error!,
+                      style: const TextStyle(color: BwColors.danger),
+                    ),
+                  ],
+                ],
+              ),
+      ),
+      const SizedBox(height: 12),
+      const LegalLinks(),
+    ];
     return Panel(
       padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
       child: Column(
@@ -179,133 +296,26 @@ class _AccountSheetState extends State<AccountSheet> {
             ],
           ),
           Flexible(
-            child: SingleChildScrollView(
+            child: FitOrScroll(
               padding: const EdgeInsets.only(right: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  TextField(
-                    controller: _name,
-                    maxLength: 16,
-                    decoration: InputDecoration(
-                      labelText: tr('RUFNAME', 'CALL SIGN'),
-                      helperText: tr(
-                        'Öffentlich sichtbar, zum Beispiel in der '
-                            'Bestenliste',
-                        'Publicly visible, for example on the leaderboard',
-                      ),
-                    ),
-                    onChanged: _rename,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    tr('SPRACHE', 'LANGUAGE'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 8),
-                  // The game keeps the choice with the account, so it
-                  // comes along to every device.
-                  ChoiceRow<AppLang>(
-                    options: [
-                      for (final lang in AppLang.values)
-                        (lang, lang.label.toUpperCase(), null),
-                    ],
-                    selected: L10n.current,
-                    onSelected: (lang) {
-                      if (lang != null) {
-                        unawaited(L10n.set(lang));
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  ControllerSection(game: _game),
-                  const SizedBox(height: 16),
-                  if (Env.accounts)
-                    AccountPanel(
-                      accounts: accounts,
-                      onCallSign: _game.claimCallSign,
-                      callSign: _game.myName,
-                      onSignedOut: () => Navigator.of(context).pop(),
-                      initiallyOpen: true,
+              // The television has the width for two columns.
+              child: onTv
+                  ? Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _column(left)),
+                        const SizedBox(width: 28),
+                        Expanded(child: _column(right)),
+                      ],
                     )
-                  else
-                    Text(
-                      tr(
-                        'Du spielst als Gast, ohne Wertung.',
-                        'You play as a guest, without ranking.',
-                      ),
-                    ),
-                  // A guest has nothing lasting to delete, signing in or
-                  // securing the account above is what they are offered.
-                  ValueListenableBuilder(
-                    valueListenable: accounts.user,
-                    builder: (context, _, _) => accounts.isGuest
-                        ? const SizedBox.shrink()
-                        : Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 20),
-                              Text(
-                                tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                tr(
-                                  'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
-                                      'Spielständen und deinem Rufnamen. Danach spielst du als '
-                                      'neuer Gast weiter.',
-                                  'Deletes your account with rank, rating, badges, all '
-                                      'saved games and your call sign. Afterwards you '
-                                      'carry on as a new guest.',
-                                ),
-                                style: const TextStyle(
-                                  color: BwColors.textDim,
-                                  fontSize: 13,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: BwColors.danger,
-                                  side: const BorderSide(
-                                    color: BwColors.danger,
-                                  ),
-                                ),
-                                onPressed: _busy ? null : _delete,
-                                icon: _busy
-                                    ? const SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.delete_forever),
-                                label: Text(
-                                  tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
-                                ),
-                              ),
-                              if (_error != null) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  _error!,
-                                  style: const TextStyle(
-                                    color: BwColors.danger,
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                  ),
-                  const SizedBox(height: 12),
-                  const LegalLinks(),
-                ],
-              ),
+                  : _column([...left, const SizedBox(height: 16), ...right]),
             ),
           ),
         ],
       ),
     );
   }
+
+  static Widget _column(List<Widget> children) =>
+      Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
 }

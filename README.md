@@ -464,7 +464,14 @@ sharing and no QR scanning on the watch.
 3.47.6, no account needed). It runs the same `lib/main.dart` and the same
 screens as the browser, drawn larger (`tvScale`), and shares the bundle id
 `de.regetskcob.wargame` with the iOS app, so both can be one universal
-purchase. State: first version, tried in the Apple TV Simulator only.
+purchase. Icon, top shelf and launch screen come from the layers of the app
+icon (`store/tool/tv_icons.py`). State: tried in the Apple TV Simulator only.
+
+Nothing scrolls on the television. The menus use its width: the start page puts
+the controllers, the phone pairing and the leaderboard in a column beside the
+four ways to play, the account sheet has two columns, and a page that is still
+too tall shrinks to fit (`FitOrScroll`) instead of scrolling. Only the legal
+texts scroll.
 
 It plays with the Siri Remote or a game controller, whichever is in hand:
 
@@ -484,16 +491,32 @@ the screen saver away. The menus take the arrow keys and enter the engine makes
 of swipes and presses: up and down walk them in reading order, an amber frame
 (`lib/src/tv/tv_focus_frame.dart`) shows the focus, and Menu or B steps back
 from the settings to the waiting room to the start page and leaves the app only
-from there. In a round they do nothing. The Apple TV can also pair a phone as
-its controller, like the browser. No camera, so no QR scanning, and no room
-links.
+from there. In a round they do nothing. The Apple TV can also pair phones as
+controllers, like the browser: the first steers the game, a second waits for a
+duel. No camera, so no QR scanning, and no room links. The briefing explains
+the controls of what is in hand, the controller or the Siri Remote, and
+switches when another one is picked up. The menus sit in the middle of the
+screen.
+
+**Duel:** with two players in, each with a controller, a phone or the Siri
+Remote (handed out in that order, the remote last), the start page offers a
+duel, one against one in defense on a split screen
+(`lib/src/tv/duel_view.dart`). Each half is a game of its own in a private room,
+both start from the same seed at the same moment, so both players face the same
+map and the same waves with a base of their own. After the last regular wave
+both go on by themselves, and whose base falls first loses. A frame in the
+player's colour and another paint on the second tank tell the halves apart.
+Two phones scan the same pairing code, the screen routes each to its half and
+tells each about its own tank only. Duels are unranked:
+both players share the account of the Apple TV. Menu or B asks whether to end
+the duel, at the end come rematch or back.
 
 ```sh
 export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
 flutter-tvos build tvos --debug --simulator  # debug, Simulator only
 flutter-tvos run -d <apple-tv-simulator-id>  # hot reload
 flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
-python3 tool/gen_tv_icons.py                 # icon layers and top shelf
+python3 store/tool/tv_icons.py               # icon layers, top shelf, launch image
 ```
 
 Use `onTv` from `lib/src/tv/tv_input.dart` to branch for the Apple TV, never

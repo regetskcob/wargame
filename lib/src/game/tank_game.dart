@@ -161,6 +161,10 @@ class TankGame extends FlameGame
   late final _watchSteering = WatchSteering(touch);
   late final _tvSteering = TvSteering(this);
 
+  /// Which controller of the Apple TV steers here: the first, in a duel
+  /// the one of the half, -1 for none when a phone steers the half.
+  int tvPlayer = 0;
+
   /// Mouse position in widget pixels, null until a mouse is seen. The turret
   /// follows it.
   Vector2? pointer;

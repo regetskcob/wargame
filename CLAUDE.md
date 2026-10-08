@@ -54,7 +54,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Netz | `lib/src/net/net_service.dart` (Kanal, `_listen`), `room_web.dart`/`room_stub.dart`, `pad_link.dart` |
 | UI / Overlays | `lib/src/ui/` (`hud_overlay.dart`, `lobby_overlay.dart`, `launch_view.dart`, `welcome_view.dart`), Overlay-IDs in `app/overlay_ids.dart` |
 | Watch | `lib/src/watch/`, verzweigen nur mit `FlutterWatchosPlatform.isWatch` |
-| Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
+| Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, Duell im Split-Screen), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |

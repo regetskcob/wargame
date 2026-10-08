@@ -9,7 +9,10 @@ extension TankGameRound on TankGame {
     mapName.value = theme.name;
   }
 
-  void startRound() {
+  /// Starts a round. A duel on the Apple TV hands both of its games the
+  /// same [seed] and [startedAt], so both play the same map and waves at
+  /// the same time.
+  void startRound({int? seed, int? startedAt}) {
     if (phase.value != GamePhase.lobby || !canStart) {
       return;
     }
@@ -40,13 +43,16 @@ extension TankGameRound on TankGame {
       ..addAll(bots.keys)
       ..sort();
     final payload = RoundStartPayload(
-      seed: switch (mapChoice.value) {
-        final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
-        null => Random().nextInt(1 << 30),
-      },
+      seed:
+          seed ??
+          switch (mapChoice.value) {
+            final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
+            null => Random().nextInt(1 << 30),
+          },
       startedAt:
+          startedAt ??
           DateTime.now().millisecondsSinceEpoch +
-          GameConfig.countdownSeconds * 1000,
+              GameConfig.countdownSeconds * 1000,
       participants: ids,
       teams: defending ? const {} : _assignTeams(ids),
       bots: bots,

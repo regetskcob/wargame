@@ -30,7 +30,8 @@ class _TvFocusFrameState extends State<TvFocusFrame>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker;
   Rect? _rect;
-  Duration _lastMove = Duration.zero;
+  FocusNode? _stuck;
+  Duration _stuckSince = Duration.zero;
 
   @override
   void initState() {
@@ -71,11 +72,16 @@ class _TvFocusFrameState extends State<TvFocusFrame>
     if (rect != _rect) {
       setState(() => _rect = rect);
     }
-    // Pages and sheets build their buttons a frame later: try now and then.
-    if (rect == null &&
-        !widget.holdFocus() &&
-        elapsed - _lastMove > const Duration(milliseconds: 300)) {
-      _lastMove = elapsed;
+    // Only once the focus has sat on nothing to press for a moment: pages
+    // and sheets build their buttons a frame later, and a page that hands
+    // the focus to a button of its choice gets to do so first.
+    if (rect != null || widget.holdFocus()) {
+      _stuck = null;
+    } else if (!identical(node, _stuck)) {
+      _stuck = node;
+      _stuckSince = elapsed;
+    } else if (elapsed - _stuckSince > const Duration(milliseconds: 250)) {
+      _stuckSince = elapsed;
       // Traversal needs a node that still sits in the tree.
       if (node != null && node.context != null && node.context!.mounted) {
         node.nextFocus();

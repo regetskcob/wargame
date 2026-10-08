@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game/tank_game.dart';
 import 'theme.dart';
+import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
 
@@ -17,7 +18,7 @@ class ClosedOverlay extends StatelessWidget {
       color: const Color(0xAA000000),
       child: SafeArea(
         child: Center(
-          child: SingleChildScrollView(
+          child: FitOrScroll(
             padding: const EdgeInsets.all(16),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 440),

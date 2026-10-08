@@ -6,10 +6,10 @@ import UIKit
 /// game controllers through GameController and streams what they hold to
 /// Dart, about sixty times a second while something changes.
 ///
-/// A controller with two sticks wins over the remote, so whoever picks one
-/// up steers with it right away. The remote's touch surface reports where
-/// the thumb rests, from -1 to 1 on both axes, which the game reads as a
-/// stick.
+/// Every controller is reported on its own, controllers with two sticks
+/// first: whoever picks one up steers with it right away, and two of them
+/// play a duel. The remote's touch surface reports where the thumb rests,
+/// from -1 to 1 on both axes, which the game reads as a stick.
 ///
 /// The menus do not need this: the engine turns swipes, the select button
 /// and the controller's pad and A into arrow keys and enter for Flutter's
@@ -70,19 +70,22 @@ class GamepadPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   }
 
   /// The remote reports where the thumb rests instead of how far it moved,
-  /// and keeps its axes the same way up however it is held.
+  /// and keeps its axes the same way up however it is held. Every pad gets
+  /// its player number, which lights up on controllers that have lights.
   @objc private func controllersChanged() {
-    for controller in GCController.controllers() {
+    for (index, controller) in Self.ordered().enumerated() {
       if let micro = controller.microGamepad, controller.extendedGamepad == nil {
         micro.reportsAbsoluteDpadValues = true
         micro.allowsRotation = false
       }
+      controller.playerIndex =
+        GCControllerPlayerIndex(rawValue: min(index, 3)) ?? .indexUnset
     }
     last = [:]
   }
 
   @objc private func tick() {
-    let state = Self.read()
+    let state: [String: AnyHashable] = ["pads": Self.ordered().map(Self.read)]
     if state == last {
       return
     }
@@ -90,11 +93,19 @@ class GamepadPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
     sink?(state)
   }
 
-  /// What the controller in charge holds right now. Stick axes point up with
-  /// positive y, as GameController has them.
-  private static func read() -> [String: AnyHashable] {
-    let controllers = GCController.controllers()
-    if let pad = controllers.lazy.compactMap({ $0.extendedGamepad }).first {
+  /// Controllers with two sticks first, in the order they came in, the Siri
+  /// Remote after them: the first one steers alone, the first two play a
+  /// duel.
+  private static func ordered() -> [GCController] {
+    let all = GCController.controllers()
+    return all.filter { $0.extendedGamepad != nil }
+      + all.filter { $0.extendedGamepad == nil && $0.microGamepad != nil }
+  }
+
+  /// What one controller holds right now. Stick axes point up with positive
+  /// y, as GameController has them.
+  private static func read(_ controller: GCController) -> [String: AnyHashable] {
+    if let pad = controller.extendedGamepad {
       return [
         "kind": "gamepad",
         "lx": Double(pad.leftThumbstick.xAxis.value),
@@ -115,16 +126,14 @@ class GamepadPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
         "right": pad.dpad.right.isPressed,
       ]
     }
-    if let remote = controllers.lazy.compactMap({ $0.microGamepad }).first {
-      return [
-        "kind": "remote",
-        "lx": Double(remote.dpad.xAxis.value),
-        "ly": Double(remote.dpad.yAxis.value),
-        // The click of the touch surface, and play/pause.
-        "a": remote.buttonA.isPressed,
-        "x": remote.buttonX.isPressed,
-      ]
-    }
-    return ["kind": "none"]
+    let remote = controller.microGamepad!
+    return [
+      "kind": "remote",
+      "lx": Double(remote.dpad.xAxis.value),
+      "ly": Double(remote.dpad.yAxis.value),
+      // The click of the touch surface, and play/pause.
+      "a": remote.buttonA.isPressed,
+      "x": remote.buttonX.isPressed,
+    ]
   }
 }

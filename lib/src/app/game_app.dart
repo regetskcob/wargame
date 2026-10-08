@@ -28,6 +28,7 @@ import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
 import '../ui/tutorial/tutorial_overlay.dart';
+import '../tv/duel_view.dart';
 import '../tv/tv_focus_frame.dart';
 import '../tv/tv_input.dart';
 import '../ui/widgets/tablet_scale.dart';
@@ -168,6 +169,7 @@ class _GameAppState extends State<GameApp> {
       builder: onTv
           ? (context, child) => TvFocusFrame(
               holdFocus: () =>
+                  DuelView.running ||
                   game.phase.value == GamePhase.countdown ||
                   game.phase.value == GamePhase.playing,
               // Up and down walk the menus in reading order, so a swipe
@@ -265,10 +267,15 @@ class _GameAppState extends State<GameApp> {
                     OverlayIds.closed: (context, game) =>
                         ClosedOverlay(game: game),
                     OverlayIds.tutorial: (context, game) =>
-                        ValueListenableBuilder<bool>(
-                          valueListenable: game.touchMode,
-                          builder: (context, touch, _) => TutorialOverlay(
-                            touch: touch,
+                        // On the Apple TV the controls follow the controller
+                        // in hand.
+                        ListenableBuilder(
+                          listenable: Listenable.merge([
+                            game.touchMode,
+                            TvInput.instance.kind,
+                          ]),
+                          builder: (context, _) => TutorialOverlay(
+                            touch: game.touchMode.value,
                             onClose: game.closeTutorial,
                           ),
                         ),

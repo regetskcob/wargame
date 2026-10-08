@@ -37,6 +37,26 @@ void main() {
     expect(cy, lessThan(0));
   });
 
+  test('the controllers come in order, the first steers alone', () {
+    final input = TvInput.instance
+      ..receive({
+        'pads': [
+          {'kind': 'gamepad', 'lx': 1.0},
+          {'kind': 'remote'},
+        ],
+      });
+    expect(input.count.value, 2);
+    expect(input.kind.value, TvPadKind.gamepad);
+    expect(input.state.lx, 1.0);
+    expect(input.player(1).kind, TvPadKind.remote);
+    // A third player has nothing in hand.
+    expect(input.player(2).kind, TvPadKind.none);
+
+    input.receive({'pads': []});
+    expect(input.count.value, 0);
+    expect(input.state.kind, TvPadKind.none);
+  });
+
   test('every slot has a button and a label', () {
     expect(tvGamepadSlotButtons, hasLength(tvGamepadSlotLabels.length));
   });

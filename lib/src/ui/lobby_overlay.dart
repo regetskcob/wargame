@@ -17,6 +17,7 @@ import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
+import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
@@ -643,12 +644,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     if (narrow) {
       return _column([...left, ...right]);
     }
+    // Each column a group of its own: a remote walks down the left one
+    // before it moves on to the right.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _column(left)),
+        Expanded(child: FocusTraversalGroup(child: _column(left))),
         const SizedBox(width: 16),
-        Expanded(child: _column(right)),
+        Expanded(child: FocusTraversalGroup(child: _column(right))),
       ],
     );
   }
@@ -787,10 +790,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ? 2
                   : 3;
               // Starts at the top: short pages leave the room below them
-              // instead of floating in the middle of the screen.
+              // instead of floating in the middle of the screen. The
+              // television shows every page whole, there it sits in the
+              // middle.
               return Align(
-                alignment: Alignment.topCenter,
-                child: SingleChildScrollView(
+                alignment: onTv ? Alignment.center : Alignment.topCenter,
+                child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
                   key: ValueKey(page),
@@ -803,7 +808,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         )
                       : EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1040),
+                    // The television is wide: two columns where a browser
+                    // stacks, so the pages need no scrolling there.
+                    constraints: BoxConstraints(maxWidth: onTv ? 1320 : 1040),
                     child: _frame(
                       // Phones show the menu without the outer plate: the
                       // screen edge already frames it.
