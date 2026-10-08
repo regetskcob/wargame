@@ -73,6 +73,15 @@ Everything resolves from pub.dev. There are no git dependencies and no
   tougher enemies, a fifth step for guns and tank, a rocket launcher and a
   citadel, until the base falls (still a win) or the host pulls out.
   See [Defense thresholds](#defense-thresholds) for the numbers.
+- **Two on one screen:** on the Apple TV, in the browser and on an iPad,
+  with two controllers or phones. Single player, multiplayer and defense
+  play on a split screen, each half from its own tank; single player puts
+  both against the CPU tanks. Free of Realtime messages, see
+  [Apple TV](#apple-tv).
+- **Duel (two on one screen):** red against blue on a defense map, a base
+  at either end of the road. Each side's waves roll against the other's
+  base, guns and tanks fight the other side, and either player sends extra
+  tanks. Shown on the whole field at once, whose base falls first loses.
 
 ### On the battlefield
 
@@ -123,6 +132,10 @@ Everything resolves from pub.dev. There are no git dependencies and no
   shows the two sticks, the special weapon, the items and, in a defense
   round, the gun buttons, and feels hits as a buzz. Without the app the
   phone's browser does the same.
+- Game controllers: one steers the own tank in the browser, on an iPad and
+  on the Apple TV, as a paired phone does; two play two on one screen.
+- An Apple TV app, played with the Siri Remote or a controller, with menus
+  that fit the television without scrolling, see [Apple TV](#apple-tv).
 
 ### Weapons and damage
 
