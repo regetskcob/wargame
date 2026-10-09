@@ -133,11 +133,12 @@ class _RoomInviteState extends State<RoomInvite> {
             runSpacing: 8,
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              FilledButton.icon(
+              TextButton.icon(
                 onPressed: _copy,
-                // Narrower than the theme so the share icon fits beside it
-                // next to the QR code on a phone.
-                style: FilledButton.styleFrom(
+                // Plain sand like the share icon beside it, and narrow enough
+                // that both fit next to the QR code on a phone.
+                style: TextButton.styleFrom(
+                  foregroundColor: BwColors.sand,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   minimumSize: const Size(0, _buttonHeight),
                   maximumSize: const Size(double.infinity, _buttonHeight),

@@ -64,7 +64,7 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     final game = offlineGame()..mode.value = GameMode.multi;
     await show(tester, RoomInvite(game: game));
-    final copyButton = tester.getRect(find.byType(FilledButton));
+    final copyButton = tester.getRect(find.byType(TextButton));
     final private = tester.getRect(
       find
           .ancestor(of: find.text('PRIVAT'), matching: find.byType(Container))
