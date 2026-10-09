@@ -2,9 +2,10 @@
 
     python3 store/tool/compose.py <raw dir>
 
-Reads the raw simulator screenshots named in SHOTS from <raw dir> and writes
-the finished images to store/ios/screenshots/de-DE/ for the App Store and to
-store/android/metadata/android/de-DE/images/ for Google Play, plus the Play
+Reads the raw simulator screenshots named in SHOTS from <raw dir>/de-DE and
+<raw dir>/en-US and writes the finished images for each language to
+store/ios/screenshots/<lang>/ for the App Store and to
+store/android/metadata/android/<lang>/images/ for Google Play, plus the Play
 feature graphic. Needs Pillow.
 """
 
@@ -18,8 +19,16 @@ import app_icon
 
 ROOT = Path(__file__).resolve().parents[2]
 FONTS = ROOT / "assets" / "fonts"
-IOS = ROOT / "store" / "ios" / "screenshots" / "de-DE"
-PLAY = ROOT / "store" / "android" / "metadata" / "android" / "de-DE" / "images"
+LANGS = ("de-DE", "en-US")
+
+
+def ios_dir(lang):
+    return ROOT / "store" / "ios" / "screenshots" / lang
+
+
+def play_dir(lang):
+    return ROOT / "store" / "android" / "metadata" / "android" / lang / "images"
+
 
 BACKGROUND = (22, 28, 15)
 BLOB = (42, 53, 32)
@@ -27,28 +36,51 @@ EDGE = (138, 154, 91)
 SAND = (194, 168, 120)
 AMBER = (255, 179, 0)
 
-# (output name, raw file, canvas size, headline, subline)
+# (output name, raw file, canvas size, {lang: (headline, subline)})
 IPHONE = (1320, 2868)
 IPAD = (2752, 2064)
 IOS_SHOTS = [
-    ("iphone-01-gefecht", "i_b6", IPHONE, "PANZERGEFECHT",
-     "Der letzte Panzer im Feld gewinnt"),
-    ("iphone-02-verteidigung", "i_d4", IPHONE, "VERTEIDIGUNG",
-     "Haltet den Stützpunkt gegen 8 Wellen"),
-    ("iphone-03-geschuetze", "i_d6", IPHONE, "GESCHÜTZE BAUEN",
-     "Kanone, Flak und Mörser an der Straße"),
-    ("iphone-04-fahrzeuge", "i_lobby2", IPHONE, "8 FAHRZEUGE",
-     "Mit jedem Rang ein neues freigespielt"),
-    ("iphone-05-steuerung", "i_tut4", IPHONE, "ZWEI DAUMEN",
-     "Links fahren, rechts zielen, Zielhilfe an"),
-    ("iphone-06-modi", "i_menu", IPHONE, "DREI SPIELARTEN",
-     "Allein, gegeneinander oder gemeinsam"),
-    ("ipad-01-start", "p_1", IPAD, "DREI SPIELARTEN",
-     "Gegen CPU-Panzer, gegen andere oder gemeinsam gegen Wellen"),
-    ("ipad-02-verteidigung", "p_d6", IPAD, "VERTEIDIGUNG",
-     "Kameraden, Geschütze und Wetter, das die Sicht nimmt"),
-    ("ipad-03-warteraum", "p_2b", IPAD, "DEIN EINSATZ",
-     "Gelände, Tageszeit, Schwierigkeit und Fahrzeug wählen"),
+    ("iphone-01-gefecht", "i_battle", IPHONE, {
+        "de-DE": ("PANZERGEFECHT", "Der letzte Panzer im Feld gewinnt"),
+        "en-US": ("TANK BATTLE", "The last tank standing wins"),
+    }),
+    ("iphone-02-verteidigung", "i_defense", IPHONE, {
+        "de-DE": ("VERTEIDIGUNG", "Haltet den Stützpunkt gegen 8 Wellen"),
+        "en-US": ("DEFENSE", "Hold the base against 8 waves"),
+    }),
+    ("iphone-03-geschuetze", "i_guns", IPHONE, {
+        "de-DE": ("GESCHÜTZE BAUEN", "Kanone, Flak und Mörser an der Straße"),
+        "en-US": ("BUILD GUNS", "Cannon, flak and mortar by the road"),
+    }),
+    ("iphone-04-fahrzeuge", "i_lobby", IPHONE, {
+        "de-DE": ("8 FAHRZEUGE", "Mit jedem Rang ein neues freigespielt"),
+        "en-US": ("8 VEHICLES", "A new one with every rank"),
+    }),
+    ("iphone-05-steuerung", "i_controls", IPHONE, {
+        "de-DE": ("ZWEI DAUMEN", "Links fahren, rechts zielen, Zielhilfe an"),
+        "en-US": ("TWO THUMBS", "Drive left, aim right, aim assist on"),
+    }),
+    ("iphone-06-modi", "i_menu", IPHONE, {
+        "de-DE": ("DREI SPIELARTEN", "Allein, gegeneinander oder gemeinsam"),
+        "en-US": ("3 WAYS TO PLAY", "Alone, against others or together"),
+    }),
+    ("ipad-01-gefecht", "p_battle", IPAD, {
+        "de-DE": ("PANZERGEFECHT",
+                  "Gegen CPU-Panzer oder andere, in Stadt, Wüste und Winter"),
+        "en-US": ("TANK BATTLE",
+                  "Against CPU tanks or others, in town, desert and snow"),
+    }),
+    ("ipad-02-verteidigung", "p_defense", IPAD, {
+        "de-DE": ("VERTEIDIGUNG",
+                  "Kameraden, Geschütze und ein Stützpunkt, der wächst"),
+        "en-US": ("DEFENSE", "Comrades, guns and a base that grows"),
+    }),
+    ("ipad-03-warteraum", "p_room", IPAD, {
+        "de-DE": ("DEIN EINSATZ",
+                  "Freunde per Code oder QR-Code einladen, Fahrzeug wählen"),
+        "en-US": ("YOUR MISSION",
+                  "Invite friends by code or QR code, pick your vehicle"),
+    }),
 ]
 
 # Google Play wants no side longer than twice the other, which rules out the
@@ -59,14 +91,14 @@ SMALL_TABLET = (1920, 1200)
 
 
 PLAY_SHOTS = [
-    ("phoneScreenshots/" + name.removeprefix("iphone-"), raw, PHONE, head, sub)
+    ("phoneScreenshots/" + name.removeprefix("iphone-"), raw, PHONE, text)
     if size == IPHONE else
-    ("tenInchScreenshots/" + name.removeprefix("ipad-"), raw, TABLET, head, sub)
-    for name, raw, size, head, sub in IOS_SHOTS
+    ("tenInchScreenshots/" + name.removeprefix("ipad-"), raw, TABLET, text)
+    for name, raw, size, text in IOS_SHOTS
 ] + [
     ("sevenInchScreenshots/" + name.removeprefix("ipad-"), raw, SMALL_TABLET,
-     head, sub)
-    for name, raw, size, head, sub in IOS_SHOTS
+     text)
+    for name, raw, size, text in IOS_SHOTS
     if size == IPAD
 ]
 
@@ -74,14 +106,27 @@ PLAY_SHOTS = [
 # does not take the 6.9" shots there.
 IPHONE_63 = (1206, 2622)
 IOS_63_SHOTS = [
-    (name.replace("iphone-", "iphone63-"), raw, IPHONE_63, head, sub)
-    for name, raw, size, head, sub in IOS_SHOTS
+    (name.replace("iphone-", "iphone63-"), raw, IPHONE_63, text)
+    for name, raw, size, text in IOS_SHOTS
     if size == IPHONE
 ]
 
-SHOTS = [(IOS / name, *rest) for name, *rest in IOS_SHOTS + IOS_63_SHOTS] + [
-    (PLAY / name, *rest) for name, *rest in PLAY_SHOTS
+SHOTS = [
+    (lang, ios_dir(lang) / name, raw, size, *text[lang])
+    for lang in LANGS
+    for name, raw, size, text in IOS_SHOTS + IOS_63_SHOTS
+] + [
+    (lang, play_dir(lang) / name, raw, size, *text[lang])
+    for lang in LANGS
+    for name, raw, size, text in PLAY_SHOTS
 ]
+
+FEATURE = {
+    "de-DE": ("Panzerduelle und Verteidigung",
+              "Allein, gegeneinander, gemeinsam"),
+    "en-US": ("Tank duels and tower defense",
+              "Alone, against others, together"),
+}
 
 
 def font(name, size):
@@ -129,7 +174,7 @@ def frame(shot, height):
     return out
 
 
-def compose(out, raw, size, headline, subline, raw_dir):
+def compose(lang, out, raw, size, headline, subline, raw_dir):
     w, h = size
     portrait = h > w
     canvas = backdrop(size, out.name)
@@ -141,7 +186,7 @@ def compose(out, raw, size, headline, subline, raw_dir):
     sub_y = top + head.size * 1.25
     draw.text((w / 2, sub_y), subline, font=sub, fill=AMBER, anchor="ma")
 
-    shot = Image.open(raw_dir / f"{raw}.png")
+    shot = Image.open(raw_dir / lang / f"{raw}.png")
     if shot.height > shot.width:
         # Drops the status strip with the cut-out of the Dynamic Island, the
         # game draws nothing there.
@@ -155,7 +200,7 @@ def compose(out, raw, size, headline, subline, raw_dir):
     save(canvas, out)
 
 
-def feature_graphic():
+def feature_graphic(lang):
     """The 1024 x 500 banner Google Play shows above the screenshots."""
     w, h = 1024, 500
     canvas = backdrop((w, h), "feature")
@@ -166,15 +211,14 @@ def feature_graphic():
     tank = layer.crop(box).resize(size, Image.LANCZOS)
     canvas.paste(tank, (70, (h - tank.height) // 2), tank)
     draw = ImageDraw.Draw(canvas)
-    head = font("Roboto-Black.ttf", 92)
+    head = font("Roboto-Black.ttf", 60)
     sub = font("Roboto-Medium.ttf", 34)
     centre = 70 + tank.width + (w - 70 - tank.width) / 2
-    spaced(draw, (centre, 150), "WARGAME", head, SAND, 7)
-    draw.text((centre, 270), "Panzerduelle und Verteidigung", font=sub,
-              fill=AMBER, anchor="ma")
-    draw.text((centre, 320), "Allein, gegeneinander, gemeinsam", font=sub,
-              fill=EDGE, anchor="ma")
-    save(canvas, PLAY / "featureGraphic")
+    spaced(draw, (centre, 150), "PANZERGEFECHT", head, SAND, 5)
+    line1, line2 = FEATURE[lang]
+    draw.text((centre, 270), line1, font=sub, fill=AMBER, anchor="ma")
+    draw.text((centre, 320), line2, font=sub, fill=EDGE, anchor="ma")
+    save(canvas, play_dir(lang) / "featureGraphic")
 
 
 def save(canvas, out):
@@ -187,4 +231,5 @@ if __name__ == "__main__":
     source = Path(sys.argv[1])
     for entry in SHOTS:
         compose(*entry, source)
-    feature_graphic()
+    for lang in LANGS:
+        feature_graphic(lang)

@@ -43,8 +43,18 @@ python3 store/tool/android_icons.py
 
 ## Screenshots neu erzeugen
 
-Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) in
-einen Ordner legen, die Namen stehen in `SHOTS` in `../tool/compose.py`:
+Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) je
+Sprache in `<ordner>/de-DE` und `<ordner>/en-US` legen, die Namen stehen in
+`SHOTS` in `../tool/compose.py`. Die Sprache stellt man im Spiel im Konto um.
+Der Simulator meldet einen eigenen Gamecontroller, der die Touch-Sticks
+ausblendet; mit `-ignoreGamepads YES` gestartet spielt die App wie auf einem
+Handy ohne Controller:
+
+```sh
+xcrun simctl launch <sim-id> de.regetskcob.wargame -ignoreGamepads YES
+```
+
+Daraus entstehen beide Sprachsätze für App Store und Google Play:
 
 ```sh
 pip3 install --user pillow

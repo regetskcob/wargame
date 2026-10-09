@@ -98,6 +98,12 @@ class GamepadPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   /// Remote after them: the first one steers alone, the first two play a
   /// duel.
   private static func ordered() -> [GCController] {
+    // The Simulator brings a virtual gamepad of its own, which hides the
+    // touch sticks. Launched with `-ignoreGamepads YES` (store screenshots)
+    // the app plays as on a phone without a controller.
+    if UserDefaults.standard.bool(forKey: "ignoreGamepads") {
+      return []
+    }
     let all = GCController.controllers()
     return all.filter { $0.extendedGamepad != nil }
       + all.filter { $0.extendedGamepad == nil && $0.microGamepad != nil }
