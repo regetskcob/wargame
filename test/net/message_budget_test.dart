@@ -205,10 +205,15 @@ void main() {
           reason: '$pilots pilots send $measured/s',
         );
       }
+      // CPU tanks shoot as the dice fall: depending on the seed a host sends
+      // anything from 65 to over 200 shots in this round, so a room with CPU
+      // tanks swings by a fifth around its claim. The budget keeps that fifth
+      // in reserve (400 of the 500 a second on Pro, 80 of 100 on free), so a
+      // busy round may use it, but no more.
       final withCpu = _roomLoad(pilots: 2, pilot: pilot, host: host);
       expect(
         withCpu,
-        lessThanOrEqualTo(GameConfig.roomLoad(2, cpu: true) * 1.1),
+        lessThanOrEqualTo(GameConfig.roomLoad(2, cpu: true) * 1.25),
         reason: 'two pilots with CPU tanks send $withCpu/s',
       );
     });

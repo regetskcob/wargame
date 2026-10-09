@@ -1,24 +1,30 @@
 Panzergefecht is a fast top-down tank duel. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
 
-THREE WAYS TO PLAY
-• Single player: you against up to four CPU tanks on three difficulty levels, rolled anew every round.
-• Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. Open rooms are listed in the room list, CPU tanks fill up on request. Browser and app play in the same room.
-• Defense: hold the base together against eight waves, then carry on if you like until it falls. Enemies roll down the road, from the second wave they also come through the air. Every kill earns funds for cannon, flak, mortar, howitzer and trenches as well as upgrades for your tank.
+FOUR WAYS TO PLAY
+• Single player: you against up to four CPU tanks on three levels. Easy is flat with no supply worries, on normal and hard the land gets hilly and fuel and shells must be found.
+• Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. Open rooms are listed in the room list, CPU tanks fill up on request, late joiners watch. Browser and app play in the same room.
+• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Build cannon, flak, mortar and howitzer, dig trenches and upgrade your tank. A base that holds grows from a watchtower to a citadel, and after wave 8 you can carry on endlessly.
+• Two on one screen: split screen on the iPad with two controllers or phones, plus the duel, where two bases fight each other.
 
 EIGHT VEHICLES
-From the nimble weapon carrier to the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
+From the nimble weapon carrier to infantry fighting vehicles, anti-aircraft and the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
 
-TERRAIN AND WEATHER
-Training ground, desert, winter and city, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
+TERRAIN, WEATHER AND WEAPONS
+Training ground, desert, winter and city, by day or night. Rain, snow, fog and sandstorms limit your view, rivers and bridges shape the battle, houses and trees can be shot down, the closed zone slowly shrinks. Crates and gems bring repair, smoke, shield, mines, artillery, a grenade launcher, a mortar, a kamikaze drone, paratroopers and an air strike.
 
-MADE FOR TOUCH
+MADE FOR TOUCH AND CONTROLLERS
 • Two sticks that appear wherever your thumb lands
 • Aim assist that turns the turret to the nearest enemy
 • Playable in portrait and landscape, on iPhone and iPad
+• Game controllers are supported
+• Scan a QR code and your iPhone becomes the controller for the game in the browser or on the iPad
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
+Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, Elo rating and badges on every device. There is an all time and a weekly leaderboard, statistics per vehicle, a replay of the last round and a rematch button. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
+
+AT A GLANCE
+A widget shows who is online, a Live Activity the running round.
 
 No ads, no in-app purchases, no tracking.
 
