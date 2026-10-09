@@ -9,7 +9,6 @@ import '../../net/room_code.dart';
 import '../../net/room_directory.dart';
 import '../theme.dart';
 import 'room_scanner.dart';
-import 'square_icon_button.dart';
 import '../../l10n/l10n.dart';
 import '../../tv/tv_input.dart';
 
@@ -82,8 +81,24 @@ class _RoomListState extends State<RoomList> {
           },
         ),
         const SizedBox(height: 10),
+        // Scan, code and join without frames, so only the field stands out.
         Row(
           children: [
+            // The apps read the QR code of a waiting room with the camera. In
+            // the browser the phone camera opens the room link by itself, and
+            // the Apple TV has no camera.
+            if (!kIsWeb && !onTv) ...[
+              IconButton(
+                onPressed: _scan,
+                tooltip: tr('QR-Code scannen', 'Scan QR code'),
+                color: BwColors.sand,
+                icon: Icon(
+                  Icons.qr_code_scanner,
+                  semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
             Expanded(
               child: TextField(
                 controller: _code,
@@ -96,22 +111,12 @@ class _RoomListState extends State<RoomList> {
                 onSubmitted: _join,
               ),
             ),
-            const SizedBox(width: 8),
-            OutlinedButton(
+            const SizedBox(width: 4),
+            TextButton(
               onPressed: () => _join(_code.text),
+              style: TextButton.styleFrom(foregroundColor: BwColors.sand),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
-            // The apps read the QR code of a waiting room with the camera. In
-            // the browser the phone camera opens the room link by itself, and
-            // the Apple TV has no camera.
-            if (!kIsWeb && !onTv) ...[
-              const SizedBox(width: 8),
-              SquareIconButton(
-                icon: Icons.qr_code_scanner,
-                tooltip: tr('QR-Code scannen', 'Scan QR code'),
-                onPressed: _scan,
-              ),
-            ],
           ],
         ),
       ],
