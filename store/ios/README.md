@@ -22,7 +22,8 @@ in App Store Connect einfügen.
 | iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/<sprache>/iphone63-*.png` |
 | iPad 13" (2752 × 2064) | `screenshots/<sprache>/ipad-*.png` |
 | Apple Watch Ultra 4 (422 × 514), von Hand hochladen | `watch/<sprache>/watch-*.png` |
-| Kopfzeile (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png` |
+| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPad zwischen zwei iPhones |
+| Kopfzeile, Tab „Suchergebnisse“ (dieselben Größen), von Hand hochladen | `header/<sprache>/search-*.png`: iPhone, iPad und Watch nebeneinander |
 
 `<sprache>` ist `de-DE` oder `en-US`. Watch-Bilder und Kopfzeile liegen
 außerhalb von `screenshots/`, weil `fastlane deliver` diesen Ordner hochlädt

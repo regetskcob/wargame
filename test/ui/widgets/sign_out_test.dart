@@ -49,8 +49,7 @@ void main() {
   }
 
   testWidgets('signing out closes the dialog and starts over on the '
-      'welcome page', (tester) async {
-    rememberGuest();
+      'start page', (tester) async {
     final accounts = FakeAccounts();
     await open(tester, accounts);
 
@@ -60,21 +59,16 @@ void main() {
     expect(accounts.signOuts, 1);
     expect(find.byType(AccountPanel), findsNothing, reason: 'dialog open');
     expect(switches, [true], reason: 'the game has to start over');
-    expect(prefersGuest(), isFalse, reason: 'the guest choice must go');
     expect(
-      needsWelcome(
-        accounts: true,
-        guest: accounts.isGuest,
-        prefersGuest: prefersGuest(),
-      ),
-      isTrue,
+      needsWelcome(accounts: true, guest: accounts.isGuest),
+      isFalse,
+      reason: 'signed out lands on the start page, not the welcome page',
     );
   });
 
   testWidgets('a failed sign-out stays in the dialog and says so', (
     tester,
   ) async {
-    rememberGuest();
     final accounts = FakeAccounts(fails: true);
     await open(tester, accounts);
 
@@ -84,34 +78,21 @@ void main() {
     expect(find.byType(AccountPanel), findsOneWidget);
     expect(find.textContaining('offline'), findsOneWidget);
     expect(switches, isEmpty);
-    expect(prefersGuest(), isTrue);
   });
 
-  test('the welcome page asks only signed-out players who did not pick the '
-      'guest', () {
+  test('everybody starts on the start page, the welcome page only follows '
+      'a failed mail link', () {
+    expect(needsWelcome(accounts: true, guest: true), isFalse);
     expect(
-      needsWelcome(accounts: true, guest: true, prefersGuest: false),
+      needsWelcome(accounts: true, guest: true, mailLinkFailed: true),
       isTrue,
     );
     expect(
-      needsWelcome(accounts: true, guest: true, prefersGuest: true),
+      needsWelcome(accounts: true, guest: false, mailLinkFailed: true),
       isFalse,
     );
     expect(
-      needsWelcome(
-        accounts: true,
-        guest: true,
-        prefersGuest: true,
-        mailLinkFailed: true,
-      ),
-      isTrue,
-    );
-    expect(
-      needsWelcome(accounts: true, guest: false, prefersGuest: false),
-      isFalse,
-    );
-    expect(
-      needsWelcome(accounts: false, guest: true, prefersGuest: false),
+      needsWelcome(accounts: false, guest: true, mailLinkFailed: true),
       isFalse,
     );
   });

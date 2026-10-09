@@ -86,8 +86,8 @@ is no server of our own.
 
    Accounts are switched on by the build flag `--dart-define=ACCOUNTS=true`,
    which the `pages` workflow sets when the repository variable `ACCOUNTS`
-   is `true` (it is for the live game). Without it the game skips the
-   welcome page and everybody plays as a guest. For accounts the project
+   is `true` (it is for the live game). Without it everybody plays as a
+   guest without a way to sign in. For accounts the project
    needs:
 
    - Authentication, URL Configuration: the URL of the game as Site URL,
