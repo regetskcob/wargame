@@ -252,6 +252,7 @@ class PlayerTank extends TankBase
         stats.speed *
         speedFactor *
         (carriesFlag ? GameConfig.flagCarrierSpeed : 1) *
+        gameRef.tankSpeedScale *
         engineFactor *
         damage.speedFactor *
         slope *

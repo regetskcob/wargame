@@ -17,6 +17,17 @@ apps have no mute button: the sounds follow the silent switch and the volume
 keys, and mix with music from other apps. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
+While the app starts it reaches the server before the start page shows.
+The launch screen shows the tank of the app icon on a calm version of its
+ground, and `LoadingView` (`lib/src/ui/loading_view.dart`) keeps exactly
+that with a spinner below, from the first Flutter frame until the game has
+loaded; the web page shows the same from `web/index.html` before Flutter
+starts. Android draws only the ground colour behind the tank
+(`@color/launch_ground`); since Android 12 the system splash shows the tank
+as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
+does. `python3 store/tool/launch_screen.py` draws the images for all of
+them (iOS image sets, Android drawables, `assets/images/`, `web/`).
+
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:
 
@@ -67,9 +78,16 @@ left or wave, armour, magazine, up to three inventory items, in a defense
 round a button to build a gun), and an end screen. The Digital Crown scrolls
 the menus. In a round it steers: the tank drives all the time and fires by
 itself at the nearest enemy (the aim assist, on hard the gun fires straight
-ahead), and turning the crown turns the direction of travel, one crown
-revolution for one tank revolution (`WatchSteering.radiansPerCrownUnit`, to be
-tuned on a real watch). The watch plays as a guest, signing in takes the phone.
+ahead), and turning the crown turns the direction of travel. The crown reports scroll
+distance with the system's acceleration (about 0.75 per detent, thousands for
+a flick), so `WatchSteering.steer` takes its logarithm: a detent corrects by
+about two degrees, a quick turn swings at full speed. The heading stays within
+`maxLead` of the hull, so the tank never overshoots far or turns the wrong way
+round. Measured in the watch Simulator through Device Hub, still to be tried
+on a real watch. The watch camera looks 12 % closer than the phone's
+(`GameConfig.watchZoom`), and in a solo round every tank tops out 15 % slower
+(`GameConfig.watchSoloSpeed`), since the crown steers slower than a thumb;
+shared rounds keep the same speed for all. The watch plays as a guest, signing in takes the phone.
 The app icon is the one of the phone app.
 
 ```sh

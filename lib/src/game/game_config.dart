@@ -16,6 +16,15 @@ class GameConfig {
   /// the road, the guns and where the next wave comes from.
   static const defenseViewShortSide = 1150.0;
 
+  /// The watch looks a bit closer: on its small screen tanks and shells at
+  /// the phone's distance are hard to make out.
+  static const watchZoom = 1.12;
+
+  /// Top speed of every tank in a solo round on the watch. Steering with the
+  /// crown is slower than with a thumb, so the round runs a little calmer.
+  /// Only solo: in a shared round all players drive alike.
+  static const watchSoloSpeed = 0.85;
+
   /// How far the ground and the danger zone are drawn from the middle, far
   /// enough that a wide window never shows the void.
   static const groundReach = worldRadius * 2.8;
