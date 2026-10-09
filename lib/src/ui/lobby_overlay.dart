@@ -133,7 +133,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
               'Defense: Hold the base against all waves.',
             ),
-          }, style: const TextStyle(color: BwColors.textDim)),
+          }, style: const TextStyle(color: GameColors.textDim)),
         ),
       ],
     );
@@ -217,7 +217,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                                 'CPU tanks, so the server carries both.',
                           ),
                           style: const TextStyle(
-                            color: BwColors.textDim,
+                            color: GameColors.textDim,
                             fontSize: 12,
                           ),
                         ),
@@ -449,8 +449,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             onPressed: _confirmClose,
             style: _closeArmed
                 ? OutlinedButton.styleFrom(
-                    foregroundColor: BwColors.danger,
-                    side: const BorderSide(color: BwColors.danger),
+                    foregroundColor: GameColors.danger,
+                    side: const BorderSide(color: GameColors.danger),
                   )
                 : null,
             icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
@@ -542,7 +542,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
           onTv
@@ -621,13 +621,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         fontSize: 12,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
-        color: BwColors.sand,
+        color: GameColors.sand,
       ),
     ),
   );
 
-  Widget _hint(String text) =>
-      Text(text, style: const TextStyle(color: BwColors.textDim, fontSize: 12));
+  Widget _hint(String text) => Text(
+    text,
+    style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+  );
 
   /// Closing takes two clicks: the first one asks, the second one closes.
   void _confirmClose() {
@@ -807,7 +809,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ]),
       builder: (context, _) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
-        color: _frameless(context) ? BwColors.panel : const Color(0xAA000000),
+        color: _frameless(context) ? GameColors.panel : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         // Phones scroll the page up to the lower screen edge instead of
@@ -885,7 +887,7 @@ class _Section extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -895,7 +897,7 @@ class _Section extends StatelessWidget {
             if (title != null) ...[
               Row(
                 children: [
-                  Icon(icon, size: 18, color: BwColors.amber),
+                  Icon(icon, size: 18, color: GameColors.amber),
                   const SizedBox(width: 8),
                   Text(
                     title!,
@@ -943,7 +945,7 @@ class ColorSwatchButton extends StatelessWidget {
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
-              color: selected ? BwColors.amber : Colors.black45,
+              color: selected ? GameColors.amber : Colors.black45,
               width: 2.5,
             ),
           ),
@@ -965,13 +967,13 @@ class _JoinedBanner extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.hourglass_top, color: BwColors.amber),
+            const Icon(Icons.hourglass_top, color: GameColors.amber),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

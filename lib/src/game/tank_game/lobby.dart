@@ -131,7 +131,7 @@ extension TankGameLobby on TankGame {
         final color = profile.style % GameConfig.tankColors.length;
         final type = GameConfig.typeOf(profile.style);
         myColorIndex = GameConfig.styleOf(
-          progress.vehicleUnlocked(type) ? type.index : TankType.puma.index,
+          progress.vehicleUnlocked(type) ? type.index : TankType.hermelin.index,
           progress.unlocked(color) ? color : 0,
         );
       } else if (accounts.user.value?.userMetadata['call_sign']

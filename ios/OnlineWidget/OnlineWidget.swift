@@ -8,8 +8,8 @@ private enum Backend {
   static let key = "sb_publishable__f2Lb3vqafUovQCsYilkiQ_nVNkoNhS"
 }
 
-/// Colours of the training ground, as `BwColors` in `lib/src/theme.dart`.
-enum Bw {
+/// Colours of the training ground, as `GameColors` in `lib/src/theme.dart`.
+enum WidgetPalette {
   static let background = Color(red: 0x16 / 255, green: 0x1C / 255, blue: 0x0F / 255)
   static let surface = Color(red: 0x2A / 255, green: 0x35 / 255, blue: 0x20 / 255)
   static let olive = Color(red: 0x8A / 255, green: 0x9A / 255, blue: 0x5B / 255)
@@ -112,14 +112,14 @@ struct OnlineWidgetView: View {
     Text("PANZERGEFECHT")
       .font(.system(size: 11, weight: .black))
       .tracking(1.5)
-      .foregroundStyle(Bw.sand)
+      .foregroundStyle(WidgetPalette.sand)
       .lineLimit(1)
       .minimumScaleFactor(0.7)
   }
 
   private var dot: some View {
     Circle()
-      .fill((entry.status?.online ?? 0) > 0 ? Bw.amber : Bw.textDim.opacity(0.4))
+      .fill((entry.status?.online ?? 0) > 0 ? WidgetPalette.amber : WidgetPalette.textDim.opacity(0.4))
       .frame(width: 8, height: 8)
   }
 
@@ -129,19 +129,19 @@ struct OnlineWidgetView: View {
       Spacer(minLength: 0)
       Text(onlineText)
         .font(.system(size: 52, weight: .black, design: .rounded))
-        .foregroundStyle(Bw.text)
+        .foregroundStyle(WidgetPalette.text)
         .contentTransition(.numericText())
         .minimumScaleFactor(0.5)
       HStack(spacing: 6) {
         dot
         Text(entry.status == nil ? tr("keine Verbindung", "no connection") : tr("Piloten online", "pilots online"))
           .font(.system(size: 13, weight: .semibold))
-          .foregroundStyle(Bw.textDim)
+          .foregroundStyle(WidgetPalette.textDim)
       }
       if showMatches, let status = entry.status, status.inMatch > 0 {
         Text(tr("\(status.inMatch) im Gefecht", "\(status.inMatch) in battle"))
           .font(.system(size: 12, weight: .medium))
-          .foregroundStyle(Bw.olive)
+          .foregroundStyle(WidgetPalette.olive)
       }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
@@ -155,11 +155,11 @@ struct OnlineWidgetView: View {
         stat(entry.status.map { "\($0.roundsToday)" } ?? "–", tr("Runden heute", "rounds today"))
         Text("\(tr("Stand", "As of")) \(entry.date, style: .time)")
           .font(.system(size: 11))
-          .foregroundStyle(Bw.textDim.opacity(0.7))
+          .foregroundStyle(WidgetPalette.textDim.opacity(0.7))
       }
       .padding(12)
       .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
-      .background(Bw.surface, in: RoundedRectangle(cornerRadius: 14))
+      .background(WidgetPalette.surface, in: RoundedRectangle(cornerRadius: 14))
     }
   }
 
@@ -167,10 +167,10 @@ struct OnlineWidgetView: View {
     VStack(alignment: .leading, spacing: 0) {
       Text(value)
         .font(.system(size: 24, weight: .heavy, design: .rounded))
-        .foregroundStyle(Bw.amber)
+        .foregroundStyle(WidgetPalette.amber)
       Text(label)
         .font(.system(size: 12, weight: .medium))
-        .foregroundStyle(Bw.textDim)
+        .foregroundStyle(WidgetPalette.textDim)
     }
   }
 
@@ -206,7 +206,7 @@ struct OnlineWidget: Widget {
   var body: some WidgetConfiguration {
     StaticConfiguration(kind: "OnlineWidget", provider: OnlineProvider()) { entry in
       OnlineWidgetView(entry: entry)
-        .containerBackground(for: .widget) { Bw.background }
+        .containerBackground(for: .widget) { WidgetPalette.background }
     }
     .configurationDisplayName(tr("Piloten online", "Pilots online"))
     .description(tr("Wie viele gerade Panzergefecht spielen.", "How many are playing Panzergefecht right now."))

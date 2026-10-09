@@ -337,7 +337,7 @@ class _HudOverlayState extends State<HudOverlay> {
                                 _zoneLabel(compact: true),
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: BwColors.amber,
+                                  color: GameColors.amber,
                                 ),
                               ),
                             ],
@@ -398,7 +398,7 @@ class _HudOverlayState extends State<HudOverlay> {
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 3,
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                       ),
                     ),
             ),
@@ -421,7 +421,7 @@ class _HudOverlayState extends State<HudOverlay> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: BwColors.danger,
+                            color: GameColors.danger,
                           ),
                         ),
                       ),
@@ -527,7 +527,7 @@ class _HudOverlayState extends State<HudOverlay> {
                             : Text(
                                 tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
                                 style: const TextStyle(
-                                  color: BwColors.danger,
+                                  color: GameColors.danger,
                                   fontWeight: FontWeight.w800,
                                 ),
                               ),
@@ -535,7 +535,7 @@ class _HudOverlayState extends State<HudOverlay> {
                       const SizedBox(height: 4),
                       Text(
                         _zoneLabel(),
-                        style: const TextStyle(color: BwColors.amber),
+                        style: const TextStyle(color: GameColors.amber),
                       ),
                     ],
                   ),
@@ -612,8 +612,8 @@ class _DefensePanelState extends State<_DefensePanel> {
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
-          ? BwColors.textDim.withValues(alpha: 0.45)
-          : BwColors.text,
+          ? GameColors.textDim.withValues(alpha: 0.45)
+          : GameColors.text,
     ),
     side: WidgetStateProperty.resolveWith(
       (states) => BorderSide(
@@ -677,7 +677,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   : OutlinedButton.new)(
                     style: kind == game.towerChoice.value
                         ? _buttonStyle
-                        : _buyStyle(BwColors.oliveLight),
+                        : _buyStyle(GameColors.oliveLight),
                     onPressed:
                         credits >= kind.cost &&
                             kind.unlockedIn(wave, extended: extended)
@@ -715,7 +715,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           '${steeredByPad(game) ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
-            color: BwColors.amber,
+            color: GameColors.amber,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -750,7 +750,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               tr('MITTEL $credits', 'FUNDS $credits'),
               style: const TextStyle(
-                color: BwColors.amber,
+                color: GameColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -819,7 +819,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         }
         final host = game.round?.botHost == game.myId;
         final withdraw = OutlinedButton.icon(
-          style: _buyStyle(BwColors.sand),
+          style: _buyStyle(GameColors.sand),
           onPressed: game.withdrawDefense,
           icon: const Icon(Icons.flag, size: 16),
           label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
@@ -834,7 +834,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   'ALL ${GameConfig.defenseWaves} WAVES REPELLED · VICTORY SECURED',
                 ),
                 style: TextStyle(
-                  color: BwColors.amber,
+                  color: GameColors.amber,
                   fontSize: touch ? 11 : 13,
                   fontWeight: FontWeight.w900,
                 ),
@@ -883,7 +883,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ),
                       style: TextStyle(
                         fontSize: touch ? 10 : 11,
-                        color: BwColors.textDim,
+                        color: GameColors.textDim,
                       ),
                     ),
             );
@@ -952,7 +952,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           child: LinearProgressIndicator(
             value: ratio,
             backgroundColor: const Color(0x66000000),
-            color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+            color: ratio > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
           ),
         );
         final label = Text(
@@ -971,7 +971,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               Tooltip(
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
-                child: const Icon(Icons.flag, size: 12, color: BwColors.sand),
+                child: const Icon(Icons.flag, size: 12, color: GameColors.sand),
               ),
               const SizedBox(width: 4),
               bar,
@@ -980,7 +980,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               const SizedBox(width: 10),
               Text(
                 widget.waveLabel,
-                style: const TextStyle(fontSize: 11, color: BwColors.amber),
+                style: const TextStyle(fontSize: 11, color: GameColors.amber),
               ),
             ],
           );

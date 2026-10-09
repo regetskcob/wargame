@@ -455,29 +455,29 @@ class DefenseMap {
 
   /// The vehicle of the comrade in [slot].
   static TankType allyType(int slot) => const [
-    TankType.leopard,
-    TankType.puma,
-    TankType.gepard,
-    TankType.leopard,
-    TankType.boxer,
+    TankType.elch,
+    TankType.hermelin,
+    TankType.habicht,
+    TankType.elch,
+    TankType.otter,
   ][slot % 5];
 
   /// The enemy for slot [n] of wave [wave]: more and heavier tanks later on.
   static TankType enemyType(int wave, int n) {
     final roll = (wave * 7 + n * 13) % 10;
     if (wave >= 7 && roll < 2) {
-      return TankType.panther;
+      return TankType.auerochse;
     }
     if (wave >= 4 && roll == 9) {
-      return TankType.lynx;
+      return TankType.manul;
     }
     if (wave >= 5 && roll < 3) {
-      return TankType.leopard;
+      return TankType.elch;
     }
     if (wave >= 3 && roll < 6) {
-      return TankType.gepard;
+      return TankType.habicht;
     }
-    return roll.isEven ? TankType.boxer : TankType.puma;
+    return roll.isEven ? TankType.otter : TankType.hermelin;
   }
 
   /// Number of enemy tanks in [wave].
@@ -486,7 +486,7 @@ class DefenseMap {
   /// Everything else a wave brings: squads on foot along the road, attack
   /// helicopters, jets that bomb the base and kamikaze drones. Only the
   /// tanks come in the first wave, the air shows up from the second on, so
-  /// flak and the Gepard earn their keep.
+  /// flak and the Habicht earn their keep.
   static WavePlan planFor(int wave) => WavePlan(
     tanks: waveSize(wave),
     squads: 1 + wave ~/ 3,

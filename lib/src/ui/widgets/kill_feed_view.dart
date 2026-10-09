@@ -89,10 +89,10 @@ class _KillFeedViewState extends State<KillFeedView> {
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
               color: entry.byMe
-                  ? BwColors.amber
+                  ? GameColors.amber
                   : entry.meDied
-                  ? BwColors.danger
-                  : BwColors.oliveLight.withValues(alpha: 0.6),
+                  ? GameColors.danger
+                  : GameColors.oliveLight.withValues(alpha: 0.6),
               width: highlight ? 1.6 : 1,
             ),
           ),
@@ -104,26 +104,29 @@ class _KillFeedViewState extends State<KillFeedView> {
               Text(
                 entry.killer!,
                 style: text.copyWith(
-                  color: _teamColor(entry.killerTeam, fallback: BwColors.text),
+                  color: _teamColor(
+                    entry.killerTeam,
+                    fallback: GameColors.text,
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.gps_fixed, size: 14, color: BwColors.amber),
+              const Icon(Icons.gps_fixed, size: 14, color: GameColors.amber),
               const SizedBox(width: 8),
             ],
             Text(
               entry.victim,
               style: text.copyWith(
-                color: _teamColor(entry.victimTeam, fallback: BwColors.text),
+                color: _teamColor(entry.victimTeam, fallback: GameColors.text),
                 decoration: TextDecoration.lineThrough,
-                decorationColor: BwColors.textDim,
+                decorationColor: GameColors.textDim,
               ),
             ),
             if (entry.killer == null) ...[
               const SizedBox(width: 8),
               Text(
                 tr('ist ausgefallen', 'dropped out'),
-                style: const TextStyle(fontSize: 12, color: BwColors.textDim),
+                style: const TextStyle(fontSize: 12, color: GameColors.textDim),
               ),
             ],
           ],

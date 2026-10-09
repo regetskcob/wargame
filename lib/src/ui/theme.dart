@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 /// Colours of the training ground: Flecktarn greens, sand and signal amber.
-class BwColors {
+class GameColors {
   static const background = Color(0xFF161C0F);
   static const panel = Color(0xE61E2614);
   static const surface = Color(0xFF2A3520);
@@ -20,41 +20,41 @@ final _buttonShape = BeveledRectangleBorder(
   borderRadius: BorderRadius.circular(6),
 );
 
-ThemeData buildBundeswehrTheme() {
+ThemeData buildGameTheme() {
   const scheme = ColorScheme.dark(
-    primary: BwColors.olive,
-    onPrimary: BwColors.text,
-    secondary: BwColors.amber,
+    primary: GameColors.olive,
+    onPrimary: GameColors.text,
+    secondary: GameColors.amber,
     onSecondary: Colors.black,
-    surface: BwColors.surface,
-    onSurface: BwColors.text,
-    error: BwColors.danger,
-    outline: BwColors.oliveLight,
+    surface: GameColors.surface,
+    onSurface: GameColors.text,
+    error: GameColors.danger,
+    outline: GameColors.oliveLight,
   );
   final base = ThemeData(
     useMaterial3: true,
     colorScheme: scheme,
-    scaffoldBackgroundColor: BwColors.background,
+    scaffoldBackgroundColor: GameColors.background,
     fontFamily: _stencil.fontFamily,
     fontFamilyFallback: _stencil.fontFamilyFallback,
   );
   final text = base.textTheme
-      .apply(bodyColor: BwColors.text, displayColor: BwColors.text)
+      .apply(bodyColor: GameColors.text, displayColor: GameColors.text)
       .copyWith(
         headlineLarge: base.textTheme.headlineLarge?.copyWith(
           fontWeight: FontWeight.w900,
           letterSpacing: 4,
-          color: BwColors.sand,
+          color: GameColors.sand,
         ),
         headlineMedium: base.textTheme.headlineMedium?.copyWith(
           fontWeight: FontWeight.w800,
           letterSpacing: 2,
-          color: BwColors.sand,
+          color: GameColors.sand,
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
           fontWeight: FontWeight.w800,
           letterSpacing: 2,
-          color: BwColors.amber,
+          color: GameColors.amber,
         ),
       );
   final labelStyle = _stencil.copyWith(
@@ -63,31 +63,31 @@ ThemeData buildBundeswehrTheme() {
   );
   return base.copyWith(
     textTheme: text,
-    iconTheme: const IconThemeData(color: BwColors.sand),
+    iconTheme: const IconThemeData(color: GameColors.sand),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
-        backgroundColor: BwColors.olive,
-        foregroundColor: BwColors.text,
-        disabledBackgroundColor: BwColors.surface,
-        disabledForegroundColor: BwColors.textDim,
+        backgroundColor: GameColors.olive,
+        foregroundColor: GameColors.text,
+        disabledBackgroundColor: GameColors.surface,
+        disabledForegroundColor: GameColors.textDim,
         shape: _buttonShape,
-        side: const BorderSide(color: BwColors.sand, width: 1.5),
+        side: const BorderSide(color: GameColors.sand, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         textStyle: labelStyle,
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
-        foregroundColor: BwColors.sand,
+        foregroundColor: GameColors.sand,
         shape: _buttonShape,
-        side: const BorderSide(color: BwColors.sand, width: 1.5),
+        side: const BorderSide(color: GameColors.sand, width: 1.5),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
         textStyle: labelStyle,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        foregroundColor: BwColors.amber,
+        foregroundColor: GameColors.amber,
         shape: _buttonShape,
         textStyle: labelStyle,
       ),
@@ -95,45 +95,45 @@ ThemeData buildBundeswehrTheme() {
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: Color(0x66000000),
-      labelStyle: TextStyle(color: BwColors.textDim, letterSpacing: 1.5),
-      floatingLabelStyle: TextStyle(color: BwColors.amber),
+      labelStyle: TextStyle(color: GameColors.textDim, letterSpacing: 1.5),
+      floatingLabelStyle: TextStyle(color: GameColors.amber),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.zero,
-        borderSide: BorderSide(color: BwColors.oliveLight, width: 1.5),
+        borderSide: BorderSide(color: GameColors.oliveLight, width: 1.5),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.zero,
-        borderSide: BorderSide(color: BwColors.amber, width: 2),
+        borderSide: BorderSide(color: GameColors.amber, width: 2),
       ),
-      counterStyle: TextStyle(color: BwColors.textDim),
+      counterStyle: TextStyle(color: GameColors.textDim),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: SegmentedButton.styleFrom(
         backgroundColor: const Color(0x66000000),
-        foregroundColor: BwColors.text,
-        selectedBackgroundColor: BwColors.olive,
-        selectedForegroundColor: BwColors.text,
-        side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+        foregroundColor: GameColors.text,
+        selectedBackgroundColor: GameColors.olive,
+        selectedForegroundColor: GameColors.text,
+        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
         shape: _buttonShape,
         textStyle: labelStyle.copyWith(fontSize: 12),
       ),
     ),
     textSelectionTheme: const TextSelectionThemeData(
-      cursorColor: BwColors.amber,
+      cursorColor: GameColors.amber,
       selectionColor: Color(0x66FFB300),
-      selectionHandleColor: BwColors.amber,
+      selectionHandleColor: GameColors.amber,
     ),
     progressIndicatorTheme: const ProgressIndicatorThemeData(
-      color: BwColors.olive,
+      color: GameColors.olive,
       linearTrackColor: Color(0x55000000),
     ),
-    dividerTheme: const DividerThemeData(color: BwColors.oliveLight),
+    dividerTheme: const DividerThemeData(color: GameColors.oliveLight),
     // Dialogs and tooltips in the same beveled shape as every panel.
     dialogTheme: DialogThemeData(
-      backgroundColor: BwColors.surface,
+      backgroundColor: GameColors.surface,
       shape: BeveledRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
       ),
     ),
     tooltipTheme: TooltipThemeData(
@@ -141,10 +141,10 @@ ThemeData buildBundeswehrTheme() {
         color: const Color(0xF01E2614),
         shape: BeveledRectangleBorder(
           borderRadius: BorderRadius.circular(4),
-          side: const BorderSide(color: BwColors.oliveLight),
+          side: const BorderSide(color: GameColors.oliveLight),
         ),
       ),
-      textStyle: const TextStyle(color: BwColors.text, fontSize: 12),
+      textStyle: const TextStyle(color: GameColors.text, fontSize: 12),
     ),
   );
 }

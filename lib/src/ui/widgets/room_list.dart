@@ -71,7 +71,7 @@ class _RoomListState extends State<RoomList> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 12),
               );
             }
             return Column(
@@ -131,7 +131,7 @@ class _RoomListState extends State<RoomList> {
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.amber,
+              color: GameColors.amber,
             ),
           ),
           const SizedBox(width: 10),

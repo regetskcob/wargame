@@ -4,9 +4,9 @@ import '../theme.dart';
 
 /// The one shape of every box in the game: beveled corners and a light olive
 /// edge. Cards use the large bevel, chips and slots the small one.
-class BwShapes {
+class GameShapes {
   static BeveledRectangleBorder card({
-    Color edge = BwColors.oliveLight,
+    Color edge = GameColors.oliveLight,
     double width = 1.5,
   }) => BeveledRectangleBorder(
     borderRadius: BorderRadius.circular(8),
@@ -14,7 +14,7 @@ class BwShapes {
   );
 
   static BeveledRectangleBorder chip({
-    Color edge = BwColors.oliveLight,
+    Color edge = GameColors.oliveLight,
     double width = 1.5,
   }) => BeveledRectangleBorder(
     borderRadius: BorderRadius.circular(6),
@@ -28,7 +28,7 @@ class Plate extends StatelessWidget {
     required this.child,
     this.padding = const EdgeInsets.all(14),
     this.color = const Color(0x44000000),
-    this.edge = BwColors.oliveLight,
+    this.edge = GameColors.oliveLight,
     super.key,
   });
 
@@ -42,7 +42,7 @@ class Plate extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: color,
-        shape: BwShapes.card(edge: edge),
+        shape: GameShapes.card(edge: edge),
       ),
       child: Padding(padding: padding, child: child),
     );
@@ -64,8 +64,8 @@ class Panel extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: BwColors.panel,
-        shape: BwShapes.card(),
+        color: GameColors.panel,
+        shape: GameShapes.card(),
       ),
       child: Padding(padding: padding, child: child),
     );

@@ -65,7 +65,7 @@ void main() {
                 TankChoice(
                   type: type,
                   color: const Color(0xFFC9B27C),
-                  selected: type == TankType.panther,
+                  selected: type == TankType.auerochse,
                   locked: type.level > 1,
                   width: 100,
                   onTap: () {},

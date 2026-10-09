@@ -5,22 +5,23 @@ import '../../l10n/l10n.dart';
 
 /// The vehicles a player can pick, all drawn in code from above.
 enum TankType {
-  leopard('LEOPARD 2', 'Kampfpanzer', 'Main battle tank', level: 3),
-  puma('PUMA', 'Schützenpanzer', 'Infantry fighting vehicle'),
-  gepard('GEPARD', 'Flugabwehr', 'Anti-aircraft', level: 2),
-  boxer('BOXER', 'Radpanzer', 'Wheeled armoured vehicle'),
-  wiesel('WIESEL', 'Waffenträger', 'Weapon carrier'),
+  // Made-up animal names: no real vehicle or maker is named in the game.
+  elch('ELCH', 'Kampfpanzer', 'Main battle tank', level: 3),
+  hermelin('HERMELIN', 'Schützenpanzer', 'Infantry fighting vehicle'),
+  habicht('HABICHT', 'Flugabwehr', 'Anti-aircraft', level: 2),
+  otter('OTTER', 'Radpanzer', 'Wheeled armoured vehicle'),
+  spitzmaus('SPITZMAUS', 'Waffenträger', 'Weapon carrier'),
 
-  /// Rheinmetall's tracked infantry fighting vehicle with the 35 mm gun.
-  lynx('LYNX KF41', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
+  /// Tracked infantry fighting vehicle with the 35 mm gun.
+  manul('MANUL', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
 
-  /// Rheinmetall's main battle tank with the 130 mm gun.
-  panther('PANTHER KF51', 'Kampfpanzer', 'Main battle tank', level: 8),
+  /// The heaviest main battle tank, with the 130 mm gun.
+  auerochse('AUEROCHSE', 'Kampfpanzer', 'Main battle tank', level: 8),
 
   /// The self-propelled howitzer with the 155 mm gun and its big turret at
   /// the back. New vehicles always go at the end: the index travels over
   /// the wire and is kept in the players' looks.
-  pzh('PZH 2000', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
+  walross('WALROSS', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
 
   const TankType(this.label, this._roleDe, this._roleEn, {this.level = 1});
 
@@ -41,26 +42,26 @@ const _trackMark = Color(0xFF3A3A3A);
 
 /// Barrel tips on the 48 grid, where the muzzle flash appears.
 const _muzzles = {
-  TankType.leopard: [Offset(24, -18)],
-  TankType.puma: [Offset(24, -9)],
-  TankType.gepard: [Offset(18.5, -11), Offset(29.6, -11)],
-  TankType.boxer: [Offset(24, -5)],
-  TankType.wiesel: [Offset(27.5, 0)],
-  TankType.lynx: [Offset(26, -9)],
-  TankType.panther: [Offset(24, -22)],
-  TankType.pzh: [Offset(24, -21)],
+  TankType.elch: [Offset(24, -18)],
+  TankType.hermelin: [Offset(24, -9)],
+  TankType.habicht: [Offset(18.5, -11), Offset(29.6, -11)],
+  TankType.otter: [Offset(24, -5)],
+  TankType.spitzmaus: [Offset(27.5, 0)],
+  TankType.manul: [Offset(26, -9)],
+  TankType.auerochse: [Offset(24, -22)],
+  TankType.walross: [Offset(24, -21)],
 };
 
 /// Where the turret ring sits on the hull.
 const _pivots = {
-  TankType.leopard: Offset(24, 24),
-  TankType.puma: Offset(24, 23),
-  TankType.gepard: Offset(24, 24),
-  TankType.boxer: Offset(24, 24),
-  TankType.wiesel: Offset(24, 27),
-  TankType.lynx: Offset(24, 22),
-  TankType.panther: Offset(24, 25),
-  TankType.pzh: Offset(24, 32),
+  TankType.elch: Offset(24, 24),
+  TankType.hermelin: Offset(24, 23),
+  TankType.habicht: Offset(24, 24),
+  TankType.otter: Offset(24, 24),
+  TankType.spitzmaus: Offset(24, 27),
+  TankType.manul: Offset(24, 22),
+  TankType.auerochse: Offset(24, 25),
+  TankType.walross: Offset(24, 32),
 };
 
 typedef _TurretPass = void Function(void Function() draw);
@@ -130,22 +131,22 @@ void paintTank(
   canvas.save();
   canvas.scale(size / 48);
   switch (type) {
-    case TankType.leopard:
-      _leopard(canvas, hull, dark, light, turret);
-    case TankType.puma:
-      _puma(canvas, hull, dark, light, turret);
-    case TankType.gepard:
-      _gepard(canvas, hull, dark, light, turret);
-    case TankType.boxer:
-      _boxer(canvas, hull, dark, light, turret);
-    case TankType.wiesel:
-      _wiesel(canvas, hull, dark, light, turret);
-    case TankType.lynx:
-      _lynx(canvas, hull, dark, light, turret);
-    case TankType.panther:
-      _panther(canvas, hull, dark, light, turret);
-    case TankType.pzh:
-      _pzh(canvas, hull, dark, light, turret);
+    case TankType.elch:
+      _elch(canvas, hull, dark, light, turret);
+    case TankType.hermelin:
+      _hermelin(canvas, hull, dark, light, turret);
+    case TankType.habicht:
+      _habicht(canvas, hull, dark, light, turret);
+    case TankType.otter:
+      _otter(canvas, hull, dark, light, turret);
+    case TankType.spitzmaus:
+      _spitzmaus(canvas, hull, dark, light, turret);
+    case TankType.manul:
+      _manul(canvas, hull, dark, light, turret);
+    case TankType.auerochse:
+      _auerochse(canvas, hull, dark, light, turret);
+    case TankType.walross:
+      _walross(canvas, hull, dark, light, turret);
   }
   canvas.restore();
 }
@@ -296,19 +297,19 @@ void _skirts(Canvas canvas, Color dark, double top, double bottom) {
   }
 }
 
-void _balkenkreuz(Canvas canvas, double cx, double cy, double s) {
-  final cross = _fill(const Color(0xFFF2F2F2));
-  canvas.drawRect(
-    Rect.fromCenter(center: Offset(cx, cy), width: s * 0.33, height: s),
-    cross,
-  );
-  canvas.drawRect(
-    Rect.fromCenter(center: Offset(cx, cy), width: s, height: s * 0.33),
-    cross,
+/// A plain white ring as the unit marking: no national emblem on the hull.
+void _marking(Canvas canvas, double cx, double cy, double s) {
+  canvas.drawCircle(
+    Offset(cx, cy),
+    s * 0.36,
+    Paint()
+      ..color = const Color(0xFFF2F2F2)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = s * 0.2,
   );
 }
 
-void _leopard(
+void _elch(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -333,7 +334,7 @@ void _leopard(
     canvas.drawLine(Offset(18.5, y), Offset(29.5, y), _line(light, 0.6));
   }
   canvas.drawLine(const Offset(17, 15), const Offset(31, 15), _line(dark));
-  _balkenkreuz(canvas, 24, 41.5, 6);
+  _marking(canvas, 24, 41.5, 6);
 
   turret(() {
     // Smooth bore gun with bore evacuator
@@ -368,7 +369,7 @@ void _leopard(
   });
 }
 
-void _puma(
+void _hermelin(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -396,7 +397,7 @@ void _puma(
     _line(light, 0.6),
   );
   canvas.drawLine(const Offset(15, 36), const Offset(33, 36), _line(dark));
-  _balkenkreuz(canvas, 24, 42, 5);
+  _marking(canvas, 24, 42, 5);
 
   turret(() {
     // 30 mm autocannon
@@ -406,7 +407,7 @@ void _puma(
       _fill(_barrelTip),
     );
 
-    // Compact square turret with a Spike launcher and the sight
+    // Compact square turret with a missile launcher and the sight
     final turret = RRect.fromRectAndRadius(
       const Rect.fromLTWH(16.5, 15, 15, 16),
       const Radius.circular(2.5),
@@ -420,7 +421,7 @@ void _puma(
   });
 }
 
-void _gepard(
+void _habicht(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -442,7 +443,7 @@ void _gepard(
   canvas.drawPath(body, _line(dark));
   canvas.drawRect(const Rect.fromLTWH(18, 38, 12, 7), _fill(dark));
   canvas.drawLine(const Offset(16, 36), const Offset(32, 36), _line(dark));
-  _balkenkreuz(canvas, 24, 42, 5);
+  _marking(canvas, 24, 42, 5);
 
   turret(() {
     // Twin 35 mm Oerlikon cannons
@@ -476,7 +477,7 @@ void _gepard(
   });
 }
 
-void _boxer(
+void _otter(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -515,7 +516,7 @@ void _boxer(
     const Offset(24, 44),
     _line(light, 0.6),
   );
-  _balkenkreuz(canvas, 24, 41, 5);
+  _marking(canvas, 24, 41, 5);
 
   turret(() {
     // Remote controlled turret with a 30 mm gun
@@ -531,7 +532,7 @@ void _boxer(
   });
 }
 
-void _wiesel(
+void _spitzmaus(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -557,7 +558,7 @@ void _wiesel(
   for (var y = 38.0; y < 42; y += 1.6) {
     canvas.drawLine(Offset(20.5, y), Offset(27.5, y), _line(light, 0.5));
   }
-  _balkenkreuz(canvas, 24, 33, 4);
+  _marking(canvas, 24, 33, 4);
 
   turret(() {
     // TOW launch tube on a pedestal, set off to the right
@@ -571,7 +572,7 @@ void _wiesel(
   });
 }
 
-void _lynx(
+void _manul(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -613,7 +614,7 @@ void _lynx(
     ),
     _line(dark),
   );
-  _balkenkreuz(canvas, 24, 42, 4.5);
+  _marking(canvas, 24, 42, 4.5);
 
   turret(() {
     // 35 mm Wotan gun, set off to the right of the turret.
@@ -637,7 +638,7 @@ void _lynx(
       ..close();
     canvas.drawPath(turret, _fill(light));
     canvas.drawPath(turret, _line(dark));
-    // Spike launcher on the left cheek, commander's sight at the back.
+    // Missile launcher on the left cheek, commander's sight at the back.
     canvas.drawRect(const Rect.fromLTWH(12.4, 17, 3, 9), _fill(dark));
     canvas.drawRect(const Rect.fromLTWH(12.9, 17.5, 2, 2.4), _fill(_steel));
     canvas.drawCircle(const Offset(20, 26), 2.5, _fill(dark));
@@ -646,7 +647,7 @@ void _lynx(
   });
 }
 
-void _panther(
+void _auerochse(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -656,7 +657,7 @@ void _panther(
   _tracks(canvas, 3, 47, 9);
   _skirts(canvas, dark, 7, 45);
 
-  // Broad hull, wider than the Leopard's.
+  // Broad hull, wider than the Elch's.
   final body = Path()
     ..moveTo(15, 46)
     ..lineTo(15, 13)
@@ -672,7 +673,7 @@ void _panther(
   for (var y = 39.0; y < 45; y += 1.8) {
     canvas.drawLine(Offset(18, y), Offset(30, y), _line(light, 0.6));
   }
-  _balkenkreuz(canvas, 24, 41.8, 6);
+  _marking(canvas, 24, 41.8, 6);
 
   turret(() {
     // 130 mm smooth bore gun, long and thick, with a fume extractor.
@@ -710,7 +711,7 @@ void _panther(
   });
 }
 
-void _pzh(
+void _walross(
   Canvas canvas,
   Color hull,
   Color dark,
@@ -736,7 +737,7 @@ void _pzh(
     canvas.drawLine(Offset(26, y), Offset(31, y), _line(light, 0.6));
   }
   canvas.drawCircle(const Offset(19.5, 9.5), 2, _fill(dark));
-  _balkenkreuz(canvas, 19.5, 16.5, 5);
+  _marking(canvas, 19.5, 16.5, 5);
 
   turret(() {
     // 155 mm gun, far longer than the hull, with a muzzle brake and a

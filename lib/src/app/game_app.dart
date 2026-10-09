@@ -188,7 +188,7 @@ class _GameAppState extends State<GameApp> {
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       supportedLocales: [for (final l in AppLang.values) l.locale],
       debugShowCheckedModeBanner: false,
-      theme: buildBundeswehrTheme(),
+      theme: buildGameTheme(),
       // Seen from the sofa: everything a good deal larger.
       builder: onTv
           ? (context, child) => TvFocusFrame(
@@ -223,7 +223,7 @@ class _GameAppState extends State<GameApp> {
     final second = _second;
     final view = _view();
     return Scaffold(
-      backgroundColor: BwColors.background,
+      backgroundColor: GameColors.background,
       body: second == null
           ? view
           : TvSplitView(host: game, second: second, child: view),
@@ -368,7 +368,7 @@ class ControllerApp extends StatelessWidget {
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         supportedLocales: [for (final l in AppLang.values) l.locale],
         debugShowCheckedModeBanner: false,
-        theme: buildBundeswehrTheme(),
+        theme: buildGameTheme(),
         home: ControllerView(
           code: code,
           name: tr('Handy', 'Phone'),

@@ -95,7 +95,7 @@ class _RoomInviteState extends State<RoomInvite> {
           style: const TextStyle(
             fontSize: 10,
             letterSpacing: 1.5,
-            color: BwColors.textDim,
+            color: GameColors.textDim,
           ),
         ),
       ],
@@ -120,7 +120,7 @@ class _RoomInviteState extends State<RoomInvite> {
             fontSize: 30,
             fontWeight: FontWeight.w900,
             letterSpacing: 6,
-            color: BwColors.sand,
+            color: GameColors.sand,
           ),
         ),
         const SizedBox(height: 8),
@@ -154,7 +154,7 @@ class _RoomInviteState extends State<RoomInvite> {
               'Wer den Raumcode kennt, kann beitreten.',
               'Anyone who knows the room code can join.',
             ),
-            style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+            style: const TextStyle(color: GameColors.textDim, fontSize: 12),
           ),
         // Only rounds against each other show up in the room list.
         if (hasLink && widget.game.mode.value == GameMode.multi) ...[
@@ -176,7 +176,7 @@ class _RoomInviteState extends State<RoomInvite> {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),

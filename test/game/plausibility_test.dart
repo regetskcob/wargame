@@ -7,11 +7,11 @@ import 'package:wargame/src/game/game_config.dart';
 void main() {
   late DateTime now;
   late PlausibilityGuard guard;
-  final leopard = TankStats.of(TankType.leopard);
+  final elch = TankStats.of(TankType.elch);
 
   setUp(() {
     now = DateTime(2026);
-    guard = PlausibilityGuard(statsOf: (_) => leopard, clock: () => now);
+    guard = PlausibilityGuard(statsOf: (_) => elch, clock: () => now);
   });
 
   void wait(double seconds) {
@@ -22,7 +22,7 @@ void main() {
     guard.checkState('a', x: 0, y: 0, hp: 140);
     for (var i = 1; i <= 20; i++) {
       wait(0.05);
-      final step = GameConfig.tankMaxSpeed * leopard.speed * 0.05 * i;
+      final step = GameConfig.tankMaxSpeed * elch.speed * 0.05 * i;
       final r = guard.checkState('a', x: step, y: 0, hp: 140);
       expect(r.x, step);
     }
@@ -50,7 +50,7 @@ void main() {
   });
 
   test('health never exceeds the maximum of the tank', () {
-    expect(guard.checkState('a', x: 0, y: 0, hp: 9999).hp, leopard.maxHp);
+    expect(guard.checkState('a', x: 0, y: 0, hp: 9999).hp, elch.maxHp);
   });
 
   test('shots faster than the gun reloads are dropped', () {
@@ -70,7 +70,7 @@ void main() {
   test('a steady rate of fire is never dropped', () {
     guard.checkState('a', x: 0, y: 0, hp: 140);
     for (var i = 0; i < 20; i++) {
-      wait(leopard.fireCooldown);
+      wait(elch.fireCooldown);
       expect(guard.allowShot('a', x: 40, y: 0), isTrue);
     }
   });

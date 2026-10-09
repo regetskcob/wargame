@@ -53,7 +53,7 @@ class TankChoice extends StatelessWidget {
             // The same width for all: a thicker border would make the
             // selected card bigger than the others.
             side: BorderSide(
-              color: selected ? BwColors.amber : BwColors.oliveLight,
+              color: selected ? GameColors.amber : GameColors.oliveLight,
               width: 2,
             ),
           ),
@@ -84,7 +84,7 @@ class TankChoice extends StatelessWidget {
                   : type.role,
               TextStyle(
                 fontSize: 11,
-                color: locked ? BwColors.amber : BwColors.textDim,
+                color: locked ? GameColors.amber : GameColors.textDim,
               ),
               14,
             ),
@@ -106,7 +106,7 @@ class TankChoice extends StatelessWidget {
           const Positioned(
             right: 8,
             top: 8,
-            child: Icon(Icons.lock, size: 18, color: BwColors.amber),
+            child: Icon(Icons.lock, size: 18, color: GameColors.amber),
           ),
         ],
       ),
@@ -180,7 +180,7 @@ class StatBars extends StatelessWidget {
       children: [
         Text(
           stats.blurb,
-          style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+          style: const TextStyle(color: GameColors.textDim, fontSize: 12),
         ),
         const SizedBox(height: 8),
         for (final (label, value) in rows)
@@ -200,7 +200,7 @@ class StatBars extends StatelessWidget {
                     value: value.clamp(0.0, 1.0),
                     minHeight: 7,
                     backgroundColor: Colors.black38,
-                    color: BwColors.amber,
+                    color: GameColors.amber,
                   ),
                 ),
               ],

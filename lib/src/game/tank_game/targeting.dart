@@ -20,11 +20,11 @@ extension TankGameTargeting on TankGame {
     ]);
   }
 
-  /// What a CPU comrade in [tank] fires at: a Gepard goes for aircraft and
+  /// What a CPU comrade in [tank] fires at: a Habicht goes for aircraft and
   /// drones first, every comrade for tanks before soldiers.
   PositionComponent? allyTarget(PlayerTank tank, double range) {
     final at = tank.position;
-    if (tank.tankType == TankType.gepard) {
+    if (tank.tankType == TankType.habicht) {
       final air = _nearestOf(at, range, [
         for (final plane in aircraft.values)
           if (plane.hp > 0 && !plane.friendly) plane,

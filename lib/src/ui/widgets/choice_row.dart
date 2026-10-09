@@ -44,7 +44,7 @@ class ChoiceRow<T> extends StatelessWidget {
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
-              color: on ? BwColors.amber : BwColors.oliveLight,
+              color: on ? GameColors.amber : GameColors.oliveLight,
               width: on ? 2 : 1.5,
             ),
           ),
@@ -55,7 +55,7 @@ class ChoiceRow<T> extends StatelessWidget {
             fontSize: 12,
             fontWeight: FontWeight.w800,
             letterSpacing: 1,
-            color: color ?? (on ? BwColors.amber : BwColors.text),
+            color: color ?? (on ? GameColors.amber : GameColors.text),
           ),
         ),
       ),

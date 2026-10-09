@@ -24,8 +24,8 @@ class TutorialButton extends StatelessWidget {
           : OutlinedButton.icon(
               onPressed: game.showTutorial,
               style: OutlinedButton.styleFrom(
-                foregroundColor: BwColors.amber,
-                side: const BorderSide(color: BwColors.amber, width: 1.5),
+                foregroundColor: GameColors.amber,
+                side: const BorderSide(color: GameColors.amber, width: 1.5),
                 padding: const EdgeInsets.symmetric(
                   horizontal: 14,
                   vertical: 10,

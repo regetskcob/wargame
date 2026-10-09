@@ -59,7 +59,11 @@ class _MiniMapPainter extends CustomPainter {
     final scale = size.width / 2 / GameConfig.worldRadius;
     Offset toMap(double x, double y) => center + Offset(x, y) * scale;
 
-    canvas.drawCircle(center, size.width / 2, Paint()..color = BwColors.panel);
+    canvas.drawCircle(
+      center,
+      size.width / 2,
+      Paint()..color = GameColors.panel,
+    );
     if (round == null) {
       return;
     }
@@ -101,7 +105,7 @@ class _MiniMapPainter extends CustomPainter {
       }
     }
 
-    final rockPaint = Paint()..color = BwColors.textDim;
+    final rockPaint = Paint()..color = GameColors.textDim;
     for (final rock in game.world.descendants().whereType<Tree>()) {
       if (rock.felled) {
         continue;
@@ -124,7 +128,7 @@ class _MiniMapPainter extends CustomPainter {
       }
     }
 
-    final solidPaint = Paint()..color = BwColors.sand;
+    final solidPaint = Paint()..color = GameColors.sand;
     for (final solid in game.world.descendants().whereType<Obstacle>()) {
       final c = toMap(solid.position.x, solid.position.y);
       final w = (solid.size.x * scale).clamp(2.0, 9.0);
@@ -202,7 +206,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.oliveLight,
+        ..color = GameColors.oliveLight,
     );
   }
 
@@ -217,7 +221,7 @@ class _MiniMapPainter extends CustomPainter {
     );
     Offset toMap(double x, double y) => frame.center + Offset(x, y) * scale;
 
-    canvas.drawRect(frame, Paint()..color = BwColors.panel);
+    canvas.drawRect(frame, Paint()..color = GameColors.panel);
     final river = Path()
       ..moveTo(
         toMap(map.river.first.x, map.river.first.y).dx,
@@ -251,7 +255,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = max(2.0, DefenseMap.roadHalfWidth * 2 * scale)
-        ..color = BwColors.sand.withValues(alpha: 0.5),
+        ..color = GameColors.sand.withValues(alpha: 0.5),
     );
     // A duel's bases in the colour of their side.
     for (final (lane, base) in map.bases.indexed) {
@@ -348,7 +352,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.oliveLight,
+        ..color = GameColors.oliveLight,
     );
   }
 

@@ -26,7 +26,7 @@ class LocalDuoPanel extends StatelessWidget {
           child: DecoratedBox(
             decoration: ShapeDecoration(
               color: const Color(0x44000000),
-              shape: BwShapes.card(),
+              shape: GameShapes.card(),
             ),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -56,7 +56,7 @@ class LocalDuoPanel extends StatelessWidget {
                             '${seats[0].label} steers your tank. With a '
                                 'second controller or phone two of you play.',
                           ),
-                    style: const TextStyle(color: BwColors.textDim),
+                    style: const TextStyle(color: GameColors.textDim),
                   ),
                 ],
               ),

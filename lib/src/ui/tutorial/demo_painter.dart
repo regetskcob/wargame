@@ -310,7 +310,7 @@ class DemoPainter extends CustomPainter {
       _assistButton,
       Icons.gps_fixed,
       tr('ZIELHILFE', 'AIM ASSIST'),
-      on ? BwColors.amber : BwColors.textDim,
+      on ? GameColors.amber : GameColors.textDim,
       lit: on,
     );
     if (_t < 0.2) {
@@ -409,7 +409,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2 - 0.3,
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.elch,
     );
     canvas.drawRect(
       Rect.fromCenter(
@@ -520,9 +520,9 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
-    _icon(canvas, base.center, Icons.fort, _tankSize * 0.6, BwColors.sand);
+    _icon(canvas, base.center, Icons.fort, _tankSize * 0.6, GameColors.sand);
 
     final pos = Offset(_w * 0.34, roadY + _tankSize * 1.1);
     final gun = Offset(_w * 0.5, roadY + _tankSize * 0.9);
@@ -540,7 +540,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2,
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.elch,
     );
     if (built) {
       final grow = _ease(_seg(0.22, 0.3));
@@ -644,7 +644,7 @@ class DemoPainter extends CustomPainter {
         at + Offset(0, size * 0.75),
         type.label,
         size: 10,
-        color: BwColors.sand,
+        color: GameColors.sand,
         center: true,
         maxWidth: cell - 4,
       );
@@ -655,7 +655,7 @@ class DemoPainter extends CustomPainter {
             ? tr('AB START', 'FROM START')
             : tr('AB RANG ${type.level}', 'FROM RANK ${type.level}'),
         size: 9,
-        color: type.level == 1 ? BwColors.textDim : BwColors.amber,
+        color: type.level == 1 ? GameColors.textDim : GameColors.amber,
         center: true,
         maxWidth: cell - 4,
       );
@@ -715,7 +715,7 @@ class DemoPainter extends CustomPainter {
     double heading,
     double turret, {
     Color hull = _hull,
-    TankType type = TankType.puma,
+    TankType type = TankType.hermelin,
     double flash = 0,
   }) {
     final size = _tankSize;
@@ -757,7 +757,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       _angleOf(pos - enemy),
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.elch,
     );
     _tank(canvas, pos, 0, aim, flash: _flash(shots));
     for (final shot in shots) {
@@ -826,14 +826,14 @@ class DemoPainter extends CustomPainter {
       );
     }
     canvas.restore();
-    canvas.drawCircle(at, r, Paint()..color = BwColors.olive);
+    canvas.drawCircle(at, r, Paint()..color = GameColors.olive);
     canvas.drawCircle(
       at,
       r,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
   }
 
@@ -863,7 +863,7 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = held == null ? BwColors.oliveLight : held.color,
+        ..color = held == null ? GameColors.oliveLight : held.color,
     );
     if (held != null) {
       _icon(canvas, rect.center, held.icon, 26, held.color);
@@ -874,7 +874,7 @@ class DemoPainter extends CustomPainter {
         rect.topLeft + const Offset(4, 2),
         _gamepad ? 'X' : '1',
         size: 10,
-        color: BwColors.textDim,
+        color: GameColors.textDim,
       );
     }
     _text(
@@ -882,7 +882,7 @@ class DemoPainter extends CustomPainter {
       rect.bottomCenter + const Offset(0, 4),
       tr('INVENTAR', 'INVENTORY'),
       size: 9,
-      color: BwColors.textDim,
+      color: GameColors.textDim,
       center: true,
     );
   }
@@ -919,7 +919,7 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = firing ? 3 : 1.5
-          ..color = (firing ? BwColors.danger : BwColors.amber).withValues(
+          ..color = (firing ? GameColors.danger : GameColors.amber).withValues(
             alpha: idle ? 0.3 : 0.8,
           ),
       );
@@ -935,7 +935,7 @@ class DemoPainter extends CustomPainter {
       canvas.drawCircle(
         knob,
         r * 0.38,
-        Paint()..color = (firing ? BwColors.danger : BwColors.sand),
+        Paint()..color = (firing ? GameColors.danger : GameColors.sand),
       );
     }
     _text(
@@ -980,7 +980,7 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
-          ..color = BwColors.amber.withValues(alpha: 1 - press),
+          ..color = GameColors.amber.withValues(alpha: 1 - press),
       );
     }
   }
@@ -1052,21 +1052,21 @@ class DemoPainter extends CustomPainter {
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? BwColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = lit ? BwColors.amber : BwColors.sand,
+        ..color = lit ? GameColors.amber : GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 8),
       label,
       size: 14,
-      color: lit ? Colors.black : BwColors.text,
+      color: lit ? Colors.black : GameColors.text,
       center: true,
       bold: true,
     );
@@ -1085,21 +1085,21 @@ class DemoPainter extends CustomPainter {
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? BwColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = lit ? BwColors.amber : BwColors.sand,
+        ..color = lit ? GameColors.amber : GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       tr('LEERTASTE', 'SPACE'),
       size: 11,
-      color: lit ? Colors.black : BwColors.text,
+      color: lit ? Colors.black : GameColors.text,
       center: true,
       bold: true,
     );
@@ -1108,7 +1108,7 @@ class DemoPainter extends CustomPainter {
   /// The game's precise cursor. A ring spreads at every time in [clicks].
   void _crosshair(Canvas canvas, Offset at, {List<double> clicks = const []}) {
     final line = Paint()
-      ..color = BwColors.text
+      ..color = GameColors.text
       ..strokeWidth = 2;
     canvas.drawCircle(
       at,
@@ -1116,7 +1116,7 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.text,
+        ..color = GameColors.text,
     );
     for (final d in const [
       Offset(1, 0),
@@ -1135,7 +1135,7 @@ class DemoPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 3
-            ..color = BwColors.amber.withValues(alpha: 1 - p),
+            ..color = GameColors.amber.withValues(alpha: 1 - p),
         );
       }
     }
@@ -1148,7 +1148,7 @@ class DemoPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = BwColors.amber;
+      ..color = GameColors.amber;
     for (final (sx, sy) in const [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
       final corner = at + Offset(sx * r, sy * r);
       canvas.drawLine(corner, corner - Offset(sx * r * 0.35, 0), paint);
@@ -1170,28 +1170,28 @@ class DemoPainter extends CustomPainter {
   void _button(Canvas canvas, Rect rect, String label, {bool filled = false}) {
     canvas.drawRect(
       rect,
-      Paint()..color = filled ? BwColors.olive : const Color(0x88000000),
+      Paint()..color = filled ? GameColors.olive : const Color(0x88000000),
     );
     canvas.drawRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       label,
       size: 11,
-      color: BwColors.text,
+      color: GameColors.text,
       center: true,
       bold: true,
     );
   }
 
   void _caption(Canvas canvas, Offset at, String text) =>
-      _text(canvas, at, text, size: 10, color: BwColors.textDim);
+      _text(canvas, at, text, size: 10, color: GameColors.textDim);
 
   void _text(
     Canvas canvas,

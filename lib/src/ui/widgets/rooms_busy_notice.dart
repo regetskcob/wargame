@@ -73,13 +73,13 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
           child: DecoratedBox(
             decoration: ShapeDecoration(
               color: const Color(0x66000000),
-              shape: BwShapes.card(),
+              shape: GameShapes.card(),
             ),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  const Icon(Icons.hourglass_top, color: BwColors.amber),
+                  const Icon(Icons.hourglass_top, color: GameColors.amber),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

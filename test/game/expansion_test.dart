@@ -301,20 +301,20 @@ void main() {
     expect(bridge.carries(Vector2(60, 0)), isFalse);
   });
 
-  test('two Rheinmetall vehicles join, unlocked by rank', () {
-    expect(TankType.values, containsAll([TankType.lynx, TankType.panther]));
+  test('two late vehicles join, unlocked by rank', () {
+    expect(TankType.values, containsAll([TankType.manul, TankType.auerochse]));
     final free = TankType.values.where((t) => t.level == 1);
     expect(free.length, greaterThanOrEqualTo(3));
-    expect(TankType.panther.level, greaterThan(TankType.lynx.level));
-    expect(TankType.lynx.level, greaterThan(1));
-    final panther = TankStats.of(TankType.panther);
-    final leopard = TankStats.of(TankType.leopard);
-    expect(panther.damage, greaterThan(leopard.damage));
-    expect(panther.maxHp, greaterThan(leopard.maxHp));
-    expect(TankStats.of(TankType.lynx).ammo, greaterThan(0));
+    expect(TankType.auerochse.level, greaterThan(TankType.manul.level));
+    expect(TankType.manul.level, greaterThan(1));
+    final auerochse = TankStats.of(TankType.auerochse);
+    final elch = TankStats.of(TankType.elch);
+    expect(auerochse.damage, greaterThan(elch.damage));
+    expect(auerochse.maxHp, greaterThan(elch.maxHp));
+    expect(TankStats.of(TankType.manul).ammo, greaterThan(0));
     // Old looks keep their vehicle: the new ones only add styles at the end.
-    expect(GameConfig.typeOf(GameConfig.styleOf(4, 2)), TankType.wiesel);
-    expect(GameConfig.typeOf(GameConfig.styleOf(6, 1)), TankType.panther);
+    expect(GameConfig.typeOf(GameConfig.styleOf(4, 2)), TankType.spitzmaus);
+    expect(GameConfig.typeOf(GameConfig.styleOf(6, 1)), TankType.auerochse);
   });
 
   test('every vehicle can be drawn, also battered and burning', () {

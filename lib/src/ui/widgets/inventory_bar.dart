@@ -81,8 +81,8 @@ class _Slot extends StatelessWidget {
         width: size,
         height: size,
         decoration: ShapeDecoration(
-          color: BwColors.panel,
-          shape: BwShapes.chip(edge: type.color, width: 1.8),
+          color: GameColors.panel,
+          shape: GameShapes.chip(edge: type.color, width: 1.8),
         ),
         child: Stack(
           children: [
@@ -97,7 +97,7 @@ class _Slot extends StatelessWidget {
                     style: TextStyle(
                       fontSize: compact ? 6.5 : 7.5,
                       letterSpacing: 0,
-                      color: BwColors.text,
+                      color: GameColors.text,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.clip,
@@ -114,7 +114,7 @@ class _Slot extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: BwColors.sand,
+                    color: GameColors.sand,
                   ),
                 ),
               ),
@@ -152,7 +152,7 @@ class _Empty extends StatelessWidget {
         height: size,
         decoration: ShapeDecoration(
           color: const Color(0x33000000),
-          shape: BwShapes.chip(edge: const Color(0x338A9A5B), width: 1),
+          shape: GameShapes.chip(edge: const Color(0x338A9A5B), width: 1),
         ),
       ),
     );
