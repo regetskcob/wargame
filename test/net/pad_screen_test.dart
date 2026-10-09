@@ -72,6 +72,32 @@ void main() {
     expect(screen.gameOf('a'), same(main));
   });
 
+  test('a game may route the phones again while they are cleared', () {
+    final left = offlineGame();
+    final right = offlineGame();
+    screen
+      ..debugPeers(const [('a', 'Anna'), ('b', 'Ben')])
+      ..route('a', left)
+      ..route('b', right);
+    // Like the Apple TV's second player, which hands the phones out anew
+    // when the lobby hears that a game lost its phone.
+    var again = true;
+    void reroute() {
+      if (again && !left.padSteered.value) {
+        again = false;
+        screen
+          ..clearRoutes()
+          ..route('a', right);
+      }
+    }
+
+    left.padSteered.addListener(reroute);
+    screen.clearRoutes();
+    left.padSteered.removeListener(reroute);
+    expect(screen.gameOf('a'), same(right));
+    expect(right.padSteered.value, isTrue);
+  });
+
   group('the Realtime budget', () {
     setUp(() => screen.code.value = 'ABCDEFGH');
 
