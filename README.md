@@ -2,7 +2,8 @@
 
 A 2D tank battle in olive drab: last tank standing against CPU tanks or
 other people, or together against waves of enemy tanks in a tower defense
-mode. In German and English, without ads.
+mode, or red against blue in capture the flag. In German and English,
+without ads.
 
 **[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
 Android apps · Apple TV · Apple Watch (in progress)
@@ -28,6 +29,8 @@ Android apps · Apple TV · Apple Watch (in progress)
 - **Defense:** together against 8 waves of tanks, helicopters, jets and
   drones. Build guns, upgrade the tank, watch the base grow from a
   watchtower to a citadel, and extend into endless waves.
+- **Capture the flag:** red against blue, steal the other side's flag and
+  bring it home, with CPU tanks filling both sides.
 - **Two on one screen:** split screen on the Apple TV, an iPad or in the
   browser with two controllers or phones, and a **duel** of two bases
   against each other.

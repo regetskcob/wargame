@@ -201,13 +201,16 @@ class LaunchView extends StatelessWidget {
             ),
           if (onTv) _DuelCard(game: game),
         ];
-        // Two by two on the television, with the duel as the fourth.
-        // Elsewhere three side by side when there is room, else one per
-        // row. Cards in a row are equally tall, so it reads calmly.
+        // Two by two on the television, with the duel last. Elsewhere all
+        // four side by side when there is room, two by two on a tablet,
+        // else one per row. Cards in a row are equally tall, so it reads
+        // calmly.
         final perRow = onTv
             ? 2
-            : box.maxWidth >= 640
-            ? 3
+            : box.maxWidth >= 900
+            ? 4
+            : box.maxWidth >= 480
+            ? 2
             : 1;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -257,6 +260,12 @@ List<_Option> get _options => [
     icon: Icons.shield,
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
     kicker: tr('STÜTZPUNKT HALTEN', 'HOLD THE BASE'),
+  ),
+  (
+    mode: GameMode.flag,
+    icon: Icons.outlined_flag,
+    title: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
+    kicker: tr('ROT GEGEN BLAU', 'RED AGAINST BLUE'),
   ),
 ];
 

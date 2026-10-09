@@ -25,4 +25,8 @@ enum NetEvent {
 
   /// A player of a defense duel sends troops against the other side.
   troops,
+
+  /// The authority of a capture the flag round tells where both flags are
+  /// and how the score stands.
+  flag,
 }

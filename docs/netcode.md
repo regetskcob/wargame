@@ -6,7 +6,7 @@
   `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
   `defense`, `tower`, `troops` (a duel's extra tank, sent by a player and run
-  by the host), and `close`.
+  by the host), `flag` (capture the flag, see below), and `close`.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.
@@ -53,6 +53,20 @@
   travel as ordinary `shoot` events. The host also keeps the guns' hit
   points and sends them with `tower` after every hit; at nothing the gun is
   gone on every client.
+- In capture the flag the host is the authority over the flags. It sees
+  every tank through the `state` and `states` it receives anyway, so
+  nobody sends anything extra to pick up a flag: the host notices who
+  touches which flag, who dropped it by being destroyed and who brought it
+  home, and broadcasts the whole state of both flags and the score as
+  `flag` whenever it changes, and again every 5 seconds so a lost message
+  or a late spectator catches up. That is a few messages a minute. Every
+  client ends the round itself from the score and the round clock. When
+  the host leaves, the next player in line (smallest id) takes over from
+  the last state they heard. Destroyed tanks come back at their base and
+  announce themselves with their next `state`; one that arrives shortly
+  after a death is ignored, so a late message does not bring a wreck back.
+  The bigger CPU crew of three a side costs more than a battle's, so a
+  flag room claims 19 instead of 13 a second for its CPU tanks.
 - Every player records their round through the `record_round` database
   function. It clamps the numbers, grants experience and moves the Elo rating
   against the human opponents the player outlasted, and keeps the round in

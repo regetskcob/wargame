@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../game/round_stats.dart';
 import '../game/game_config.dart';
 import '../net/payloads/defense_payload.dart';
+import '../game/flag_match.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
 import 'widgets/fit_or_scroll.dart';
@@ -149,6 +150,8 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
               builder: (context, winner, _) => Text(
                 game.round?.defense ?? false
                     ? _defenseLine(game.defense.value, won)
+                    : game.flagMatch != null
+                    ? _flagLine(game.flagMatch!, won)
                     : winner == null
                     ? tr(
                         'Unentschieden. Das Sperrgebiet gewinnt.',
@@ -299,6 +302,16 @@ class _DefeatPainter extends CustomPainter {
 }
 
 /// The player's own numbers for the round that just ended.
+/// How a capture the flag round ended, with the score.
+String _flagLine(FlagMatch match, bool won) {
+  final score =
+      '${GameConfig.teamNames[1]} ${match.score[1]} : '
+      '${match.score[2]} ${GameConfig.teamNames[2]}';
+  return won
+      ? tr('Fahnen erobert! $score', 'Flags captured! $score')
+      : tr('Die anderen waren schneller. $score', 'They were faster. $score');
+}
+
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.stats});
 

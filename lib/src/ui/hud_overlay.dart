@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +78,9 @@ class _HudOverlayState extends State<HudOverlay> {
     if (round.defense) {
       return _waveLabel(compact: compact);
     }
+    if (round.flag) {
+      return _flagLabel(compact: compact);
+    }
     final now = DateTime.now().millisecondsSinceEpoch;
     final graceEndsAt =
         round.startedAt + GameConfig.zoneGraceSeconds.toInt() * 1000;
@@ -107,6 +111,40 @@ class _HudOverlayState extends State<HudOverlay> {
             'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}',
             'Closed zone is shrinking: safe radius ${radius.round()}',
           );
+  }
+
+  /// The clock of a capture the flag round and what the player should do,
+  /// in place of the closing zone.
+  String _flagLabel({bool compact = false}) {
+    final game = widget.game;
+    final round = game.round;
+    final match = game.flagMatch;
+    if (round == null || match == null) {
+      return '';
+    }
+    final elapsed =
+        (DateTime.now().millisecondsSinceEpoch - round.startedAt) / 1000;
+    final clock = match.overtime(elapsed)
+        ? tr('VERLÄNGERUNG', 'OVERTIME')
+        : () {
+            final left = (GameConfig.flagRoundSeconds - max(0, elapsed))
+                .ceil()
+                .clamp(0, 9999);
+            return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
+          }();
+    if (compact) {
+      return clock;
+    }
+    final mine = match.flags[game.myTeam];
+    final String task;
+    if (match.carriedBy(game.myId) != null) {
+      task = tr('Bring die Fahne heim!', 'Bring the flag home!');
+    } else if (mine != null && !mine.home) {
+      task = tr('Holt eure Fahne zurück!', 'Get your flag back!');
+    } else {
+      task = tr('Hol die Fahne der anderen', 'Steal the other side\'s flag');
+    }
+    return '$clock · $task';
   }
 
   /// What the waves are up to, in place of the closing zone.
@@ -260,6 +298,29 @@ class _HudOverlayState extends State<HudOverlay> {
               '${tr('KAMERADEN', 'COMRADES')} $allies',
               style: style,
             ),
+          );
+        }
+        final match = game.flagMatch;
+        if (round != null && round.flag && match != null) {
+          return Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '${tr('ROT', 'RED')} ${match.score[1]}',
+                  style: TextStyle(color: GameConfig.teamColors[1]),
+                ),
+                const TextSpan(text: ' : '),
+                TextSpan(
+                  text: '${match.score[2]} ${tr('BLAU', 'BLUE')}',
+                  style: TextStyle(color: GameConfig.teamColors[2]),
+                ),
+                TextSpan(
+                  text: '  ${tr('BIS', 'TO')} ${GameConfig.flagCaptures}',
+                  style: const TextStyle(color: GameColors.textDim),
+                ),
+              ],
+            ),
+            style: style,
           );
         }
         if (round != null && round.teamMode) {
