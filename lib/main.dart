@@ -14,10 +14,15 @@ import 'src/l10n/l10n.dart';
 import 'src/net/pad_link.dart';
 import 'src/net/room.dart';
 import 'src/tv/tv_input.dart';
+import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The setup below waits for the server; until then the launch screen
+  // stays, with a spinner, instead of a dark screen.
+  await LoadingView.loadImages();
+  runApp(const LoadingApp());
   if (!kIsWeb &&
       !onTv &&
       (defaultTargetPlatform == TargetPlatform.android ||

@@ -17,6 +17,14 @@ apps have no mute button: the sounds follow the silent switch and the volume
 keys, and mix with music from other apps. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
+While the app starts it reaches the server before the start page shows.
+The launch screen shows the tank of the app icon on a calm version of its
+ground, and `LoadingView` (`lib/src/ui/loading_view.dart`) keeps exactly
+that with a spinner below, from the first Flutter frame until the game has
+loaded; the web page shows the same from `web/index.html` before Flutter
+starts. `python3 store/tool/launch_screen.py` draws the images for all
+three (iOS image sets, `assets/images/`, `web/`).
+
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:
 

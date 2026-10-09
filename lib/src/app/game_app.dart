@@ -24,6 +24,7 @@ import '../ui/closed_overlay.dart';
 import '../ui/controller_view.dart';
 import '../ui/countdown_overlay.dart';
 import '../ui/hud_overlay.dart';
+import '../ui/loading_view.dart';
 import '../ui/lobby_overlay.dart';
 import '../ui/round_over_overlay.dart';
 import '../ui/spectator_overlay.dart';
@@ -269,6 +270,8 @@ class _GameAppState extends State<GameApp> {
           game: game,
           focusNode: _gameFocus,
           autofocus: true,
+          // Loading the pilot and joining the room's channel take a moment.
+          loadingBuilder: (context) => const LoadingView(),
           overlayBuilderMap: onWatch
               ? {
                   OverlayIds.lobby: (context, game) => WatchLobby(game: game),

@@ -46,6 +46,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    # The launch screen again, for the loading view that follows it.
+    - assets/images/
   # Bundled so every platform draws the same letters. The browser build
   # cannot reach system fonts and fell back to Roboto, while iOS and macOS
   # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.
