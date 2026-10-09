@@ -82,7 +82,8 @@ flutter-watchos run -d <watch-id> --release  # real watch: Series 9+, watchOS 26
 For the App Store, `tool/archive_ios.sh` builds the watch app first, then the
 iOS archive, checks that `Panzergefecht.app/Watch/Runner.app` is inside with
 the same version and build, and copies the archive into the Organizer as
-"Panzergefecht <version> (<build>)". The embed phase
+"Panzergefecht <version> (<build>)"; with `--upload` it also sends it to App
+Store Connect. The embed phase
 (`tool/embed_watch_app.sh`) stops an archive without a watch app or with a
 stale one; `ALLOW_NO_WATCH=1` lets one through on purpose. Older watches
 (Series 4 to 8, SE 1/2, Ultra 1) get the stub slice flutter-watchos adds, which

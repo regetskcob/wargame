@@ -21,7 +21,10 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
   It builds the watch app, then `flutter build ipa` (both with
   `--dart-define=ACCOUNTS=true`), checks watch app, versions, Supabase URL
   and signature, and copies the archive to the Organizer as
-  `Panzergefecht <version> (<build>) <time>`. Upload exactly that one; build
+  `Panzergefecht <version> (<build>) <time>`. `tool/archive_ios.sh --upload`
+  also sends it to App Store Connect (Apple account signed in to Xcode, one
+  retry on a broken connection); pass it only on the user's word. Upload
+  exactly that archive, never another one; build
   5 went out without a watch because a bare `Panzergefecht.xcarchive` made
   before the watch build sat next to the complete one. After processing,
   App Store Connect → TestFlight → build → "Apple Watch" must say yes.

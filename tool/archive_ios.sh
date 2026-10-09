@@ -8,9 +8,23 @@
 # the one order that works and refuses to hand over an archive it has not
 # checked.
 #
-# Usage: tool/archive_ios.sh   (from the repository root, on an up to date main)
+# Usage: tool/archive_ios.sh [--upload]   (from the repository root, on an
+# up to date main)
+#
+# --upload also sends the checked archive to App Store Connect, the way the
+# Organizer's "Distribute App" does: xcodebuild signs with the Apple account
+# signed in to Xcode and may fetch the App Store profiles itself. Without the
+# flag nothing leaves the machine.
 
 set -euo pipefail
+
+upload=0
+for arg in "$@"; do
+  case "$arg" in
+    --upload) upload=1 ;;
+    *) printf 'usage: %s [--upload]\n' "$0" >&2; exit 2 ;;
+  esac
+done
 
 cd "$(dirname "$0")/.."
 
@@ -56,6 +70,42 @@ echo "watch app, versions, Supabase URL, signature: ok"
 target="$HOME/Library/Developer/Xcode/Archives/$(date +%F)/Panzergefecht $name ($number) $(date +%H.%M.%S).xcarchive"
 mkdir -p "$(dirname "$target")"
 ditto "$archive" "$target"
-step "done"
 echo "$target"
-echo "Upload it in Xcode: Window > Organizer > Archives > Panzergefecht $name ($number) > Distribute App."
+
+if [ "$upload" = "0" ]; then
+  step "done"
+  echo "Upload it with --upload, or in Xcode: Window > Organizer > Archives > Panzergefecht $name ($number) > Distribute App."
+  exit 0
+fi
+
+step "upload $name ($number) to App Store Connect"
+work=$(mktemp -d)
+trap 'rm -rf "$work"' EXIT
+cat > "$work/ExportOptions.plist" <<'PLIST'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>method</key><string>app-store-connect</string>
+  <key>destination</key><string>upload</string>
+  <key>teamID</key><string>86HB5U6788</string>
+  <key>signingStyle</key><string>automatic</string>
+  <key>uploadSymbols</key><true/>
+  <key>manageAppVersionAndBuildNumber</key><false/>
+</dict>
+</plist>
+PLIST
+export_archive() {
+  xcodebuild -exportArchive -archivePath "$target" \
+    -exportOptionsPlist "$work/ExportOptions.plist" \
+    -exportPath "$work/export" -allowProvisioningUpdates
+}
+# The first upload of 1.2.0 (6) broke off with "The network connection was
+# lost" and went through on the second try. A rejected build (say, a build
+# number already taken) fails the same way twice.
+if ! export_archive; then
+  echo "Upload failed, trying once more."
+  export_archive || fail "the upload failed twice; the archive is in the Organizer"
+fi
+step "done"
+echo "Uploaded. Once App Store Connect has processed it, TestFlight > build $number must say Apple Watch: yes."
