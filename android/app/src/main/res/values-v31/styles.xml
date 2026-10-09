@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Since Android 12 the system draws the splash screen: the tank of
+         the launch screen on the colour of its ground, in the same place
+         as in the loading view that follows. -->
+    <style name="LaunchTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/launch_ground</item>
+        <item name="android:windowSplashScreenBackground">@color/launch_ground</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/launch_splash</item>
+    </style>
+    <style name="NormalTheme" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@color/launch_ground</item>
+    </style>
+</resources>

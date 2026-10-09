@@ -22,8 +22,11 @@ The launch screen shows the tank of the app icon on a calm version of its
 ground, and `LoadingView` (`lib/src/ui/loading_view.dart`) keeps exactly
 that with a spinner below, from the first Flutter frame until the game has
 loaded; the web page shows the same from `web/index.html` before Flutter
-starts. `python3 store/tool/launch_screen.py` draws the images for all
-three (iOS image sets, `assets/images/`, `web/`).
+starts. Android draws only the ground colour behind the tank
+(`@color/launch_ground`); since Android 12 the system splash shows the tank
+as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
+does. `python3 store/tool/launch_screen.py` draws the images for all of
+them (iOS image sets, Android drawables, `assets/images/`, `web/`).
 
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:

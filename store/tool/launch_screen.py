@@ -6,8 +6,13 @@ The tank of the app icon on a calm version of its ground: soft patches,
 without the dirt lane. The native launch screen, the loading
 view that follows it (lib/src/ui/loading_view.dart) and the web page before
 Flutter starts all show these two images in the same place, so the change
-from one to the next is not seen. Writes the iOS image sets, assets/images
-and web/. Needs Pillow.
+from one to the next is not seen. Writes the iOS image sets, the Android
+drawables, assets/images and web/. Needs Pillow.
+
+Android draws no picture behind its launch screen, only a colour
+(@color/launch_ground, the middle of the ground). Since Android 12 the
+system splash shows an icon of 288 dp cut to a circle of 192 dp; the tank
+at 160 dp fits inside it.
 """
 
 import json
@@ -22,6 +27,11 @@ ROOT = Path(__file__).resolve().parents[2]
 IOS = ROOT / "ios" / "Runner" / "Assets.xcassets"
 FLUTTER = ROOT / "assets" / "images"
 WEB = ROOT / "web"
+ANDROID = ROOT / "android" / "app" / "src" / "main" / "res"
+ANDROID_DENSITIES = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3,
+                     "xxxhdpi": 4}
+# Edge of the icon of the Android 12 splash screen, in dp.
+SPLASH_ICON = 288
 
 # The tank with its shadow on the 1024 layer of app_icon.tank().
 TANK_BOX = (128, 280, 912, 772)
@@ -91,6 +101,18 @@ def main():
     for folder in (FLUTTER, WEB):
         tank_3x.save(folder / "launch_tank.png", optimize=True)
         back.save(folder / "launch_ground.jpg", quality=92)
+    for density, factor in ANDROID_DENSITIES.items():
+        folder = ANDROID / f"drawable-{density}"
+        folder.mkdir(exist_ok=True)
+        width = round(TANK_WIDTH * factor)
+        small = tank.resize((width, round(tank.height * width / tank.width)),
+                            Image.LANCZOS)
+        small.save(folder / "launch_tank.png", optimize=True)
+        edge = round(SPLASH_ICON * factor)
+        icon = Image.new("RGBA", (edge, edge), (0, 0, 0, 0))
+        icon.paste(small, ((edge - small.width) // 2,
+                           (edge - small.height) // 2), small)
+        icon.save(folder / "launch_splash.png", optimize=True)
     print("launch screen written")
 
 
