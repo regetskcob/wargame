@@ -94,8 +94,9 @@ extension TankGameView on TankGame {
   /// camera follows the tank sideways.
   double get viewScale {
     final short = min(canvasSize.x, canvasSize.y);
+    final zoom = onWatch ? GameConfig.watchZoom : 1.0;
     if (defenseMap == null) {
-      return short / GameConfig.viewShortSide;
+      return zoom * short / GameConfig.viewShortSide;
     }
     if (overview.value) {
       // The whole field fits, with its border.
@@ -105,10 +106,12 @@ extension TankGameView on TankGame {
         canvasSize.y / (DefenseMap.halfHeight * 2 + margin * 2),
       );
     }
-    return max(
-      short / GameConfig.defenseViewShortSide,
-      canvasSize.y / (DefenseMap.halfHeight * 2 + TankGame._defenseMargin * 2),
-    );
+    return zoom *
+        max(
+          short / GameConfig.defenseViewShortSide,
+          canvasSize.y /
+              (DefenseMap.halfHeight * 2 + TankGame._defenseMargin * 2),
+        );
   }
 
   /// Zooms for the current round. In a defense round the camera also stays

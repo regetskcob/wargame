@@ -184,8 +184,8 @@ def device(shot, height, kind):
     """Draws [shot] inside an illustrated [kind] ("phone", "tablet" or
     "watch"): a dark body with a metal edge, its buttons and a soft gloss on
     the glass, scaled so the whole device is [height] tall."""
-    bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075}[kind]
-    rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30}[kind]
+    bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075, "tv": 0.018}[kind]
+    rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30, "tv": 0.012}[kind]
     rim = max(4, round(height * 0.006))
     pad = round(height * bezel)
     screen_h = height - 2 * (pad + rim)
@@ -194,7 +194,8 @@ def device(shot, height, kind):
     # Room beside the body for the buttons, above and below for the band.
     knob = round(body_w * 0.05) if kind == "watch" else rim * 2
     band = round(body_h * 0.18) if kind == "watch" else 0
-    out = Image.new("RGBA", (body_w + 2 * knob, body_h + 2 * band))
+    stand = round(body_h * 0.10) if kind == "tv" else 0
+    out = Image.new("RGBA", (body_w + 2 * knob, body_h + 2 * band + stand))
     d = ImageDraw.Draw(out)
     ox, oy = knob, band
     radius = round(min(body_w, body_h) * rounding)
@@ -231,6 +232,15 @@ def device(shot, height, kind):
         d.rounded_rectangle(
             (ox + body_w - knob, sy, ox + body_w + knob // 2,
              sy + round(body_h * 0.22)), knob // 3, fill=METAL)
+    elif kind == "tv":
+        # A slim foot below the screen.
+        fw, fx = round(body_w * 0.30), ox + round(body_w * 0.35)
+        neck = round(body_w * 0.04)
+        d.rectangle((ox + (body_w - neck) // 2, oy + body_h - rim,
+                     ox + (body_w + neck) // 2, oy + body_h + stand - rim * 2),
+                    fill=METAL)
+        d.rounded_rectangle((fx, oy + body_h + stand - rim * 3, fx + fw,
+                             oy + body_h + stand - 1), rim, fill=METAL)
     else:
         # Volume and power buttons on the edges.
         for x0, ys in (
@@ -344,6 +354,16 @@ def load_shot(raw_dir, lang, name):
     return shot
 
 
+def drop_shadow(canvas, img, x, top):
+    """A soft shadow below [img] at x, top. It follows the device itself,
+    not its bounding box, so a watch band fading out leaves no dark box."""
+    shadow = Image.new("RGBA", (img.width + 80, img.height + 80))
+    alpha = img.getchannel("A").point(lambda a: a * 150 // 255)
+    shadow.paste(Image.new("RGBA", img.size, (0, 0, 0, 255)), (40, 40), alpha)
+    shadow = shadow.filter(ImageFilter.GaussianBlur(30))
+    canvas.paste(shadow, (x - 40, top - 20), shadow)
+
+
 def row(canvas, framed, offsets):
     """Lays [framed] side by side, centred, each moved down by its offset."""
     w, h = canvas.size
@@ -358,28 +378,16 @@ def row(canvas, framed, offsets):
         offsets = [round(o * scale) for o in offsets]
         total = sum(img.width for img in framed) + gap * (len(framed) - 1)
     x = (w - total) // 2
+    boxes = []
     for img, offset in zip(framed, offsets):
         top = (h - img.height) // 2 + offset
-        shadow = Image.new("RGBA", (img.width + 80, img.height + 80))
-        ImageDraw.Draw(shadow).rounded_rectangle(
-            (40, 40, img.width + 40, img.height + 40), 40, fill=(0, 0, 0, 150))
-        shadow = shadow.filter(ImageFilter.GaussianBlur(30))
-        canvas.paste(shadow, (x - 40, top - 20), shadow)
+        # The shadow follows the device itself, not its bounding box, so a
+        # watch band fading out leaves no dark box behind.
+        drop_shadow(canvas, img, x, top)
         canvas.paste(img, (x, top), img)
+        boxes.append((x, top, img.width, img.height))
         x += img.width + gap
-
-
-def header(lang, size, raw_dir):
-    """The product page header: the iPad between two iPhones."""
-    w, h = size
-    canvas = backdrop(size, f"header-{w}")
-    side = round(h * 0.64)
-    row(canvas, [
-        device(load_shot(raw_dir, lang, "i_battle"), side, "phone"),
-        device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.72), "tablet"),
-        device(load_shot(raw_dir, lang, "i_guns"), side, "phone"),
-    ], [round(h * 0.04), 0, round(h * 0.04)])
-    save(canvas, ROOT / "store" / "ios" / "header" / lang / f"header-{w}x{h}")
+    return boxes
 
 
 def search_header(lang, size, raw_dir):
@@ -393,6 +401,47 @@ def search_header(lang, size, raw_dir):
         device(load_shot(raw_dir, lang, "w_battle"), round(h * 0.40), "watch"),
     ], [0, 0, 0])
     save(canvas, ROOT / "store" / "ios" / "header" / lang / f"search-{w}x{h}")
+
+
+def landscape_phone(shot, height):
+    """[shot] of a phone held sideways, in the drawn frame of [device]."""
+    upright = device(shot.rotate(-90, expand=True), round(
+        height * shot.width / shot.height), "phone")
+    return upright.rotate(90, expand=True)
+
+
+def header(lang, size, raw_dir):
+    """The product page header, every screen the game runs on: iPhone, iPad,
+    the Apple TV with a phone in front of it as the controller, and the
+    watch."""
+    w, h = size
+    canvas = backdrop(size, f"header-{w}")
+    # The iPad is drawn as one with the iPhone, which stands in front of
+    # its left edge, so the row treats the pair as one piece.
+    iphone = device(load_shot(raw_dir, lang, "i_battle"), round(h * 0.52), "phone")
+    ipad = device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.58), "tablet")
+    overlap = round(iphone.width * 0.35)
+    lift = round(h * 0.13)
+    pair = Image.new("RGBA", (iphone.width + ipad.width - overlap,
+                              max(ipad.height, iphone.height + lift)))
+    pair.alpha_composite(ipad, (iphone.width - overlap, 0))
+    shade = Image.new("RGBA", pair.size)
+    drop_shadow(shade, iphone, 0, lift)
+    pair.alpha_composite(shade)
+    pair.alpha_composite(iphone, (0, lift))
+    boxes = row(canvas, [
+        pair,
+        device(load_shot(raw_dir, lang, "tv_defense"), round(h * 0.66), "tv"),
+        device(load_shot(raw_dir, lang, "w_battle"), round(h * 0.36), "watch"),
+    ], [round(h * 0.06), -round(h * 0.06), round(h * 0.08)])
+    tx, ty, tw, th = boxes[1]
+    phone = landscape_phone(load_shot(raw_dir, lang, "pad"), round(th * 0.36))
+    px = tx + tw - phone.width + round(tw * 0.04)
+    py = min(ty + th - round(phone.height * 0.55),
+             h - phone.height - round(h * 0.05))
+    drop_shadow(canvas, phone, px, py)
+    canvas.paste(phone, (px, py), phone)
+    save(canvas, ROOT / "store" / "ios" / "header" / lang / f"header-{w}x{h}")
 
 
 # Apple Watch shots go up as the simulator took them (422 x 514, Ultra 3 and

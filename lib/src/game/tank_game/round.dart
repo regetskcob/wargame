@@ -516,6 +516,11 @@ extension TankGameRound on TankGame {
     ).applyState(payload);
   }
 
+  /// Top speed factor of every tank in this round, see
+  /// [GameConfig.watchSoloSpeed].
+  double get tankSpeedScale =>
+      onWatch && mode.value == GameMode.solo ? GameConfig.watchSoloSpeed : 1.0;
+
   double get _secondsIntoRound {
     final started = round?.startedAt;
     return started == null

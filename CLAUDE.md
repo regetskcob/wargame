@@ -61,6 +61,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Flame-Komponenten | `lib/src/game/components/` (`player_tank.dart`, `tank_painter.dart`, `soldier.dart`, …) |
 | Netz | `lib/src/net/net_service.dart` (Kanal, `_listen`), `room_web.dart`/`room_stub.dart`, `pad_link.dart` |
 | UI / Overlays | `lib/src/ui/` (`hud_overlay.dart`, `lobby_overlay.dart`, `launch_view.dart`, `welcome_view.dart`), Overlay-IDs in `app/overlay_ids.dart` |
+| Navigation | go_router in `lib/src/app/routes.dart`: `/` = Spiel (alles in der Runde bleibt Flame-Overlay), darüber `/pad/:code` (Handy-Controller) und `/scan/room\|pad` (QR-Kamera). Raum bleibt im Web in `?room=` vor dem `#`, Dialoge weiter per `showDialog` |
 | Watch | `lib/src/watch/`, verzweigen nur mit `FlutterWatchosPlatform.isWatch` |
 | Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |

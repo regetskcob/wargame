@@ -119,11 +119,28 @@ class DemoPainter extends CustomPainter {
       );
     }
 
-    // Track marks behind the tank.
-    final mark = Paint()..color = const Color(0x33000000);
-    for (var i = 1; i < 60; i++) {
-      final (p, _) = at(_t - i * 0.006);
-      canvas.drawCircle(p, _tankSize * 0.08, mark);
+    // Two rows of track marks under the chains, placed and fading like the
+    // game's (TankBase._leaveTrail), not a single trail down the middle.
+    final mark = Paint();
+    final markRect = Rect.fromCenter(
+      center: Offset.zero,
+      width: _tankSize * 0.13,
+      height: _tankSize * 0.1,
+    );
+    const marks = 60;
+    for (var i = 1; i < marks; i++) {
+      final (p, v) = at(_t - i * 0.006);
+      final angle = _angleOf(v);
+      final side = Offset(cos(angle), sin(angle)) * (_tankSize * 0.27);
+      final back = Offset(sin(angle), -cos(angle)) * (_tankSize * 0.1);
+      mark.color = Color.fromRGBO(30, 24, 14, 0.38 * (1 - i / marks));
+      for (final c in [p - side - back, p + side - back]) {
+        canvas.save();
+        canvas.translate(c.dx, c.dy);
+        canvas.rotate(angle);
+        canvas.drawRect(markRect, mark);
+        canvas.restore();
+      }
     }
     final (pos, vel) = at(_t);
     final heading = _angleOf(vel);
