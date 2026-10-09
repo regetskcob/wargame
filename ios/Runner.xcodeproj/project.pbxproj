@@ -372,7 +372,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "if [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  WATCHOS_CONF=\"Debug-watchsimulator\"\nelse\n  WATCHOS_CONF=\"Release-watchos\"\nfi\n\nWATCHOS_APP_SRC=\"${SRCROOT}/../build/watchos/${WATCHOS_CONF}/Runner.app\"\nWATCHOS_APP_DST=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Watch\"\n\nif [ -d \"$WATCHOS_APP_SRC\" ]; then\n  mkdir -p \"$WATCHOS_APP_DST\"\n  cp -R \"$WATCHOS_APP_SRC\" \"$WATCHOS_APP_DST/\"\n  echo \"Embedded watchOS app from $WATCHOS_APP_SRC\"\nelse\n  echo \"warning: watchOS app not found at $WATCHOS_APP_SRC. Run flutter-watchos build watchos --release (device) or --simulator first.\"\nfi\n";
+			shellScript = "/bin/bash \"$SRCROOT/../tool/embed_watch_app.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

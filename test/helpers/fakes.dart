@@ -93,10 +93,6 @@ class FakeScores implements ScoreService {
   Future<List<ScoresRow>> topScores({int limit = 20}) async => const [];
 
   @override
-  Future<List<WeeklyScoresRow>> weeklyScores({int limit = 20}) async =>
-      const [];
-
-  @override
   Future<List<TankScoresRow>> myTankScores() async => const [];
 
   @override

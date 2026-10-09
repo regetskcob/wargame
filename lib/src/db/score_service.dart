@@ -46,19 +46,6 @@ class ScoreService {
         .limit(limit);
   }
 
-  /// Totals since Monday, the most experience first.
-  Future<List<WeeklyScoresRow>> weeklyScores({int limit = 20}) async {
-    try {
-      return await _client
-          .table(WeeklyScores.table)
-          .select()
-          .order(WeeklyScores.xp.desc())
-          .limit(limit);
-    } on Object {
-      return const [];
-    }
-  }
-
   /// The pilot's totals per vehicle.
   Future<List<TankScoresRow>> myTankScores() async {
     final id = myId;
