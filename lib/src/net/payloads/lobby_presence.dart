@@ -14,6 +14,7 @@ class LobbyPresence {
     this.botHost,
     this.joinedAt,
     this.pad = false,
+    this.flag = false,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,7 @@ class LobbyPresence {
       botHost: json['botHost'] as String?,
       joinedAt: json['joined'] as int?,
       pad: json['pad'] as bool? ?? false,
+      flag: json['flag'] as bool? ?? false,
     );
   }
 
@@ -109,6 +111,9 @@ class LobbyPresence {
   /// without CPU tanks filling it up, to leave Realtime room for the phone.
   final bool pad;
 
+  /// The match is a capture the flag round, its flags run by [botHost].
+  final bool flag;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -127,6 +132,7 @@ class LobbyPresence {
       if (botHost != null) 'botHost': botHost,
       if (joinedAt != null) 'joined': joinedAt,
       if (pad) 'pad': true,
+      if (flag) 'flag': true,
     };
   }
 }

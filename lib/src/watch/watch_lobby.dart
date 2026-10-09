@@ -98,6 +98,11 @@ class _WatchLobbyState extends State<WatchLobby> {
           onPressed: () => game.chooseMode(GameMode.defense),
         ),
         WatchButton(
+          label: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
+          icon: Icons.outlined_flag,
+          onPressed: () => game.chooseMode(GameMode.flag),
+        ),
+        WatchButton(
           label: tr('OFFENE RÄUME', 'OPEN ROOMS'),
           icon: Icons.meeting_room_outlined,
           onPressed: () => setState(() => _rooms = true),
@@ -165,6 +170,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
                   GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
                   GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
+                  GameMode.flag => tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
                 },
                 maxLines: 1,
                 style: const TextStyle(

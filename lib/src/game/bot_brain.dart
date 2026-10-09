@@ -11,7 +11,6 @@ import 'components/obstacle.dart';
 import 'components/player_tank.dart';
 import 'components/remote_tank.dart';
 import 'components/tank_base.dart';
-import 'components/storm_zone.dart';
 import 'game_phase.dart';
 import 'tank_game.dart';
 import 'special_weapon.dart';
@@ -26,12 +25,17 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     required this.tank,
     required this.controls,
     this.level = BotLevel.normal,
+    this.objective,
   }) : items = BotItems(level);
 
   final PlayerTank tank;
   final TouchInput controls;
   final BotLevel level;
   final BotItems items;
+
+  /// Where the round wants this tank to go when no enemy is close, null to
+  /// just hunt: the flags of a capture the flag round.
+  final Vector2? Function(PlayerTank tank)? objective;
 
   final _random = Random();
   double _think = 0;
@@ -137,14 +141,18 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     _target = target;
     final safeRadius = round == null
         ? GameConfig.worldRadius
-        : StormZone.radiusAt(
-            round.startedAt,
-            DateTime.now().millisecondsSinceEpoch,
-          );
+        : round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
     _wantThrust = false;
     _wantBrake = false;
 
     final barrage = level.evasive ? _barrageOverhead() : null;
+    final goal = objective?.call(tank);
+    final targetDistance = target?.position.distanceTo(tank.position);
+    // A carrier runs for home whatever happens, the others leave the
+    // objective for an enemy that comes close.
+    final onTheWay =
+        goal != null &&
+        (tank.carriesFlag || targetDistance == null || targetDistance > 260);
     final pickup = items.wanted(
       gameRef,
       tank,
@@ -160,6 +168,12 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       // Get out from under the shells.
       _desiredHeading = _headingTo(tank.position * 2 - barrage.position);
       _wantThrust = true;
+    } else if (onTheWay) {
+      _desiredHeading = _headingTo(goal);
+      _wantThrust = goal.distanceTo(tank.position) > 20;
+      if (target != null) {
+        _hasLineOfSight = _clearShot(target.position);
+      }
     } else if (pickup != null) {
       _desiredHeading = _headingTo(pickup.position);
       _wantThrust = true;

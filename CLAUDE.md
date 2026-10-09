@@ -21,6 +21,9 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
   Teams möglich).
 - `GameMode.defense` – Tower Defense im Trupp gegen Wellen (Host ist
   Autorität), Stützpunkt wächst, nach Welle 8 Verlängerung.
+- `GameMode.flag` – Capture the Flag, Rot gegen Blau mit Wiedereinstieg,
+  CPU-Panzer füllen auf 3 gegen 3; der Host ist Autorität über die Fahnen
+  (`flag_match.dart`, Event `flag`).
 
 ## Architektur in 7 Punkten
 
@@ -54,7 +57,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 
 | Thema | Ort |
 | --- | --- |
-| Herzstück `TankGame` | `lib/src/game/tank_game.dart` hält nur Felder, Konstruktor und die Flame-Overrides (`onLoad`, `update`, `render`, `onKeyEvent`, `onGameResize`). Die Methoden stehen nach Thema in `lib/src/game/tank_game/` als `extension TankGameXyz on TankGame` (`part`-Dateien, private Namen bleiben sichtbar): `lobby` (Warteraum, Pilot, Host, Raum schließen), `round` (Rundenstart bis Rundenende, Tode, Zuschauen), `replay`, `defense` (Wellen, Stützpunkt, Geschütze), `air`, `infantry`, `items` (Kisten, Gems, Inventar, Upgrades, Minen, Artillerie), `combat` (Schüsse, Treffer, Explosionen), `targeting` (nächster Gegner, Sicht), `view` (Kamera, Shake, Hinweise) |
+| Herzstück `TankGame` | `lib/src/game/tank_game.dart` hält nur Felder, Konstruktor und die Flame-Overrides (`onLoad`, `update`, `render`, `onKeyEvent`, `onGameResize`). Die Methoden stehen nach Thema in `lib/src/game/tank_game/` als `extension TankGameXyz on TankGame` (`part`-Dateien, private Namen bleiben sichtbar): `lobby` (Warteraum, Pilot, Host, Raum schließen), `round` (Rundenstart bis Rundenende, Tode, Zuschauen), `replay`, `defense` (Wellen, Stützpunkt, Geschütze), `air`, `infantry`, `items` (Kisten, Gems, Inventar, Upgrades, Minen, Artillerie), `combat` (Schüsse, Treffer, Explosionen), `targeting` (nächster Gegner, Sicht), `view` (Kamera, Shake, Hinweise), `flag` (Capture the Flag: Fahnen, Wiedereinstieg, Bot-Ziele) |
 | Balancing-Zahlen | `lib/src/game/game_config.dart`, `tank_stats.dart`, `upgrades.dart`, `bot_level.dart` |
 | Bots | `bot_brain.dart`, `bot_items.dart`, `defense/defense_brain.dart`, `defense/ally_brain.dart` |
 | Verteidigung | `lib/src/game/defense/` (`defense_director.dart` = Wellen, `tower.dart`, `aircraft.dart`, `defense_map.dart`) |

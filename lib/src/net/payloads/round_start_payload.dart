@@ -9,6 +9,7 @@ class RoundStartPayload {
     this.botLevel,
     this.defense = false,
     this.lanes = const [],
+    this.flag = false,
   });
 
   factory RoundStartPayload.fromJson(Map<String, dynamic> json) {
@@ -19,6 +20,7 @@ class RoundStartPayload {
       botHost: json['botHost'] as String?,
       botLevel: json['botLevel'] as int?,
       defense: json['defense'] as bool? ?? false,
+      flag: json['flag'] as bool? ?? false,
       lanes: [
         for (final id in json['lanes'] as List<dynamic>? ?? const [])
           if (id is String) id,
@@ -58,6 +60,10 @@ class RoundStartPayload {
   /// one. Empty for a common defense round.
   final List<String> lanes;
 
+  /// Capture the flag, red against blue, with [botHost] as the authority
+  /// over the flags.
+  final bool flag;
+
   Map<String, dynamic> toJson() {
     return {
       'seed': seed,
@@ -69,6 +75,7 @@ class RoundStartPayload {
       if (botLevel != null) 'botLevel': botLevel,
       if (defense) 'defense': true,
       if (lanes.isNotEmpty) 'lanes': lanes,
+      if (flag) 'flag': true,
     };
   }
 }
