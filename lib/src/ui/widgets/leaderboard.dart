@@ -105,9 +105,9 @@ class _LeaderboardState extends State<Leaderboard> {
   Widget _table(List<String> labels, List<TableRow> rows) {
     final table = Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      // The numbers take what they need and the name gets the rest, so the
-      // whole table fits on a phone without scrolling sideways.
-      columnWidths: const {0: FixedColumnWidth(44), 1: FlexColumnWidth()},
+      // Rank and numbers take what they need and the name gets the rest, so
+      // the whole table fits on a phone without scrolling sideways.
+      columnWidths: const {1: FlexColumnWidth()},
       defaultColumnWidth: const IntrinsicColumnWidth(),
       children: [_headerOf(labels), ...rows],
     );
@@ -193,19 +193,21 @@ class _LeaderboardState extends State<Leaderboard> {
     String text, {
     TextStyle style = const TextStyle(),
     TextAlign align = TextAlign.right,
+    int lines = 1,
   }) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
     child: Text(
       text,
       style: style,
       textAlign: align,
-      maxLines: 1,
+      maxLines: lines,
       overflow: TextOverflow.ellipsis,
     ),
   );
 
+  // The rank column has no heading, its numbers speak for themselves.
   static List<String> get _labels => [
-    tr('RANG', 'RANK'),
+    '',
     'PILOT',
     tr('WERTUNG', 'RATING'),
     tr('SIEGE', 'WINS'),
@@ -253,7 +255,9 @@ class _LeaderboardState extends State<Leaderboard> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        _cell(row.name, style: base, align: TextAlign.left),
+        // A long name breaks onto a second line on a phone instead of
+        // losing its end.
+        _cell(row.name, style: base, align: TextAlign.left, lines: 2),
         _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.kills}', style: base),
