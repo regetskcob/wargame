@@ -4,7 +4,7 @@ Das freiwillige Konto mit E-Mail-Adresse wird über den Code aus der Anmeldemail
 
 Mehrspieler läuft über Supabase Realtime. Mit nur einem Gerät füllt die Option „Mit CPU auffüllen“ das Feld mit CPU-Panzern.
 
-Das Spiel ist privat und nicht kommerziell, ohne Werbung, ohne Käufe und ohne Tracking. Es steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern, alle Fahrzeugnamen sind erfunden.
+Das Spiel ist privat und nicht kommerziell, ohne Werbung, ohne Käufe und ohne Tracking. Es steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.
 
 English: No sign-in is needed. On the start screen choose "PLAY AS GUEST" (the game follows the device language, English or German), then a game mode. For a short round choose "Single player", difficulty "Easy", start the battle.
 
@@ -12,4 +12,4 @@ The optional account with an e-mail address is confirmed with the code from the 
 
 Multiplayer runs on Supabase Realtime. With only one device, the option "Fill with CPU" fills the field with CPU tanks.
 
-The game is private and non-commercial, with no ads, no purchases and no tracking. It has no connection to any armed forces or vehicle manufacturer, and all vehicle names are made up.
+The game is private and non-commercial, with no ads, no purchases and no tracking. It has no connection to any armed forces or vehicle manufacturer.

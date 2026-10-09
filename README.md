@@ -34,7 +34,7 @@ Android apps · Apple TV · Apple Watch (in progress)
 
 ## Highlights
 
-- Eight made-up vehicles from Spitzmaus to Auerochse, unlocked by rank,
+- Eight vehicles from Spitzmaus to Auerochse, unlocked by rank,
   each with its own armour, speed and gun.
 - Four grounds with changing weather, day and night, destructible buildings
   and soldiers on foot that fight.

@@ -5,15 +5,15 @@ import '../../l10n/l10n.dart';
 
 /// The vehicles a player can pick, all drawn in code from above.
 enum TankType {
-  // Made-up animal names: no real vehicle or maker is named in the game.
-  elch('ELCH', 'Kampfpanzer', 'Main battle tank', level: 3),
+  // Animal names instead of real model or maker names.
+  keiler('KEILER', 'Kampfpanzer', 'Main battle tank', level: 3),
   hermelin('HERMELIN', 'Schützenpanzer', 'Infantry fighting vehicle'),
-  habicht('HABICHT', 'Flugabwehr', 'Anti-aircraft', level: 2),
-  otter('OTTER', 'Radpanzer', 'Wheeled armoured vehicle'),
+  luchs('LUCHS', 'Flugabwehr', 'Anti-aircraft', level: 2),
+  fuchs('FUCHS', 'Radpanzer', 'Wheeled armoured vehicle'),
   spitzmaus('SPITZMAUS', 'Waffenträger', 'Weapon carrier'),
 
   /// Tracked infantry fighting vehicle with the 35 mm gun.
-  manul('MANUL', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
+  dachs('DACHS', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
 
   /// The heaviest main battle tank, with the 130 mm gun.
   auerochse('AUEROCHSE', 'Kampfpanzer', 'Main battle tank', level: 8),
@@ -42,24 +42,24 @@ const _trackMark = Color(0xFF3A3A3A);
 
 /// Barrel tips on the 48 grid, where the muzzle flash appears.
 const _muzzles = {
-  TankType.elch: [Offset(24, -18)],
+  TankType.keiler: [Offset(24, -18)],
   TankType.hermelin: [Offset(24, -9)],
-  TankType.habicht: [Offset(18.5, -11), Offset(29.6, -11)],
-  TankType.otter: [Offset(24, -5)],
+  TankType.luchs: [Offset(18.5, -11), Offset(29.6, -11)],
+  TankType.fuchs: [Offset(24, -5)],
   TankType.spitzmaus: [Offset(27.5, 0)],
-  TankType.manul: [Offset(26, -9)],
+  TankType.dachs: [Offset(26, -9)],
   TankType.auerochse: [Offset(24, -22)],
   TankType.walross: [Offset(24, -21)],
 };
 
 /// Where the turret ring sits on the hull.
 const _pivots = {
-  TankType.elch: Offset(24, 24),
+  TankType.keiler: Offset(24, 24),
   TankType.hermelin: Offset(24, 23),
-  TankType.habicht: Offset(24, 24),
-  TankType.otter: Offset(24, 24),
+  TankType.luchs: Offset(24, 24),
+  TankType.fuchs: Offset(24, 24),
   TankType.spitzmaus: Offset(24, 27),
-  TankType.manul: Offset(24, 22),
+  TankType.dachs: Offset(24, 22),
   TankType.auerochse: Offset(24, 25),
   TankType.walross: Offset(24, 32),
 };
@@ -131,17 +131,17 @@ void paintTank(
   canvas.save();
   canvas.scale(size / 48);
   switch (type) {
-    case TankType.elch:
+    case TankType.keiler:
       _elch(canvas, hull, dark, light, turret);
     case TankType.hermelin:
       _hermelin(canvas, hull, dark, light, turret);
-    case TankType.habicht:
+    case TankType.luchs:
       _habicht(canvas, hull, dark, light, turret);
-    case TankType.otter:
+    case TankType.fuchs:
       _otter(canvas, hull, dark, light, turret);
     case TankType.spitzmaus:
       _spitzmaus(canvas, hull, dark, light, turret);
-    case TankType.manul:
+    case TankType.dachs:
       _manul(canvas, hull, dark, light, turret);
     case TankType.auerochse:
       _auerochse(canvas, hull, dark, light, turret);
@@ -657,7 +657,7 @@ void _auerochse(
   _tracks(canvas, 3, 47, 9);
   _skirts(canvas, dark, 7, 45);
 
-  // Broad hull, wider than the Elch's.
+  // Broad hull, wider than the Keiler's.
   final body = Path()
     ..moveTo(15, 46)
     ..lineTo(15, 13)

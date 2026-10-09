@@ -302,16 +302,16 @@ void main() {
   });
 
   test('two late vehicles join, unlocked by rank', () {
-    expect(TankType.values, containsAll([TankType.manul, TankType.auerochse]));
+    expect(TankType.values, containsAll([TankType.dachs, TankType.auerochse]));
     final free = TankType.values.where((t) => t.level == 1);
     expect(free.length, greaterThanOrEqualTo(3));
-    expect(TankType.auerochse.level, greaterThan(TankType.manul.level));
-    expect(TankType.manul.level, greaterThan(1));
+    expect(TankType.auerochse.level, greaterThan(TankType.dachs.level));
+    expect(TankType.dachs.level, greaterThan(1));
     final auerochse = TankStats.of(TankType.auerochse);
-    final elch = TankStats.of(TankType.elch);
-    expect(auerochse.damage, greaterThan(elch.damage));
-    expect(auerochse.maxHp, greaterThan(elch.maxHp));
-    expect(TankStats.of(TankType.manul).ammo, greaterThan(0));
+    final keiler = TankStats.of(TankType.keiler);
+    expect(auerochse.damage, greaterThan(keiler.damage));
+    expect(auerochse.maxHp, greaterThan(keiler.maxHp));
+    expect(TankStats.of(TankType.dachs).ammo, greaterThan(0));
     // Old looks keep their vehicle: the new ones only add styles at the end.
     expect(GameConfig.typeOf(GameConfig.styleOf(4, 2)), TankType.spitzmaus);
     expect(GameConfig.typeOf(GameConfig.styleOf(6, 1)), TankType.auerochse);

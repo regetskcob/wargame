@@ -17,7 +17,7 @@ import 'defense_map.dart';
 /// Drives a CPU comrade of a defense round: it rolls from the base up the
 /// road to its post on the shoulder, holds it and fires at every enemy that
 /// comes into range, also on the way there: tanks, soldiers and, from a
-/// Habicht, aircraft and drones. While nothing is in range it fetches crates
+/// Luchs, aircraft and drones. While nothing is in range it fetches crates
 /// and gems near its post, keeps them and sets them off when they help.
 class AllyBrain extends Component with HasGameRef<TankGame> {
   AllyBrain({

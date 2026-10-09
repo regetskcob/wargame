@@ -47,7 +47,7 @@ class TankStats {
   /// more over its four bars in the lobby (armour, speed, turning,
   /// firepower) than every one before it. The test for it keeps it so.
   static const _byType = {
-    TankType.elch: TankStats(
+    TankType.keiler: TankStats(
       maxHp: 165,
       speed: 0.95,
       acceleration: 0.9,
@@ -75,7 +75,7 @@ class TankStats {
       blurbDe: 'Schnellfeuer mit der Maschinenkanone',
       blurbEn: 'Rapid fire with the autocannon',
     ),
-    TankType.habicht: TankStats(
+    TankType.luchs: TankStats(
       maxHp: 105,
       speed: 1.05,
       acceleration: 1.05,
@@ -89,7 +89,7 @@ class TankStats {
       blurbDe: 'Zwei Rohre gleichzeitig, breite Salven',
       blurbEn: 'Two barrels at once, wide salvos',
     ),
-    TankType.otter: TankStats(
+    TankType.fuchs: TankStats(
       maxHp: 70,
       speed: 1.35,
       acceleration: 1.35,
@@ -117,7 +117,7 @@ class TankStats {
       blurbDe: 'Winzig und flink, die Panzerabwehrrakete trifft hart',
       blurbEn: 'Tiny and quick, the anti-tank missile hits hard',
     ),
-    TankType.manul: TankStats(
+    TankType.dachs: TankStats(
       maxHp: 135,
       speed: 1.15,
       acceleration: 1.15,
@@ -128,8 +128,8 @@ class TankStats {
       bulletSpeed: 470,
       barrels: 1,
       sound: 'autocannon',
-      blurbDe: 'Manul: 35-mm-Kanone, gut geschützt und flink',
-      blurbEn: 'Manul: 35 mm cannon, well protected and quick',
+      blurbDe: 'Dachs: 35-mm-Kanone, gut geschützt und flink',
+      blurbEn: 'Dachs: 35 mm cannon, well protected and quick',
     ),
     TankType.auerochse: TankStats(
       maxHp: 190,

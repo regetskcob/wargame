@@ -409,7 +409,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2 - 0.3,
       hull: _enemyHull,
-      type: TankType.elch,
+      type: TankType.keiler,
     );
     canvas.drawRect(
       Rect.fromCenter(
@@ -540,7 +540,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2,
       hull: _enemyHull,
-      type: TankType.elch,
+      type: TankType.keiler,
     );
     if (built) {
       final grow = _ease(_seg(0.22, 0.3));
@@ -757,7 +757,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       _angleOf(pos - enemy),
       hull: _enemyHull,
-      type: TankType.elch,
+      type: TankType.keiler,
     );
     _tank(canvas, pos, 0, aim, flash: _flash(shots));
     for (final shot in shots) {
