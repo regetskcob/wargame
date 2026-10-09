@@ -40,7 +40,7 @@ Android apps · Apple TV · Apple Watch (in progress)
   and soldiers on foot that fight.
 - Crates and gems: repair, smoke, shield, mines, artillery, a mortar, a
   kamikaze drone, paratroopers, an air strike.
-- Ranks, an Elo rating, badges, weekly and all time leaderboards, replays and
+- Ranks, an Elo rating, badges, a leaderboard, replays and
   a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
   Siri Remote, or a phone as a controller for the big screen.

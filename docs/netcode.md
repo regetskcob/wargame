@@ -56,7 +56,7 @@
 - Every player records their round through the `record_round` database
   function. It clamps the numbers, grants experience and moves the Elo rating
   against the human opponents the player outlasted, and keeps the round in
-  `round_results` for the weekly leaderboard and the numbers per vehicle. The
+  `round_results` for the wins per vehicle behind a badge. The
   all time leaderboard is a typed Postgres Changes stream on `scores`.
 - Replays need no extra traffic: the client keeps every message of the round
   with its time, and since the world follows from the seed, playing them back
