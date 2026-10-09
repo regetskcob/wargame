@@ -3,7 +3,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../game/components/tree.dart';
 import '../../game/components/obstacle.dart';
 import '../../game/defense/defense_map.dart';
 import '../../game/flag_match.dart';
@@ -43,6 +42,9 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
 }
 
 class _MiniMapPainter extends CustomPainter {
+  /// How far from the own tank crates and gems still show.
+  static const _itemReach = 450.0;
+
   _MiniMapPainter(this.game);
 
   final TankGame game;
@@ -92,30 +94,8 @@ class _MiniMapPainter extends CustomPainter {
         ..color = const Color(0xCCFFB300),
     );
 
-    final mud = game.mudField;
-    if (mud != null) {
-      final mudPaint = Paint()..color = mud.theme.mud.withValues(alpha: 0.7);
-      for (final patch in mud.patches) {
-        canvas.drawCircle(
-          toMap(patch.centre.x, patch.centre.y),
-          patch.radius * scale,
-          mudPaint,
-        );
-      }
-    }
-
-    final rockPaint = Paint()..color = GameColors.textDim;
-    for (final rock in game.world.descendants().whereType<Tree>()) {
-      if (rock.felled) {
-        continue;
-      }
-      canvas.drawCircle(
-        toMap(rock.position.x, rock.position.y),
-        (rock.radius * scale).clamp(1.0, 6.0),
-        rockPaint,
-      );
-    }
-
+    // Woods, mud and barriers are left out: there are so many that they
+    // buried what matters, the tanks, depots, gems and flags.
     final soldierPaint = Paint()..color = const Color(0xFFD9C97A);
     for (final soldier in game.soldierField?.all ?? const <Soldier>[]) {
       if (!soldier.dead && soldier.isMounted) {
@@ -127,8 +107,9 @@ class _MiniMapPainter extends CustomPainter {
       }
     }
 
-    final solidPaint = Paint()..color = GameColors.sand;
-    for (final solid in game.world.descendants().whereType<Obstacle>()) {
+    // Buildings faded, as a rough guide only.
+    final solidPaint = Paint()..color = GameColors.sand.withValues(alpha: 0.35);
+    for (final solid in game.world.descendants().whereType<Building>()) {
       final c = toMap(solid.position.x, solid.position.y);
       final w = (solid.size.x * scale).clamp(2.0, 9.0);
       final h = (solid.size.y * scale).clamp(2.0, 9.0);
@@ -145,7 +126,13 @@ class _MiniMapPainter extends CustomPainter {
         Paint()..color = const Color(0x88B0BEC5),
       );
     }
+    // Crates and gems only near the own tank, the far ones were mostly
+    // clutter. Watching, without a tank, all of them.
+    final near = game.myTank?.position;
     for (final crate in game.powerUps.values) {
+      if (near != null && crate.position.distanceTo(near) > _itemReach) {
+        continue;
+      }
       final c = toMap(crate.position.x, crate.position.y);
       final paint = Paint()..color = crate.type.color;
       if (crate.type.gem) {

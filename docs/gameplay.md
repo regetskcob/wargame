@@ -112,7 +112,10 @@ Everything the game does, with the numbers behind it. The short version is in th
 - On iOS a widget with the pilots online, a Live Activity for the running
   round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
-  and markers for enemies off screen.
+  and markers for enemies off screen. The mini map of the battle modes
+  leaves out woods, mud and barriers, fades the buildings and shows crates
+  and gems only within 450 of the own tank; tanks, soldiers, drones,
+  depots, flags and the zone stay.
 - Keyboard and mouse, or two touch sticks on phones and tablets. The left
   stick points where the tank should go, the right one aims and fires, and
   an aim assist (on by default, switched with a button) turns the turret
