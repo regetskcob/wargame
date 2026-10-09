@@ -1,0 +1,32 @@
+{{- $name := partial "store.html" "name" -}}
+{{- $subtitle := partial "store.html" "subtitle" -}}
+{{- $promo := partial "store.html" "promotional_text" -}}
+{{- $header := resources.Get (printf "store/header/%s/header-3840x1646.png" site.Params.store) -}}
+{{- $og := $header.Fill "1200x630 jpg Center" -}}
+<title>{{ if .IsHome }}{{ $name }} – {{ $subtitle }}{{ else }}{{ .Title }} · {{ $name }}{{ end }}</title>
+<meta name="description" content="{{ $promo }}">
+<meta name="theme-color" content="#161c0f">
+<meta name="color-scheme" content="dark">
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ $name }} – {{ $subtitle }}">
+<meta property="og:description" content="{{ $promo }}">
+<meta property="og:image" content="{{ $og.Permalink }}">
+<meta property="og:url" content="{{ .Permalink }}">
+<meta name="twitter:card" content="summary_large_image">
+{{- range .AllTranslations }}
+<link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}">
+{{- end }}
+<link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon.png" | relURL }}">
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32.png" | relURL }}">
+<link rel="apple-touch-icon" href="{{ "icons/apple-touch-icon.png" | relURL }}">
+{{- /* The fonts of the game, served from here: no font service, no tracking. */}}
+<style>
+{{- range slice (slice "Regular" 400) (slice "Medium" 500) (slice "Bold" 700) (slice "Black" 900) }}
+{{- $f := resources.Get (printf "fonts/Roboto-%s.ttf" (index . 0)) | fingerprint }}
+@font-face { font-family: Roboto; font-weight: {{ index . 1 }}; font-display: swap;
+  src: url({{ $f.RelPermalink }}) format("truetype"); }
+{{- end }}
+</style>
+{{- $ground := resources.Get "game/launch_ground.jpg" | fingerprint }}
+{{- $css := resources.Get "css/site.css" | resources.ExecuteAsTemplate "css/site.css" (dict "ground" $ground.RelPermalink) | minify | fingerprint }}
+<link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">

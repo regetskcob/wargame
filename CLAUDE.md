@@ -1,7 +1,7 @@
 # Panzergefecht – Leitfaden für Claude
 
 Panzerspiel in Oliv (Flutter 3.47 + Flame 2.0, Supabase als einziges
-Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/>,
+Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/> (Landingpage, Spiel unter `play/`),
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
 Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
@@ -67,6 +67,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
+| Landingpage | `site/` (Hugo) vor dem Spiel unter `/wargame/`, Spiel unter `/wargame/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell) |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 

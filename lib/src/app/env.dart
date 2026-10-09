@@ -55,10 +55,11 @@ class Env {
   static const room = String.fromEnvironment('ROOM');
 
   /// The browser game. Room links from the apps point here, so the code
-  /// scanned or opened anywhere leads into the same room.
+  /// scanned or opened anywhere leads into the same room. The landing page
+  /// one level up passes on links of older apps that still lack `play/`.
   static const webUrl = String.fromEnvironment(
     'WEB_URL',
-    defaultValue: 'https://www.regetskcob.de/wargame/',
+    defaultValue: 'https://www.regetskcob.de/wargame/play/',
   );
 
   /// Securing the guest account and signing in on another device. Off until

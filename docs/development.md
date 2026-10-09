@@ -112,8 +112,9 @@ is no server of our own.
    to what the Pro plan carries (4 and 400), and on the free plan they
    belong at 2 and 80, see
    [Rooms and room sizes](netcode.md#rooms-and-room-sizes).
-3. Push to `main`. The `pages` workflow builds the game with the
-   repository name as base path and publishes it. Without the variables the
+3. Push to `main`. The `pages` workflow builds the landing page (Hugo,
+   `site/`) into the root of the site and the game into `play/` below it,
+   with the base path GitHub Pages reports, and publishes both. Without the variables the
    build falls back to the project configured in `lib/src/app/env.dart`.
    A `SUPABASE_URL` or `SUPABASE_KEY` that is no address or key (say,
    several `--dart-define`s glued into one quoted value) falls back the
@@ -126,10 +127,52 @@ GitHub only mails when a workflow fails, not when it recovers. The
 failures add a comment), and the next green run closes it with a comment.
 Watchers of the repository get a mail for both.
 
+### Landing page
+
+`site/` is a small Hugo site, the page in front of the game at
+`/wargame/`. Its texts and pictures are the App Store listing: name,
+subtitle, promotional text and description come from
+`store/ios/metadata/<lang>/`, screenshots and the device artwork from
+`store/ios/screenshots/` and `store/ios/header/` (Hugo mounts in
+`site/hugo.toml`, resized to WebP at build time). The page stays short on
+purpose: the device artwork of the App Store header opens it, right under
+the name and the play button, because one room for browser, phone, tablet,
+TV and watch is what sets the game apart. The description is read into its
+parts, so its layout matters: an opening paragraph (not shown), then
+sections whose first line is a heading in capitals (only the first is
+used, the ways to play as `• Name: text`, of which the page shows the first
+sentence), then loose paragraphs (the first becomes the pledge under the
+screenshots, the rest go into the footer). Only the page's own
+words live in `site/i18n/`. German sits at the root, English under `en/`;
+a first visit follows the browser language like the game does.
+
+The play button leads to `play/`, the game's start page with the three ways
+to play. On the press the page lays the game's launch screen (ground and
+tank) over itself, the same picture `web/index.html` starts with, so the
+switch does not flash, and pointing at the button already prefetches the
+game's scripts. Links that used to open the game at the old address (room
+and pairing links of older apps, sign-in mails with `?code=`, home screen
+shortcuts) are passed on to `play/` before the page draws, so they keep
+working. The Impressum and privacy pages stay at `/wargame/impressum/` and
+`/wargame/datenschutz/`.
+
+```sh
+hugo server --source site          # http://localhost:1313/wargame/
+```
+
+The play button needs the game next to it; for the whole site as deployed:
+
+```sh
+flutter build web --base-href /wargame/play/
+hugo --source site --baseURL http://localhost:8000/wargame/ -d /tmp/site/wargame
+cp -R build/web /tmp/site/wargame/play
+python3 -m http.server -d /tmp/site 8000
+```
+
 To build by hand:
 
 ```sh
-flutter build web --base-href /your-repo/ \
+flutter build web --base-href /your-repo/play/ \
   --dart-define=SUPABASE_URL=https://your-project-ref.supabase.co \
   --dart-define=SUPABASE_KEY=sb_publishable_...
 ```

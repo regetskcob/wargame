@@ -1,0 +1,4 @@
+{{- /* The way into the game: its start page, where the way to play is chosen. */ -}}
+<a class="play{{ with .class }} {{ . }}{{ end }}" href="{{ "play/" | relURL }}" data-play>
+  {{ partial "icon.html" "play" }}<span>{{ .label }}</span>
+</a>
