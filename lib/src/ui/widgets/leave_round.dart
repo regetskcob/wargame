@@ -24,7 +24,7 @@ class LeaveRoundButton extends StatelessWidget {
       tooltip: game.touchMode.value
           ? tr('Runde verlassen', 'Leave round')
           : tr('Runde verlassen (Esc)', 'Leave round (Esc)'),
-      color: BwColors.textDim.withValues(alpha: 0.7),
+      color: GameColors.textDim.withValues(alpha: 0.7),
       onPressed: () => game.leaveAsked.value = true,
       icon: const Icon(Icons.logout),
     );
@@ -79,7 +79,7 @@ class LeaveRoundPrompt extends StatelessWidget {
                       ),
                       FilledButton(
                         style: FilledButton.styleFrom(
-                          backgroundColor: BwColors.danger,
+                          backgroundColor: GameColors.danger,
                         ),
                         onPressed: () {
                           game.pointerOnHud = false;
