@@ -98,7 +98,7 @@ class _RoomInviteState extends State<RoomInvite> {
           style: const TextStyle(
             fontSize: 10,
             letterSpacing: 1.5,
-            color: BwColors.textDim,
+            color: GameColors.textDim,
           ),
         ),
       ],
@@ -123,7 +123,7 @@ class _RoomInviteState extends State<RoomInvite> {
             fontSize: 30,
             fontWeight: FontWeight.w900,
             letterSpacing: 6,
-            color: BwColors.sand,
+            color: GameColors.sand,
           ),
         ),
         const SizedBox(height: 8),
@@ -138,7 +138,7 @@ class _RoomInviteState extends State<RoomInvite> {
                 // Plain sand like the share icon beside it, and narrow enough
                 // that both fit next to the QR code on a phone.
                 style: TextButton.styleFrom(
-                  foregroundColor: BwColors.sand,
+                  foregroundColor: GameColors.sand,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   minimumSize: const Size(0, _buttonHeight),
                   maximumSize: const Size(double.infinity, _buttonHeight),
@@ -153,7 +153,7 @@ class _RoomInviteState extends State<RoomInvite> {
                 builder: (button) => IconButton(
                   onPressed: () => _share(button),
                   tooltip: tr('Teilen', 'Share'),
-                  color: BwColors.sand,
+                  color: GameColors.sand,
                   constraints: const BoxConstraints.tightFor(
                     width: _buttonHeight,
                     height: _buttonHeight,
@@ -172,14 +172,14 @@ class _RoomInviteState extends State<RoomInvite> {
               'Wer den Raumcode kennt, kann beitreten.',
               'Anyone who knows the room code can join.',
             ),
-            style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+            style: const TextStyle(color: GameColors.textDim, fontSize: 12),
           ),
       ],
     );
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),

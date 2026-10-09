@@ -48,7 +48,7 @@ class VitalsPlate extends StatelessWidget {
             _line(
               Icons.health_and_safety,
               armour,
-              armour > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+              armour > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
               '${hp.ceil().clamp(0, maxHp.ceil())}',
             ),
             _line(
@@ -57,9 +57,9 @@ class VitalsPlate extends StatelessWidget {
               endless
                   ? const Color(0xFF4FC3F7)
                   : ammo == 0
-                  ? BwColors.danger
+                  ? GameColors.danger
                   : shells <= GameConfig.ammoLowShare
-                  ? BwColors.amber
+                  ? GameColors.amber
                   : const Color(0xFF4FC3F7),
               endless ? '∞' : '$ammo',
             ),
@@ -68,9 +68,9 @@ class VitalsPlate extends StatelessWidget {
                 Icons.local_gas_station,
                 tank.clamp(0.0, 1.0),
                 tank <= 0
-                    ? BwColors.danger
+                    ? GameColors.danger
                     : tank <= GameConfig.fuelLowShare
-                    ? BwColors.amber
+                    ? GameColors.amber
                     : const Color(0xFFFF9100),
                 '${(tank * 100).ceil()}%',
               ),
@@ -103,7 +103,7 @@ class VitalsPlate extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                color: value <= 0 ? BwColors.danger : null,
+                color: value <= 0 ? GameColors.danger : null,
               ),
             ),
           ),

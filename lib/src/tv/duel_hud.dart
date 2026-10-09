@@ -83,7 +83,7 @@ class _Bases extends StatelessWidget {
                     left > 0
                         ? tr('nächste in $left s', 'next in $left s')
                         : tr('läuft', 'on'),
-                    style: const TextStyle(color: BwColors.amber),
+                    style: const TextStyle(color: GameColors.amber),
                   ),
                 ],
               ),
@@ -159,8 +159,8 @@ class _PlayerPanel extends StatelessWidget {
         final notice = game.notice.value;
         return DecoratedBox(
           decoration: ShapeDecoration(
-            color: BwColors.panel,
-            shape: BwShapes.card(edge: color, width: 2),
+            color: GameColors.panel,
+            shape: GameShapes.card(edge: color, width: 2),
           ),
           child: Padding(
             padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
@@ -187,7 +187,7 @@ class _PlayerPanel extends StatelessWidget {
                         'Neuer Panzer in $respawn s',
                         'New tank in $respawn s',
                       ),
-                      style: const TextStyle(color: BwColors.amber),
+                      style: const TextStyle(color: GameColors.amber),
                     )
                   else
                     SizedBox(
@@ -197,7 +197,7 @@ class _PlayerPanel extends StatelessWidget {
                         backgroundColor: const Color(0x66000000),
                         color: hp > 0.3
                             ? const Color(0xFF9CCC65)
-                            : BwColors.danger,
+                            : GameColors.danger,
                       ),
                     ),
                   const SizedBox(height: 6),
@@ -212,7 +212,7 @@ class _PlayerPanel extends StatelessWidget {
                     '${pad ? '  ·  R1 ${tr('baut', 'builds')}  ·  Y ${tr('Panzer', 'tank')} ${GameConfig.troopCost}' : ''}',
                     style: const TextStyle(
                       fontSize: 12,
-                      color: BwColors.textDim,
+                      color: GameColors.textDim,
                     ),
                   ),
                   if (special != null)
@@ -221,7 +221,7 @@ class _PlayerPanel extends StatelessWidget {
                       '${pad ? '  ·  L2' : ''}',
                       style: const TextStyle(
                         fontSize: 12,
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                       ),
                     ),
                   if (game.inventory.value.isNotEmpty) ...[
@@ -234,7 +234,7 @@ class _PlayerPanel extends StatelessWidget {
                       notice,
                       style: const TextStyle(
                         fontWeight: FontWeight.w800,
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                       ),
                     ),
                   ],
@@ -265,7 +265,7 @@ class _Items extends StatelessWidget {
           DecoratedBox(
             decoration: ShapeDecoration(
               color: const Color(0x55000000),
-              shape: BwShapes.chip(edge: slot.type.color),
+              shape: GameShapes.chip(edge: slot.type.color),
             ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
@@ -278,7 +278,7 @@ class _Items extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w800,
-                        color: BwColors.sand,
+                        color: GameColors.sand,
                       ),
                     ),
                   Icon(slot.type.icon, size: 16, color: slot.type.color),
@@ -322,7 +322,7 @@ class DuelOverviewResult extends StatelessWidget {
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: winner < 0 ? BwColors.sand : playerColors[winner],
+                  color: winner < 0 ? GameColors.sand : playerColors[winner],
                 ),
               ),
               const SizedBox(height: 8),
@@ -337,7 +337,7 @@ class DuelOverviewResult extends StatelessWidget {
                             '${winner == 0 ? 'Blau' : 'Rot'} ist gefallen.',
                         'The base of ${winner == 0 ? 'blue' : 'red'} fell.',
                       ),
-                style: const TextStyle(color: BwColors.textDim),
+                style: const TextStyle(color: GameColors.textDim),
               ),
               const SizedBox(height: 4),
               Text(
@@ -345,7 +345,7 @@ class DuelOverviewResult extends StatelessWidget {
                   'Gleich geht es zurück in den Warteraum.',
                   'Back to the waiting room in a moment.',
                 ),
-                style: const TextStyle(color: BwColors.textDim),
+                style: const TextStyle(color: GameColors.textDim),
               ),
             ],
           ),

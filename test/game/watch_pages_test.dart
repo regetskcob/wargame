@@ -60,7 +60,7 @@ void main() {
     await tester.pumpWidget(
       MaterialApp(
         debugShowCheckedModeBanner: false,
-        theme: buildBundeswehrTheme(),
+        theme: buildGameTheme(),
         home: Scaffold(
           body: RepaintBoundary(key: key, child: page),
         ),

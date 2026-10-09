@@ -75,9 +75,9 @@ class PlayerTag extends StatelessWidget {
         );
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: BwColors.panel,
-        shape: BwShapes.chip(
-          edge: seat == null ? BwColors.danger : playerColors[player],
+        color: GameColors.panel,
+        shape: GameShapes.chip(
+          edge: seat == null ? GameColors.danger : playerColors[player],
           width: 2,
         ),
       ),

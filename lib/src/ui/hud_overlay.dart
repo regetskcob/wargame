@@ -39,6 +39,18 @@ class HudOverlay extends StatefulWidget {
 /// left side instead of spreading along the top.
 const _uprightWidth = 560.0;
 
+/// Height of one gauge plate (armour, ammo, fuel) with the gap under it and a
+/// little to spare; about 60 px on screen.
+const _plateHeight = 62.0;
+
+/// The inventory column on a keyboard screen: six 56 px slots with 2 px above
+/// and below each.
+const _inventoryHeight = GameConfig.inventorySlots * 60.0;
+
+/// How far the gauges step in when they would reach down into the inventory:
+/// its 8 px margin, a 56 px slot and a gap.
+const _inventoryInset = 8 + 56 + 8.0;
+
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
 
@@ -337,7 +349,7 @@ class _HudOverlayState extends State<HudOverlay> {
                                 _zoneLabel(compact: true),
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: BwColors.amber,
+                                  color: GameColors.amber,
                                 ),
                               ),
                             ],
@@ -398,7 +410,7 @@ class _HudOverlayState extends State<HudOverlay> {
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 3,
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                       ),
                     ),
             ),
@@ -421,7 +433,7 @@ class _HudOverlayState extends State<HudOverlay> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: BwColors.danger,
+                            color: GameColors.danger,
                           ),
                         ),
                       ),
@@ -486,71 +498,92 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Whether the gauges in the top left corner would reach down into the
+  /// inventory, which sits vertically centred (a little low) on the left edge.
+  /// Short windows such as a laptop browser bring it up under the gauges.
+  bool _gaugesMeetInventory(TankGame game, double height) {
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final plates = game.usesFuel ? 3 : 2;
+    final gaugesBottom = 16 + plates * _plateHeight * scale;
+    // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
+    final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
+    return gaugesBottom + 8 > inventoryTop;
+  }
+
   Widget _status(TankGame game) {
     return IgnorePointer(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: LayoutBuilder(
+        builder: (context, constraints) => _statusColumn(
+          game,
+          _gaugesMeetInventory(game, constraints.maxHeight),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusColumn(TankGame game, bool inset) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(inset ? _inventoryInset : 16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: game.hpNotifier,
+                    builder: (context, hp, _) =>
+                        HealthBar(hp: hp, maxHp: game.myMaxHp),
+                  ),
+                  const SizedBox(height: 6),
+                  _ammo(game),
+                ],
+              ),
+              const Spacer(),
+              Panel(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ValueListenableBuilder<double>(
-                      valueListenable: game.hpNotifier,
-                      builder: (context, hp, _) =>
-                          HealthBar(hp: hp, maxHp: game.myMaxHp),
+                    _alive(game, 16),
+                    ValueListenableBuilder<int>(
+                      valueListenable: game.soldiersRunOver,
+                      builder: (context, n, _) => n == 0
+                          ? const SizedBox()
+                          : Text(
+                              tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
+                              style: const TextStyle(
+                                color: GameColors.danger,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 6),
-                    _ammo(game),
+                    const SizedBox(height: 4),
+                    Text(
+                      _zoneLabel(),
+                      style: const TextStyle(color: GameColors.amber),
+                    ),
                   ],
                 ),
-                const Spacer(),
-                Panel(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _alive(game, 16),
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.soldiersRunOver,
-                        builder: (context, n, _) => n == 0
-                            ? const SizedBox()
-                            : Text(
-                                tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                                style: const TextStyle(
-                                  color: BwColors.danger,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _zoneLabel(),
-                        style: const TextStyle(color: BwColors.amber),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            KillFeedView(feed: game.killFeed),
-            const Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: MiniMap(game: game),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          KillFeedView(feed: game.killFeed),
+          const Spacer(),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: MiniMap(game: game),
+          ),
+        ],
       ),
     );
   }
@@ -612,8 +645,8 @@ class _DefensePanelState extends State<_DefensePanel> {
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
-          ? BwColors.textDim.withValues(alpha: 0.45)
-          : BwColors.text,
+          ? GameColors.textDim.withValues(alpha: 0.45)
+          : GameColors.text,
     ),
     side: WidgetStateProperty.resolveWith(
       (states) => BorderSide(
@@ -677,7 +710,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   : OutlinedButton.new)(
                     style: kind == game.towerChoice.value
                         ? _buttonStyle
-                        : _buyStyle(BwColors.oliveLight),
+                        : _buyStyle(GameColors.oliveLight),
                     onPressed:
                         credits >= kind.cost &&
                             kind.unlockedIn(wave, extended: extended)
@@ -715,7 +748,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           '${steeredByPad(game) ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
-            color: BwColors.amber,
+            color: GameColors.amber,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -750,7 +783,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               tr('MITTEL $credits', 'FUNDS $credits'),
               style: const TextStyle(
-                color: BwColors.amber,
+                color: GameColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -819,7 +852,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         }
         final host = game.round?.botHost == game.myId;
         final withdraw = OutlinedButton.icon(
-          style: _buyStyle(BwColors.sand),
+          style: _buyStyle(GameColors.sand),
           onPressed: game.withdrawDefense,
           icon: const Icon(Icons.flag, size: 16),
           label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
@@ -834,7 +867,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   'ALL ${GameConfig.defenseWaves} WAVES REPELLED · VICTORY SECURED',
                 ),
                 style: TextStyle(
-                  color: BwColors.amber,
+                  color: GameColors.amber,
                   fontSize: touch ? 11 : 13,
                   fontWeight: FontWeight.w900,
                 ),
@@ -883,7 +916,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ),
                       style: TextStyle(
                         fontSize: touch ? 10 : 11,
-                        color: BwColors.textDim,
+                        color: GameColors.textDim,
                       ),
                     ),
             );
@@ -952,7 +985,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           child: LinearProgressIndicator(
             value: ratio,
             backgroundColor: const Color(0x66000000),
-            color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+            color: ratio > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
           ),
         );
         final label = Text(
@@ -971,7 +1004,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               Tooltip(
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
-                child: const Icon(Icons.flag, size: 12, color: BwColors.sand),
+                child: const Icon(Icons.flag, size: 12, color: GameColors.sand),
               ),
               const SizedBox(width: 4),
               bar,
@@ -980,7 +1013,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               const SizedBox(width: 10),
               Text(
                 widget.waveLabel,
-                style: const TextStyle(fontSize: 11, color: BwColors.amber),
+                style: const TextStyle(fontSize: 11, color: GameColors.amber),
               ),
             ],
           );

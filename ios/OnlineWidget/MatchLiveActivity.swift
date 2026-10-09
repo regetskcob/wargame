@@ -7,8 +7,8 @@ struct MatchLiveActivity: Widget {
   var body: some WidgetConfiguration {
     ActivityConfiguration(for: MatchActivityAttributes.self) { context in
       LockScreenView(attributes: context.attributes, state: context.state)
-        .activityBackgroundTint(Bw.background)
-        .activitySystemActionForegroundColor(Bw.amber)
+        .activityBackgroundTint(WidgetPalette.background)
+        .activitySystemActionForegroundColor(WidgetPalette.amber)
     } dynamicIsland: { context in
       let state = context.state
       let attributes = context.attributes
@@ -33,7 +33,7 @@ struct MatchLiveActivity: Widget {
             // A timer text claims all the width it gets; pin it.
             RoundClock(state: state)
               .font(.system(size: 20, weight: .bold).monospacedDigit())
-              .foregroundStyle(Bw.amber)
+              .foregroundStyle(WidgetPalette.amber)
               .multilineTextAlignment(.center)
               .frame(width: 80)
           }
@@ -46,10 +46,10 @@ struct MatchLiveActivity: Widget {
       } compactLeading: {
         HStack(spacing: 3) {
           Image(systemName: state.defending(attributes) ? "shield.fill" : "scope")
-            .foregroundStyle(Bw.amber)
+            .foregroundStyle(WidgetPalette.amber)
           Text("\(state.alive)")
             .fontWeight(.heavy)
-            .foregroundStyle(Bw.text)
+            .foregroundStyle(WidgetPalette.text)
         }
       } compactTrailing: {
         if state.phase == "roundOver" {
@@ -59,16 +59,16 @@ struct MatchLiveActivity: Widget {
         } else {
           RoundClock(state: state)
             .font(.system(size: 14, weight: .semibold).monospacedDigit())
-            .foregroundStyle(Bw.amber)
+            .foregroundStyle(WidgetPalette.amber)
             .multilineTextAlignment(.trailing)
             .frame(width: 44)
         }
       } minimal: {
         Text("\(state.alive)")
           .fontWeight(.heavy)
-          .foregroundStyle(Bw.amber)
+          .foregroundStyle(WidgetPalette.amber)
       }
-      .keylineTint(Bw.amber)
+      .keylineTint(WidgetPalette.amber)
     }
   }
 }
@@ -83,15 +83,15 @@ private struct LockScreenView: View {
         Text("PANZERGEFECHT")
           .font(.system(size: 11, weight: .black))
           .tracking(1.5)
-          .foregroundStyle(Bw.sand)
+          .foregroundStyle(WidgetPalette.sand)
         Text(attributes.map.uppercased())
           .font(.system(size: 11, weight: .bold))
-          .foregroundStyle(Bw.textDim.opacity(0.7))
+          .foregroundStyle(WidgetPalette.textDim.opacity(0.7))
           .lineLimit(1)
         Spacer()
         RoundClock(state: state)
           .font(.system(size: 15, weight: .bold).monospacedDigit())
-          .foregroundStyle(Bw.amber)
+          .foregroundStyle(WidgetPalette.amber)
           .multilineTextAlignment(.trailing)
           .frame(maxWidth: 80, alignment: .trailing)
       }
@@ -104,7 +104,7 @@ private struct LockScreenView: View {
             .minimumScaleFactor(0.6)
           Text(state.subline(attributes))
             .font(.system(size: 13, weight: .medium))
-            .foregroundStyle(Bw.textDim)
+            .foregroundStyle(WidgetPalette.textDim)
             .lineLimit(1)
         }
         Spacer(minLength: 0)
@@ -126,11 +126,11 @@ private struct Stat: View {
     VStack(alignment: alignment, spacing: -2) {
       Text(value)
         .font(.system(size: 24, weight: .heavy, design: .rounded))
-        .foregroundStyle(Bw.text)
+        .foregroundStyle(WidgetPalette.text)
         .contentTransition(.numericText())
       Text(label)
         .font(.system(size: 11, weight: .medium))
-        .foregroundStyle(Bw.textDim)
+        .foregroundStyle(WidgetPalette.textDim)
     }
   }
 }
@@ -143,10 +143,10 @@ private struct Bars: View {
   var body: some View {
     VStack(spacing: 6) {
       if state.phase != "spectating" {
-        Bar(label: tr("Panzerung", "Armour"), value: state.hp, color: state.hp > 0.3 ? Bw.olive : Bw.danger)
+        Bar(label: tr("Panzerung", "Armour"), value: state.hp, color: state.hp > 0.3 ? WidgetPalette.olive : WidgetPalette.danger)
       }
       if state.defending(attributes) {
-        Bar(label: tr("Basis", "Base"), value: state.baseHp, color: state.baseHp > 0.3 ? Bw.sand : Bw.danger)
+        Bar(label: tr("Basis", "Base"), value: state.baseHp, color: state.baseHp > 0.3 ? WidgetPalette.sand : WidgetPalette.danger)
       }
     }
   }
@@ -161,14 +161,14 @@ private struct Bar: View {
     HStack(spacing: 8) {
       Text(label)
         .font(.system(size: 11, weight: .semibold))
-        .foregroundStyle(Bw.textDim)
+        .foregroundStyle(WidgetPalette.textDim)
         .frame(width: 66, alignment: .leading)
       ProgressView(value: min(max(value, 0), 1))
         .tint(color)
-        .background(Bw.surface)
+        .background(WidgetPalette.surface)
       Text("\(Int((value * 100).rounded())) %")
         .font(.system(size: 11, weight: .bold).monospacedDigit())
-        .foregroundStyle(Bw.text)
+        .foregroundStyle(WidgetPalette.text)
         .frame(width: 40, alignment: .trailing)
     }
   }
@@ -233,9 +233,9 @@ extension MatchActivityAttributes.ContentState {
 
   var headlineColor: Color {
     switch (phase, outcome) {
-    case ("roundOver", "won"): return Bw.amber
-    case ("roundOver", _), ("spectating", _): return Bw.danger
-    default: return Bw.text
+    case ("roundOver", "won"): return WidgetPalette.amber
+    case ("roundOver", _), ("spectating", _): return WidgetPalette.danger
+    default: return WidgetPalette.text
     }
   }
 }

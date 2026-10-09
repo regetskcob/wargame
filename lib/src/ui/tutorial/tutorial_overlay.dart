@@ -178,7 +178,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       autofocus: true,
       onKeyEvent: _onKey,
       child: Material(
-        color: BwColors.background,
+        color: GameColors.background,
         child: LayoutBuilder(
           builder: (context, _) {
             // A new size can move the card's lower edge.
@@ -255,7 +255,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Widget _header() {
     return Row(
       children: [
-        const Icon(Icons.school, color: BwColors.amber, size: 20),
+        const Icon(Icons.school, color: GameColors.amber, size: 20),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -264,7 +264,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.sand,
+              color: GameColors.sand,
             ),
           ),
         ),
@@ -296,7 +296,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final compact = MediaQuery.sizeOf(context).height < 500;
     final title = Row(
       children: [
-        Icon(step.icon, color: BwColors.amber, size: compact ? 18 : 22),
+        Icon(step.icon, color: GameColors.amber, size: compact ? 18 : 22),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -306,7 +306,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               fontSize: compact ? 18 : null,
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.sand,
+              color: GameColors.sand,
             ),
           ),
         ),
@@ -355,10 +355,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return DecoratedBox(
       key: _cardKey,
       decoration: ShapeDecoration(
-        color: BwColors.panel,
+        color: GameColors.panel,
         shape: BeveledRectangleBorder(
           borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: BwColors.amber, width: 1.5),
+          side: const BorderSide(color: GameColors.amber, width: 1.5),
         ),
         shadows: const [BoxShadow(color: Color(0x88000000), blurRadius: 16)],
       ),
@@ -374,7 +374,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   child: Text(
                     kicker,
                     style: const TextStyle(
-                      color: BwColors.amber,
+                      color: GameColors.amber,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 1.5,
@@ -409,7 +409,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                     Text(
                       other.text,
                       style: TextStyle(
-                        color: BwColors.text,
+                        color: GameColors.text,
                         fontSize: compact ? 13 : 14,
                         height: 1.35,
                       ),
@@ -471,9 +471,9 @@ class _Dots extends StatelessWidget {
               width: i == index ? 14 : 6,
               height: 6,
               color: i == index
-                  ? BwColors.amber
+                  ? GameColors.amber
                   : i < index
-                  ? BwColors.oliveLight
+                  ? GameColors.oliveLight
                   : const Color(0x55BFC6AA),
             ),
         ],
@@ -557,7 +557,7 @@ class _Chip extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.2,
-                color: BwColors.text,
+                color: GameColors.text,
               ),
             ),
           ],

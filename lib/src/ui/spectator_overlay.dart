@@ -114,14 +114,14 @@ class SpectatorOverlay extends StatelessWidget {
     );
     final title = [
       if (game.replaying.value) ...[
-        const Icon(Icons.movie_outlined, size: 18, color: BwColors.amber),
+        const Icon(Icons.movie_outlined, size: 18, color: GameColors.amber),
         const SizedBox(width: 6),
         Text(
           tr('WIEDERHOLUNG', 'REPLAY'),
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
-            color: BwColors.amber,
+            color: GameColors.amber,
           ),
         ),
         const SizedBox(width: 12),
@@ -135,7 +135,7 @@ class SpectatorOverlay extends StatelessWidget {
         valueListenable: game.aliveCount,
         builder: (context, alive, _) => Text(
           tr('noch $alive', '$alive left'),
-          style: const TextStyle(color: BwColors.textDim),
+          style: const TextStyle(color: GameColors.textDim),
         ),
       ),
     ];
@@ -207,7 +207,7 @@ class _DestroyedBanner extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 ColoredBox(
-                  color: BwColors.danger.withValues(alpha: 0.28 * (1 - t)),
+                  color: GameColors.danger.withValues(alpha: 0.28 * (1 - t)),
                 ),
                 Center(
                   child: Padding(
@@ -227,7 +227,7 @@ class _DestroyedBanner extends StatelessWidget {
                             fontSize: 56,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 8,
-                            color: BwColors.danger,
+                            color: GameColors.danger,
                             shadows: [
                               Shadow(blurRadius: 18, color: Colors.black),
                             ],

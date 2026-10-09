@@ -22,13 +22,13 @@ class ServerNotice extends StatelessWidget {
           child: DecoratedBox(
             decoration: ShapeDecoration(
               color: const Color(0x66000000),
-              shape: BwShapes.card(),
+              shape: GameShapes.card(),
             ),
             child: Padding(
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  const Icon(Icons.cloud_off, color: BwColors.amber),
+                  const Icon(Icons.cloud_off, color: GameColors.amber),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

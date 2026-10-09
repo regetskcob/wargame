@@ -58,7 +58,7 @@ extension TankGameCombat on TankGame {
         direction: bulletDirection,
         color: tank.tankColor,
         damage: damage,
-        antiAir: tank.tankType == TankType.gepard,
+        antiAir: tank.tankType == TankType.habicht,
       );
       net.send(
         NetEvent.shoot,
@@ -422,7 +422,7 @@ extension TankGameCombat on TankGame {
                   UpgradeKind.gun.factorAt(GameConfig.upgradeMaxLevel)
             : stats.damage,
       ),
-      antiAir: owner?.tankType == TankType.gepard,
+      antiAir: owner?.tankType == TankType.habicht,
     );
   }
 

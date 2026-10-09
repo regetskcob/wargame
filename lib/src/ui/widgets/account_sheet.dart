@@ -102,7 +102,7 @@ class _AccountSheetState extends State<AccountSheet> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('KONTO LÖSCHEN?', 'DELETE ACCOUNT?')),
         content: Text(
           tr(
@@ -121,7 +121,7 @@ class _AccountSheetState extends State<AccountSheet> {
             child: Text(tr('ABBRECHEN', 'CANCEL')),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: BwColors.danger),
+            style: FilledButton.styleFrom(backgroundColor: GameColors.danger),
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(tr('ENDGÜLTIG LÖSCHEN', 'DELETE PERMANENTLY')),
           ),
@@ -240,15 +240,15 @@ class _AccountSheetState extends State<AccountSheet> {
                           'carry on as a new guest.',
                     ),
                     style: const TextStyle(
-                      color: BwColors.textDim,
+                      color: GameColors.textDim,
                       fontSize: 13,
                     ),
                   ),
                   const SizedBox(height: 10),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: BwColors.danger,
-                      side: const BorderSide(color: BwColors.danger),
+                      foregroundColor: GameColors.danger,
+                      side: const BorderSide(color: GameColors.danger),
                     ),
                     onPressed: _busy ? null : _delete,
                     icon: _busy
@@ -264,7 +264,7 @@ class _AccountSheetState extends State<AccountSheet> {
                     const SizedBox(height: 8),
                     Text(
                       _error!,
-                      style: const TextStyle(color: BwColors.danger),
+                      style: const TextStyle(color: GameColors.danger),
                     ),
                   ],
                 ],
