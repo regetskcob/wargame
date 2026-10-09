@@ -50,12 +50,12 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 ## On the battlefield
 
-- Eight vehicles (Puma, Boxer, Wiesel, Gepard, Leopard 2, Panzerhaubitze
-  2000 and Rheinmetall's Lynx KF41 and Panther KF51) with their own armour,
-  speed and gun. Puma, Boxer and Wiesel are there from the start, the others
-  come with ranks 2, 3, 4, 5 and 8, and every later one is stronger than the
-  ones before. The lobby lists the unlocked ones first. Four free paint
-  schemes and four more that come with higher ranks.
+- Eight vehicles with animal names instead of real model or maker names
+  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs and
+  Wolf), each with its own armour, speed and gun. Hermelin, Fuchs and
+  Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
+  and 8, and every later one is stronger than the ones before. The lobby
+  lists the unlocked ones first. Four free paint schemes and four more that come with higher ranks.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of
@@ -79,7 +79,7 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
-  Gepard that hits aircraft properly), mortars and later howitzers, three
+  Habicht that hits aircraft properly), mortars and later howitzers, three
   levels each, trenches that cover a tank, and armour, gun, engine and
   magazine upgrades for the tank. The enemy shoots guns and trenches to
   pieces.
@@ -113,14 +113,14 @@ the centre and half at the edge of the radius.
 
 | Vehicle | Armour | Damage per shot | Barrels | Seconds per shot | Per second | Magazine |
 | --- | --- | --- | --- | --- | --- | --- |
-| Puma | 100 | 8 | 1 | 0.17 | 47 | 90 |
-| Wiesel | 60 | 38 | 1 | 1.2 | 32 | 14 |
-| Boxer | 70 | 11 | 1 | 0.26 | 42 | 55 |
-| Gepard | 105 | 9 | 2 | 0.26 | 69 | 45 |
-| Leopard 2 | 165 | 33 | 1 | 0.52 | 63 | 20 |
-| PzH 2000 | 185 | 75 | 1 | 1.05 | 71 | 12 |
-| Lynx KF41 | 135 | 14 | 1 | 0.2 | 70 | 70 |
-| Panther KF51 | 190 | 50 | 1 | 0.64 | 78 | 16 |
+| Hermelin | 100 | 8 | 1 | 0.17 | 47 | 90 |
+| Spitzmaus | 60 | 38 | 1 | 1.2 | 32 | 14 |
+| Fuchs | 70 | 11 | 1 | 0.26 | 42 | 55 |
+| Habicht | 105 | 9 | 2 | 0.26 | 69 | 45 |
+| Keiler | 165 | 33 | 1 | 0.52 | 63 | 20 |
+| Hirsch | 185 | 75 | 1 | 1.05 | 71 | 12 |
+| Dachs | 135 | 14 | 1 | 0.2 | 70 | 70 |
+| Wolf | 190 | 50 | 1 | 0.64 | 78 | 16 |
 
 Rapid fire from a crate shortens the time between shots to 45 % for 8
 seconds. In a defense round the enemy tanks fire three times slower.
@@ -158,7 +158,7 @@ seconds up to 300.
 
 **What softens a hit.** A shield lets 40 % through, every armour upgrade
 takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
-to the tank's shells. Against aircraft, flak and the Gepard do double, other
+to the tank's shells. Against aircraft, flak and the Habicht do double, other
 shells a quarter to a helicopter and nothing to a jet.
 
 ## Defense thresholds

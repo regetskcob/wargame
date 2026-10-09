@@ -72,7 +72,7 @@ class PadBusyNotice extends StatelessWidget {
                       'once there is room again; controllers and keyboard '
                       'always work.',
                 ),
-                style: const TextStyle(color: BwColors.amber, fontSize: 13),
+                style: const TextStyle(color: GameColors.amber, fontSize: 13),
               ),
             )
           : const SizedBox.shrink(),
@@ -110,7 +110,7 @@ class _ScreenPairing extends StatelessWidget {
                         'QR code to scan with the Panzergefecht app or the '
                         'phone camera.',
                   ),
-            style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+            style: const TextStyle(color: GameColors.textDim, fontSize: 13),
           ),
           const PadBusyNotice(),
           const SizedBox(height: 10),
@@ -178,7 +178,7 @@ class _BecomePad extends StatelessWidget {
                 'a computer or tablet. Open the account there, tap Pair '
                 'phone and scan the QR code.',
           ),
-          style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+          style: const TextStyle(color: GameColors.textDim, fontSize: 13),
         ),
         const SizedBox(height: 10),
         Wrap(
@@ -230,7 +230,7 @@ class _CodeDialogState extends State<_CodeDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: BwColors.surface,
+      backgroundColor: GameColors.surface,
       title: Text(tr('KOPPLUNGSCODE', 'PAIRING CODE')),
       content: TextField(
         controller: _field,
@@ -343,7 +343,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                       'as controller) or the phone camera. The phone then '
                       'becomes the gamepad of this screen.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 13),
               ),
             ),
             const SizedBox(height: 16),
@@ -379,7 +379,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                         fontSize: 26,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 5,
-                        color: BwColors.sand,
+                        color: GameColors.sand,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -398,7 +398,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                             const Icon(
                               Icons.check_circle,
                               size: 16,
-                              color: BwColors.amber,
+                              color: GameColors.amber,
                             ),
                           const SizedBox(width: 8),
                           Text(
@@ -409,7 +409,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                                   )
                                 : tr('Handy gekoppelt', 'Phone paired'),
                             style: const TextStyle(
-                              color: BwColors.textDim,
+                              color: GameColors.textDim,
                               fontSize: 12,
                             ),
                           ),

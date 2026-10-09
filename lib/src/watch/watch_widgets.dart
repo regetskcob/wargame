@@ -14,7 +14,7 @@ class WatchPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final padding = MediaQuery.paddingOf(context);
     return ColoredBox(
-      color: BwColors.background,
+      color: GameColors.background,
       child: ListView(
         padding: EdgeInsets.fromLTRB(
           12 + padding.left,
@@ -48,7 +48,7 @@ class WatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? BwColors.danger : BwColors.amber;
+    final color = danger ? GameColors.danger : GameColors.amber;
     final style = ButtonStyle(
       minimumSize: const WidgetStatePropertyAll(Size.fromHeight(44)),
       padding: const WidgetStatePropertyAll(
@@ -101,7 +101,7 @@ class WatchLabel extends StatelessWidget {
         fontSize: 11,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
-        color: BwColors.sand,
+        color: GameColors.sand,
       ),
     ),
   );

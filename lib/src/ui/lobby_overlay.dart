@@ -22,6 +22,7 @@ import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
+import 'widgets/tablet_scale.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
 import '../tv/tv_input.dart';
@@ -133,7 +134,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
               'Defense: Hold the base against all waves.',
             ),
-          }, style: const TextStyle(color: BwColors.textDim)),
+          }, style: const TextStyle(color: GameColors.textDim)),
         ),
       ],
     );
@@ -217,7 +218,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                                 'CPU tanks, so the server carries both.',
                           ),
                           style: const TextStyle(
-                            color: BwColors.textDim,
+                            color: GameColors.textDim,
                             fontSize: 12,
                           ),
                         ),
@@ -451,9 +452,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             // size in half a phone width.
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              foregroundColor: _closeArmed ? BwColors.danger : null,
+              foregroundColor: _closeArmed ? GameColors.danger : null,
               side: _closeArmed
-                  ? const BorderSide(color: BwColors.danger)
+                  ? const BorderSide(color: GameColors.danger)
                   : null,
             ),
             icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
@@ -544,7 +545,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
           onTv
@@ -623,13 +624,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         fontSize: 12,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
-        color: BwColors.sand,
+        color: GameColors.sand,
       ),
     ),
   );
 
-  Widget _hint(String text) =>
-      Text(text, style: const TextStyle(color: BwColors.textDim, fontSize: 12));
+  Widget _hint(String text) => Text(
+    text,
+    style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+  );
 
   /// Closing takes two clicks: the first one asks, the second one closes.
   void _confirmClose() {
@@ -809,7 +812,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ]),
       builder: (context, _) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
-        color: _frameless(context) ? BwColors.panel : const Color(0xAA000000),
+        color: _frameless(context) ? GameColors.panel : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         // Phones scroll the page up to the lower screen edge instead of
@@ -828,13 +831,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Phones and the tablet apps start at the top: short pages
-              // leave the room below them instead of floating in the middle
-              // of a screen held in the hand. The browser and the
-              // television frame the menu as a plate, which sits best in
-              // the middle.
+              // Only phones start at the top: short pages leave the room
+              // below them instead of floating in the middle of a screen
+              // held in the hand. Tablets, the browser and the television
+              // have the room to show every page in the middle.
+              final handheld =
+                  MediaQuery.sizeOf(context).shortestSide < tabletShortSide;
               return Align(
-                alignment: phone ? Alignment.topCenter : Alignment.center,
+                alignment: handheld ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
@@ -887,7 +891,7 @@ class _Section extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -897,7 +901,7 @@ class _Section extends StatelessWidget {
             if (title != null) ...[
               Row(
                 children: [
-                  Icon(icon, size: 18, color: BwColors.amber),
+                  Icon(icon, size: 18, color: GameColors.amber),
                   const SizedBox(width: 8),
                   Text(
                     title!,
@@ -945,7 +949,7 @@ class ColorSwatchButton extends StatelessWidget {
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
-              color: selected ? BwColors.amber : Colors.black45,
+              color: selected ? GameColors.amber : Colors.black45,
               width: 2.5,
             ),
           ),
@@ -967,13 +971,13 @@ class _JoinedBanner extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.hourglass_top, color: BwColors.amber),
+            const Icon(Icons.hourglass_top, color: GameColors.amber),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

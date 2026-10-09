@@ -283,7 +283,7 @@ class _ModeCard extends StatelessWidget {
   Widget _card(BuildContext context) {
     return Material(
       color: const Color(0x44000000),
-      shape: BwShapes.card(),
+      shape: GameShapes.card(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -292,7 +292,7 @@ class _ModeCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
           child: Row(
             children: [
-              Icon(icon, color: BwColors.amber, size: 30),
+              Icon(icon, color: GameColors.amber, size: 30),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -308,7 +308,7 @@ class _ModeCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
-                          color: BwColors.sand,
+                          color: GameColors.sand,
                         ),
                       ),
                     ),
@@ -318,7 +318,7 @@ class _ModeCard extends StatelessWidget {
                           ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
                           : kicker,
                       style: const TextStyle(
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
@@ -327,7 +327,7 @@ class _ModeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: BwColors.amber),
+              const Icon(Icons.chevron_right, color: GameColors.amber),
             ],
           ),
         ),
@@ -371,7 +371,7 @@ class _DuelCard extends StatelessWidget {
     return showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
         content: Text(
           tr(

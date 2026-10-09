@@ -12,7 +12,7 @@ PlayerTank _bot() => PlayerTank(
   playerId: 'cpu-1',
   playerName: 'CPU-1',
   tankColor: const Color(0xFF6B7F3A),
-  tankType: TankType.puma,
+  tankType: TankType.hermelin,
   position: Vector2.zero(),
   controls: TouchInput(),
 );

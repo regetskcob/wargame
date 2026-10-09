@@ -46,7 +46,7 @@ class PlayerList extends StatelessWidget {
                 ),
                 if (member.host) ...[
                   const SizedBox(width: 6),
-                  const Icon(Icons.star, size: 13, color: BwColors.amber),
+                  const Icon(Icons.star, size: 13, color: GameColors.amber),
                 ],
                 if (member.team > 0) ...[
                   const SizedBox(width: 8),
@@ -64,7 +64,10 @@ class PlayerList extends StatelessWidget {
                   member.inMatch
                       ? tr('im Einsatz', 'in battle')
                       : tr('im Lager', 'in camp'),
-                  style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                  style: const TextStyle(
+                    color: GameColors.textDim,
+                    fontSize: 12,
+                  ),
                 ),
               ],
             ),

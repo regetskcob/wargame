@@ -68,7 +68,7 @@ class _RoomScannerState extends State<RoomScanner> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: BwColors.background,
+        backgroundColor: GameColors.background,
         title: Text(
           widget.pad
               ? tr('BILDSCHIRM KOPPELN', 'PAIR SCREEN')
@@ -108,7 +108,7 @@ class _RoomScannerState extends State<RoomScanner> {
               width: 240,
               height: 240,
               decoration: BoxDecoration(
-                border: Border.all(color: BwColors.amber, width: 3),
+                border: Border.all(color: GameColors.amber, width: 3),
               ),
             ),
           ),

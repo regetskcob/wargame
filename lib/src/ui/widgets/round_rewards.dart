@@ -37,7 +37,7 @@ class RoundRewards extends StatelessWidget {
                     'rating and badges and unlock vehicles.',
               ),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+              style: const TextStyle(color: GameColors.textDim, fontSize: 13),
             ),
           );
         }
@@ -82,8 +82,8 @@ class RoundRewards extends StatelessWidget {
     final changeColor = change > 0
         ? const Color(0xFF9CCC65)
         : change < 0
-        ? BwColors.danger
-        : BwColors.textDim;
+        ? GameColors.danger
+        : GameColors.textDim;
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 18,
@@ -93,7 +93,7 @@ class RoundRewards extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             fontSize: 16,
-            color: BwColors.amber,
+            color: GameColors.amber,
           ),
         ),
         Text.rich(
@@ -126,7 +126,7 @@ class RoundRewards extends StatelessWidget {
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 1.5,
-            color: BwColors.amber,
+            color: GameColors.amber,
           ),
         ),
       ],

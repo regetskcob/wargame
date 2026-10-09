@@ -71,7 +71,7 @@ class _RoomListState extends State<RoomList> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 12),
               );
             }
             return Column(
@@ -91,7 +91,7 @@ class _RoomListState extends State<RoomList> {
               IconButton(
                 onPressed: _scan,
                 tooltip: tr('QR-Code scannen', 'Scan QR code'),
-                color: BwColors.sand,
+                color: GameColors.sand,
                 icon: Icon(
                   Icons.qr_code_scanner,
                   semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
@@ -114,7 +114,7 @@ class _RoomListState extends State<RoomList> {
             const SizedBox(width: 4),
             TextButton(
               onPressed: () => _join(_code.text),
-              style: TextButton.styleFrom(foregroundColor: BwColors.sand),
+              style: TextButton.styleFrom(foregroundColor: GameColors.sand),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
           ],
@@ -136,7 +136,7 @@ class _RoomListState extends State<RoomList> {
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.amber,
+              color: GameColors.amber,
             ),
           ),
           const SizedBox(width: 10),

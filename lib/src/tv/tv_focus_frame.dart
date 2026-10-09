@@ -102,7 +102,7 @@ class _TvFocusFrameState extends State<TvFocusFrame>
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  border: Border.all(color: BwColors.amber, width: 3),
+                  border: Border.all(color: GameColors.amber, width: 3),
                   boxShadow: const [
                     BoxShadow(color: Color(0x88FFB300), blurRadius: 14),
                   ],

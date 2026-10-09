@@ -61,7 +61,7 @@ class _PilotCardState extends State<PilotCard> {
                             value: rank.progress,
                             minHeight: 6,
                             backgroundColor: const Color(0x55000000),
-                            color: BwColors.amber,
+                            color: GameColors.amber,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -74,7 +74,7 @@ class _PilotCardState extends State<PilotCard> {
                                 softWrap: false,
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: BwColors.textDim,
+                                  color: GameColors.textDim,
                                 ),
                               ),
                             ),
@@ -93,7 +93,7 @@ class _PilotCardState extends State<PilotCard> {
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,
-                          color: BwColors.amber,
+                          color: GameColors.amber,
                         ),
                       ),
                       Text(
@@ -101,7 +101,7 @@ class _PilotCardState extends State<PilotCard> {
                         style: const TextStyle(
                           fontSize: 11,
                           letterSpacing: 1.4,
-                          color: BwColors.textDim,
+                          color: GameColors.textDim,
                         ),
                       ),
                     ],
@@ -146,7 +146,7 @@ class _PilotCardState extends State<PilotCard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.military_tech, size: 14, color: BwColors.sand),
+              const Icon(Icons.military_tech, size: 14, color: GameColors.sand),
               const SizedBox(width: 3),
               Text(
                 '$earned/${Achievement.all.length}',
@@ -154,13 +154,13 @@ class _PilotCardState extends State<PilotCard> {
                   fontSize: 11,
                   letterSpacing: 0.8,
                   fontWeight: FontWeight.w700,
-                  color: BwColors.sand,
+                  color: GameColors.sand,
                 ),
               ),
               Icon(
                 _badgesOpen ? Icons.expand_less : Icons.expand_more,
                 size: 16,
-                color: BwColors.sand,
+                color: GameColors.sand,
               ),
             ],
           ),
@@ -183,10 +183,10 @@ class RankBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: ShapeDecoration(
-        color: BwColors.olive,
+        color: GameColors.olive,
         shape: BeveledRectangleBorder(
           borderRadius: BorderRadius.circular(size / 5),
-          side: const BorderSide(color: BwColors.amber, width: 1.5),
+          side: const BorderSide(color: GameColors.amber, width: 1.5),
         ),
       ),
       alignment: Alignment.center,
@@ -195,7 +195,7 @@ class RankBadge extends StatelessWidget {
         style: TextStyle(
           fontSize: size * 0.45,
           fontWeight: FontWeight.w900,
-          color: BwColors.text,
+          color: GameColors.text,
         ),
       ),
     );
@@ -220,9 +220,9 @@ class BadgeChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = highlight
-        ? BwColors.amber
+        ? GameColors.amber
         : earned
-        ? BwColors.sand
+        ? GameColors.sand
         : const Color(0x559DA58A);
     return Tooltip(
       message:

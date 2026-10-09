@@ -42,7 +42,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
-        theme: buildBundeswehrTheme(),
+        theme: buildGameTheme(),
         home: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(16),

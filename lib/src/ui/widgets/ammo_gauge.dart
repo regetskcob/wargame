@@ -32,9 +32,9 @@ class AmmoGauge extends StatelessWidget {
     final color = endless
         ? const Color(0xFF4FC3F7)
         : ammo == 0
-        ? BwColors.danger
+        ? GameColors.danger
         : low
-        ? BwColors.amber
+        ? GameColors.amber
         : const Color(0xFF4FC3F7);
     return SizedBox(
       width: 220,
@@ -57,7 +57,7 @@ class AmmoGauge extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
 
-                    color: ammo == 0 && !endless ? BwColors.danger : null,
+                    color: ammo == 0 && !endless ? GameColors.danger : null,
                   ),
                 ),
               ],
@@ -87,9 +87,9 @@ class FuelGauge extends StatelessWidget {
   Widget build(BuildContext context) {
     final low = fuel <= GameConfig.fuelLowShare;
     final color = fuel <= 0
-        ? BwColors.danger
+        ? GameColors.danger
         : low
-        ? BwColors.amber
+        ? GameColors.amber
         : const Color(0xFFFF9100);
     return SizedBox(
       width: 220,
@@ -113,7 +113,7 @@ class FuelGauge extends StatelessWidget {
                   style: TextStyle(
                     fontWeight: FontWeight.w800,
 
-                    color: fuel <= 0 ? BwColors.danger : null,
+                    color: fuel <= 0 ? GameColors.danger : null,
                   ),
                 ),
               ],
@@ -165,12 +165,12 @@ class SpecialPlate extends StatelessWidget {
               decoration: ShapeDecoration(
                 shape: BeveledRectangleBorder(
                   borderRadius: BorderRadius.circular(3),
-                  side: const BorderSide(color: BwColors.sand),
+                  side: const BorderSide(color: GameColors.sand),
                 ),
               ),
               child: Text(
                 keyHint!,
-                style: const TextStyle(fontSize: 11, color: BwColors.sand),
+                style: const TextStyle(fontSize: 11, color: GameColors.sand),
               ),
             ),
           ],

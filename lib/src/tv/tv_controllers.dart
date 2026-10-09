@@ -20,7 +20,7 @@ class TvControllers extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -59,7 +59,7 @@ class TvControllers extends StatelessWidget {
                         'No controller connected. The Siri Remote steers '
                             'the menus.',
                       ),
-                      style: const TextStyle(color: BwColors.textDim),
+                      style: const TextStyle(color: GameColors.textDim),
                     ),
                 ],
               ),
@@ -84,15 +84,15 @@ class _Chip extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: BwColors.panel,
-        shape: BwShapes.chip(edge: BwColors.oliveLight),
+        color: GameColors.panel,
+        shape: GameShapes.chip(edge: GameColors.oliveLight),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: BwColors.amber),
+            Icon(icon, size: 18, color: GameColors.amber),
             const SizedBox(width: 6),
             Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
           ],

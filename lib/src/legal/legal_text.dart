@@ -27,8 +27,7 @@ const imprint = [
   LegalBlock(
     null,
     '\nPanzergefecht ist ein privates, nicht kommerzielles Spiel. Es steht in '
-    'keiner Verbindung zur Bundeswehr oder zu den Herstellern der '
-    'gezeigten Fahrzeuge.',
+    'keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.',
   ),
 ];
 
@@ -161,8 +160,7 @@ const imprintEn = [
   LegalBlock(
     null,
     '\nPanzergefecht is a private, non-commercial game. It has no '
-    'connection to the Bundeswehr or to the manufacturers of the vehicles '
-    'shown.\n\nThis is an English reading copy. The German text is binding.',
+    'connection to any armed forces or vehicle manufacturer.\n\nThis is an English reading copy. The German text is binding.',
   ),
 ];
 

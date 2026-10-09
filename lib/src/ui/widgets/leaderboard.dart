@@ -99,7 +99,7 @@ class _LeaderboardState extends State<Leaderboard> {
 
   static Widget get _empty => Text(
     tr('Noch keine Gefechte gewertet.', 'No battles ranked yet.'),
-    style: const TextStyle(color: BwColors.textDim),
+    style: const TextStyle(color: GameColors.textDim),
   );
 
   Widget _table(List<String> labels, List<TableRow> rows) {
@@ -148,7 +148,7 @@ class _LeaderboardState extends State<Leaderboard> {
                   'Bestenliste gerade nicht erreichbar.',
                   'Leaderboard currently unavailable.',
                 ),
-                style: const TextStyle(color: BwColors.textDim),
+                style: const TextStyle(color: GameColors.textDim),
               ),
               TextButton(
                 onPressed: () => setState(_reload),
@@ -160,7 +160,7 @@ class _LeaderboardState extends State<Leaderboard> {
         if (snapshot.connectionState != ConnectionState.done) {
           return Text(
             tr('Bestenliste wird geladen …', 'Loading leaderboard …'),
-            style: const TextStyle(color: BwColors.textDim),
+            style: const TextStyle(color: GameColors.textDim),
           );
         }
         final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
@@ -180,7 +180,7 @@ class _LeaderboardState extends State<Leaderboard> {
   static const _head = TextStyle(
     fontSize: 11,
     letterSpacing: 1.4,
-    color: BwColors.textDim,
+    color: GameColors.textDim,
     fontWeight: FontWeight.w800,
   );
 
@@ -210,7 +210,7 @@ class _LeaderboardState extends State<Leaderboard> {
   TableRow _headerOf(List<String> labels) {
     return TableRow(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: BwColors.oliveLight)),
+        border: Border(bottom: BorderSide(color: GameColors.oliveLight)),
       ),
       children: [
         for (var i = 0; i < labels.length; i++)
@@ -233,7 +233,7 @@ class _LeaderboardState extends State<Leaderboard> {
     final medal = rank <= 3 ? _medals[rank - 1] : null;
     final base = TextStyle(
       fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
-      color: mine ? BwColors.amber : BwColors.text,
+      color: mine ? GameColors.amber : GameColors.text,
     );
     return TableRow(
       decoration: BoxDecoration(

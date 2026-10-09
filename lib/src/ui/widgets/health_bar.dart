@@ -13,7 +13,7 @@ class HealthBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final ratio = (hp / maxHp).clamp(0.0, 1.0);
-    final color = ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger;
+    final color = ratio > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger;
     return SizedBox(
       width: 220,
       child: Panel(

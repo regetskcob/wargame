@@ -12,7 +12,7 @@ class LegalLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const style = TextStyle(fontSize: 12, color: BwColors.textDim);
+    const style = TextStyle(fontSize: 12, color: GameColors.textDim);
     return Center(
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
@@ -86,7 +86,7 @@ class LegalLinks extends StatelessWidget {
                                   block.heading!,
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w800,
-                                    color: BwColors.sand,
+                                    color: GameColors.sand,
                                     letterSpacing: 1,
                                   ),
                                 ),

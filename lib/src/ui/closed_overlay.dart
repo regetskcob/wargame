@@ -37,7 +37,7 @@ class ClosedOverlay extends StatelessWidget {
                       valueListenable: game.closedReason,
                       builder: (context, reason, _) => Text(
                         reason ?? '',
-                        style: const TextStyle(color: BwColors.textDim),
+                        style: const TextStyle(color: GameColors.textDim),
                       ),
                     ),
                     const SizedBox(height: 24),

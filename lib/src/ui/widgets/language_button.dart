@@ -23,7 +23,7 @@ class LanguageButton extends StatelessWidget {
               style: const TextStyle(
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.5,
-                color: BwColors.sand,
+                color: GameColors.sand,
               ),
             ),
           ),
