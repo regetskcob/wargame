@@ -218,7 +218,11 @@ extension TankGameLobby on TankGame {
 
   LobbyPresence? get liveMatch {
     for (final member in roster.value) {
-      if (member.inMatch && TankGame._liveMatchPhases.contains(member.phase)) {
+      // The own presence still says playing for a moment after leaving a
+      // round, and nobody watches themselves.
+      if (member.id != myId &&
+          member.inMatch &&
+          TankGame._liveMatchPhases.contains(member.phase)) {
         return member;
       }
     }

@@ -178,6 +178,9 @@ class TankGame extends FlameGame
   /// the own tank.
   final overview = ValueNotifier<bool>(false);
 
+  /// Escape or the exit button asked whether to leave the running round.
+  final leaveAsked = ValueNotifier<bool>(false);
+
   /// The second player's game on this screen, while there is one.
   TankGame? partner;
 
@@ -510,16 +513,14 @@ class TankGame extends FlameGame
   /// until then.
   final tutorialDone = ValueNotifier<bool>(true);
 
-  /// Escape leaves a replay.
+  /// Escape leaves a replay, asks before leaving a running round and goes
+  /// from the results back to the waiting room.
   @override
   KeyEventResult onKeyEvent(
     KeyEvent event,
     Set<LogicalKeyboardKey> keysPressed,
   ) {
-    if (event is KeyDownEvent &&
-        event.logicalKey == LogicalKeyboardKey.escape &&
-        replaying.value) {
-      stopReplay();
+    if (event is KeyDownEvent && handleEscape(event.logicalKey)) {
       return KeyEventResult.handled;
     }
     // The Apple TV sends swipes and clicks as arrows and enter as well.

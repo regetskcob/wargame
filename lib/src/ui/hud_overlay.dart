@@ -18,6 +18,7 @@ import 'widgets/enemy_indicators.dart';
 import 'widgets/health_bar.dart';
 import 'widgets/inventory_bar.dart';
 import 'widgets/kill_feed_view.dart';
+import 'widgets/leave_round.dart';
 import 'widgets/mini_map.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
@@ -156,11 +157,20 @@ class _HudOverlayState extends State<HudOverlay> {
           if (touch) _compact(game) else _status(game),
           _effects(game),
           if (!touch)
-            const Align(
+            Align(
               alignment: Alignment.topCenter,
               child: Padding(
-                padding: EdgeInsets.only(top: 12),
-                child: MuteButton(),
+                padding: const EdgeInsets.only(top: 12),
+                child: _HudButtons(
+                  game: game,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const MuteButton(),
+                      LeaveRoundButton(game: game),
+                    ],
+                  ),
+                ),
               ),
             ),
           EnemyIndicators(game: game),
@@ -216,6 +226,7 @@ class _HudOverlayState extends State<HudOverlay> {
               counts: touch ? _waveCounts() : '',
               waveLabel: touch ? _waveLabel(compact: true) : '',
             ),
+          LeaveRoundPrompt(game: game),
         ],
       ),
     );
@@ -304,7 +315,13 @@ class _HudOverlayState extends State<HudOverlay> {
                     if (upright) ...[
                       const SizedBox(height: 6),
                       IgnorePointer(child: map),
-                      const MuteButton(),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MuteButton(),
+                          LeaveRoundButton(game: game),
+                        ],
+                      ),
                     ],
                     IgnorePointer(
                       child: KillFeedView(feed: game.killFeed, compact: true),
@@ -344,7 +361,10 @@ class _HudOverlayState extends State<HudOverlay> {
                           ),
                         ),
                       ),
-                    if (!upright) const MuteButton(),
+                    if (!upright) ...[
+                      const MuteButton(),
+                      LeaveRoundButton(game: game),
+                    ],
                   ],
                 ),
               ),
@@ -1046,15 +1066,15 @@ class _DefensePanelState extends State<_DefensePanel> {
         alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
         child: Padding(
           // Phones: in the top right corner.
-          // Room for the mute button, which only the browser shows and
-          // upright under the gauges.
+          // Room for the exit and the mute button, which only the browser
+          // shows. Upright both sit under the gauges.
           padding: touch
               ? EdgeInsets.only(
-                  right:
-                      kIsWeb &&
-                          MediaQuery.sizeOf(context).width >= _uprightWidth
-                      ? 44
-                      : 0,
+                  right: MediaQuery.sizeOf(context).width < _uprightWidth
+                      ? 0
+                      : onTv
+                      ? 0
+                      : (kIsWeb ? 96 : 48),
                 )
               : const EdgeInsets.all(8),
           child: _HudButtons(game: game, child: panel),

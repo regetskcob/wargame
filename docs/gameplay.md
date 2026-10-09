@@ -217,6 +217,19 @@ tank's upgrades go up to level 5 instead of 3 (armour steps 4 and 5 shield
 past the 8th makes enemy tanks 12 % tougher. If the base falls, the round is
 still a win.
 
+## Leaving a round
+
+- Escape, or the small exit button next to the sound button (bottom left
+  while watching), asks whether to leave the running round; Escape again
+  or *Keep playing* takes it back, Enter or *Leave* goes. The round runs on
+  behind the question, it cannot be paused for the others.
+- Alone with CPU tanks the player is straight back in the waiting room and
+  nothing is recorded. With other people in the round the player leaves the
+  room too, and the others see the tank go like a pilot who closed the tab.
+- On the end screen Escape goes back to the waiting room, in a replay it
+  ends the replay. The Apple TV keeps its Menu button from throwing anybody
+  out of a round and shows no exit button.
+
 ## After the round
 
 - A rematch button on the end screen and a replay of the last round.

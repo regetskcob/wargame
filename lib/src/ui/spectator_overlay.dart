@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game/tank_game.dart';
 import 'widgets/kill_feed_view.dart';
+import 'widgets/leave_round.dart';
 import 'widgets/mini_map.dart';
 import 'theme.dart';
 import 'widgets/panel.dart';
@@ -70,6 +71,13 @@ class SpectatorOverlay extends StatelessWidget {
                             ],
                           ),
                   ),
+                  // Bottom left: the bar, the kill feed and the map take
+                  // the other corners.
+                  if (!game.replaying.value)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: LeaveRoundButton(game: game),
+                    ),
                   // Always in reach, also on a phone where the bar above is
                   // cramped.
                   if (game.replaying.value)
@@ -96,6 +104,7 @@ class SpectatorOverlay extends StatelessWidget {
             },
           ),
         ),
+        LeaveRoundPrompt(game: game),
       ],
     );
   }
