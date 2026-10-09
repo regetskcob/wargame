@@ -175,6 +175,114 @@ def frame(shot, height):
     return out
 
 
+BODY = (24, 26, 22)
+METAL = (120, 124, 112)
+METAL_LIGHT = (196, 198, 186)
+
+
+def device(shot, height, kind):
+    """Draws [shot] inside an illustrated [kind] ("phone", "tablet" or
+    "watch"): a dark body with a metal edge, its buttons and a soft gloss on
+    the glass, scaled so the whole device is [height] tall."""
+    bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075}[kind]
+    rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30}[kind]
+    rim = max(4, round(height * 0.006))
+    pad = round(height * bezel)
+    screen_h = height - 2 * (pad + rim)
+    screen_w = round(shot.width * screen_h / shot.height)
+    body_w, body_h = screen_w + 2 * (pad + rim), height
+    # Room beside the body for the buttons, above and below for the band.
+    knob = round(body_w * 0.05) if kind == "watch" else rim * 2
+    band = round(body_h * 0.18) if kind == "watch" else 0
+    out = Image.new("RGBA", (body_w + 2 * knob, body_h + 2 * band))
+    d = ImageDraw.Draw(out)
+    ox, oy = knob, band
+    radius = round(min(body_w, body_h) * rounding)
+
+    if kind == "watch":
+        # The band, fading out towards both ends.
+        bw = round(body_w * 0.62)
+        bx = ox + (body_w - bw) // 2
+        strap = Image.new("RGBA", out.size)
+        sd = ImageDraw.Draw(strap)
+        sd.rectangle((bx, 0, bx + bw, out.height), fill=(46, 52, 38))
+        for y in list(range(band // 4, band, max(8, band // 5))) + [
+                out.height - y for y in range(band // 4, band, max(8, band // 5))]:
+            sd.line((bx + bw * 0.2, y, bx + bw * 0.8, y), fill=(36, 41, 30),
+                    width=max(2, rim // 2))
+        fade = Image.new("L", (1, out.height))
+        for y in range(out.height):
+            edge = min(y, out.height - 1 - y)
+            fade.putpixel((0, y), min(255, round(255 * edge / band)))
+        fade = fade.resize(out.size)
+        strap.putalpha(Image.composite(fade, Image.new("L", out.size, 0),
+                                       strap.getchannel("A")))
+        out.alpha_composite(strap)
+        # Digital crown and side button.
+        cy = oy + round(body_h * 0.30)
+        ch = round(body_h * 0.16)
+        d.rounded_rectangle((ox + body_w - knob, cy, ox + body_w + knob, cy + ch),
+                            knob // 2, fill=METAL)
+        for i in range(1, 6):
+            yy = cy + ch * i // 6
+            d.line((ox + body_w + knob // 3, yy, ox + body_w + knob, yy),
+                   fill=METAL_LIGHT, width=max(2, rim // 2))
+        sy = cy + ch + round(body_h * 0.08)
+        d.rounded_rectangle(
+            (ox + body_w - knob, sy, ox + body_w + knob // 2,
+             sy + round(body_h * 0.22)), knob // 3, fill=METAL)
+    else:
+        # Volume and power buttons on the edges.
+        for x0, ys in (
+            (ox - knob, (0.18, 0.27) if kind == "phone" else (0.08,)),
+            (ox + body_w - knob // 2, (0.24,) if kind == "phone" else ()),
+        ):
+            for y in ys:
+                top = oy + round(body_h * y)
+                d.rounded_rectangle(
+                    (x0, top, x0 + knob * 3 // 2, top + round(body_h * 0.07)),
+                    knob // 2, fill=METAL)
+
+    # Body: metal rim with a lighter inner line, then the black bezel.
+    d.rounded_rectangle((ox, oy, ox + body_w - 1, oy + body_h - 1), radius,
+                        fill=METAL)
+    d.rounded_rectangle((ox + rim // 3, oy + rim // 3, ox + body_w - 1 - rim // 3,
+                         oy + body_h - 1 - rim // 3), radius - rim // 3,
+                        fill=METAL_LIGHT)
+    d.rounded_rectangle((ox + rim, oy + rim, ox + body_w - 1 - rim,
+                         oy + body_h - 1 - rim), radius - rim, fill=BODY)
+
+    screen = shot.convert("RGB").resize((screen_w, screen_h), Image.LANCZOS)
+    screen_radius = max(0, radius - rim - pad)
+    if kind == "watch":
+        screen_radius = round(min(screen_w, screen_h) * 0.22)
+    mask = Image.new("L", (screen_w, screen_h), 0)
+    ImageDraw.Draw(mask).rounded_rectangle(
+        (0, 0, screen_w - 1, screen_h - 1), screen_radius, fill=255)
+    sx, sy = ox + rim + pad, oy + rim + pad
+    out.paste(screen, (sx, sy), mask)
+
+    # Gloss: a faint light falling from the top left across the glass.
+    gloss = Image.new("L", (screen_w, screen_h), 0)
+    ImageDraw.Draw(gloss).polygon(
+        [(0, 0), (round(screen_w * 0.55), 0), (0, round(screen_h * 0.45))],
+        fill=34)
+    gloss = gloss.filter(ImageFilter.GaussianBlur(max(4, screen_w // 40)))
+    gloss = Image.composite(gloss, Image.new("L", gloss.size, 0), mask)
+    out.paste(Image.new("RGB", (screen_w, screen_h), (255, 255, 255)),
+              (sx, sy), gloss)
+
+    if kind == "phone":
+        iw, ih = round(screen_w * 0.30), round(screen_w * 0.085)
+        ix, iy = sx + (screen_w - iw) // 2, sy + round(screen_w * 0.03)
+        d.rounded_rectangle((ix, iy, ix + iw, iy + ih), ih // 2, fill=(0, 0, 0))
+    elif kind == "tablet":
+        r = max(3, pad // 6)
+        cx, cy = ox + body_w // 2, oy + rim + pad // 2
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(10, 12, 16))
+    return out
+
+
 def compose(lang, out, raw, size, headline, subline, raw_dir):
     w, h = size
     portrait = h > w
@@ -228,29 +336,30 @@ def feature_graphic(lang):
 HEADERS = [(5244, 2950), (3840, 1646)]
 
 
-def header(lang, size, raw_dir):
-    w, h = size
-    canvas = backdrop(size, f"header-{w}")
+def load_shot(raw_dir, lang, name):
+    shot = Image.open(raw_dir / lang / f"{name}.png")
+    if name.startswith("i_"):
+        # The iPhone's status strip with the Dynamic Island, as in compose().
+        shot = shot.crop((0, round(shot.height * 0.062), shot.width, shot.height))
+    return shot
 
-    def load(name, crop_status):
-        shot = Image.open(raw_dir / lang / f"{name}.png")
-        if crop_status:
-            shot = shot.crop(
-                (0, round(shot.height * 0.062), shot.width, shot.height))
-        return shot
 
-    centre = frame(load("p_defense", False), round(h * 0.70))
-    side = round(h * 0.62)
-    left = frame(load("i_battle", True), side)
-    right = frame(load("i_guns", True), side)
+def row(canvas, framed, offsets):
+    """Lays [framed] side by side, centred, each moved down by its offset."""
+    w, h = canvas.size
     gap = round(h * 0.04)
-    total = left.width + centre.width + right.width + 2 * gap
+    total = sum(img.width for img in framed) + gap * (len(framed) - 1)
+    if total > w * 0.76:
+        # Too wide: shrink everything alike, so the store's crop for smaller
+        # screens and the name it lays over the art keep the devices whole.
+        scale = (w * 0.76 - gap * (len(framed) - 1)) / (total - gap * (len(framed) - 1))
+        framed = [img.resize((round(img.width * scale), round(img.height * scale)),
+                             Image.LANCZOS) for img in framed]
+        offsets = [round(o * scale) for o in offsets]
+        total = sum(img.width for img in framed) + gap * (len(framed) - 1)
     x = (w - total) // 2
-    for img, top in (
-        (left, (h - side) // 2 + round(h * 0.05)),
-        (centre, (h - centre.height) // 2),
-        (right, (h - side) // 2 + round(h * 0.05)),
-    ):
+    for img, offset in zip(framed, offsets):
+        top = (h - img.height) // 2 + offset
         shadow = Image.new("RGBA", (img.width + 80, img.height + 80))
         ImageDraw.Draw(shadow).rounded_rectangle(
             (40, 40, img.width + 40, img.height + 40), 40, fill=(0, 0, 0, 150))
@@ -258,7 +367,32 @@ def header(lang, size, raw_dir):
         canvas.paste(shadow, (x - 40, top - 20), shadow)
         canvas.paste(img, (x, top), img)
         x += img.width + gap
+
+
+def header(lang, size, raw_dir):
+    """The product page header: the iPad between two iPhones."""
+    w, h = size
+    canvas = backdrop(size, f"header-{w}")
+    side = round(h * 0.64)
+    row(canvas, [
+        device(load_shot(raw_dir, lang, "i_battle"), side, "phone"),
+        device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.72), "tablet"),
+        device(load_shot(raw_dir, lang, "i_guns"), side, "phone"),
+    ], [round(h * 0.04), 0, round(h * 0.04)])
     save(canvas, ROOT / "store" / "ios" / "header" / lang / f"header-{w}x{h}")
+
+
+def search_header(lang, size, raw_dir):
+    """The header in the search results: iPhone, iPad and watch side by side,
+    to show at a glance on which devices the game runs."""
+    w, h = size
+    canvas = backdrop(size, f"search-{w}")
+    row(canvas, [
+        device(load_shot(raw_dir, lang, "i_battle"), round(h * 0.68), "phone"),
+        device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.72), "tablet"),
+        device(load_shot(raw_dir, lang, "w_battle"), round(h * 0.40), "watch"),
+    ], [0, 0, 0])
+    save(canvas, ROOT / "store" / "ios" / "header" / lang / f"search-{w}x{h}")
 
 
 # Apple Watch shots go up as the simulator took them (422 x 514, Ultra 3 and
@@ -293,4 +427,5 @@ if __name__ == "__main__":
         feature_graphic(lang)
         for size in HEADERS:
             header(lang, size, source)
+            search_header(lang, size, source)
         watch(lang, source)
