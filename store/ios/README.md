@@ -22,7 +22,7 @@ in App Store Connect einfügen.
 | iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/<sprache>/iphone63-*.png` |
 | iPad 13" (2752 × 2064) | `screenshots/<sprache>/ipad-*.png` |
 | Apple Watch Ultra 4 (422 × 514), von Hand hochladen | `watch/<sprache>/watch-*.png` |
-| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPad zwischen zwei iPhones |
+| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPhone, iPad, Apple TV mit Handy als Controller davor, Watch |
 | Kopfzeile, Tab „Suchergebnisse“ (dieselben Größen), von Hand hochladen | `header/<sprache>/search-*.png`: iPhone, iPad und Watch nebeneinander |
 
 `<sprache>` ist `de-DE` oder `en-US`. Watch-Bilder und Kopfzeile liegen
@@ -59,7 +59,12 @@ Handy ohne Controller:
 
 ```sh
 xcrun simctl launch <sim-id> de.regetskcob.wargame -ignoreGamepads YES
+xcrun simctl spawn <apple-tv-sim-id> defaults write de.regetskcob.wargame ignoreGamepads -bool YES
 ```
+
+Der Apple-TV-Simulator nimmt ohne Simulator.app keine Fernbedienung an; für
+die TV-Aufnahmen öffnet ein lokal geänderter Build die Kopplung selbst und
+startet die Runde, sobald das Handy gekoppelt ist.
 
 Daraus entstehen beide Sprachsätze für App Store und Google Play:
 
