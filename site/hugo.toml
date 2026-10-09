@@ -53,3 +53,8 @@ enableRobotsTXT = false
 
 [imaging]
   quality = 82
+
+[params]
+  # Where support requests go. The page has no server of its own, so the
+  # form opens a written mail in the visitor's mail app.
+  supportMail = 'regetskcob@icloud.com'
