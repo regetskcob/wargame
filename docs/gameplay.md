@@ -38,6 +38,18 @@ Everything the game does, with the numbers behind it. The short version is in th
   tougher enemies, a fifth step for guns and tank, a rocket launcher and a
   citadel, until the base falls (still a win) or the host pulls out.
   See [Defense thresholds](#defense-thresholds) for the numbers.
+- **Capture the flag:** red against blue on the open field, a base at the
+  left and the right end with a flag each. Drive over the other side's
+  flag to take it and bring it to your own base while your flag stands
+  there: 3 captures win, after 8 minutes the side ahead, and a draw goes
+  into overtime until the next capture. The carrier drives 15 % slower and
+  cannot use its special weapon; destroyed, it drops the flag where it
+  stood. A dropped flag goes home when a comrade touches it or after
+  20 seconds by itself. Destroyed tanks return to their base after
+  6 seconds, there is no closing zone, and CPU tanks always fill both sides
+  up to three each: two in three of them go for the flags, one guards the
+  base, and all of them chase whoever has their own flag. The round is
+  rated like a team round.
 - **Two on one screen:** on the Apple TV, in the browser and on an iPad,
   with two controllers or phones. Single player, multiplayer and defense
   play on a split screen, each half from its own tank; single player puts

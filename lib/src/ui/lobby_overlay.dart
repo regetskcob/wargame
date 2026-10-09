@@ -133,6 +133,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
               'Defense: Hold the base against all waves.',
             ),
+            GameMode.flag => tr(
+              'Fahnenraub: Holt die Fahne der anderen und bringt sie zum '
+                  'eigenen Stützpunkt. ${GameConfig.flagCaptures} Eroberungen '
+                  'gewinnen.',
+              'Capture the flag: Steal the other side\'s flag and bring it '
+                  'to your base. ${GameConfig.flagCaptures} captures win.',
+            ),
           }, style: const TextStyle(color: BwColors.textDim)),
         ),
       ],
@@ -225,7 +232,24 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     : const SizedBox.shrink(),
               ),
             ],
-            if (mode != GameMode.defense) ...[
+            if (mode == GameMode.flag) ...[
+              const SizedBox(height: 14),
+              _label(context, 'TEAM'),
+              _teamPickRow(),
+              const SizedBox(height: 6),
+              _hint(
+                tr(
+                  'CPU-Panzer füllen beide Seiten auf je '
+                      '${GameConfig.flagFillTo ~/ 2} auf. Zerstörte Panzer '
+                      'kehren nach ${GameConfig.respawnSeconds.round()} s am '
+                      'Stützpunkt zurück.',
+                  'CPU tanks fill both sides up to '
+                      '${GameConfig.flagFillTo ~/ 2} each. Destroyed tanks '
+                      'return to their base after '
+                      '${GameConfig.respawnSeconds.round()} s.',
+                ),
+              ),
+            ] else if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),
               _label(context, tr('MODUS', 'MODE')),
               _teamChoice(),
@@ -254,18 +278,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ),
           if (teams) ...[
             const SizedBox(height: 10),
-            ChoiceRow<int>(
-              options: [
-                (0, 'AUTO', null),
-                (1, tr('ROT', 'RED'), GameConfig.teamColors[1]),
-                (2, tr('BLAU', 'BLUE'), GameConfig.teamColors[2]),
-              ],
-              selected: _teamPick,
-              onSelected: (v) {
-                setState(() => _teamPick = v ?? 0);
-                game.setTeamPick(_teamPick);
-              },
-            ),
+            _teamPickRow(),
             const SizedBox(height: 6),
             _hint(
               tr(
@@ -276,6 +289,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ],
       ),
+    );
+  }
+
+  /// The side the host wants to play on, AUTO for the smaller one.
+  Widget _teamPickRow() {
+    return ChoiceRow<int>(
+      options: [
+        (0, 'AUTO', null),
+        (1, tr('ROT', 'RED'), GameConfig.teamColors[1]),
+        (2, tr('BLAU', 'BLUE'), GameConfig.teamColors[2]),
+      ],
+      selected: _teamPick,
+      onSelected: (v) {
+        setState(() => _teamPick = v ?? 0);
+        widget.game.setTeamPick(_teamPick);
+      },
     );
   }
 

@@ -157,7 +157,9 @@ class _RoomInviteState extends State<RoomInvite> {
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
         // Only rounds against each other show up in the room list.
-        if (hasLink && widget.game.mode.value == GameMode.multi) ...[
+        if (hasLink &&
+            (widget.game.mode.value == GameMode.multi ||
+                widget.game.mode.value == GameMode.flag)) ...[
           const SizedBox(height: 10),
           ValueListenableBuilder<bool>(
             valueListenable: widget.game.publicRoom,

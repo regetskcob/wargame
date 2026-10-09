@@ -26,7 +26,6 @@ import 'soldier.dart';
 import 'bullet.dart';
 import 'power_up.dart';
 import 'tank_base.dart';
-import 'storm_zone.dart';
 
 class PlayerTank extends TankBase
     with HasGameRef<TankGame>, KeyboardHandler, CollisionCallbacks {
@@ -55,6 +54,10 @@ class PlayerTank extends TankBase
   /// their state less often than a player's tank.
   double speedFactor = 1;
   double fireFactor = 1;
+
+  /// Carries the enemy flag in a capture the flag round: slower, and no
+  /// special weapon, so the others can catch it.
+  bool carriesFlag = false;
   double syncInterval = GameConfig.stateSyncInterval;
 
   /// Enemies of a defense round never run dry, there are no gems for them.
@@ -248,6 +251,7 @@ class PlayerTank extends TankBase
         GameConfig.tankMaxSpeed *
         stats.speed *
         speedFactor *
+        (carriesFlag ? GameConfig.flagCarrierSpeed : 1) *
         engineFactor *
         damage.speedFactor *
         slope *
@@ -459,10 +463,7 @@ class PlayerTank extends TankBase
     if (round == null || round.defense) {
       return;
     }
-    final radius = StormZone.radiusAt(
-      round.startedAt,
-      DateTime.now().millisecondsSinceEpoch,
-    );
+    final radius = round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
     if (position.length > radius) {
       applyDamage(GameConfig.zoneDamagePerSecond * dt, killerId: null);
     }
@@ -525,6 +526,7 @@ class PlayerTank extends TankBase
     _specialCooldown -= dt;
     final weapon = special;
     if (weapon == null ||
+        carriesFlag ||
         _specialCooldown > 0 ||
         !(_special || input.special)) {
       return;

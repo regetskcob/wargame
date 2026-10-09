@@ -101,6 +101,10 @@ extension TankGameReplay on TankGame {
           _onSquad(SquadPayload.fromJson(json));
         case NetEvent.use:
           _onUse(UsePayload.fromJson(json));
+        case NetEvent.flag:
+          if (FlagPayload.tryParse(json) case final payload?) {
+            _onFlag(payload);
+          }
         case NetEvent.air ||
             NetEvent.roundStart ||
             NetEvent.defense ||

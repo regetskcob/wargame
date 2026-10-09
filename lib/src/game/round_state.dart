@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'bot_level.dart';
+import 'components/storm_zone.dart';
 import 'game_config.dart';
 import 'defense/defense_map.dart';
 import '../l10n/l10n.dart';
@@ -16,7 +17,9 @@ class RoundState {
     this.botLevel = BotLevel.normal,
     this.defense = false,
     this.lanes = const [],
-  }) : alive = participants.toSet();
+    this.flag = false,
+  }) : alive = participants.toSet(),
+       flagHost = botHost;
 
   final int seed;
   final int startedAt;
@@ -38,6 +41,33 @@ class RoundState {
   final List<String> lanes;
 
   bool get duel => lanes.length > 1;
+
+  /// Capture the flag: red against blue, see [FlagMatch].
+  final bool flag;
+
+  /// Who runs the flags of a capture the flag round: the [botHost] at the
+  /// start, the next player in line when they leave.
+  String? flagHost;
+
+  /// Players and CPU tanks that left a capture the flag round for good, so
+  /// a side without anybody left loses.
+  final left = <String>{};
+
+  /// When a tank last went down, in milliseconds since the epoch. A state
+  /// message still on its way must not bring it back before it respawns.
+  final downAt = <String, int>{};
+
+  /// Tanks come back after they were destroyed instead of being out.
+  bool get respawns => defense || flag;
+
+  /// Nobody of [team] is left in the round.
+  bool teamGone(int team) =>
+      participants.where((id) => teamOf(id) == team).every(left.contains);
+
+  /// Radius of the field that is still safe: the closing zone of a battle,
+  /// the whole field when capturing the flag.
+  double safeRadiusAt(int nowMs) =>
+      flag ? GameConfig.worldRadius : StormZone.radiusAt(startedAt, nowMs);
 
   /// The side [id] defends in a duel, the left one for anybody else.
   int laneOf(String id) => max(0, lanes.indexOf(id));
@@ -177,6 +207,7 @@ class RoundState {
     if (!alive.remove(id)) {
       return false;
     }
+    downAt[id] = DateTime.now().millisecondsSinceEpoch;
     fallen.add(id);
     return true;
   }

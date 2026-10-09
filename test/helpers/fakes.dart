@@ -89,6 +89,10 @@ class FakeScores implements ScoreService {
   @override
   String? get myId => null;
 
+  /// Without an account rounds are not recorded.
+  @override
+  bool get isGuest => true;
+
   @override
   Future<List<ScoresRow>> topScores({int limit = 20}) async => const [];
 

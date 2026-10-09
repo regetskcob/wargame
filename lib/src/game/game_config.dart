@@ -54,10 +54,11 @@ class GameConfig {
 
   /// Messages a second Realtime counts for a room of [pilots], sent plus
   /// delivered, as `message_budget_test.dart` measures them: about 11 per
-  /// pilot and receiver, and 13 more for the host's CPU tanks. A pilot alone
-  /// sends nothing.
-  static int roomLoad(int pilots, {required bool cpu}) =>
-      pilots < 2 ? 0 : (11 * pilots + (cpu ? 13 : 0)) * pilots;
+  /// pilot and receiver, and 13 more for the host's CPU tanks, 19 for the
+  /// bigger crew that fills the sides of a capture the flag round. A pilot
+  /// alone sends nothing.
+  static int roomLoad(int pilots, {required bool cpu, bool flag = false}) =>
+      pilots < 2 ? 0 : (11 * pilots + (cpu ? (flag ? 19 : 13) : 0)) * pilots;
 
   /// The same for one phone controller and its screen, on a channel of
   /// their own (`pad_budget_test.dart`).
@@ -172,6 +173,30 @@ class GameConfig {
   static const enemyFireFactor = 3.0;
   static const enemySyncInterval = 0.1;
   static const respawnSeconds = 6.0;
+
+  /// Capture the flag. The bases sit on the ring where the battle modes
+  /// start, which the woods, buildings and mud already leave free.
+  static const flagBaseX = spawnRadius;
+  static const flagBaseRadius = 70.0;
+
+  /// How close a tank has to come to pick up, return or bring home a flag.
+  static const flagReach = 45.0;
+  static const flagCaptures = 3;
+  static const flagRoundSeconds = 480.0;
+
+  /// A flag lying in the field goes home by itself after this long.
+  static const flagReturnSeconds = 20.0;
+
+  /// The carrier is slower and cannot use its special weapon, so the
+  /// others have a chance to catch it.
+  static const flagCarrierSpeed = 0.85;
+
+  /// The authority repeats the whole flag state this often, so a lost
+  /// message or a late spectator catches up.
+  static const flagSyncSeconds = 5.0;
+
+  /// CPU tanks fill a flag round up to three a side.
+  static const flagFillTo = 6;
 
   /// Nobody holds the base alone: CPU comrades fill the squad up to this
   /// size, at least one of them even with a full room. They come back from

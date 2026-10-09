@@ -21,6 +21,7 @@ extension TankGameRound on TankGame {
     final together = mode.value == GameMode.solo && localGuest;
     final solo = mode.value == GameMode.solo && !together;
     final defending = mode.value == GameMode.defense;
+    final flag = mode.value == GameMode.flag;
     // Players still looking at the last end screen come along as well.
     final ids = <String>{
       myId,
@@ -35,8 +36,10 @@ extension TankGameRound on TankGame {
       solo: solo || together,
       humans: ids.length,
       // A phone in the room leaves no Realtime room for CPU tanks.
-      fill: fillWithBots.value && !defending && !roomHasPhone,
-      teams: teamMode.value,
+      // Capturing the flag always fills the sides up with CPU tanks.
+      fill: (fillWithBots.value || flag) && !defending && !roomHasPhone,
+      teams: teamMode.value || flag,
+      fillTo: flag ? GameConfig.flagFillTo : GameConfig.fillTo,
       random: random,
     );
     final bots = <String, int>{
@@ -70,10 +73,11 @@ extension TankGameRound on TankGame {
           ? const {}
           : together
           ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
-          : _assignTeams(ids),
+          : _assignTeams(ids, force: flag),
       bots: bots,
-      botHost: bots.isEmpty && !defending ? null : myId,
+      botHost: bots.isEmpty && !defending && !flag ? null : myId,
       defense: defending,
+      flag: flag,
       lanes: lanes,
       // Also without CPU tanks: the level sets fuel, ammo and terrain.
       botLevel: botLevel.value.index,
@@ -110,6 +114,7 @@ extension TankGameRound on TankGame {
             if (member.inMatch && member.team > 0) member.id: member.team,
       },
       defense: live.defense,
+      flag: live.flag,
       botHost: live.botHost,
     );
     _applyRoundStart(payload);
@@ -158,6 +163,7 @@ extension TankGameRound on TankGame {
       botLevel: BotLevel.of(payload.botLevel),
       defense: payload.defense,
       lanes: payload.defense ? payload.lanes : const [],
+      flag: payload.flag && !payload.defense,
     );
     myTeam = activeRound.teamOf(myId);
     guard.reset();
@@ -185,7 +191,10 @@ extension TankGameRound on TankGame {
     conditions = Conditions.forSeed(payload.seed);
     conditionsLabel.value = conditions!.label;
     _weather = WeatherLayer(conditions!);
-    _stormZone = StormZone(startedAt: payload.startedAt);
+    // Capturing the flag needs the whole field, so no zone closes in.
+    _stormZone = activeRound.flag
+        ? null
+        : StormZone(startedAt: payload.startedAt);
     _powerUpSlots = PowerUpSlot.schedule(payload.seed, activeRound.botLevel);
     world.add(_coverField!);
     _raiseTerrain(
@@ -195,6 +204,9 @@ extension TankGameRound on TankGame {
         center: Offset.zero,
         radius: GameConfig.worldRadius,
       ),
+      keepClear: activeRound.flag
+          ? [FlagMatch.baseOf(1), FlagMatch.baseOf(2)]
+          : const [],
     );
     soldierField = SoldierField(
       seed: payload.seed,
@@ -206,51 +218,61 @@ extension TankGameRound on TankGame {
     _extras.add(soldierField!);
     world.add(soldierField!);
     soldiersRunOver.value = 0;
-    world.add(_stormZone!);
+    if (_stormZone case final zone?) {
+      world.add(zone);
+    }
     mudField = MudField(seed: payload.seed, theme: _coverField!.theme);
     world.add(mudField!);
     for (var i = 0; i < activeRound.participants.length; i++) {
       final id = activeRound.participants[i];
       final slotAngle = 2 * pi * i / activeRound.participants.length;
-      final spawn = Vector2(cos(slotAngle), sin(slotAngle))
+      final ring = Vector2(cos(slotAngle), sin(slotAngle))
         ..scale(GameConfig.spawnRadius);
-      final facing = atan2(-spawn.x, spawn.y);
-      final name = _nameFor(id);
-      final color = _colorFor(id);
-      final tankType = GameConfig.typeOf(_styleFor(id));
+      final (spawn, facing) = activeRound.flag
+          ? _flagSpawn(activeRound, id)
+          : (ring, atan2(-ring.x, ring.y));
       if (id == myId && !replay) {
         _spawnLocalTank(spawn, facing);
       } else if (!replay &&
           activeRound.isBot(id) &&
           activeRound.botHost == myId) {
-        final controls = TouchInput();
-        final tank = PlayerTank(
-          playerId: id,
-          playerName: name,
-          tankColor: color,
-          tankType: tankType,
-          position: spawn,
-          angle: facing,
-          controls: controls,
-        );
-        tank
-          ..team = activeRound.teamOf(id)
-          ..usesFuel = usesFuel
-          ..endlessAmmo = endlessAmmo;
-        botTanks[id] = tank;
-        world.add(tank);
-        final brain = BotBrain(
-          tank: tank,
-          controls: controls,
-          level: activeRound.botLevel,
-        );
-        _extras.add(brain);
-        world.add(brain);
+        _spawnBot(activeRound, id, spawn, facing);
       } else {
         _addRemoteTank(id, spawn, facing);
       }
     }
+    if (activeRound.flag) {
+      _setUpFlag();
+    }
     _enterRound(activeRound, payload: payload, replay: replay);
+  }
+
+  /// A CPU tank this host drives, with the brain that steers it.
+  void _spawnBot(RoundState activeRound, String id, Vector2 at, double facing) {
+    final controls = TouchInput();
+    final tank = PlayerTank(
+      playerId: id,
+      playerName: _nameFor(id),
+      tankColor: _colorFor(id),
+      tankType: GameConfig.typeOf(_styleFor(id)),
+      position: at,
+      angle: facing,
+      controls: controls,
+    );
+    tank
+      ..team = activeRound.teamOf(id)
+      ..usesFuel = usesFuel
+      ..endlessAmmo = endlessAmmo;
+    botTanks[id] = tank;
+    world.add(tank);
+    final brain = BotBrain(
+      tank: tank,
+      controls: controls,
+      level: activeRound.botLevel,
+      objective: activeRound.flag ? flagGoal : null,
+    );
+    _extras.add(brain);
+    world.add(brain);
   }
 
   /// Last step of a round start. [payload] is given for rounds that are
@@ -406,23 +428,30 @@ extension TankGameRound on TankGame {
       return;
     }
     final activeRound = round;
-    // In a duel back at the base of the own side.
-    final map = myLaneMap;
-    if (activeRound == null ||
-        map == null ||
-        phase.value != GamePhase.playing) {
+    if (activeRound == null || phase.value != GamePhase.playing) {
       return;
     }
-    final at = activeRound.duel
-        ? map.spawnFor(0, 1)
-        : map.spawnFor(
-            activeRound.participants.indexOf(myId),
-            activeRound.participants.length,
-          );
-    _spawnLocalTank(
-      at,
-      TankGame._headingFrom(at, map.road[map.road.length - 2]),
-    );
+    if (activeRound.flag) {
+      // Back at the own base.
+      final (at, facing) = _flagSpawn(activeRound, myId);
+      _spawnLocalTank(at, facing);
+    } else {
+      // In a duel back at the base of the own side.
+      final map = myLaneMap;
+      if (map == null) {
+        return;
+      }
+      final at = activeRound.duel
+          ? map.spawnFor(0, 1)
+          : map.spawnFor(
+              activeRound.participants.indexOf(myId),
+              activeRound.participants.length,
+            );
+      _spawnLocalTank(
+        at,
+        TankGame._headingFrom(at, map.road[map.road.length - 2]),
+      );
+    }
     activeRound.alive.add(myId);
     aliveCount.value = activeRound.alive.length;
     hpNotifier.value = myMaxHp;
@@ -478,11 +507,12 @@ extension TankGameRound on TankGame {
       // In a defense round enemies roll in during the round and players come
       // back after they were destroyed.
       final joins =
-          activeRound.defense &&
-          !activeRound.destroyedEnemies.contains(raw.id) &&
-          (activeRound.isEnemy(raw.id) ||
-              activeRound.isAlly(raw.id) ||
-              activeRound.participants.contains(raw.id));
+          (activeRound.defense &&
+              !activeRound.destroyedEnemies.contains(raw.id) &&
+              (activeRound.isEnemy(raw.id) ||
+                  activeRound.isAlly(raw.id) ||
+                  activeRound.participants.contains(raw.id))) ||
+          _respawnedInFlag(activeRound, raw.id);
       if (joins) {
         activeRound.alive.add(raw.id);
         aliveCount.value = activeRound.alive.length;
@@ -516,6 +546,20 @@ extension TankGameRound on TankGame {
     ).applyState(payload);
   }
 
+  /// A tank of a capture the flag round is back from its base. A state
+  /// sent just before it went down does not count.
+  bool _respawnedInFlag(RoundState activeRound, String id) {
+    if (!activeRound.flag ||
+        !activeRound.participants.contains(id) ||
+        activeRound.left.contains(id)) {
+      return false;
+    }
+    final down = activeRound.downAt[id];
+    return down == null ||
+        DateTime.now().millisecondsSinceEpoch - down >
+            GameConfig.respawnSeconds * 500;
+  }
+
   double get _secondsIntoRound {
     final started = round?.startedAt;
     return started == null
@@ -542,14 +586,17 @@ extension TankGameRound on TankGame {
       DeathPayload(id: myId, killerId: killerId).toJson(),
     );
     _recordKill(myId, killerId);
-    if (round?.defense ?? false) {
-      // Defenders come back after a short while, the round goes on.
+    if (round?.respawns ?? false) {
+      // Defenders and flag hunters come back after a short while, the
+      // round goes on.
       round?.alive.remove(myId);
       world.add(
         Explosion(position: tank.position.clone(), color: tank.tankColor),
       );
       shake(12);
-      _addWreck(tank);
+      if (!(round?.flag ?? false)) {
+        _addWreck(tank);
+      }
       AudioService.play('explosion');
       Haptics.destroyed();
       tank.removeFromParent();
@@ -661,12 +708,17 @@ extension TankGameRound on TankGame {
     );
     _recordKill(bot.playerId, killerId);
     activeRound.markDead(bot.playerId);
-    activeRound.destroyedEnemies.add(bot.playerId);
+    if (activeRound.flag) {
+      _botRespawns[bot.playerId] = GameConfig.respawnSeconds;
+    } else {
+      activeRound.destroyedEnemies.add(bot.playerId);
+    }
     aliveCount.value = activeRound.alive.length;
     world.add(Explosion(position: bot.position.clone(), color: bot.tankColor));
     shakeAt(bot.position, 8);
-    // Waves leave far too many wrecks, only the explosion stays.
-    if (!activeRound.defense) {
+    // Rounds where tanks come back would leave far too many wrecks, only
+    // the explosion stays.
+    if (!activeRound.respawns) {
       _addWreck(bot);
     }
     AudioService.play('explosion', distance: _distanceToView(bot.position));
@@ -696,11 +748,18 @@ extension TankGameRound on TankGame {
     }
     if (activeRound != null && activeRound.botHost == id) {
       // Nobody simulates the bots any more.
+      activeRound.left.addAll(activeRound.bots.keys);
       for (final botId in activeRound.bots.keys) {
         if (activeRound.alive.contains(botId)) {
           _handleRemoteDeath(botId, explode: false);
         }
       }
+    }
+    if (activeRound != null &&
+        activeRound.flag &&
+        activeRound.participants.contains(id)) {
+      activeRound.left.add(id);
+      _handOverFlags(activeRound);
     }
     if (activeRound != null && activeRound.markDead(id)) {
       aliveCount.value = activeRound.alive.length;
@@ -726,7 +785,9 @@ extension TankGameRound on TankGame {
           Explosion(position: tank.position.clone(), color: tank.tankColor),
         );
         shakeAt(tank.position, 8);
-        if (!activeRound.isEnemy(id) && !activeRound.isAlly(id)) {
+        if (!activeRound.isEnemy(id) &&
+            !activeRound.isAlly(id) &&
+            !activeRound.flag) {
           _addWreck(tank);
         }
         AudioService.play(
@@ -748,8 +809,9 @@ extension TankGameRound on TankGame {
     if (phase.value == GamePhase.lobby || phase.value == GamePhase.roundOver) {
       return;
     }
-    if (activeRound.defense) {
-      // Only the base decides a defense round, see [_applyDefense].
+    if (activeRound.defense || activeRound.flag) {
+      // Only the base decides a defense round, see [_applyDefense], and
+      // only the flags a capture the flag round, see [_checkFlagEnd].
       return;
     }
     if (activeRound.teamMode) {
@@ -942,6 +1004,8 @@ extension TankGameRound on TankGame {
     }
     towers.clear();
     credits.value = 0;
+    flagMatch = null;
+    _botRespawns.clear();
     _respawnTimer = 0;
     respawnSeconds.value = 0;
     myTank?.removeFromParent();

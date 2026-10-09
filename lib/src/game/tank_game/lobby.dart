@@ -28,7 +28,7 @@ extension TankGameLobby on TankGame {
     final listed =
         isHost.value &&
         !beforeWaitingRoom &&
-        mode.value == GameMode.multi &&
+        (mode.value == GameMode.multi || mode.value == GameMode.flag) &&
         publicRoom.value;
     final current = phase.value;
     unawaited(
@@ -41,7 +41,7 @@ extension TankGameLobby on TankGame {
                 inMatch:
                     current != GamePhase.lobby &&
                     current != GamePhase.roundOver,
-                teams: teamMode.value,
+                teams: teamMode.value || mode.value == GameMode.flag,
               )
             : null,
       ),
@@ -157,7 +157,12 @@ extension TankGameLobby on TankGame {
       startedAt: round?.startedAt,
       uid: scoreService.myId,
       defense: round?.defense ?? false,
-      botHost: round?.defense ?? false ? round?.botHost : null,
+      flag: round?.flag ?? false,
+      botHost: switch (round) {
+        final r? when r.defense => r.botHost,
+        final r? when r.flag => r.flagHost,
+        _ => null,
+      },
       joinedAt: net.joinedAt,
       pad: padSteered.value,
     );
@@ -171,9 +176,10 @@ extension TankGameLobby on TankGame {
   }
 
   /// Teams for a round: picks are honoured, players without a pick fill up
-  /// whichever team is smaller.
-  Map<String, int> _assignTeams(List<String> ids) {
-    if (!teamMode.value) {
+  /// whichever team is smaller. [force] makes teams without the switch in
+  /// the lobby, for capturing the flag.
+  Map<String, int> _assignTeams(List<String> ids, {bool force = false}) {
+    if (!teamMode.value && !force) {
       return const {};
     }
     final teams = <String, int>{};
@@ -529,6 +535,7 @@ extension TankGameLobby on TankGame {
   int get _roomLoad => GameConfig.roomLoad(
     _pilotsOnline,
     cpu: !roomHasPhone || mode.value == GameMode.defense,
+    flag: mode.value == GameMode.flag,
   );
 
   void _onPadSteered() {

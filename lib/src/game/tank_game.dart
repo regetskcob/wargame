@@ -28,6 +28,7 @@ import '../net/net_events.dart';
 import '../net/net_service.dart';
 import '../net/payloads/death_payload.dart';
 import '../net/payloads/defense_payload.dart';
+import '../net/payloads/flag_payload.dart';
 import '../net/payloads/hit_payload.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../net/payloads/obstacle_payload.dart';
@@ -58,6 +59,7 @@ import 'weather.dart';
 import 'plausibility.dart';
 import 'components/bullet.dart';
 import 'components/explosion.dart';
+import 'components/flag_field.dart';
 import 'components/player_tank.dart';
 import 'components/power_up.dart';
 import 'components/smoke_cloud.dart';
@@ -71,6 +73,7 @@ import 'defense/defense_director.dart';
 import 'defense/defense_field.dart';
 import 'defense/defense_map.dart';
 import 'defense/tower.dart';
+import 'flag_match.dart';
 import 'game_mode.dart';
 import 'infantry.dart';
 import 'inventory.dart';
@@ -101,6 +104,7 @@ part 'tank_game/items.dart';
 part 'tank_game/combat.dart';
 part 'tank_game/targeting.dart';
 part 'tank_game/view.dart';
+part 'tank_game/flag.dart';
 
 /// Whether the welcome page comes before the start page. Everybody else
 /// lands right on the three ways to play and signs in from the account
@@ -312,6 +316,17 @@ class TankGame extends FlameGame
   final respawnSeconds = ValueNotifier<int>(0);
   double _respawnTimer = 0;
 
+  /// Capture the flag: where both flags are and the score, null in any
+  /// other round. The authority's last full state goes out again every few
+  /// seconds.
+  FlagMatch? flagMatch;
+  double _flagSync = 0;
+  bool _flagOvertime = false;
+
+  /// Host: CPU tanks of a capture the flag round waiting to come back, with
+  /// the seconds left.
+  final _botRespawns = <String, double>{};
+
   /// Whether the host lists this room publicly. Private rooms are only
   /// reachable by their link or code.
   final publicRoom = ValueNotifier<bool>(false);
@@ -469,6 +484,7 @@ class TankGame extends FlameGame
       ..onDefense = _onDefense
       ..onTower = _onTower
       ..onTroops = _onTroops
+      ..onFlag = _onFlag
       ..onGrenade = _onGrenade
       ..onDrone = _onDrone
       ..onBlast = _onBlast
@@ -597,6 +613,7 @@ class TankGame extends FlameGame
     _playReplay();
     _updatePowerUps();
     _updateRespawn(dt);
+    _updateFlag(dt);
     _resupply(dt);
     _staleTimer += dt;
     if (_staleTimer >= 1) {
