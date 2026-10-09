@@ -131,7 +131,7 @@ class TankStats {
       blurbDe: 'Dachs: 35-mm-Kanone, gut geschützt und flink',
       blurbEn: 'Dachs: 35 mm cannon, well protected and quick',
     ),
-    TankType.auerochse: TankStats(
+    TankType.wolf: TankStats(
       maxHp: 190,
       speed: 1.0,
       acceleration: 0.95,
@@ -142,10 +142,10 @@ class TankStats {
       bulletSpeed: 580,
       barrels: 1,
       sound: 'cannon',
-      blurbDe: 'Auerochse: 130-mm-Kanone, der schwerste Panzer im Feld',
-      blurbEn: 'Auerochse: 130 mm cannon, the heaviest tank in the field',
+      blurbDe: 'Wolf: 130-mm-Kanone, der schwerste Panzer im Feld',
+      blurbEn: 'Wolf: 130 mm cannon, the heaviest tank in the field',
     ),
-    TankType.walross: TankStats(
+    TankType.hirsch: TankStats(
       maxHp: 185,
       speed: 0.95,
       acceleration: 0.85,
@@ -156,8 +156,8 @@ class TankStats {
       bulletSpeed: 700,
       barrels: 1,
       sound: 'cannon',
-      blurbDe: 'Walross: 155-mm-Rohr, lädt langsam, trifft verheerend',
-      blurbEn: 'Walross: 155 mm gun, reloads slowly, hits devastatingly',
+      blurbDe: 'Hirsch: 155-mm-Rohr, lädt langsam, trifft verheerend',
+      blurbEn: 'Hirsch: 155 mm gun, reloads slowly, hits devastatingly',
     ),
   };
 

@@ -51,8 +51,8 @@ Everything the game does, with the numbers behind it. The short version is in th
 ## On the battlefield
 
 - Eight vehicles with animal names instead of real model or maker names
-  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Walross, Dachs and
-  Auerochse), each with its own armour, speed and gun. Hermelin, Fuchs and
+  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs and
+  Wolf), each with its own armour, speed and gun. Hermelin, Fuchs and
   Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
   and 8, and every later one is stronger than the ones before. The lobby
   lists the unlocked ones first. Four free paint schemes and four more that come with higher ranks.
@@ -118,9 +118,9 @@ the centre and half at the edge of the radius.
 | Fuchs | 70 | 11 | 1 | 0.26 | 42 | 55 |
 | Habicht | 105 | 9 | 2 | 0.26 | 69 | 45 |
 | Keiler | 165 | 33 | 1 | 0.52 | 63 | 20 |
-| Walross | 185 | 75 | 1 | 1.05 | 71 | 12 |
+| Hirsch | 185 | 75 | 1 | 1.05 | 71 | 12 |
 | Dachs | 135 | 14 | 1 | 0.2 | 70 | 70 |
-| Auerochse | 190 | 50 | 1 | 0.64 | 78 | 16 |
+| Wolf | 190 | 50 | 1 | 0.64 | 78 | 16 |
 
 Rapid fire from a crate shortens the time between shots to 45 % for 8
 seconds. In a defense round the enemy tanks fire three times slower.

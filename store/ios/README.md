@@ -36,7 +36,7 @@ schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
 „Panzergefecht – Panzerduell“ nehmen. Die
 Schlüsselwörter enthalten bewusst keine geschützten Namen von Streitkräften, das
 verbietet Apple (Richtlinie 2.3.7). Die Fahrzeuge tragen Tiernamen (Hermelin,
-Fuchs, Spitzmaus, Habicht, Keiler, Walross, Dachs, Auerochse) statt Modell- oder
+Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs, Wolf) statt Modell- oder
 Herstellernamen.
 
 ## Icon neu erzeugen

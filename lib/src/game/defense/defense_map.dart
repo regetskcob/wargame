@@ -466,7 +466,7 @@ class DefenseMap {
   static TankType enemyType(int wave, int n) {
     final roll = (wave * 7 + n * 13) % 10;
     if (wave >= 7 && roll < 2) {
-      return TankType.auerochse;
+      return TankType.wolf;
     }
     if (wave >= 4 && roll == 9) {
       return TankType.dachs;

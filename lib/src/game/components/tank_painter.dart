@@ -16,12 +16,12 @@ enum TankType {
   dachs('DACHS', 'Schützenpanzer', 'Infantry fighting vehicle', level: 5),
 
   /// The heaviest main battle tank, with the 130 mm gun.
-  auerochse('AUEROCHSE', 'Kampfpanzer', 'Main battle tank', level: 8),
+  wolf('WOLF', 'Kampfpanzer', 'Main battle tank', level: 8),
 
   /// The self-propelled howitzer with the 155 mm gun and its big turret at
   /// the back. New vehicles always go at the end: the index travels over
   /// the wire and is kept in the players' looks.
-  walross('WALROSS', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
+  hirsch('HIRSCH', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
 
   const TankType(this.label, this._roleDe, this._roleEn, {this.level = 1});
 
@@ -48,8 +48,8 @@ const _muzzles = {
   TankType.fuchs: [Offset(24, -5)],
   TankType.spitzmaus: [Offset(27.5, 0)],
   TankType.dachs: [Offset(26, -9)],
-  TankType.auerochse: [Offset(24, -22)],
-  TankType.walross: [Offset(24, -21)],
+  TankType.wolf: [Offset(24, -22)],
+  TankType.hirsch: [Offset(24, -21)],
 };
 
 /// Where the turret ring sits on the hull.
@@ -60,8 +60,8 @@ const _pivots = {
   TankType.fuchs: Offset(24, 24),
   TankType.spitzmaus: Offset(24, 27),
   TankType.dachs: Offset(24, 22),
-  TankType.auerochse: Offset(24, 25),
-  TankType.walross: Offset(24, 32),
+  TankType.wolf: Offset(24, 25),
+  TankType.hirsch: Offset(24, 32),
 };
 
 typedef _TurretPass = void Function(void Function() draw);
@@ -143,9 +143,9 @@ void paintTank(
       _spitzmaus(canvas, hull, dark, light, turret);
     case TankType.dachs:
       _manul(canvas, hull, dark, light, turret);
-    case TankType.auerochse:
+    case TankType.wolf:
       _auerochse(canvas, hull, dark, light, turret);
-    case TankType.walross:
+    case TankType.hirsch:
       _walross(canvas, hull, dark, light, turret);
   }
   canvas.restore();
