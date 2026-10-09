@@ -416,13 +416,25 @@ def header(lang, size, raw_dir):
     watch."""
     w, h = size
     canvas = backdrop(size, f"header-{w}")
+    # The iPad is drawn as one with the iPhone, which stands in front of
+    # its left edge, so the row treats the pair as one piece.
+    iphone = device(load_shot(raw_dir, lang, "i_battle"), round(h * 0.52), "phone")
+    ipad = device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.58), "tablet")
+    overlap = round(iphone.width * 0.35)
+    lift = round(h * 0.13)
+    pair = Image.new("RGBA", (iphone.width + ipad.width - overlap,
+                              max(ipad.height, iphone.height + lift)))
+    pair.alpha_composite(ipad, (iphone.width - overlap, 0))
+    shade = Image.new("RGBA", pair.size)
+    drop_shadow(shade, iphone, 0, lift)
+    pair.alpha_composite(shade)
+    pair.alpha_composite(iphone, (0, lift))
     boxes = row(canvas, [
-        device(load_shot(raw_dir, lang, "i_battle"), round(h * 0.54), "phone"),
-        device(load_shot(raw_dir, lang, "p_defense"), round(h * 0.50), "tablet"),
+        pair,
         device(load_shot(raw_dir, lang, "tv_defense"), round(h * 0.66), "tv"),
         device(load_shot(raw_dir, lang, "w_battle"), round(h * 0.36), "watch"),
-    ], [round(h * 0.08), round(h * 0.08), -round(h * 0.06), round(h * 0.08)])
-    tx, ty, tw, th = boxes[2]
+    ], [round(h * 0.06), -round(h * 0.06), round(h * 0.08)])
+    tx, ty, tw, th = boxes[1]
     phone = landscape_phone(load_shot(raw_dir, lang, "pad"), round(th * 0.36))
     px = tx + tw - phone.width + round(tw * 0.04)
     py = min(ty + th - round(phone.height * 0.55),
