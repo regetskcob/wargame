@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../app/routes.dart';
 import '../game/game_phase.dart';
 import '../game/special_weapon.dart';
 import '../net/pad_link.dart';
@@ -33,14 +35,8 @@ class ControllerView extends StatefulWidget {
   final VoidCallback? onClose;
 
   /// Opens the controller over the game for the screen of [code].
-  static Future<void> open(BuildContext context, String code, String name) {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => ControllerView(code: code, name: name),
-      ),
-    );
-  }
+  static Future<void> open(BuildContext context, String code, String name) =>
+      context.push<void>(Routes.pad(code, name: name));
 
   @override
   State<ControllerView> createState() => _ControllerViewState();
