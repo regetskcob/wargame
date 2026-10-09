@@ -22,6 +22,7 @@ import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
+import 'widgets/tablet_scale.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
 import '../tv/tv_input.dart';
@@ -828,13 +829,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Phones and the tablet apps start at the top: short pages
-              // leave the room below them instead of floating in the middle
-              // of a screen held in the hand. The browser and the
-              // television frame the menu as a plate, which sits best in
-              // the middle.
+              // Only phones start at the top: short pages leave the room
+              // below them instead of floating in the middle of a screen
+              // held in the hand. Tablets, the browser and the television
+              // have the room to show every page in the middle.
+              final handheld =
+                  MediaQuery.sizeOf(context).shortestSide < tabletShortSide;
               return Align(
-                alignment: phone ? Alignment.topCenter : Alignment.center,
+                alignment: handheld ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
