@@ -312,3 +312,55 @@ h3 { font-size: 18px; letter-spacing: 0.1em; }
   html { scroll-behavior: auto; }
   .play, .launch { transition: none; }
 }
+
+/* Support */
+.support { padding-bottom: clamp(40px, 6vw, 72px); max-width: 680px; }
+
+.support h1 { font-size: clamp(28px, 5vw, 44px); }
+
+.support .lead { margin: 12px 0 28px; }
+
+.form {
+  display: grid;
+  gap: 18px;
+  background: var(--panel);
+  border: 1.5px solid var(--olive-light);
+  padding: clamp(20px, 4vw, 28px);
+}
+
+.form label {
+  display: grid;
+  gap: 6px;
+  color: var(--text-dim);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+}
+
+.form input, .form select, .form textarea {
+  width: 100%;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.4);
+  border: 1.5px solid var(--olive-light);
+  border-radius: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  letter-spacing: normal;
+}
+
+.form textarea { resize: vertical; min-height: 140px; }
+
+.form input:focus, .form select:focus, .form textarea:focus {
+  outline: none;
+  border-color: var(--amber);
+  box-shadow: 0 0 0 1px var(--amber);
+}
+
+.form small { color: var(--text-dim); font-weight: 400; letter-spacing: normal; }
+
+.form .play { justify-self: start; font-size: 17px; padding: 14px 26px; cursor: pointer; }
+
+.sent { margin: 0; color: var(--amber); font-weight: 500; }
+
+.aside { color: var(--text-dim); font-size: 15px; margin: 18px 0 0; }

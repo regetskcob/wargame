@@ -4,37 +4,21 @@
 {{- $subtitle := partial "store.html" "subtitle" -}}
 {{- $promo := partial "store.html" "promotional_text" -}}
 
-{{- /* The App Store description, read into its parts: the opening paragraph
-   (skipped), sections with a heading in capitals, and loose paragraphs after
-   them. The first section holds the ways to play as "• Name: text" lines. */ -}}
+{{- /* The ways to play, the first section of the App Store description:
+   after its opening paragraph, a heading in capitals, then "• Name: text"
+   lines. The loose paragraphs at its end come from notes.html. */ -}}
 {{- $sections := slice -}}
-{{- $notes := slice -}}
 {{- range $i, $block := split (partial "store.html" "description") "\n\n" -}}
   {{- $lines := split (strings.TrimSpace $block) "\n" -}}
   {{- $first := index $lines 0 -}}
-  {{- if eq $i 0 -}}
-  {{- else if and (gt (len $lines) 1) (eq (upper $first) $first) -}}
+  {{- if and (gt $i 0) (gt (len $lines) 1) (eq (upper $first) $first) -}}
     {{- $sections = $sections | append (dict "title" $first "lines" (after 1 $lines)) -}}
-  {{- else -}}
-    {{- $notes = $notes | append $block -}}
   {{- end -}}
 {{- end -}}
 {{- $modes := index $sections 0 -}}
 {{- $modeIcons := slice "person" "groups" "shield" "split" -}}
 
-<header class="bar">
-  <a class="brand" href="{{ "" | relLangURL }}">
-    {{- $icon := (resources.Get "store/icon/AppIcon-1024.png").Resize "96x webp" }}
-    <img src="{{ $icon.RelPermalink }}" alt="" width="32" height="32">
-    <span>{{ upper $name }}</span>
-  </a>
-  <nav>
-    {{- range .Translations }}
-    <a class="lang" href="{{ .RelPermalink }}" hreflang="{{ .Language.LanguageCode }}" data-lang="{{ .Language.Lang }}">{{ i18n "otherLanguage" }}</a>
-    {{- end }}
-    {{ partial "play-button.html" (dict "label" (i18n "play") "class" "small") }}
-  </nav>
-</header>
+{{ partial "bar.html" . }}
 
 <main>
   {{- /* The opener: every device the game runs on, one room for all of them. */}}
@@ -78,40 +62,9 @@
         width="{{ $a.Width }}" height="{{ $a.Height }}" loading="lazy" alt="{{ i18n (printf "shot-%s" $f) }}">
       {{- end }}
     </div>
-    {{- with index $notes 0 }}<p class="pledge">{{ . }}</p>{{ end }}
+    {{- with index (partial "notes.html") 0 }}<p class="pledge">{{ . }}</p>{{ end }}
   </section>
 </main>
 
-<footer class="foot">
-  <nav>
-    <a href="{{ "impressum/" | relURL }}">{{ i18n "imprint" }}</a>
-    <a href="{{ "datenschutz/" | relURL }}">{{ i18n "privacy" }}</a>
-    <a href="https://github.com/regetskcob/wargame">{{ i18n "source" }}</a>
-  </nav>
-  {{- range after 1 $notes }}<p>{{ . }}</p>{{ end }}
-  <p>{{ (resources.Get "store/metadata/copyright.txt").Content | strings.TrimSpace }}</p>
-</footer>
-
-<script>
-  // The game speaks the language of the browser, and so does the address
-  // without a language on a first visit. A language picked by hand sticks,
-  // and a link to the English page stays English.
-  (function () {
-    var key = 'panzergefecht.site.lang';
-    document.querySelectorAll('[data-lang]').forEach(function (a) {
-      a.addEventListener('click', function () {
-        try { localStorage.setItem(key, a.dataset.lang); } catch (e) {}
-      });
-    });
-    var chosen = null;
-    try { chosen = localStorage.getItem(key); } catch (e) {}
-    var here = document.documentElement.lang;
-    if (here !== '{{ site.Sites.Default.Language.Lang }}') return;
-    var wanted = chosen || ((navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
-    if (wanted !== here) {
-      var other = document.querySelector('[data-lang="' + wanted + '"]');
-      if (other) location.replace(other.href);
-    }
-  })();
-</script>
+{{ partial "foot.html" . }}
 {{ end }}

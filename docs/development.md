@@ -156,6 +156,13 @@ shortcuts) are passed on to `play/` before the page draws, so they keep
 working. The Impressum and privacy pages stay at `/wargame/impressum/` and
 `/wargame/datenschutz/`.
 
+`/wargame/support/` (and `en/support/`) is the support URL of the store
+listings. Without a server of its own its form sends nothing: it writes
+topic, device, call sign and message into a mail to `params.supportMail`
+in `site/hugo.toml` and opens it in the visitor's mail app, so no form
+service sees what people type. Real sending would need a Supabase Edge
+Function with an SMTP account.
+
 ```sh
 hugo server --source site          # http://localhost:1313/wargame/
 ```

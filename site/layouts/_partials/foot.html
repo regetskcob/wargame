@@ -1,0 +1,10 @@
+<footer class="foot">
+  <nav>
+    <a href="{{ "impressum/" | relURL }}">{{ i18n "imprint" }}</a>
+    <a href="{{ "datenschutz/" | relURL }}">{{ i18n "privacy" }}</a>
+    <a href="{{ "support/" | relLangURL }}">{{ i18n "support" }}</a>
+    <a href="https://github.com/regetskcob/wargame">{{ i18n "source" }}</a>
+  </nav>
+  {{- range after 1 (partial "notes.html") }}<p>{{ . }}</p>{{ end }}
+  <p>{{ (resources.Get "store/metadata/copyright.txt").Content | strings.TrimSpace }}</p>
+</footer>
