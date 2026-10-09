@@ -73,7 +73,10 @@ a flick), so `WatchSteering.steer` takes its logarithm: a detent corrects by
 about two degrees, a quick turn swings at full speed. The heading stays within
 `maxLead` of the hull, so the tank never overshoots far or turns the wrong way
 round. Measured in the watch Simulator through Device Hub, still to be tried
-on a real watch. The watch plays as a guest, signing in takes the phone.
+on a real watch. The watch camera looks 12 % closer than the phone's
+(`GameConfig.watchZoom`), and in a solo round every tank tops out 15 % slower
+(`GameConfig.watchSoloSpeed`), since the crown steers slower than a thumb;
+shared rounds keep the same speed for all. The watch plays as a guest, signing in takes the phone.
 The app icon is the one of the phone app.
 
 ```sh

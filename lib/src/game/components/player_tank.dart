@@ -248,6 +248,7 @@ class PlayerTank extends TankBase
         GameConfig.tankMaxSpeed *
         stats.speed *
         speedFactor *
+        gameRef.tankSpeedScale *
         engineFactor *
         damage.speedFactor *
         slope *
