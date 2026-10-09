@@ -7,6 +7,7 @@ import 'package:flutter/gestures.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
@@ -40,6 +41,7 @@ import '../watch/watch_overlays.dart';
 import '../watch/watch_support.dart';
 import 'live_activity.dart';
 import 'overlay_ids.dart';
+import 'routes.dart';
 
 class GameApp extends StatefulWidget {
   const GameApp({super.key});
@@ -52,7 +54,11 @@ class _GameAppState extends State<GameApp> {
   late TankGame game;
   late LiveActivityBridge _liveActivity;
   final _gameFocus = FocusNode(debugLabel: 'game');
-  final _navigator = GlobalKey<NavigatorState>();
+  late final GoRouter _router = buildRouter(game: _gamePage);
+
+  /// Counts the games, so the page with the game is built anew when a room
+  /// switch brings another one. The router builds its pages on its own.
+  final _gameSwitches = ValueNotifier(0);
   late final _online = OnlineService(
     Supabase.instance.client,
     inMatch: () => game.phase.value != GamePhase.lobby,
@@ -84,26 +90,17 @@ class _GameAppState extends State<GameApp> {
   /// the screen that showed it.
   void _openPad(String text) {
     final code = padCodeFrom(text);
-    final navigator = _navigator.currentState;
     if (code == null) {
       return;
     }
-    if (navigator == null) {
-      // A link that started the app can come in before the first frame.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _navigator.currentState != null) {
-          _openPad(code);
-        }
-      });
-      return;
-    }
+    // A link that started the app can come in before the router has shown
+    // its first page.
     unawaited(
-      navigator.push<void>(
-        MaterialPageRoute(
-          fullscreenDialog: true,
-          builder: (_) => ControllerView(code: code, name: game.myName),
-        ),
-      ),
+      WidgetsBinding.instance.endOfFrame.then((_) {
+        if (mounted) {
+          unawaited(_router.push<void>(Routes.pad(code, name: game.myName)));
+        }
+      }),
     );
   }
 
@@ -137,7 +134,8 @@ class _GameAppState extends State<GameApp> {
     old.roster.removeListener(_phaseChanged);
     _liveActivity.detach();
     unawaited(old.leave());
-    setState(() => game = _createGame(room, host: host));
+    game = _createGame(room, host: host);
+    _gameSwitches.value++;
     PadScreen.instance.game = game;
     _liveActivity = LiveActivityBridge(game)..attach();
     _second?.followRoom();
@@ -169,6 +167,8 @@ class _GameAppState extends State<GameApp> {
       ..removeListener(_phaseChanged);
     game.roster.removeListener(_phaseChanged);
     _second?.dispose();
+    _router.dispose();
+    _gameSwitches.dispose();
     _gameFocus.dispose();
     super.dispose();
   }
@@ -182,8 +182,8 @@ class _GameAppState extends State<GameApp> {
   }
 
   Widget _app(AppLang lang) {
-    return MaterialApp(
-      navigatorKey: _navigator,
+    return MaterialApp.router(
+      routerConfig: _router,
       title: 'Panzergefecht',
       locale: lang.locale,
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -211,9 +211,14 @@ class _GameAppState extends State<GameApp> {
               ),
             )
           : null,
-      home: onTv ? _TvBack(game: game, child: _home()) : _home(),
     );
   }
+
+  Widget _gamePage(BuildContext context) => ValueListenableBuilder<int>(
+    valueListenable: _gameSwitches,
+    builder: (context, _, _) =>
+        onTv ? _TvBack(game: game, child: _home()) : _home(),
+  );
 
   Widget _home() {
     final second = _second;
