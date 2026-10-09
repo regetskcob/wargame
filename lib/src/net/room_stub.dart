@@ -11,7 +11,6 @@ import '../app/env.dart';
 import '../tv/tv_input.dart';
 import 'room_code.dart';
 
-const _guestKey = 'panzergefecht.guest';
 const _tutorialKey = 'panzergefecht.tutorial';
 
 SharedPreferencesWithCache? _store;
@@ -23,11 +22,11 @@ Future<void> openLocalStore() async {
   try {
     _store = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: {_guestKey, _tutorialKey},
+        allowList: {_tutorialKey},
       ),
     );
   } on Object {
-    // Without a store the welcome page and the tutorial simply ask again.
+    // Without a store the tutorial button simply stands out again.
   }
 }
 
@@ -80,17 +79,6 @@ void listenForRoomLinks() {
   _links ??= links.uriLinkStream.listen(open, onError: (Object _) {});
   unawaited(links.getInitialLink().then(open, onError: (Object _) {}));
 }
-
-/// Whether this device chose to play as a guest before.
-bool prefersGuest() => _store?.getBool(_guestKey) ?? false;
-
-/// Remembers that this device plays as a guest, so the welcome page does not
-/// ask again.
-void rememberGuest() => unawaited(_store?.setBool(_guestKey, true));
-
-/// Forgets the guest choice, so the welcome page asks again, as after
-/// signing out.
-void forgetGuest() => unawaited(_store?.remove(_guestKey));
 
 var _tutorialSeen = false;
 

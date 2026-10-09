@@ -33,7 +33,7 @@ class AccountPanel extends StatefulWidget {
   final String? callSign;
 
   /// Called after signing out, right before the game starts over on the
-  /// welcome page. A dialog closes itself here.
+  /// start page. A dialog closes itself here.
   final VoidCallback? onSignedOut;
 
   /// On the welcome page: always open, without the status line, and signing
@@ -141,14 +141,13 @@ class _AccountPanelState extends State<AccountPanel> {
     }
   }
 
-  /// Signs out and starts over on the welcome page, with nothing of the
+  /// Signs out and starts over on the start page, with nothing of the
   /// account left in the game: no name, no progress, no open dialog.
   Future<void> _signOut() async {
     await _run(widget.accounts.signOut, tr('Abgemeldet.', 'Signed out.'));
     if (_error) {
       return;
     }
-    forgetGuest();
     widget.onSignedOut?.call();
     openFreshRoom();
   }

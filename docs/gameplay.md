@@ -4,16 +4,18 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 ## Getting in
 
-- A welcome page: sign in, register with an e-mail address, or play as a
-  guest. Signing in with an address that has no account yet creates one.
-  The browser remembers the guest choice.
-- A start page that picks single player, multiplayer or defense, with the
-  call sign at the top to see and change it.
+- The game opens right on the start page that picks single player,
+  multiplayer or defense, with the call sign at the top to see and change
+  it. Everybody starts as a guest; the account button next to it signs in
+  or registers with an e-mail address. Signing in with an address that has
+  no account yet creates one. Only a mail link that fails to sign in in
+  this tab shows a welcome page first, which explains why and takes the
+  code from the mail instead.
 - Guests play unranked: no experience, rating, badges or vehicles beyond
   the first three, and they do not show up in the leaderboards. They can
   create an account at any time, the account keeps the guest's id and with
   it anything recorded before guests were left out.
-- A tutorial behind a button on the welcome page, the start page and in
+- A tutorial behind a button on the start page and in
   the waiting room. It never opens by itself, the button stands out until
   the player went through it once. It explains the controls of the device
   it runs on, two touch sticks with an animated thumb on phones and

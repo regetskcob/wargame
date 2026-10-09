@@ -102,15 +102,15 @@ part 'tank_game/combat.dart';
 part 'tank_game/targeting.dart';
 part 'tank_game/view.dart';
 
-/// Whether the welcome page asks how to play: accounts are switched on,
-/// nobody is signed in, and this device did not choose the guest before,
-/// or a mail link failed to sign in here.
+/// Whether the welcome page comes before the start page. Everybody else
+/// lands right on the three ways to play and signs in from the account
+/// button there; only a mail link that failed to sign in here needs the
+/// page, to explain why and to take the code instead.
 bool needsWelcome({
   required bool accounts,
   required bool guest,
-  required bool prefersGuest,
   bool mailLinkFailed = false,
-}) => accounts && guest && (!prefersGuest || mailLinkFailed);
+}) => accounts && guest && mailLinkFailed;
 
 class TankGame extends FlameGame
     with HasKeyboardHandlerComponents, HasCollisionDetection {
@@ -268,14 +268,11 @@ class TankGame extends FlameGame
   /// waves. Only the host can change it, everybody who joins plays along.
   final mode = ValueNotifier<GameMode>(GameMode.multi);
 
-  /// Whether the player got past the welcome page by signing in or by
-  /// choosing to play as a guest. Without accounts there is nothing to pick,
-  /// and a browser that chose the guest once is not asked again.
+  /// Whether the player got past the welcome page, see [needsWelcome].
   late final welcomed = ValueNotifier<bool>(
     !needsWelcome(
       accounts: Env.accounts,
       guest: accounts.isGuest,
-      prefersGuest: prefersGuest(),
       mailLinkFailed: AccountService.mailLinkFailed,
     ),
   );
