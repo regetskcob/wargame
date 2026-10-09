@@ -679,6 +679,10 @@ is no server of our own.
 3. Push to `main`. The `pages` workflow builds the game with the
    repository name as base path and publishes it. Without the variables the
    build falls back to the project configured in `lib/src/app/env.dart`.
+   A `SUPABASE_URL` or `SUPABASE_KEY` that is no address or key (say,
+   several `--dart-define`s glued into one quoted value) falls back the
+   same way and logs why, and an iOS build in Xcode stops on it
+   (`tool/check_dart_defines.sh` in the Flutter build phase).
 
 GitHub only mails when a workflow fails, not when it recovers. The
 `build-status` workflow fills that gap: when `ci` or `pages` fails on

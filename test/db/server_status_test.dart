@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -55,6 +58,29 @@ void main() {
         heartbeat: () async => throw Exception('Failed host lookup'),
       );
       expect(online, isFalse);
+    });
+
+    test('an address that is none means offline', () async {
+      // Build 4: a stored session, but every request failed on its URL.
+      final online = await ServerStatus.check(
+        session: ok,
+        heartbeat: () async => throw const FormatException('Invalid host'),
+      );
+      expect(online, isFalse);
+    });
+
+    test('a heartbeat that hangs means offline after the timeout', () {
+      fakeAsync((async) {
+        bool? online;
+        ServerStatus.check(
+          session: ok,
+          heartbeat: () => Completer<void>().future,
+        ).then((value) => online = value);
+        async.elapse(ServerStatus.timeout - const Duration(seconds: 1));
+        expect(online, isNull);
+        async.elapse(const Duration(seconds: 2));
+        expect(online, isFalse);
+      });
     });
 
     test('a database without the heartbeat still counts as there', () async {

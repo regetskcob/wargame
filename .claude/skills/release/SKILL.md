@@ -16,6 +16,19 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
 - **Google Play**: workflow `play` (inputs `track`, `status`, `metadata`),
   e.g. `gh workflow run play -f track=internal -f status=draft`, again only
   on the user's word.
+- **Archive for the Organizer** (manual upload, while the workflow lacks
+  its secrets): from an up to date main checkout run
+  `flutter build ipa --release --dart-define=ACCOUNTS=true` and then
+  `open build/ios/archive/Runner.xcarchive`, which adds it to the
+  Organizer. URL and key need no define, `Env` defaults to the live project.
+  Never archive in Xcode on whatever `ios/Flutter/Generated.xcconfig` the
+  last `flutter` command left behind: build 4 shipped with all defines
+  glued into `SUPABASE_URL` and reached no server. Since then
+  `tool/check_dart_defines.sh` stops such a build in Xcode, and the app
+  logs `Server check failed: …` in the device log (`idevicesyslog -p
+  Panzergefecht`) when it cannot reach Supabase.
+- Before the upload, start the archived build once on a real device with a
+  stored session gone (delete the app) and check the leaderboard loads.
 - The iOS build embeds the watch app; the watch must be signed with the same
   team.
 - Run `/ship` first, so main is green and holds the version bump.

@@ -11,6 +11,11 @@ class ServerStatus {
 
   static final available = ValueNotifier<bool>(true);
 
+  /// How long one check may take. The auth client retries a failing token
+  /// refresh with backoff, and without a limit a heartbeat waiting on it
+  /// kept the game "available" for minutes while nothing got through.
+  static const timeout = Duration(seconds: 10);
+
   /// Makes sure there is a session, the anonymous guest one if need be.
   /// False when the server refused or could not be reached.
   static Future<bool> ensureSession(AuthClient auth) async {
@@ -18,15 +23,17 @@ class ServerStatus {
       return true;
     }
     try {
-      await auth.signInAnonymously();
+      await auth.signInAnonymously().timeout(timeout);
       return true;
-    } on Object {
+    } on Object catch (error) {
+      debugPrint('No session from the server: $error');
       return false;
     }
   }
 
-  /// Asks the server once: a session first, then [heartbeat]. A database
-  /// that does not know the heartbeat yet still answers.
+  /// Asks the server once: a session first, then [heartbeat]. A stored
+  /// session alone proves nothing, the heartbeat has to get through. A
+  /// database that does not know the heartbeat yet still answers.
   static Future<bool> check({
     required Future<bool> Function() session,
     required Future<void> Function() heartbeat,
@@ -35,11 +42,18 @@ class ServerStatus {
       return false;
     }
     try {
-      await heartbeat();
+      await heartbeat().timeout(timeout);
       return true;
     } on PostgrestApiException catch (error) {
-      return error.errorCode == 'PGRST202';
-    } on Object {
+      if (error.errorCode == 'PGRST202') {
+        return true;
+      }
+      debugPrint('Server check failed: $error');
+      return false;
+    } on Object catch (error) {
+      // Logged so a broken build shows its cause on the device, not only
+      // the notice: build 4 failed here with a FormatException on its URL.
+      debugPrint('Server check failed: $error');
       return false;
     }
   }
