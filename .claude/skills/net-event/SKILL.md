@@ -31,7 +31,7 @@ event touches these places, in this order:
    `lib/src/game/plausibility.dart`.
 6. **Traffic**: Realtime counts every message once sent and once per
    receiver, against 100 a second for the whole project on the free plan
-   and a monthly quota (README, "Realtime limits"). Prefer events on change
+   and a monthly quota (docs/netcode.md, "Realtime limits"). Prefer events on change
    over per-frame messages; per-frame state goes in `state` (10/s), CPU
    tanks of the host in `states` (one message for all, 10/s). Nothing is
    sent while a client is alone in its room. Check a new stream with
@@ -39,4 +39,4 @@ event touches these places, in this order:
 7. **Tests**: round trip in `test/net/payloads/`, hostile input in
    `test/net/hostile_payload_test.dart`, game behaviour in `test/game/`
    with the fakes in `test/helpers/fakes.dart`.
-8. **README**: add the event to the list in "How the netcode works".
+8. **docs/netcode.md**: add the event to the list in "How the netcode works".

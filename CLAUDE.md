@@ -3,13 +3,15 @@
 Bundeswehr-Panzerspiel (Flutter 3.47 + Flame 2.0, Supabase als einziges
 Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/>,
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
-Die README ist die ausführliche Referenz (Features, Netcode, Deploy); diese
-Datei ist der Schnelleinstieg.
+Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
+Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
+`platforms.md`, `netcode.md`, `development.md`); diese Datei ist der
+Schnelleinstieg.
 
 Beim Sitzungsstart zeigt der Hook `tool/session_context.sh` Branch, Abstand zu
 `origin/main`, letzte Commits und die neueste Migration. Erst lesen, dann
 vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
-(README → Features, Roadmap "Done").
+(README → Highlights, `docs/gameplay.md`, `git log`).
 
 ## Spielmodi in einem Satz
 
@@ -46,7 +48,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
    im Raum keine CPU-Auffüllung, jedes Handy auf eigener Spur
    `pad-<CODE>-<Handy>`. Ohne
    Server startet das Spiel trotzdem (`ServerStatus`). Zahlen und Tests:
-   README „Realtime limits“.
+   `docs/netcode.md` „Realtime limits“.
 
 ## Wo finde ich was
 
@@ -88,11 +90,12 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   Voller Lauf (`tool/verify.sh`: Web, iOS, Android) bei `pubspec.*`,
   `ios/`, `android/`, `tvos/`, Watch, Assets, Plugins, Versionsnummer,
   größeren Umbauten und vor Store-Releases.
-- Code, Kommentare, Commit-Messages und README auf **Englisch**; Commits als
+- Code, Kommentare, Commit-Messages, README und `docs/` auf **Englisch**; Commits als
   ganzer Satz im Imperativ ohne Präfix ("Put leave on the left …").
   Mit dem Nutzer auf Deutsch sprechen.
-- Kommentare erklären das *Warum*; README-Abschnitte (Features, Netcode,
-  Roadmap) mitpflegen, wenn sich Verhalten ändert.
+- Kommentare erklären das *Warum*; `docs/` (Gameplay, Plattformen, Netcode)
+  und README (Highlights, Roadmap) mitpflegen, wenn sich Verhalten ändert.
+  Die README bleibt kurz: Details und Tabellen gehören nach `docs/`.
 - `dart format` ist in CI Pflicht.
 - Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
 - `TankGame` wächst nicht wieder zu: neue Felder in `tank_game.dart`, neue
@@ -107,7 +110,7 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
 - `supabase db push` aus einem Worktree: vorher
   `/Users/regetskcob/wargame/supabase/.temp` in den Worktree kopieren.
 - Nach `supabase_typegen` die Default-Fallbacks für nachträglich ergänzte
-  Spalten in `supabase_schema.g.dart` wiederherstellen (siehe README).
+  Spalten in `supabase_schema.g.dart` wiederherstellen (siehe `docs/development.md`).
 - SQL ohne Docker prüfen: PGlite (npm) im Scratchpad mit auth-Stub.
 - Live-Auth-Einstellungen (SMTP, Redirects, OAuth) setzt der Nutzer im
   Supabase-Dashboard, nicht Claude.

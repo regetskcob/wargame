@@ -31,7 +31,7 @@ class AccountService {
 
   late final user = ValueNotifier<User?>(_client.auth.currentUser);
 
-  /// Logins that can be offered next to e-mail, see the README.
+  /// Logins that can be offered next to e-mail, see docs/development.md.
   static const _knownProviders = [
     (OAuthProvider.github, 'GITHUB'),
     (OAuthProvider.google, 'GOOGLE'),

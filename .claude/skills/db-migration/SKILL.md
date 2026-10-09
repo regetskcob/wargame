@@ -21,7 +21,7 @@ add a new one.
    running, `supabase start` + `supabase db reset` is the full check.
 3. **Types**: update `supabase/schema.json` to match, then
    `dart run supabase_typegen --output lib/src/db/supabase_schema.g.dart --import package:supabase_flutter/supabase_flutter.dart < supabase/schema.json`.
-   Put the default fallbacks for later-added columns back (README, section
+   Put the default fallbacks for later-added columns back (docs/development.md, section
    "Regenerating the typed database models").
 4. **Client**: the game must keep working against a database without the
    migration (old deploys, local stacks). Catch the missing function or
@@ -32,7 +32,7 @@ add a new one.
    `cp -R /Users/regetskcob/wargame/supabase/.temp supabase/.temp`, then
    `supabase db push`. Confirm with `supabase migration list`.
 6. Record the new live migration in memory and, if behaviour changed, in the
-   README.
+   README or `docs/`.
 
 The Supabase MCP server (`.mcp.json`) can list tables, run read-only SQL and
 show logs once it is authorised (`/mcp`); prefer it for inspecting the live
