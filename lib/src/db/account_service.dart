@@ -77,7 +77,7 @@ class AccountService {
   /// [name] is the call sign, kept with the account so it is there on
   /// every device. The e-mail address itself is never shown to others.
   Future<void> secureWithEmail(String email, {String? name}) async {
-    await _client.auth.updateUser(
+    await _updateUser(
       UserAttributes(
         email: email.trim(),
         data: name == null || name.isEmpty ? null : {'call_sign': name},
@@ -115,7 +115,7 @@ class AccountService {
       return;
     }
     try {
-      await _client.auth.updateUser(
+      await _updateUser(
         UserAttributes(data: {_tutorialKey(touch: touch): true}),
       );
       user.value = _client.auth.currentUser;
@@ -142,13 +142,52 @@ class AccountService {
       return;
     }
     try {
-      await _client.auth.updateUser(
-        UserAttributes(data: {_languageKey: lang.code}),
-      );
+      await _updateUser(UserAttributes(data: {_languageKey: lang.code}));
       user.value = _client.auth.currentUser;
     } on Object catch (error) {
       debugPrint('Keeping the language on the account failed: $error');
       // The device still remembers it, the account learns it next time.
+    }
+  }
+
+  /// [GoTrueClient.updateUser] with a repair afterwards. It keeps the
+  /// session that is current once the answer arrives and only swaps in the
+  /// returned user. When another tab broadcast its own session meanwhile,
+  /// as two tabs opened at once and each signing in a fresh guest do, the
+  /// result is one user's id with the other one's token, and every write
+  /// that sends the id is refused by row level security until a reload.
+  /// The refresh token belongs to the token's user, so a refresh puts the
+  /// two together again.
+  Future<void> _updateUser(
+    UserAttributes attributes, {
+    String? emailRedirectTo,
+  }) async {
+    await _client.auth.updateUser(attributes, emailRedirectTo: emailRedirectTo);
+    final session = _client.auth.currentSession;
+    if (session != null && !tokenMatchesUser(session)) {
+      debugPrint('Session token and user differ, refreshing the session');
+      try {
+        await _client.auth.refreshSession();
+      } on Object catch (error) {
+        // The update itself went through; the next refresh repairs it.
+        debugPrint('Refreshing the session failed: $error');
+      }
+    }
+  }
+
+  /// Whether the access token of [session] was issued for its user. A
+  /// token that cannot be read counts as matching, so nothing is repaired
+  /// on a guess.
+  static bool tokenMatchesUser(Session session) {
+    try {
+      final payload = session.accessToken.split('.')[1];
+      final claims = jsonDecode(
+        utf8.decode(base64Url.decode(base64Url.normalize(payload))),
+      ) as Map<String, dynamic>;
+      final subject = claims['sub'];
+      return subject is! String || subject == session.user.id;
+    } on Object {
+      return true;
     }
   }
 
