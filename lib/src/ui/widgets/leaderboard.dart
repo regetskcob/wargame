@@ -3,17 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../db/supabase_schema.g.dart';
-import '../../game/components/tank_painter.dart';
 import '../../game/tank_game.dart';
 import '../theme.dart';
-import 'choice_row.dart';
 import '../../l10n/l10n.dart';
 import '../../tv/tv_input.dart';
 
-enum _View { total, week, vehicles }
-
-/// Ranking of all pilots by rating, with the totals behind it, the same for
-/// the current week, and the player's own numbers per vehicle. The own row
+/// Ranking of all pilots by rating, with the totals behind it. The own row
 /// is highlighted, and added below the list when it is further down.
 class Leaderboard extends StatefulWidget {
   const Leaderboard({required this.game, this.rows = 5, super.key});
@@ -30,9 +25,6 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   late Future<List<ScoresRow>> _scores;
   Timer? _refresh;
-  var _view = _View.total;
-  late Future<List<WeeklyScoresRow>> _week;
-  late Future<List<TankScoresRow>> _vehicles;
 
   @override
   void initState() {
@@ -52,8 +44,6 @@ class _LeaderboardState extends State<Leaderboard> {
 
   void _reload() {
     _scores = widget.game.scoreService.topScores(limit: 50);
-    _week = widget.game.scoreService.weeklyScores(limit: 50);
-    _vehicles = widget.game.scoreService.myTankScores();
   }
 
   /// Pilots with a rated round first, then rating, then wins, kills and
@@ -101,25 +91,8 @@ class _LeaderboardState extends State<Leaderboard> {
           tr('BESTENLISTE', 'LEADERBOARD'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 8),
-        ChoiceRow<_View>(
-          options: [
-            (_View.total, tr('GESAMT', 'OVERALL'), null),
-            (_View.week, tr('DIESE WOCHE', 'THIS WEEK'), null),
-            (_View.vehicles, tr('MEINE FAHRZEUGE', 'MY VEHICLES'), null),
-          ],
-          selected: _view,
-          onSelected: (v) => setState(() {
-            _view = v ?? _view;
-            _reload();
-          }),
-        ),
         const SizedBox(height: 10),
-        switch (_view) {
-          _View.total => _total(context),
-          _View.week => _weekTable(),
-          _View.vehicles => _vehicleTable(),
-        },
+        _total(context),
       ],
     );
   }
@@ -162,117 +135,6 @@ class _LeaderboardState extends State<Leaderboard> {
 
   /// The television draws larger, its columns stay readable a bit tighter.
   static const _tvTableWidth = 520.0;
-
-  TableRow _plainRow(List<String> cells, {bool mine = false, int? rank}) {
-    final base = TextStyle(
-      fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
-      color: mine ? BwColors.amber : BwColors.text,
-    );
-    final medal = rank != null && rank <= 3 ? _medals[rank - 1] : null;
-    return TableRow(
-      decoration: BoxDecoration(
-        color: mine ? const Color(0x33FFB300) : null,
-        border: const Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
-      ),
-      children: [
-        for (var i = 0; i < cells.length; i++)
-          _cell(
-            cells[i],
-            style: i == 0 && medal != null
-                ? base.copyWith(color: medal, fontWeight: FontWeight.w900)
-                : base,
-            align: i == 1 ? TextAlign.left : TextAlign.right,
-          ),
-      ],
-    );
-  }
-
-  Widget _weekTable() {
-    final me = widget.game.scoreService.myId;
-    return FutureBuilder<List<WeeklyScoresRow>>(
-      future: _week,
-      builder: (context, snapshot) {
-        final rows = snapshot.data ?? const <WeeklyScoresRow>[];
-        if (rows.isEmpty) {
-          return snapshot.connectionState == ConnectionState.done
-              ? Text(
-                  tr(
-                    'Diese Woche wurde noch nicht geübt.',
-                    'Nobody has played this week yet.',
-                  ),
-                  style: const TextStyle(color: BwColors.textDim),
-                )
-              : const SizedBox(height: 24);
-        }
-        return _table(
-          [
-            tr('RANG', 'RANK'),
-            'PILOT',
-            tr('EP', 'XP'),
-            tr('SIEGE', 'WINS'),
-            tr('± WERTUNG', '± RATING'),
-          ],
-          [
-            for (final (rank, row) in _shown(rows, (r) => r.id == me))
-              _plainRow(
-                [
-                  '$rank',
-                  row.name ?? '',
-                  '${row.xp ?? 0}',
-                  '${row.wins ?? 0}',
-                  _signed(row.ratingChange ?? 0),
-                ],
-                mine: row.id == me,
-                rank: rank,
-              ),
-          ],
-        );
-      },
-    );
-  }
-
-  static String _signed(int value) => value > 0 ? '+$value' : '$value';
-
-  Widget _vehicleTable() {
-    return FutureBuilder<List<TankScoresRow>>(
-      future: _vehicles,
-      builder: (context, snapshot) {
-        final byType = {
-          for (final row in snapshot.data ?? const <TankScoresRow>[])
-            if (row.tankType != null) row.tankType!: row,
-        };
-        if (byType.isEmpty) {
-          return snapshot.connectionState == ConnectionState.done
-              ? _empty
-              : const SizedBox(height: 24);
-        }
-        return _table(
-          [
-            '',
-            tr('FAHRZEUG', 'VEHICLE'),
-            tr('RUNDEN', 'ROUNDS'),
-            tr('SIEGE', 'WINS'),
-            tr('ABSCHÜSSE', 'KILLS'),
-            tr('TREFFER', 'HITS'),
-          ],
-          [
-            for (final type in TankType.values)
-              if (byType[type.index] case final row?)
-                _plainRow([
-                  '',
-                  type.label,
-                  '${row.rounds ?? 0}',
-                  '${row.wins ?? 0}',
-                  '${row.kills ?? 0}',
-                  (row.shots ?? 0) == 0
-                      ? '-'
-                      : '${((row.hits ?? 0) * 100 / row.shots!).round()} %',
-                ]),
-          ],
-        );
-      },
-    );
-  }
 
   Widget _total(BuildContext context) {
     return FutureBuilder<List<ScoresRow>>(

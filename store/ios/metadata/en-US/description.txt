@@ -21,7 +21,7 @@ MADE FOR TOUCH AND CONTROLLERS
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, Elo rating and badges on every device. There is an all time and a weekly leaderboard, statistics per vehicle, a replay of the last round and a rematch button. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
+Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, Elo rating and badges on every device. There is a leaderboard, a replay of the last round and a rematch button. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
 
 AT A GLANCE
 A widget shows who is online, a Live Activity the running round.
