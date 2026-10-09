@@ -103,7 +103,7 @@ class LaunchView extends StatelessWidget {
             ),
           );
           // Upright phones: the call sign gets a line of its own instead
-          // of squeezing the title.
+          // of squeezing the title, and shares it with the briefing.
           if (box.maxWidth < 480) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +116,14 @@ class LaunchView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                CallSign(game: game),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(child: CallSign(game: game)),
+                    const SizedBox(width: 8),
+                    TutorialButton(game: game),
+                  ],
+                ),
               ],
             );
           }
@@ -131,12 +138,17 @@ class LaunchView extends StatelessWidget {
           );
         },
       ),
-      const SizedBox(height: 4),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TutorialButton(game: game),
+      LayoutBuilder(
+        builder: (context, box) => box.maxWidth < 480
+            ? const SizedBox(height: 16)
+            : Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TutorialButton(game: game),
+                ),
+              ),
       ),
-      const SizedBox(height: 16),
       PilotCard(progress: game.progress),
       const SizedBox(height: 20),
       const ServerNotice(),
@@ -280,7 +292,7 @@ class _ModeCard extends StatelessWidget {
   Widget _card(BuildContext context) {
     return Material(
       color: const Color(0x44000000),
-      shape: BwShapes.card(),
+      shape: GameShapes.card(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
@@ -289,7 +301,7 @@ class _ModeCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
           child: Row(
             children: [
-              Icon(icon, color: BwColors.amber, size: 30),
+              Icon(icon, color: GameColors.amber, size: 30),
               const SizedBox(width: 14),
               Expanded(
                 child: Column(
@@ -305,7 +317,7 @@ class _ModeCard extends StatelessWidget {
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                           letterSpacing: 2,
-                          color: BwColors.sand,
+                          color: GameColors.sand,
                         ),
                       ),
                     ),
@@ -315,7 +327,7 @@ class _ModeCard extends StatelessWidget {
                           ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
                           : kicker,
                       style: const TextStyle(
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                         fontSize: 12,
                         fontWeight: FontWeight.w800,
                         letterSpacing: 1.5,
@@ -324,7 +336,7 @@ class _ModeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: BwColors.amber),
+              const Icon(Icons.chevron_right, color: GameColors.amber),
             ],
           ),
         ),
@@ -368,7 +380,7 @@ class _DuelCard extends StatelessWidget {
     return showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
         content: Text(
           tr(

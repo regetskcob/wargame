@@ -35,7 +35,7 @@ void main() {
       hpLeft: hp,
       soldiers: 0,
       night: night,
-      tankType: TankType.puma,
+      tankType: TankType.hermelin,
     );
   }
 

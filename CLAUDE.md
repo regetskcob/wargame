@@ -1,6 +1,6 @@
 # Panzergefecht – Leitfaden für Claude
 
-Bundeswehr-Panzerspiel (Flutter 3.47 + Flame 2.0, Supabase als einziges
+Panzerspiel in Oliv (Flutter 3.47 + Flame 2.0, Supabase als einziges
 Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/>,
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,

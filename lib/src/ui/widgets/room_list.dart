@@ -71,7 +71,7 @@ class _RoomListState extends State<RoomList> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 12),
               );
             }
             return Column(
@@ -81,10 +81,25 @@ class _RoomListState extends State<RoomList> {
           },
         ),
         const SizedBox(height: 10),
+        // Scan, code and join without frames, so only the field stands out.
         Row(
           children: [
-            SizedBox(
-              width: 140,
+            // The apps read the QR code of a waiting room with the camera. In
+            // the browser the phone camera opens the room link by itself, and
+            // the Apple TV has no camera.
+            if (!kIsWeb && !onTv) ...[
+              IconButton(
+                onPressed: _scan,
+                tooltip: tr('QR-Code scannen', 'Scan QR code'),
+                color: GameColors.sand,
+                icon: Icon(
+                  Icons.qr_code_scanner,
+                  semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
               child: TextField(
                 controller: _code,
                 textCapitalization: TextCapitalization.characters,
@@ -96,24 +111,14 @@ class _RoomListState extends State<RoomList> {
                 onSubmitted: _join,
               ),
             ),
-            const SizedBox(width: 8),
-            OutlinedButton(
+            const SizedBox(width: 4),
+            TextButton(
               onPressed: () => _join(_code.text),
+              style: TextButton.styleFrom(foregroundColor: GameColors.sand),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
           ],
         ),
-        // The apps read the QR code of a waiting room with the camera. In
-        // the browser the phone camera opens the room link by itself, and
-        // the Apple TV has no camera.
-        if (!kIsWeb && !onTv) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _scan,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: Text(tr('QR-CODE SCANNEN', 'SCAN QR CODE')),
-          ),
-        ],
       ],
     );
   }
@@ -131,7 +136,7 @@ class _RoomListState extends State<RoomList> {
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.amber,
+              color: GameColors.amber,
             ),
           ),
           const SizedBox(width: 10),

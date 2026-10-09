@@ -1,6 +1,6 @@
 # Panzergefecht
 
-A Bundeswehr themed 2D tank battle: last tank standing against CPU tanks or
+A 2D tank battle in olive drab: last tank standing against CPU tanks or
 other people, or together against waves of enemy tanks in a tower defense
 mode, or red against blue in capture the flag. In German and English,
 without ads.
@@ -37,7 +37,7 @@ Android apps · Apple TV · Apple Watch (in progress)
 
 ## Highlights
 
-- Eight vehicles from Wiesel to Leopard 2 and Panther KF51, unlocked by rank,
+- Eight vehicles from Spitzmaus to Wolf, unlocked by rank,
   each with its own armour, speed and gun.
 - Four grounds with changing weather, day and night, destructible buildings
   and soldiers on foot that fight.
@@ -58,7 +58,7 @@ All features with their numbers (damage tables, defense thresholds) are in
 
 | Layer | What we use |
 | --- | --- |
-| Game and UI | [Flutter](https://flutter.dev) 3.47 with [Flame](https://flame-engine.org) 2.0, Material 3 in a Bundeswehr theme |
+| Game and UI | [Flutter](https://flutter.dev) 3.47 with [Flame](https://flame-engine.org) 2.0, Material 3 in an olive drab theme |
 | Netcode | [Supabase Realtime](https://supabase.com/docs/guides/realtime): one Broadcast channel per room, Presence for lobby, host role and room list |
 | Data and accounts | Supabase Postgres with row level security, Supabase Auth (guests, e-mail), typed access through `supabase_flutter` 3.0.0-dev.9 and `supabase_typegen` 0.5.1 |
 | Hosting | GitHub Pages, built by GitHub Actions on every push to `main` |

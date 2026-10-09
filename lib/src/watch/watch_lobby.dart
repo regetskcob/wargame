@@ -129,7 +129,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 13),
               );
             }
             return Column(
@@ -265,7 +265,7 @@ class _CallSignButton extends StatelessWidget {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => Dialog.fullscreen(
-        backgroundColor: BwColors.background,
+        backgroundColor: GameColors.background,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
           child: Column(
@@ -305,10 +305,10 @@ class _CallSignButton extends StatelessWidget {
       onPressed: () => _edit(context),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(40),
-        foregroundColor: BwColors.text,
-        side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+        foregroundColor: GameColors.text,
+        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
       ),
-      icon: const Icon(Icons.badge_outlined, size: 18, color: BwColors.amber),
+      icon: const Icon(Icons.badge_outlined, size: 18, color: GameColors.amber),
       label: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
@@ -349,7 +349,7 @@ class _TankPicker extends StatelessWidget {
     onPressed: onPressed,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints.tightFor(width: 30, height: 48),
-    icon: Icon(icon, color: BwColors.amber),
+    icon: Icon(icon, color: GameColors.amber),
   );
 
   @override

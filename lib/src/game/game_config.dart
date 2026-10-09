@@ -338,7 +338,7 @@ class GameConfig {
   static const creditsPerAircraft = 40;
 
   /// Shells that are not built to hit aircraft only scratch a helicopter
-  /// and never touch a jet. Flak and the Gepard hit them hard.
+  /// and never touch a jet. Flak and the Habicht hit them hard.
   static const groundGunVsHelicopter = 0.25;
   static const antiAirFactor = 2.0;
 
@@ -424,7 +424,7 @@ class GameConfig {
 
   /// Multiplayer rounds paint every tank in its own colour instead of the
   /// camouflage, so players tell each other apart at a glance. The colours
-  /// come from the Bundeswehr's paints, the most different ones first. Red
+  /// are classic military paints, the most different ones first. Red
   /// and blue are left out, they belong to the teams.
   static const playerColors = [
     Color(0xFFCDB57E), // Sandgelb

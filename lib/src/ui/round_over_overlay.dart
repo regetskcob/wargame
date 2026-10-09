@@ -46,10 +46,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         final won = outcome == RoundOutcome.won;
         final lost = outcome == RoundOutcome.lost;
         final accent = won
-            ? BwColors.amber
+            ? GameColors.amber
             : lost
-            ? BwColors.danger
-            : BwColors.sand;
+            ? GameColors.danger
+            : GameColors.sand;
         final title = won
             ? tr('SIEG', 'VICTORY')
             : lost
@@ -344,7 +344,7 @@ class _StatsRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: ShapeDecoration(
               color: const Color(0x66000000),
-              shape: BwShapes.chip(),
+              shape: GameShapes.chip(),
             ),
             child: Column(
               children: [
@@ -353,7 +353,7 @@ class _StatsRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
-                    color: BwColors.amber,
+                    color: GameColors.amber,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -362,7 +362,7 @@ class _StatsRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     letterSpacing: 1.2,
-                    color: BwColors.textDim,
+                    color: GameColors.textDim,
                   ),
                 ),
               ],

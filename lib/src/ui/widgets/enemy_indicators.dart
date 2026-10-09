@@ -125,7 +125,7 @@ class _IndicatorPainter extends CustomPainter {
       final near = distance < 450;
       final color = tank.team > 0
           ? GameConfig.teamColors[tank.team]
-          : BwColors.danger;
+          : GameColors.danger;
 
       canvas.save();
       canvas.translate(at.dx, at.dy);

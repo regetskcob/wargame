@@ -98,7 +98,9 @@ extension TankGameRound on TankGame {
     }
     final participants = [
       for (final member in roster.value)
-        if (member.inMatch && TankGame._liveMatchPhases.contains(member.phase))
+        if (member.id != myId &&
+            member.inMatch &&
+            TankGame._liveMatchPhases.contains(member.phase))
           member.id,
     ]..sort();
     if (participants.isEmpty) {
@@ -944,6 +946,70 @@ extension TankGameRound on TankGame {
     unawaited(pushPresence());
   }
 
+  /// Whether the player is in a round that leaving would cut short.
+  bool get inRound => switch (phase.value) {
+    // The countdown shows no question and is over in a moment.
+    GamePhase.playing ||
+    GamePhase.spectating => round != null && !replaying.value,
+    _ => false,
+  };
+
+  /// Escape and, while the leave question is open, Enter. True when the key
+  /// was used up.
+  bool handleEscape(LogicalKeyboardKey key) {
+    if (key == LogicalKeyboardKey.escape) {
+      if (replaying.value) {
+        stopReplay();
+        return true;
+      }
+      if (phase.value == GamePhase.roundOver) {
+        backToLobby();
+        return true;
+      }
+      if (inRound) {
+        // A second Escape takes the question back.
+        leaveAsked.value = !leaveAsked.value;
+        return true;
+      }
+      return false;
+    }
+    if (leaveAsked.value &&
+        (key == LogicalKeyboardKey.enter ||
+            key == LogicalKeyboardKey.numpadEnter)) {
+      leaveRound();
+      return true;
+    }
+    return false;
+  }
+
+  /// Leaves the running round. Alone with CPU tanks the player is straight
+  /// back in the waiting room. With other people in the round the player
+  /// leaves the room as well: the others then see the tank go like any
+  /// pilot who closes the tab, instead of waiting for one that no longer
+  /// reports.
+  void leaveRound() {
+    leaveAsked.value = false;
+    final activeRound = round;
+    if (activeRound == null || !inRound) {
+      return;
+    }
+    final others = activeRound.participants.any(
+      (id) => id != myId && !activeRound.bots.containsKey(id),
+    );
+    if (others) {
+      _enterClosed(tr('Du hast die Runde verlassen.', 'You left the round.'));
+      fireAndForget(net.dispose(), 'Leaving the room');
+      return;
+    }
+    overview.value = false;
+    _clearWorld();
+    round = null;
+    myTeam = 0;
+    _lastActivity = DateTime.now();
+    _setPhase(GamePhase.lobby);
+    unawaited(pushPresence());
+  }
+
   /// Host only: straight from the results into the next round, with the same
   /// settings and everybody who is still in the room.
   void rematch() {
@@ -1065,6 +1131,7 @@ extension TankGameRound on TankGame {
     }
     touch.reset();
     pointerOnHud = false;
+    leaveAsked.value = false;
     phase.value = next;
     overlays
       ..removeAll(const [

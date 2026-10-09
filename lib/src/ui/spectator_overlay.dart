@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../game/tank_game.dart';
 import 'widgets/kill_feed_view.dart';
+import 'widgets/leave_round.dart';
 import 'widgets/mini_map.dart';
 import 'theme.dart';
 import 'widgets/panel.dart';
@@ -70,6 +71,13 @@ class SpectatorOverlay extends StatelessWidget {
                             ],
                           ),
                   ),
+                  // Bottom left: the bar, the kill feed and the map take
+                  // the other corners.
+                  if (!game.replaying.value)
+                    Align(
+                      alignment: Alignment.bottomLeft,
+                      child: LeaveRoundButton(game: game),
+                    ),
                   // Always in reach, also on a phone where the bar above is
                   // cramped.
                   if (game.replaying.value)
@@ -96,6 +104,7 @@ class SpectatorOverlay extends StatelessWidget {
             },
           ),
         ),
+        LeaveRoundPrompt(game: game),
       ],
     );
   }
@@ -114,14 +123,14 @@ class SpectatorOverlay extends StatelessWidget {
     );
     final title = [
       if (game.replaying.value) ...[
-        const Icon(Icons.movie_outlined, size: 18, color: BwColors.amber),
+        const Icon(Icons.movie_outlined, size: 18, color: GameColors.amber),
         const SizedBox(width: 6),
         Text(
           tr('WIEDERHOLUNG', 'REPLAY'),
           style: const TextStyle(
             fontWeight: FontWeight.w900,
             letterSpacing: 2,
-            color: BwColors.amber,
+            color: GameColors.amber,
           ),
         ),
         const SizedBox(width: 12),
@@ -135,7 +144,7 @@ class SpectatorOverlay extends StatelessWidget {
         valueListenable: game.aliveCount,
         builder: (context, alive, _) => Text(
           tr('noch $alive', '$alive left'),
-          style: const TextStyle(color: BwColors.textDim),
+          style: const TextStyle(color: GameColors.textDim),
         ),
       ),
     ];
@@ -207,7 +216,7 @@ class _DestroyedBanner extends StatelessWidget {
               fit: StackFit.expand,
               children: [
                 ColoredBox(
-                  color: BwColors.danger.withValues(alpha: 0.28 * (1 - t)),
+                  color: GameColors.danger.withValues(alpha: 0.28 * (1 - t)),
                 ),
                 Center(
                   child: Padding(
@@ -227,7 +236,7 @@ class _DestroyedBanner extends StatelessWidget {
                             fontSize: 56,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 8,
-                            color: BwColors.danger,
+                            color: GameColors.danger,
                             shadows: [
                               Shadow(blurRadius: 18, color: Colors.black),
                             ],

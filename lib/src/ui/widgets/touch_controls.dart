@@ -148,7 +148,7 @@ class _AssistToggleState extends State<_AssistToggle> {
   @override
   Widget build(BuildContext context) {
     final on = widget.input.assist;
-    final color = on ? BwColors.amber : BwColors.textDim;
+    final color = on ? GameColors.amber : GameColors.textDim;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() {
@@ -422,7 +422,7 @@ class _StickFace extends StatelessWidget {
             shape: BoxShape.circle,
             color: Color(active ? 0x88000000 : 0x44000000),
             border: Border.all(
-              color: active ? BwColors.amber : BwColors.sand,
+              color: active ? GameColors.amber : GameColors.sand,
               width: 2,
             ),
           ),
@@ -434,9 +434,8 @@ class _StickFace extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: (firing ? BwColors.danger : BwColors.sand).withValues(
-                  alpha: firing ? 0.9 : 0.4,
-                ),
+                color: (firing ? GameColors.danger : GameColors.sand)
+                    .withValues(alpha: firing ? 0.9 : 0.4),
                 width: 1.5,
               ),
             ),
@@ -448,7 +447,7 @@ class _StickFace extends StatelessWidget {
             style: const TextStyle(
               fontSize: 10,
               letterSpacing: 1.5,
-              color: BwColors.textDim,
+              color: GameColors.textDim,
             ),
           ),
         ),
@@ -460,11 +459,11 @@ class _StickFace extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: firing
-                  ? BwColors.danger
+                  ? GameColors.danger
                   : active
-                  ? BwColors.amber
-                  : BwColors.olive,
-              border: Border.all(color: BwColors.sand, width: 2),
+                  ? GameColors.amber
+                  : GameColors.olive,
+              border: Border.all(color: GameColors.sand, width: 2),
             ),
           ),
         ),
