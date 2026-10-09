@@ -9,11 +9,12 @@ launching: Spiel wird geladen …
 notFoundTitle: Hier steht kein Panzer
 notFoundText: Diese Seite gibt es nicht. Zurück zum Start oder direkt ins Gefecht.
 home: Zur Startseite
-shot-01-gefecht: Gefecht gegen CPU-Panzer im Regen, das Sperrgebiet zieht sich zu
-shot-02-verteidigung: "Verteidigung: Ein Jet bombardiert den Feind an der Brücke"
-shot-03-geschuetze: Geschütze am Stützpunkt bauen
-shot-05-steuerung: Zwei Sticks, Zielhilfe und Einweisung
-shot-06-modi: Die Startseite mit den drei Spielarten
+shot-01-gefecht: Gefecht gegen CPU-Panzer in der Wüste
+shot-02-verteidigung: "Verteidigung: Kameraden halten den Stützpunkt im Schnee"
+shot-03-geschuetze: Geschütze am Stützpunkt bauen, während er unter Feuer liegt
+shot-04-fahrzeuge: Fahrzeug und Tarnung wählen
+shot-05-steuerung: Zwei Sticks und Zielhilfe im Stadtgefecht
+shot-06-modi: Die Startseite mit den vier Spielarten
 support: Support
 supportTitle: Support
 supportLead: Ein Fehler, eine Frage oder eine Idee? Schreib uns, wir antworten per E-Mail.

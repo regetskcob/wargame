@@ -9,11 +9,12 @@ launching: Loading the game …
 notFoundTitle: No tank here
 notFoundText: This page does not exist. Back to the start or straight into battle.
 home: Back to the start
-shot-01-gefecht: A battle against CPU tanks in the rain, with the closing zone
-shot-02-verteidigung: "Defense: a jet bombs the enemy at the bridge"
-shot-03-geschuetze: Building guns at the base
-shot-05-steuerung: Two sticks, aim assist and a briefing
-shot-06-modi: The start page with the three ways to play
+shot-01-gefecht: A battle against CPU tanks in town
+shot-02-verteidigung: "Defense: an enemy tank reaches the base"
+shot-03-geschuetze: Building guns at the base during an air raid
+shot-04-fahrzeuge: Choosing the vehicle and its camouflage
+shot-05-steuerung: Two sticks and aim assist in a town battle
+shot-06-modi: The start page with the four ways to play
 support: Support
 supportTitle: Support
 supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
