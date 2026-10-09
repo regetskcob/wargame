@@ -42,6 +42,14 @@
 
   <title>Panzergefecht</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    /* The launch screen of the apps, until Flutter draws its loading view
+       (lib/src/ui/loading_view.dart) over it in the same place. */
+    html, body { margin: 0; height: 100%; background: #68733F
+      url(launch_ground.jpg) center / cover no-repeat; }
+    #launch { position: fixed; left: 50%; top: 50%; width: 160px;
+      transform: translate(-50%, -50%); }
+  </style>
   <script>
     // The game speaks German on German browsers and English elsewhere.
     if (!(navigator.language || '').toLowerCase().startsWith('de')) {
@@ -53,6 +61,7 @@
   </script>
 </head>
 <body>
+  <img id="launch" src="launch_tank.png" alt="">
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

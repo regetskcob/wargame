@@ -103,7 +103,7 @@ class LaunchView extends StatelessWidget {
             ),
           );
           // Upright phones: the call sign gets a line of its own instead
-          // of squeezing the title.
+          // of squeezing the title, and shares it with the briefing.
           if (box.maxWidth < 480) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +116,14 @@ class LaunchView extends StatelessWidget {
                   ],
                 ),
                 const SizedBox(height: 8),
-                CallSign(game: game),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Flexible(child: CallSign(game: game)),
+                    const SizedBox(width: 8),
+                    TutorialButton(game: game),
+                  ],
+                ),
               ],
             );
           }
@@ -131,12 +138,17 @@ class LaunchView extends StatelessWidget {
           );
         },
       ),
-      const SizedBox(height: 4),
-      Align(
-        alignment: Alignment.centerLeft,
-        child: TutorialButton(game: game),
+      LayoutBuilder(
+        builder: (context, box) => box.maxWidth < 480
+            ? const SizedBox(height: 16)
+            : Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 16),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: TutorialButton(game: game),
+                ),
+              ),
       ),
-      const SizedBox(height: 16),
       PilotCard(progress: game.progress),
       const SizedBox(height: 20),
       const ServerNotice(),

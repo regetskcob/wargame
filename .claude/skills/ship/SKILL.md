@@ -33,4 +33,7 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    `pages` once, without polling loops.
 7. Report: commit hash on main, which builds ran, CI result, and anything
    the user still has to do by hand (dashboard settings, store uploads).
+   The outcome is the first line of the reply, bold with a symbol, so it
+   is not lost in the text: **✅ Auf main: `<hash>`, CI und Pages grün**,
+   or **❌ …** with what failed.
    Update the matching memory entry if a roadmap item moved.

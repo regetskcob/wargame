@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The middle of the launch ground (store/tool/launch_screen.py),
+         LoadingView.groundColor in Dart. -->
+    <color name="launch_ground">#68733F</color>
+</resources>

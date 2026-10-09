@@ -448,21 +448,23 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         } else {
           leave = OutlinedButton.icon(
             onPressed: _confirmClose,
-            style: _closeArmed
-                ? OutlinedButton.styleFrom(
-                    foregroundColor: GameColors.danger,
-                    side: const BorderSide(color: GameColors.danger),
-                  )
-                : null,
+            // Less side padding than the theme, so the label keeps its full
+            // size in half a phone width.
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              foregroundColor: _closeArmed ? GameColors.danger : null,
+              side: _closeArmed
+                  ? const BorderSide(color: GameColors.danger)
+                  : null,
+            ),
             icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+            // Short enough for half a phone width at full size; the red
+            // frame and the warning icon say that the second tap counts.
             label: _oneLine(switch ((_closeArmed, game.isHost.value)) {
-              (true, true) => tr(
-                'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                'REALLY CLOSE FOR EVERYONE?',
-              ),
-              (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
-              (false, true) => tr('WARTERAUM SCHLIESSEN', 'CLOSE WAITING ROOM'),
-              (false, false) => tr('WARTERAUM VERLASSEN', 'LEAVE WAITING ROOM'),
+              (true, true) => tr('SCHLIESSEN', 'CLOSE'),
+              (true, false) => tr('VERLASSEN', 'LEAVE'),
+              (false, true) => tr('RAUM SCHLIESSEN', 'CLOSE ROOM'),
+              (false, false) => tr('RAUM VERLASSEN', 'LEAVE ROOM'),
             }),
           );
         }
@@ -603,7 +605,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               game.showTutorial();
             },
             icon: const Icon(Icons.school, size: 18),
-            label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
+            label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialog).pop(),

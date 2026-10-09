@@ -39,6 +39,18 @@ class HudOverlay extends StatefulWidget {
 /// left side instead of spreading along the top.
 const _uprightWidth = 560.0;
 
+/// Height of one gauge plate (armour, ammo, fuel) with the gap under it and a
+/// little to spare; about 60 px on screen.
+const _plateHeight = 62.0;
+
+/// The inventory column on a keyboard screen: six 56 px slots with 2 px above
+/// and below each.
+const _inventoryHeight = GameConfig.inventorySlots * 60.0;
+
+/// How far the gauges step in when they would reach down into the inventory:
+/// its 8 px margin, a 56 px slot and a gap.
+const _inventoryInset = 8 + 56 + 8.0;
+
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
 
@@ -486,71 +498,92 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Whether the gauges in the top left corner would reach down into the
+  /// inventory, which sits vertically centred (a little low) on the left edge.
+  /// Short windows such as a laptop browser bring it up under the gauges.
+  bool _gaugesMeetInventory(TankGame game, double height) {
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final plates = game.usesFuel ? 3 : 2;
+    final gaugesBottom = 16 + plates * _plateHeight * scale;
+    // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
+    final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
+    return gaugesBottom + 8 > inventoryTop;
+  }
+
   Widget _status(TankGame game) {
     return IgnorePointer(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+      child: LayoutBuilder(
+        builder: (context, constraints) => _statusColumn(
+          game,
+          _gaugesMeetInventory(game, constraints.maxHeight),
+        ),
+      ),
+    );
+  }
+
+  Widget _statusColumn(TankGame game, bool inset) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(inset ? _inventoryInset : 16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ValueListenableBuilder<double>(
+                    valueListenable: game.hpNotifier,
+                    builder: (context, hp, _) =>
+                        HealthBar(hp: hp, maxHp: game.myMaxHp),
+                  ),
+                  const SizedBox(height: 6),
+                  _ammo(game),
+                ],
+              ),
+              const Spacer(),
+              Panel(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    ValueListenableBuilder<double>(
-                      valueListenable: game.hpNotifier,
-                      builder: (context, hp, _) =>
-                          HealthBar(hp: hp, maxHp: game.myMaxHp),
+                    _alive(game, 16),
+                    ValueListenableBuilder<int>(
+                      valueListenable: game.soldiersRunOver,
+                      builder: (context, n, _) => n == 0
+                          ? const SizedBox()
+                          : Text(
+                              tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
+                              style: const TextStyle(
+                                color: GameColors.danger,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
                     ),
-                    const SizedBox(height: 6),
-                    _ammo(game),
+                    const SizedBox(height: 4),
+                    Text(
+                      _zoneLabel(),
+                      style: const TextStyle(color: GameColors.amber),
+                    ),
                   ],
                 ),
-                const Spacer(),
-                Panel(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _alive(game, 16),
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.soldiersRunOver,
-                        builder: (context, n, _) => n == 0
-                            ? const SizedBox()
-                            : Text(
-                                tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                                style: const TextStyle(
-                                  color: GameColors.danger,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _zoneLabel(),
-                        style: const TextStyle(color: GameColors.amber),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            KillFeedView(feed: game.killFeed),
-            const Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: MiniMap(game: game),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          KillFeedView(feed: game.killFeed),
+          const Spacer(),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: MiniMap(game: game),
+          ),
+        ],
       ),
     );
   }
