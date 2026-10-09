@@ -10,7 +10,6 @@ import '../../net/room.dart';
 import '../theme.dart';
 import 'choice_row.dart';
 import 'panel.dart';
-import 'square_icon_button.dart';
 import '../../l10n/l10n.dart';
 
 /// The room code, the link to hand around and its QR code.
@@ -24,6 +23,9 @@ class RoomInvite extends StatefulWidget {
 }
 
 class _RoomInviteState extends State<RoomInvite> {
+  /// One height for every button in the box, so the rows line up.
+  static const _buttonHeight = 48.0;
+
   bool _copied = false;
   Timer? _reset;
 
@@ -127,18 +129,18 @@ class _RoomInviteState extends State<RoomInvite> {
         const SizedBox(height: 8),
         if (hasLink)
           Wrap(
-            spacing: 8,
+            spacing: 4,
             runSpacing: 8,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               FilledButton.icon(
                 onPressed: _copy,
                 // Narrower than the theme so the share icon fits beside it
                 // next to the QR code on a phone.
                 style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 16,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  minimumSize: const Size(0, _buttonHeight),
+                  maximumSize: const Size(double.infinity, _buttonHeight),
                 ),
                 icon: Icon(_copied ? Icons.check : Icons.copy),
                 label: Text(
@@ -147,10 +149,18 @@ class _RoomInviteState extends State<RoomInvite> {
                 ),
               ),
               Builder(
-                builder: (button) => SquareIconButton(
-                  icon: Icons.ios_share,
-                  tooltip: tr('Teilen', 'Share'),
+                builder: (button) => IconButton(
                   onPressed: () => _share(button),
+                  tooltip: tr('Teilen', 'Share'),
+                  color: BwColors.sand,
+                  constraints: const BoxConstraints.tightFor(
+                    width: _buttonHeight,
+                    height: _buttonHeight,
+                  ),
+                  icon: Icon(
+                    Icons.ios_share,
+                    semanticLabel: tr('Teilen', 'Share'),
+                  ),
                 ),
               ),
             ],
@@ -163,21 +173,6 @@ class _RoomInviteState extends State<RoomInvite> {
             ),
             style: const TextStyle(color: BwColors.textDim, fontSize: 12),
           ),
-        // Only rounds against each other show up in the room list.
-        if (hasLink && widget.game.mode.value == GameMode.multi) ...[
-          const SizedBox(height: 10),
-          ValueListenableBuilder<bool>(
-            valueListenable: widget.game.publicRoom,
-            builder: (context, public, _) => ChoiceRow<bool>(
-              options: [
-                (false, tr('PRIVAT', 'PRIVATE'), null),
-                (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
-              ],
-              selected: public,
-              onSelected: (v) => widget.game.publicRoom.value = v ?? false,
-            ),
-          ),
-        ],
       ],
     );
     return DecoratedBox(
@@ -187,11 +182,33 @@ class _RoomInviteState extends State<RoomInvite> {
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Expanded(child: details),
-            if (hasLink) ...[const SizedBox(width: 12), _qr(_link)],
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(child: details),
+                if (hasLink) ...[const SizedBox(width: 12), _qr(_link)],
+              ],
+            ),
+            // Only rounds against each other show up in the room list.
+            if (hasLink && widget.game.mode.value == GameMode.multi) ...[
+              const SizedBox(height: 10),
+              ValueListenableBuilder<bool>(
+                valueListenable: widget.game.publicRoom,
+                builder: (context, public, _) => ChoiceRow<bool>(
+                  options: [
+                    (false, tr('PRIVAT', 'PRIVATE'), null),
+                    (true, tr('ÖFFENTLICH', 'PUBLIC'), null),
+                  ],
+                  selected: public,
+                  onSelected: (v) => widget.game.publicRoom.value = v ?? false,
+                  expand: true,
+                  minHeight: _buttonHeight,
+                ),
+              ),
+            ],
           ],
         ),
       ),

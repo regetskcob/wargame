@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/room.dart';
 import 'package:wargame/src/ui/theme.dart';
@@ -59,6 +60,29 @@ void main() {
     final share = tester.getRect(find.byIcon(Icons.ios_share));
     expect(share.center.dy, closeTo(copy.center.dy, 1));
     expect(find.text('TEILEN'), findsNothing);
+    // Privat and public split the full width below, all at one height.
+    await tester.pumpWidget(const SizedBox());
+    final game = offlineGame()..mode.value = GameMode.multi;
+    await show(tester, RoomInvite(game: game));
+    final copyButton = tester.getRect(find.byType(FilledButton));
+    final private = tester.getRect(
+      find
+          .ancestor(of: find.text('PRIVAT'), matching: find.byType(Container))
+          .first,
+    );
+    final public = tester.getRect(
+      find
+          .ancestor(
+            of: find.text('ÖFFENTLICH'),
+            matching: find.byType(Container),
+          )
+          .first,
+    );
+    expect(private.width, closeTo(public.width, 1));
+    expect(private.top, greaterThan(copyButton.bottom));
+    expect(copyButton.height, 48);
+    expect(private.height, 48);
+    expect(tester.getSize(find.byType(IconButton)).height, 48);
     expect(tester.takeException(), isNull);
   });
 
