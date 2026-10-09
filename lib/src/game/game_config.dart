@@ -363,6 +363,32 @@ class GameConfig {
   /// Share of the tank a canister puts back.
   static const canisterShare = 0.65;
 
+  /// Fuel stations and ammunition depots, from the middle difficulty on.
+  /// [depotRadius] is the pad a tank parks on, slower than [depotStandSpeed]
+  /// counts as standing. A full tank or magazine takes [depotFillSeconds].
+  /// The [depotCoreRadius] in the middle takes shells, after
+  /// [depotRebuildSeconds] a destroyed one stands again.
+  static const depotRadius = 62.0;
+  static const depotCoreRadius = 18.0;
+  static const depotStandSpeed = 14.0;
+  static const depotFillSeconds = 6.0;
+  static const depotHp = 160.0;
+  static const depotRebuildSeconds = 45.0;
+
+  /// A depot that goes up takes the tanks around it along.
+  static const depotBlastRadius = 110.0;
+  static const depotBlastDamage = 45.0;
+
+  /// Depots of a free for all, half fuel and half ammunition, on a ring
+  /// inside the start positions so the closing zone keeps some of them.
+  static const depotCount = 4;
+  static const depotRingMin = 260.0;
+  static const depotRingMax = 470.0;
+
+  /// In capture the flag each team has its own pair behind its base.
+  static const flagDepotBehind = 130.0;
+  static const flagDepotSide = 120.0;
+
   /// The bomber from a gem on the hard level.
   static const airstrikeBombs = 4;
   static const airstrikeReach = 700.0;

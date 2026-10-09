@@ -63,6 +63,7 @@ import 'components/flag_field.dart';
 import 'components/player_tank.dart';
 import 'components/power_up.dart';
 import 'components/smoke_cloud.dart';
+import 'components/supply_depot.dart';
 import 'components/remote_tank.dart';
 import 'components/ground.dart';
 import 'components/storm_zone.dart';
@@ -105,6 +106,7 @@ part 'tank_game/combat.dart';
 part 'tank_game/targeting.dart';
 part 'tank_game/view.dart';
 part 'tank_game/flag.dart';
+part 'tank_game/supply.dart';
 
 /// Whether the welcome page comes before the start page. Everybody else
 /// lands right on the three ways to play and signs in from the account
@@ -395,6 +397,13 @@ class TankGame extends FlameGame
   final bullets = <String, Bullet>{};
 
   CoverField? _coverField;
+
+  /// Fuel stations and ammunition depots of the round, none on the easy
+  /// level and in defense rounds.
+  SupplyField? supplyField;
+
+  /// Whether the local tank was told to stop on the depot it rolls over.
+  bool _depotHinted = false;
   SoldierField? soldierField;
 
   /// Soldiers this player has run over in the current round.
@@ -616,6 +625,7 @@ class TankGame extends FlameGame
     _updateRespawn(dt);
     _updateFlag(dt);
     _resupply(dt);
+    _updateSupply(dt);
     _staleTimer += dt;
     if (_staleTimer >= 1) {
       _settleHost(_staleTimer);

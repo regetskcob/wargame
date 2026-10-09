@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../game/bot_level.dart';
 import '../../game/components/power_up.dart';
+import '../../game/components/supply_depot.dart';
 import '../../game/components/tank_painter.dart';
 import '../../game/defense/tower.dart';
 import '../../game/map_theme.dart';
@@ -447,6 +448,30 @@ List<TutorialStep> get _tour => [
     chips: [
       for (final type in PowerUpType.values.where((t) => t.gem))
         TutorialChip(type.icon, type.label, type.color),
+    ],
+  ),
+  TutorialStep(
+    title: tr('NACHSCHUB', 'SUPPLIES'),
+    icon: Icons.local_gas_station,
+    text: tr(
+      'Ab Stufe Normal stehen Tankstellen und Munitionsdepots auf der Karte. '
+          'Halte darauf an, um aufzufüllen. Beschuss lässt sie in die Luft '
+          'fliegen und reißt Panzer in der Nähe mit, nach einer Weile stehen '
+          'sie wieder. Bei Capture the Flag hat jedes Team eigene hinter '
+          'seiner Basis, die nur der Gegner zerstören kann.',
+      'From the normal level on, fuel stations and ammo depots stand on the '
+          'map. Stop on one to fill up. Shells blow them up, taking nearby '
+          'tanks along, and after a while they stand again. In capture the '
+          'flag each team has its own behind its base that only the enemy '
+          'can destroy.',
+    ),
+    chips: [
+      for (final kind in DepotKind.values)
+        TutorialChip(
+          kind == DepotKind.fuel ? Icons.local_gas_station : Icons.inventory_2,
+          kind.label,
+          kind.color,
+        ),
     ],
   ),
   TutorialStep(

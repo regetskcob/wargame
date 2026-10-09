@@ -600,6 +600,12 @@ extension TankGameItems on TankGame {
           damageObstacle(obstacle, strike.damage);
         }
       }
+      _blastDepots(
+        strike.ownerId,
+        strike.position,
+        GameConfig.artilleryRadius,
+        strike.damage,
+      );
       for (final tree in [...?_coverField?.trees, ...?_defenseField?.trees]) {
         if (!tree.felled &&
             tree.position.distanceTo(strike.position) <

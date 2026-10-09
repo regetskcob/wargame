@@ -86,6 +86,9 @@ class PlayerTank extends TankBase
   /// Rounds left in the magazine. Gems put more back.
   late int ammo = magazine;
 
+  /// Part of a round an ammunition depot has loaded so far.
+  double ammoCarry = 0;
+
   /// Crates and gems a CPU tank picked up and keeps for later. The player's
   /// own sit in the game's inventory.
   final items = Inventory();

@@ -85,9 +85,23 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel
-  in canister gems. On hard the hills are steeper and an air strike gem
+  in canister gems or at the depots below. On hard the hills are steeper and an air strike gem
   sends a bomber over an enemy. A hunter drone gem launches a drone after a
   random enemy.
+- Fuel stations and ammunition depots from the normal level on, in single
+  player, multiplayer and capture the flag (defense has its base for that).
+  A tank that stands still on the pad fills up, a full tank or magazine in
+  6 s; rolling over it only shows the hint to stop. A free for all gets
+  four neutral ones from the seed, fuel and ammunition by turns on a ring
+  inside the start positions, so the closing zone swallows some of them.
+  In capture the flag each team has one of each behind its base that
+  serves only its own tanks; its own shells fly over them, the enemy can
+  shoot them. A depot takes 160 damage from shells, blasts and barrages,
+  then goes up and hurts tanks within 110 (45 damage, half at the edge;
+  the tank that brought it down gets the kill), and stands again after
+  45 s. CPU tanks drive there when they run low, top up at one close by
+  and leave when an enemy comes near. Over the net a depot rides on the
+  `obstacle` event (flag `d`, the shooter as `id`), no new event.
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the

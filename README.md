@@ -43,6 +43,8 @@ Android apps · Apple TV · Apple Watch (in progress)
   and soldiers on foot that fight.
 - Crates and gems: repair, smoke, shield, mines, artillery, a mortar, a
   kamikaze drone, paratroopers, an air strike.
+- Fuel stations and ammo depots to stop at, that blow up when shot; in
+  capture the flag each side guards its own.
 - Ranks, an Elo rating, badges, a leaderboard, replays and
   a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
@@ -133,7 +135,6 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
-- Filling stations and ammunition depots on the map in the battle modes.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

@@ -182,9 +182,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     ),
                     BotLevel.normal => tr(
                       'Hügel bremsen bergauf. Munition und Treibstoff gehen '
-                          'aus: Sammle Munitions-Gems und Kanister.',
+                          'aus: Sammle Gems und Kanister oder halte an '
+                          'Tankstelle und Munitionsdepot.',
                       'Hills slow you down uphill. Ammunition and fuel run '
-                          'out: collect ammo gems and fuel cans.',
+                          'out: collect gems and fuel cans or stop at a fuel '
+                          'station or ammo depot.',
                     ),
                     BotLevel.hard => tr(
                       'Steile Hügel, knapper Nachschub und treffsichere '

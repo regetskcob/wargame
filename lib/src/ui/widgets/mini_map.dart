@@ -162,6 +162,25 @@ class _MiniMapPainter extends CustomPainter {
         canvas.drawRect(Rect.fromCenter(center: c, width: 5, height: 5), paint);
       }
     }
+    // Depots as a square in their colour, a team's framed in the team
+    // colour, a destroyed one hollow.
+    for (final depot in game.depots) {
+      final at = Rect.fromCenter(
+        center: toMap(depot.position.x, depot.position.y),
+        width: 6,
+        height: 6,
+      );
+      canvas.drawRect(
+        at.inflate(1),
+        Paint()..color = GameConfig.teamColors[depot.team],
+      );
+      canvas.drawRect(
+        at,
+        depot.destroyed
+            ? (Paint()..color = Colors.black)
+            : (Paint()..color = depot.kind.color),
+      );
+    }
     for (final drone in game.drones.values) {
       canvas.drawCircle(
         toMap(drone.position.x, drone.position.y),

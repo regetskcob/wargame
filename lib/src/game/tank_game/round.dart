@@ -199,6 +199,7 @@ extension TankGameRound on TankGame {
         : StormZone(startedAt: payload.startedAt);
     _powerUpSlots = PowerUpSlot.schedule(payload.seed, activeRound.botLevel);
     world.add(_coverField!);
+    _setUpSupply(activeRound);
     _raiseTerrain(
       activeRound,
       _coverField!.theme,
@@ -1061,6 +1062,7 @@ extension TankGameRound on TankGame {
     _passingWeather = null;
     _coverField?.removeFromParent();
     _coverField = null;
+    _clearSupply();
     mudField?.removeFromParent();
     mudField = null;
     _stormZone?.removeFromParent();
