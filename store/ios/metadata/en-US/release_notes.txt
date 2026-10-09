@@ -1,1 +1,1 @@
-The first version for iPhone and iPad: single player, multiplayer and defense, eight vehicles, touch controls with aim assist, portrait and landscape, plus an app for the Apple Watch (Series 9 or later).
+New: capture the flag as a fourth mode, red against blue with CPU tanks on both sides. Fuel stations and ammo depots on the map refill your tank and blow up when hit. You can leave a running round after a short question. The vehicles now carry animal names, the leaderboard fits a phone, and starting, joining and the briefing are tidier.
