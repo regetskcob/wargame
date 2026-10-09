@@ -62,7 +62,7 @@ class Env {
   );
 
   /// Securing the guest account and signing in on another device. Off until
-  /// the project sends mails through its own SMTP server, see the README.
+  /// the project sends mails through its own SMTP server, see docs/development.md.
   /// Build with `--dart-define=ACCOUNTS=true` to switch it on.
   static const accounts = bool.fromEnvironment('ACCOUNTS');
 
@@ -70,8 +70,8 @@ class Env {
   /// phone controllers of the project may use together. Both follow the
   /// Supabase plan, whose limits count for the whole project. The project
   /// is on Pro: 500 a second, planned with 400, which carries rooms of four
-  /// (README, "Rooms and room sizes"). Back on the free plan, build with
-  /// `MAX_PILOTS=2` and `REALTIME_BUDGET=80`.
+  /// (docs/netcode.md, "Rooms and room sizes"). Back on the free plan, build
+  /// with `MAX_PILOTS=2` and `REALTIME_BUDGET=80`.
   static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 4);
   static const realtimeBudget = int.fromEnvironment(
     'REALTIME_BUDGET',

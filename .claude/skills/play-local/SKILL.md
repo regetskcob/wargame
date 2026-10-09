@@ -30,7 +30,7 @@ welcome page and everybody is a guest.
 upright layout only show on phones.
 
 **Watch**: needs the `flutter-watchos` toolchain on the PATH
-(`flutter-watchos run -d <watch-sim-id>`), see README "Apple Watch".
+(`flutter-watchos run -d <watch-sim-id>`), see docs/platforms.md "Apple Watch".
 
 **Phone controller**: the screen shows a QR code with `?pad=<CODE>`; open
 that URL in a second tab to act as the phone.
