@@ -220,6 +220,6 @@ still a win.
 ## After the round
 
 - A rematch button on the end screen and a replay of the last round.
-- Ranks from experience, an Elo rating, ten badges, an all time and a weekly
-  leaderboard and statistics per vehicle.
+- Ranks from experience, an Elo rating, ten badges and one leaderboard of all
+  pilots by rating.
 

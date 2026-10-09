@@ -21,7 +21,7 @@ GEMACHT FÜR TOUCH UND CONTROLLER
 • Eine kurze Einweisung zeigt alles in einer Minute
 
 FORTSCHRITT UND BESTENLISTE
-Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Elo-Wertung und Abzeichen auf jedem Gerät weiter. Es gibt eine Bestenliste für alle Zeiten und eine für die Woche, Statistiken pro Fahrzeug, eine Wiederholung der letzten Runde und Revanche per Knopfdruck. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
+Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Elo-Wertung und Abzeichen auf jedem Gerät weiter. Es gibt eine Bestenliste, eine Wiederholung der letzten Runde und Revanche per Knopfdruck. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
 
 AUF EINEN BLICK
 Ein Widget zeigt, wer gerade online ist, eine Live-Aktivität die laufende Runde.
