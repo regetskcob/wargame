@@ -19,7 +19,7 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
 - **Archive for the Organizer** (manual upload, while the workflow lacks
   its secrets): from an up to date main checkout run
   `flutter build ipa --release --dart-define=ACCOUNTS=true` and then
-  `open build/ios/archive/Runner.xcarchive`, which adds it to the
+  `open build/ios/archive/Panzergefecht.xcarchive`, which adds it to the
   Organizer. URL and key need no define, `Env` defaults to the live project.
   Never archive in Xcode on whatever `ios/Flutter/Generated.xcconfig` the
   last `flutter` command left behind: build 4 shipped with all defines
