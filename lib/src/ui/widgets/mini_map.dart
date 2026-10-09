@@ -5,8 +5,8 @@ import 'package:flutter/scheduler.dart';
 
 import '../../game/components/tree.dart';
 import '../../game/components/obstacle.dart';
-import '../../game/components/storm_zone.dart';
 import '../../game/defense/defense_map.dart';
+import '../../game/flag_match.dart';
 import '../../game/components/soldier.dart';
 import '../../game/tank_game.dart';
 import '../../game/game_config.dart';
@@ -73,8 +73,7 @@ class _MiniMapPainter extends CustomPainter {
       Path()..addOval(Rect.fromCircle(center: center, radius: size.width / 2)),
     );
 
-    final safeRadius = StormZone.radiusAt(
-      round.startedAt,
+    final safeRadius = round.safeRadiusAt(
       DateTime.now().millisecondsSinceEpoch,
     );
     canvas.drawPath(
@@ -163,12 +162,74 @@ class _MiniMapPainter extends CustomPainter {
         canvas.drawRect(Rect.fromCenter(center: c, width: 5, height: 5), paint);
       }
     }
+    // Depots as a square in their colour, a team's framed in the team
+    // colour, a destroyed one hollow.
+    for (final depot in game.depots) {
+      final at = Rect.fromCenter(
+        center: toMap(depot.position.x, depot.position.y),
+        width: 6,
+        height: 6,
+      );
+      canvas.drawRect(
+        at.inflate(1),
+        Paint()..color = GameConfig.teamColors[depot.team],
+      );
+      canvas.drawRect(
+        at,
+        depot.destroyed
+            ? (Paint()..color = Colors.black)
+            : (Paint()..color = depot.kind.color),
+      );
+    }
     for (final drone in game.drones.values) {
       canvas.drawCircle(
         toMap(drone.position.x, drone.position.y),
         2,
         Paint()..color = const Color(0xFFFF3D00),
       );
+    }
+
+    // Capture the flag: both bases, and the flags wherever they are, seen
+    // or not, since everybody hunts them.
+    final flags = game.flagMatch;
+    if (flags != null) {
+      for (final team in const [1, 2]) {
+        final base = FlagMatch.baseOf(team);
+        canvas.drawCircle(
+          toMap(base.x, base.y),
+          max(4.0, GameConfig.flagBaseRadius * scale),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..color = GameConfig.teamColors[team],
+        );
+      }
+      for (final flag in flags.flags.values) {
+        final carrier = flag.carrier;
+        final at = carrier == null
+            ? flag.position
+            : game.tankById(carrier)?.position ?? flag.position;
+        final p = toMap(at.x, at.y);
+        canvas.drawPath(
+          Path()
+            ..moveTo(p.dx, p.dy + 3)
+            ..lineTo(p.dx, p.dy - 6)
+            ..lineTo(p.dx + 6, p.dy - 3.5)
+            ..lineTo(p.dx, p.dy - 1),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..color = Colors.white,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(p.dx, p.dy - 6)
+            ..lineTo(p.dx + 6, p.dy - 3.5)
+            ..lineTo(p.dx, p.dy - 1)
+            ..close(),
+          Paint()..color = GameConfig.teamColors[flag.team],
+        );
+      }
     }
 
     for (final tank in [...game.remoteTanks.values, ...game.botTanks.values]) {

@@ -105,7 +105,10 @@ class _LeaderboardState extends State<Leaderboard> {
   Widget _table(List<String> labels, List<TableRow> rows) {
     final table = Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      columnWidths: const {0: FixedColumnWidth(48), 1: FlexColumnWidth(2.4)},
+      // Rank and numbers take what they need and the name gets the rest, so
+      // the whole table fits on a phone without scrolling sideways.
+      columnWidths: const {1: FlexColumnWidth()},
+      defaultColumnWidth: const IntrinsicColumnWidth(),
       children: [_headerOf(labels), ...rows],
     );
     // The Apple TV shows it in a column beside the menu and has no way to
@@ -121,17 +124,19 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
       );
     }
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: _tableWidth),
-        child: table,
-      ),
+    return LayoutBuilder(
+      builder: (context, box) => box.maxWidth >= _tableWidth
+          ? table
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(width: _tableWidth, child: table),
+            ),
     );
   }
 
-  /// Below this width the columns get too tight to read.
-  static const _tableWidth = 740.0;
+  /// Below this width the names get too tight to read; only then the table
+  /// scrolls sideways.
+  static const _tableWidth = 320.0;
 
   /// The television draws larger, its columns stay readable a bit tighter.
   static const _tvTableWidth = 520.0;
@@ -188,19 +193,21 @@ class _LeaderboardState extends State<Leaderboard> {
     String text, {
     TextStyle style = const TextStyle(),
     TextAlign align = TextAlign.right,
+    int lines = 1,
   }) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
     child: Text(
       text,
       style: style,
       textAlign: align,
-      maxLines: 1,
+      maxLines: lines,
       overflow: TextOverflow.ellipsis,
     ),
   );
 
+  // The rank column has no heading, its numbers speak for themselves.
   static List<String> get _labels => [
-    tr('RANG', 'RANK'),
+    '',
     'PILOT',
     tr('WERTUNG', 'RATING'),
     tr('SIEGE', 'WINS'),
@@ -248,7 +255,9 @@ class _LeaderboardState extends State<Leaderboard> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        _cell(row.name, style: base, align: TextAlign.left),
+        // A long name breaks onto a second line on a phone instead of
+        // losing its end.
+        _cell(row.name, style: base, align: TextAlign.left, lines: 2),
         _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
         _cell('${row.wins}', style: base),
         _cell('${row.kills}', style: base),

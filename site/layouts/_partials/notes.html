@@ -1,0 +1,11 @@
+{{- /* The loose paragraphs at the end of the App Store description, after
+   its sections: the pledge first, then the disclaimer. */ -}}
+{{- $notes := slice -}}
+{{- range $i, $block := split (partial "store.html" "description") "\n\n" -}}
+  {{- $lines := split (strings.TrimSpace $block) "\n" -}}
+  {{- $first := index $lines 0 -}}
+  {{- if and (gt $i 0) (or (eq (len $lines) 1) (ne (upper $first) $first)) -}}
+    {{- $notes = $notes | append $block -}}
+  {{- end -}}
+{{- end -}}
+{{- return $notes -}}

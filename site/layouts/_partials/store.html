@@ -1,0 +1,3 @@
+{{- /* A text of the App Store listing in the language of the page. */ -}}
+{{- $r := resources.Get (printf "store/metadata/%s/%s.txt" site.Params.store .) -}}
+{{- return (replace $r.Content "\r" "" | strings.TrimSpace) -}}

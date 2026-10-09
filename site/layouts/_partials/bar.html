@@ -1,0 +1,36 @@
+<header class="bar">
+  <a class="brand" href="{{ "" | relLangURL }}">
+    {{- $icon := (resources.Get "store/icon/AppIcon-1024.png").Resize "96x webp" }}
+    <img src="{{ $icon.RelPermalink }}" alt="" width="32" height="32">
+    <span>{{ upper (partial "store.html" "name") }}</span>
+  </a>
+  <nav>
+    {{- range .Translations }}
+    <a class="lang" href="{{ .RelPermalink }}" hreflang="{{ .Language.LanguageCode }}" data-lang="{{ .Language.Lang }}">{{ i18n "otherLanguage" }}</a>
+    {{- end }}
+    {{ partial "play-button.html" (dict "label" (i18n "play") "class" "small") }}
+  </nav>
+</header>
+
+<script>
+  // The game speaks the language of the browser, and so does the address
+  // without a language on a first visit. A language picked by hand sticks,
+  // and a link to the English page stays English.
+  (function () {
+    var key = 'panzergefecht.site.lang';
+    document.querySelectorAll('[data-lang]').forEach(function (a) {
+      a.addEventListener('click', function () {
+        try { localStorage.setItem(key, a.dataset.lang); } catch (e) {}
+      });
+    });
+    var chosen = null;
+    try { chosen = localStorage.getItem(key); } catch (e) {}
+    var here = document.documentElement.lang;
+    if (here !== '{{ site.Sites.Default.Language.Lang }}') return;
+    var wanted = chosen || ((navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
+    if (wanted !== here) {
+      var other = document.querySelector('[data-lang="' + wanted + '"]');
+      if (other) location.replace(other.href);
+    }
+  })();
+</script>

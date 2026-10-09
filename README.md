@@ -2,7 +2,8 @@
 
 A 2D tank battle in olive drab: last tank standing against CPU tanks or
 other people, or together against waves of enemy tanks in a tower defense
-mode. In German and English, without ads.
+mode, or red against blue in capture the flag. In German and English,
+without ads.
 
 **[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
 Android apps · Apple TV · Apple Watch (in progress)
@@ -28,6 +29,8 @@ Android apps · Apple TV · Apple Watch (in progress)
 - **Defense:** together against 8 waves of tanks, helicopters, jets and
   drones. Build guns, upgrade the tank, watch the base grow from a
   watchtower to a citadel, and extend into endless waves.
+- **Capture the flag:** red against blue, steal the other side's flag and
+  bring it home, with CPU tanks filling both sides.
 - **Two on one screen:** split screen on the Apple TV, an iPad or in the
   browser with two controllers or phones, and a **duel** of two bases
   against each other.
@@ -40,6 +43,8 @@ Android apps · Apple TV · Apple Watch (in progress)
   and soldiers on foot that fight.
 - Crates and gems: repair, smoke, shield, mines, artillery, a mortar, a
   kamikaze drone, paratroopers, an air strike.
+- Fuel stations and ammo depots to stop at, that blow up when shot; in
+  capture the flag each side guards its own.
 - Ranks, an Elo rating, badges, a leaderboard, replays and
   a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
@@ -130,7 +135,6 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
-- Filling stations and ammunition depots on the map in the battle modes.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

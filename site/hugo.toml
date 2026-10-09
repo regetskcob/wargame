@@ -1,0 +1,60 @@
+# The landing page in front of the browser game. The pages workflow builds it
+# into the root of the site and the Flutter game into play/ below it; the
+# base URL comes from that workflow, this one is for `hugo server`.
+baseURL = 'https://www.regetskcob.de/wargame/'
+title = 'Panzergefecht'
+defaultContentLanguage = 'de'
+defaultContentLanguageInSubdir = false
+disableKinds = ['taxonomy', 'term', 'section', 'rss', 'sitemap', 'robotstxt']
+enableRobotsTXT = false
+
+[languages]
+  [languages.de]
+    languageName = 'Deutsch'
+    languageCode = 'de'
+    weight = 1
+    [languages.de.params]
+      store = 'de-DE'
+  [languages.en]
+    languageName = 'English'
+    languageCode = 'en'
+    weight = 2
+    [languages.en.params]
+      store = 'en-US'
+
+# Store texts, screenshots, icon and fonts are used straight from where the
+# apps keep them, so the page follows every store update without copies.
+[module]
+  [[module.mounts]]
+    source = 'assets'
+    target = 'assets'
+  [[module.mounts]]
+    source = '../store/ios/metadata'
+    target = 'assets/store/metadata'
+  [[module.mounts]]
+    source = '../store/ios/screenshots'
+    target = 'assets/store/screenshots'
+  [[module.mounts]]
+    source = '../store/ios/header'
+    target = 'assets/store/header'
+  [[module.mounts]]
+    source = '../store/ios/icon'
+    target = 'assets/store/icon'
+  [[module.mounts]]
+    source = '../assets/images'
+    target = 'assets/game'
+  [[module.mounts]]
+    source = '../assets/fonts'
+    target = 'assets/fonts'
+  [[module.mounts]]
+    source = '../web'
+    target = 'static'
+    includeFiles = ['/favicon.png', '/favicon-32.png', '/icons/apple-touch-icon.png']
+
+[imaging]
+  quality = 82
+
+[params]
+  # Where support requests go. The page has no server of its own, so the
+  # form opens a written mail in the visitor's mail app.
+  supportMail = 'regetskcob@icloud.com'

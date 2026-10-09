@@ -1,0 +1,70 @@
+{{ define "main" }}
+{{- $store := site.Params.store -}}
+{{- $name := partial "store.html" "name" -}}
+{{- $subtitle := partial "store.html" "subtitle" -}}
+{{- $promo := partial "store.html" "promotional_text" -}}
+
+{{- /* The ways to play, the first section of the App Store description:
+   after its opening paragraph, a heading in capitals, then "• Name: text"
+   lines. The loose paragraphs at its end come from notes.html. */ -}}
+{{- $sections := slice -}}
+{{- range $i, $block := split (partial "store.html" "description") "\n\n" -}}
+  {{- $lines := split (strings.TrimSpace $block) "\n" -}}
+  {{- $first := index $lines 0 -}}
+  {{- if and (gt $i 0) (gt (len $lines) 1) (eq (upper $first) $first) -}}
+    {{- $sections = $sections | append (dict "title" $first "lines" (after 1 $lines)) -}}
+  {{- end -}}
+{{- end -}}
+{{- $modes := index $sections 0 -}}
+{{- $modeIcons := slice "person" "groups" "shield" "split" -}}
+
+{{ partial "bar.html" . }}
+
+<main>
+  {{- /* The opener: every device the game runs on, one room for all of them. */}}
+  <section class="hero">
+    <h1>{{ upper $name }}</h1>
+    <p class="kicker">{{ $subtitle }}</p>
+    {{ partial "play-button.html" (dict "label" (i18n "play")) }}
+    <p class="hint">{{ i18n "playHint" }}</p>
+    {{- $h := resources.Get (printf "store/header/%s/header-3840x1646.png" $store) }}
+    {{- $h1 := $h.Resize "1400x webp" }}{{ $h2 := $h.Resize "2800x webp" }}
+    <img class="devices" src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
+      width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
+    <p class="lead">{{ $promo }}</p>
+  </section>
+
+  <section class="section" id="modes">
+    <div class="modes">
+      {{- range $i, $line := $modes.lines }}
+      {{- with findRESubmatch `^•\s*([^:]+):\s*(.*)$` $line 1 }}
+      {{- $m := index . 0 }}
+      {{- /* The first sentence is enough here, the store has the rest. */}}
+      {{- $text := index (split (index $m 2) ". ") 0 | strings.TrimSuffix "." }}
+      <article class="mode">
+        {{ partial "icon.html" (index $modeIcons $i | default "star") }}
+        <h3>{{ upper (index $m 1) }}</h3>
+        <p>{{ $text }}.</p>
+      </article>
+      {{- end }}
+      {{- end }}
+    </div>
+  </section>
+
+  <section class="section" id="screens">
+    <div class="shots" tabindex="0">
+      {{- /* Not 04-fahrzeuge: that store shot still shows four vehicles under
+         their old real names. Back in once the screenshots are redone. */}}
+      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-geschuetze" "05-steuerung" "06-modi" }}
+      {{- $img := resources.Get (printf "store/screenshots/%s/iphone-%s.png" $store $f) }}
+      {{- $a := $img.Resize "240x webp" }}{{ $b := $img.Resize "480x webp" }}
+      <img src="{{ $a.RelPermalink }}" srcset="{{ $a.RelPermalink }} 1x, {{ $b.RelPermalink }} 2x"
+        width="{{ $a.Width }}" height="{{ $a.Height }}" loading="lazy" alt="{{ i18n (printf "shot-%s" $f) }}">
+      {{- end }}
+    </div>
+    {{- with index (partial "notes.html") 0 }}<p class="pledge">{{ . }}</p>{{ end }}
+  </section>
+</main>
+
+{{ partial "foot.html" . }}
+{{ end }}

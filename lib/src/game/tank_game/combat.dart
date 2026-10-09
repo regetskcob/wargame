@@ -328,6 +328,7 @@ extension TankGameCombat on TankGame {
       }
     }
     _blastSoldiers(ownerId, at, weapon.radius);
+    _blastDepots(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
   }
 
   void _onShoot(ShootPayload payload) {
@@ -567,6 +568,10 @@ extension TankGameCombat on TankGame {
   }
 
   void _onObstacle(ObstaclePayload payload) {
+    if (payload.depot) {
+      _onDepot(payload);
+      return;
+    }
     if (payload.tree) {
       final tree =
           _coverField?.treeAt(payload.index) ??

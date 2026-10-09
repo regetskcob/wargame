@@ -13,6 +13,7 @@ import 'drone.dart';
 import 'effects.dart';
 import 'obstacle.dart';
 import 'soldier.dart';
+import 'supply_depot.dart';
 
 class Bullet extends PositionComponent
     with HasGameRef<TankGame>, CollisionCallbacks {
@@ -40,6 +41,9 @@ class Bullet extends PositionComponent
   final bool small;
 
   double _ttl = GameConfig.bulletTtl;
+
+  /// Seconds of flight before a shell can hit a depot.
+  static const _armSeconds = 0.1;
 
   @override
   void onLoad() {
@@ -120,6 +124,20 @@ class Bullet extends PositionComponent
         gameRef.damageBase(damage, lane: other.lane);
         removeFromParent();
       }
+    } else if (other is SupplyDepot) {
+      // Leaving the pad, the own shell would start inside the depot: it
+      // only counts once it has flown a little. A team's shells fly over
+      // its own depots.
+      if (other.destroyed ||
+          GameConfig.bulletTtl - _ttl < _armSeconds ||
+          !gameRef.hurtsDepot(ownerId, other)) {
+        return;
+      }
+      _impact(const Color(0xFF8A7A5A));
+      if (gameRef.runsShooter(ownerId)) {
+        gameRef.damageDepot(other, damage, ownerId);
+      }
+      removeFromParent();
     } else if (other is Obstacle) {
       _impact(const Color(0xFFB8B0A0));
       // Only the shooter's client applies the damage and tells the others.

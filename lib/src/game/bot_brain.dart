@@ -10,8 +10,8 @@ import 'components/artillery_strike.dart';
 import 'components/obstacle.dart';
 import 'components/player_tank.dart';
 import 'components/remote_tank.dart';
+import 'components/supply_depot.dart';
 import 'components/tank_base.dart';
-import 'components/storm_zone.dart';
 import 'game_phase.dart';
 import 'tank_game.dart';
 import 'special_weapon.dart';
@@ -26,12 +26,17 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     required this.tank,
     required this.controls,
     this.level = BotLevel.normal,
+    this.objective,
   }) : items = BotItems(level);
 
   final PlayerTank tank;
   final TouchInput controls;
   final BotLevel level;
   final BotItems items;
+
+  /// Where the round wants this tank to go when no enemy is close, null to
+  /// just hunt: the flags of a capture the flag round.
+  final Vector2? Function(PlayerTank tank)? objective;
 
   final _random = Random();
   double _think = 0;
@@ -50,6 +55,10 @@ class BotBrain extends Component with HasGameRef<TankGame> {
   bool _wantBrake = false;
   bool _hasLineOfSight = false;
   TankBase? _target;
+
+  /// The depot the bot is on its way to or fills up at, kept until it is
+  /// full so it does not drive off half way.
+  SupplyDepot? _depot;
 
   @override
   void update(double dt) {
@@ -137,14 +146,19 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     _target = target;
     final safeRadius = round == null
         ? GameConfig.worldRadius
-        : StormZone.radiusAt(
-            round.startedAt,
-            DateTime.now().millisecondsSinceEpoch,
-          );
+        : round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
     _wantThrust = false;
     _wantBrake = false;
 
     final barrage = level.evasive ? _barrageOverhead() : null;
+    final goal = objective?.call(tank);
+    final targetDistance = target?.position.distanceTo(tank.position);
+    // A carrier runs for home whatever happens, the others leave the
+    // objective for an enemy that comes close.
+    final onTheWay =
+        goal != null &&
+        (tank.carriesFlag || targetDistance == null || targetDistance > 260);
+    final depot = _depotRun(targetDistance, safeRadius);
     final pickup = items.wanted(
       gameRef,
       tank,
@@ -160,6 +174,21 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       // Get out from under the shells.
       _desiredHeading = _headingTo(tank.position * 2 - barrage.position);
       _wantThrust = true;
+    } else if (depot != null) {
+      // Roll onto the pad and let the tank come to a stop there.
+      _desiredHeading = _headingTo(depot.position);
+      _wantThrust =
+          depot.position.distanceTo(tank.position) >
+          GameConfig.depotRadius * 0.45;
+      if (target != null) {
+        _hasLineOfSight = _clearShot(target.position);
+      }
+    } else if (onTheWay) {
+      _desiredHeading = _headingTo(goal);
+      _wantThrust = goal.distanceTo(tank.position) > 20;
+      if (target != null) {
+        _hasLineOfSight = _clearShot(target.position);
+      }
     } else if (pickup != null) {
       _desiredHeading = _headingTo(pickup.position);
       _wantThrust = true;
@@ -208,6 +237,59 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       _reverseTimer = 0.8;
       _reverseTurn = _random.nextBool() ? 1 : -1;
     }
+  }
+
+  /// The depot to fill up at now, if any. A bot goes when it runs low on
+  /// fuel or shells, or tops up at one it passes, and stays until full
+  /// unless an enemy comes close or the zone swallows the depot.
+  SupplyDepot? _depotRun(double? enemyDistance, double safeRadius) {
+    final current = _depot;
+    final team = gameRef.round?.teamOf(tank.playerId) ?? 0;
+    if (current != null) {
+      final done = switch (current.kind) {
+        DepotKind.fuel => !tank.usesFuel || tank.fuel >= 0.98,
+        DepotKind.ammo => tank.endlessAmmo || tank.ammo >= tank.magazine,
+      };
+      final threatened = enemyDistance != null && enemyDistance < 220;
+      if (done ||
+          threatened ||
+          tank.carriesFlag ||
+          !current.serves(team) ||
+          current.position.length > safeRadius - 60) {
+        _depot = null;
+      } else {
+        return current;
+      }
+    }
+    if (tank.carriesFlag) {
+      return null;
+    }
+    final engaged = enemyDistance != null && enemyDistance < 320;
+    SupplyDepot? best;
+    var bestDistance = double.infinity;
+    for (final kind in DepotKind.values) {
+      final depot = gameRef.nearestDepot(tank, kind);
+      if (depot == null || depot.position.length > safeRadius - 60) {
+        continue;
+      }
+      final distance = depot.position.distanceTo(tank.position);
+      final urgent = switch (kind) {
+        DepotKind.fuel => tank.usesFuel && tank.fuel < 0.3,
+        DepotKind.ammo =>
+          !tank.endlessAmmo &&
+              tank.ammo <= tank.magazine * GameConfig.ammoLowShare,
+      };
+      final handy = switch (kind) {
+        DepotKind.fuel => tank.usesFuel && tank.fuel < 0.7,
+        DepotKind.ammo => !tank.endlessAmmo && tank.ammo < tank.magazine * 0.6,
+      };
+      final reach = urgent ? items.detour * 2.5 : (engaged ? 0.0 : 180.0);
+      if ((urgent || handy) && distance < reach && distance < bestDistance) {
+        best = depot;
+        bestDistance = distance;
+      }
+    }
+    return _depot = best;
   }
 
   /// A barrage of an enemy that is about to land on this bot.

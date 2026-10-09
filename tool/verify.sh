@@ -23,9 +23,13 @@ fi
 
 step "flutter build web"
 flutter build web
+if command -v hugo >/dev/null; then
+  step "hugo (landing page)"
+  hugo --quiet --source site --destination "$(mktemp -d)"
+fi
 step "flutter build ios --release --no-codesign"
 flutter build ios --release --no-codesign
 step "flutter build appbundle --release"
 flutter build appbundle --release
 
-printf '\nAll green: format, analyze, test, web, iOS, Android.\n'
+printf '\nAll green: format, analyze, test, web, landing page, iOS, Android.\n'

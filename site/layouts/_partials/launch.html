@@ -1,0 +1,40 @@
+{{- /* The launch screen of the game, shown the moment the play button is
+   pressed. The game's own page opens with exactly this picture, so the
+   switch from here to there does not flash. */ -}}
+{{ $tank := resources.Get "game/launch_tank.png" | fingerprint }}
+<div class="launch" aria-hidden="true"><img src="{{ $tank.RelPermalink }}" alt="" width="160"></div>
+<script>
+  (function () {
+    var game = '{{ "play/" | relURL }}';
+    var warmed = false;
+    // Pointing at a play button starts fetching the game, so it is mostly
+    // there by the time the button is let go.
+    function warm() {
+      if (warmed) return;
+      warmed = true;
+      ['flutter_bootstrap.js', 'main.dart.js'].forEach(function (f) {
+        var l = document.createElement('link');
+        l.rel = 'prefetch';
+        l.href = game + f;
+        document.head.appendChild(l);
+      });
+    }
+    document.querySelectorAll('[data-play]').forEach(function (a) {
+      a.addEventListener('pointerenter', warm);
+      a.addEventListener('pointerdown', warm);
+      a.addEventListener('focus', warm);
+      a.addEventListener('click', function (e) {
+        if (e.metaKey || e.ctrlKey || e.shiftKey || e.button) return;
+        e.preventDefault();
+        document.documentElement.classList.add('launching');
+        var quiet = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        setTimeout(function () { location.href = a.href; }, quiet ? 0 : 220);
+      });
+    });
+    // Back from the game the page is restored as it was left: without the
+    // launch screen over it.
+    addEventListener('pageshow', function () {
+      document.documentElement.classList.remove('launching');
+    });
+  })();
+</script>

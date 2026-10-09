@@ -1,0 +1,34 @@
+play: Play
+playHint: Free in the browser, no sign-up
+otherLanguage: Deutsch
+headerAlt: Panzergefecht on iPhone, iPad, Apple TV with a phone as controller and Apple Watch
+imprint: Imprint
+privacy: Privacy
+source: Source code
+launching: Loading the game …
+notFoundTitle: No tank here
+notFoundText: This page does not exist. Back to the start or straight into battle.
+home: Back to the start
+shot-01-gefecht: A battle against CPU tanks in the rain, with the closing zone
+shot-02-verteidigung: "Defense: a jet bombs the enemy at the bridge"
+shot-03-geschuetze: Building guns at the base
+shot-05-steuerung: Two sticks, aim assist and a briefing
+shot-06-modi: The start page with the three ways to play
+support: Support
+supportTitle: Support
+supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
+supportTopic: What is it about?
+supportTopics: Report a bug|Question about the game|Account and data|Idea or wish|Something else
+supportDevice: Where do you play?
+supportDevices: Browser|iPhone|iPad|Android|Apple TV|Apple Watch
+supportCallSign: Your call sign in the game (optional)
+supportMessage: Your message
+supportMessageHint: For a bug, tell us what you were doing and what happened.
+supportSend: Open e-mail
+supportSent: Your mail app opens with the written message, you only need to send it.
+supportDirect: No mail app at hand? Write directly to
+supportAccount: You can delete your account yourself at any time in the game, from the account icon at the top right of the start page.
+supportMailSubject: Panzergefecht support
+supportMailTopic: Topic
+supportMailDevice: Device
+supportMailCallSign: Call sign

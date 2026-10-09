@@ -1,0 +1,12 @@
+{{ define "main" }}
+<main class="lost">
+  <section class="card">
+    <h1>{{ upper (i18n "notFoundTitle") }}</h1>
+    <p>{{ i18n "notFoundText" }}</p>
+    <div class="row">
+      {{ partial "play-button.html" (dict "label" (i18n "play")) }}
+      <a class="ghost" href="{{ "" | relLangURL }}">{{ i18n "home" }}</a>
+    </div>
+  </section>
+</main>
+{{ end }}

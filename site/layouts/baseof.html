@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="{{ site.Language.LanguageCode }}">
+<head>
+  {{- /* The game used to live right here, so links into it still arrive at
+     this address: room and pairing links (?room=, ?pad=, from apps that
+     were built before the game moved to play/), sign-in mails (?code=,
+     #access_token=) and home screen shortcuts. They go on to the game
+     before anything is drawn. */}}
+  <script>
+    (function () {
+      var l = location, q = l.search, h = l.hash;
+      var link = /[?&](room|pad|code|error)=/.test(q) ||
+        /(access_token|error_description|type)=/.test(h);
+      var installed = window.matchMedia &&
+        matchMedia('(display-mode: standalone)').matches;
+      if (link || installed) {
+        l.replace('{{ "play/" | relURL }}' + q + h);
+      }
+    })();
+  </script>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  {{ partial "head.html" . }}
+</head>
+<body>
+  {{ block "main" . }}{{ end }}
+  {{ partial "launch.html" . }}
+</body>
+</html>

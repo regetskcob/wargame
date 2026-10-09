@@ -22,10 +22,25 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      # The base path and address of the site (/wargame, served at
+      # www.regetskcob.de/wargame/). The landing page sits at its root, the
+      # game below it in play/.
+      - id: pages
+        uses: actions/configure-pages@v5
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.47.0
+      # Hugo straight from its releases: the repository only allows GitHub's
+      # own actions and the Flutter one.
+      - name: Install Hugo
+        run: |
+          curl -fsSL -o "$RUNNER_TEMP/hugo.deb" \
+            "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
+          sudo dpkg -i "$RUNNER_TEMP/hugo.deb"
+          hugo version
+        env:
+          HUGO_VERSION: 0.154.5
       - run: dart pub get
       # Red tests stop the deploy.
       - run: flutter test --exclude-tags supabase
@@ -37,20 +52,25 @@ jobs:
           if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
           if [ -n "$MAX_PILOTS" ]; then args+=(--dart-define=MAX_PILOTS="$MAX_PILOTS"); fi
           if [ -n "$REALTIME_BUDGET" ]; then args+=(--dart-define=REALTIME_BUDGET="$REALTIME_BUDGET"); fi
-          flutter build web --base-href "/${REPO_NAME}/" "${args[@]}"
+          flutter build web --base-href "${BASE_PATH}/play/" --dart-define=WEB_URL="${BASE_URL}/play/" "${args[@]}"
         env:
-          REPO_NAME: ${{ github.event.repository.name }}
+          BASE_PATH: ${{ steps.pages.outputs.base_path }}
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
           SUPABASE_KEY: ${{ vars.SUPABASE_KEY }}
           ACCOUNTS: ${{ vars.ACCOUNTS }}
           MAX_PILOTS: ${{ vars.MAX_PILOTS }}
           REALTIME_BUDGET: ${{ vars.REALTIME_BUDGET }}
-      - run: cp build/web/index.html build/web/404.html
+      - name: Build the landing page
+        run: hugo --source site --minify --baseURL "${BASE_URL}/" --destination "$GITHUB_WORKSPACE/build/site"
+        env:
+          BASE_URL: ${{ steps.pages.outputs.base_url }}
+      - name: Put the game below the landing page
+        run: cp -R build/web build/site/play
       - name: Write the Impressum and privacy pages
-        run: dart run tool/legal_pages.dart build/web
-      - uses: actions/configure-pages@v5
+        run: dart run tool/legal_pages.dart build/site
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: build/web
+          path: build/site
       - id: deployment
         uses: actions/deploy-pages@v4

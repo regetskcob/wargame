@@ -159,7 +159,7 @@ einmal, die Texte dafür stehen in `metadata/de-DE/testflight.txt`.
 
 ## Universal Links
 
-Room links (`https://www.regetskcob.de/wargame/?room=CODE`) open the app when
+Room links (`https://www.regetskcob.de/wargame/play/?room=CODE`) open the app when
 it is installed, also from the iPhone camera. The app asks for
 `applinks:www.regetskcob.de` (`ios/Runner/Runner.entitlements`, team
 86HB5U6788). Apple only reads the association file at the root of the

@@ -1,7 +1,7 @@
 # Panzergefecht – Leitfaden für Claude
 
 Panzerspiel in Oliv (Flutter 3.47 + Flame 2.0, Supabase als einziges
-Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/>,
+Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/> (Landingpage, Spiel unter `play/`),
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
 Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
@@ -21,6 +21,9 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
   Teams möglich).
 - `GameMode.defense` – Tower Defense im Trupp gegen Wellen (Host ist
   Autorität), Stützpunkt wächst, nach Welle 8 Verlängerung.
+- `GameMode.flag` – Capture the Flag, Rot gegen Blau mit Wiedereinstieg,
+  CPU-Panzer füllen auf 3 gegen 3; der Host ist Autorität über die Fahnen
+  (`flag_match.dart`, Event `flag`).
 
 ## Architektur in 7 Punkten
 
@@ -54,7 +57,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 
 | Thema | Ort |
 | --- | --- |
-| Herzstück `TankGame` | `lib/src/game/tank_game.dart` hält nur Felder, Konstruktor und die Flame-Overrides (`onLoad`, `update`, `render`, `onKeyEvent`, `onGameResize`). Die Methoden stehen nach Thema in `lib/src/game/tank_game/` als `extension TankGameXyz on TankGame` (`part`-Dateien, private Namen bleiben sichtbar): `lobby` (Warteraum, Pilot, Host, Raum schließen), `round` (Rundenstart bis Rundenende, Tode, Zuschauen), `replay`, `defense` (Wellen, Stützpunkt, Geschütze), `air`, `infantry`, `items` (Kisten, Gems, Inventar, Upgrades, Minen, Artillerie), `combat` (Schüsse, Treffer, Explosionen), `targeting` (nächster Gegner, Sicht), `view` (Kamera, Shake, Hinweise) |
+| Herzstück `TankGame` | `lib/src/game/tank_game.dart` hält nur Felder, Konstruktor und die Flame-Overrides (`onLoad`, `update`, `render`, `onKeyEvent`, `onGameResize`). Die Methoden stehen nach Thema in `lib/src/game/tank_game/` als `extension TankGameXyz on TankGame` (`part`-Dateien, private Namen bleiben sichtbar): `lobby` (Warteraum, Pilot, Host, Raum schließen), `round` (Rundenstart bis Rundenende, Tode, Zuschauen), `replay`, `defense` (Wellen, Stützpunkt, Geschütze), `air`, `infantry`, `items` (Kisten, Gems, Inventar, Upgrades, Minen, Artillerie), `combat` (Schüsse, Treffer, Explosionen), `targeting` (nächster Gegner, Sicht), `view` (Kamera, Shake, Hinweise), `flag` (Capture the Flag: Fahnen, Wiedereinstieg, Bot-Ziele) |
 | Balancing-Zahlen | `lib/src/game/game_config.dart`, `tank_stats.dart`, `upgrades.dart`, `bot_level.dart` |
 | Bots | `bot_brain.dart`, `bot_items.dart`, `defense/defense_brain.dart`, `defense/ally_brain.dart` |
 | Verteidigung | `lib/src/game/defense/` (`defense_director.dart` = Wellen, `tower.dart`, `aircraft.dart`, `defense_map.dart`) |
@@ -67,6 +70,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
+| Landingpage | `site/` (Hugo) vor dem Spiel unter `/wargame/`, Spiel unter `/wargame/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell) |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 

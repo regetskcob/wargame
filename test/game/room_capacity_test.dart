@@ -37,6 +37,7 @@ void main() {
     expect(GameConfig.roomLoad(1, cpu: true), 0);
     expect(GameConfig.roomLoad(2, cpu: false), 44);
     expect(GameConfig.roomLoad(2, cpu: true), 70);
+    expect(GameConfig.roomLoad(2, cpu: true, flag: true), 82);
     expect(
       GameConfig.roomLoad(2, cpu: false) + GameConfig.padLoad,
       lessThanOrEqualTo(80),

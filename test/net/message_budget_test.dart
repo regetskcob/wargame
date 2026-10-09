@@ -218,6 +218,30 @@ void main() {
       );
     });
 
+    test('a flag round with its bigger CPU crew stays within the claim of '
+        'a flag room', () async {
+      final flag = await _playRound(
+        mode: GameMode.flag,
+        bots: true,
+        othersPresent: true,
+      );
+      // Alone with the host the sides fill up most: the most CPU tanks a
+      // flag round ever has.
+      expect(flag.bots, GameConfig.flagFillTo - 1);
+      final seconds = _length.inMilliseconds / 1000;
+      expect(
+        (flag.sent[NetEvent.flag] ?? 0) / seconds,
+        lessThan(1),
+        reason: 'the flags speak up only on a change: $flag',
+      );
+      final load = _roomLoad(pilots: 2, pilot: pilot, host: flag);
+      expect(
+        load,
+        lessThanOrEqualTo(GameConfig.roomLoad(2, cpu: true, flag: true) * 1.25),
+        reason: 'two pilots capturing flags with CPU tanks send $load/s',
+      );
+    });
+
     test('two pilots with CPU tanks fit the free plan', () {
       final load = _roomLoad(pilots: 2, pilot: pilot, host: host);
       expect(load, lessThan(_freePlanPerSecond), reason: 'room: $load/s');
