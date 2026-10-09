@@ -341,8 +341,11 @@ class TankGame extends FlameGame
   int myTeam = 0;
 
   /// How well CPU tanks fight, and whether they fill up a room with few
-  /// people.
-  final botLevel = ValueNotifier<BotLevel>(BotLevel.normal);
+  /// people. The screenshot mode starts on easy, whose endless ammunition
+  /// and full tank keep empty gauges out of the store pictures.
+  final botLevel = ValueNotifier<BotLevel>(
+    Env.shots ? BotLevel.easy : BotLevel.normal,
+  );
   final fillWithBots = ValueNotifier<bool>(false);
 
   /// Whether a paired phone steers this game's tank. Set by `PadScreen`.

@@ -305,16 +305,19 @@ def compose(lang, out, raw, size, headline, subline, raw_dir):
     sub_y = top + head.size * 1.25
     draw.text((w / 2, sub_y), subline, font=sub, fill=AMBER, anchor="ma")
 
+    # The whole screen in a drawn iPhone or iPad, which reads cleaner in the
+    # store than a bare cut-out; the frame brings its own Dynamic Island, so
+    # the shot keeps its full height.
     shot = Image.open(raw_dir / lang / f"{raw}.png")
-    if shot.height > shot.width:
-        # Drops the status strip with the cut-out of the Dynamic Island, the
-        # game draws nothing there.
-        shot = shot.crop((0, round(shot.height * 0.062), shot.width, shot.height))
+    kind = "phone" if shot.height > shot.width else "tablet"
     shot_top = round(sub_y + sub.size * 1.9)
-    framed = frame(shot, h - shot_top - round(h * 0.03))
-    if framed.width > w * 0.94:
-        framed = frame(shot, round((w * 0.94) * shot.height / shot.width))
-    canvas.paste(framed, ((w - framed.width) // 2, shot_top), framed)
+    room = h - shot_top - round(h * 0.035)
+    framed = device(shot, room, kind)
+    if framed.width > w * 0.92:
+        framed = device(shot, round(room * w * 0.92 / framed.width), kind)
+    x = (w - framed.width) // 2
+    drop_shadow(canvas, framed, x, shot_top)
+    canvas.paste(framed, (x, shot_top), framed)
 
     save(canvas, out)
 

@@ -1,5 +1,6 @@
 import 'package:flame/components.dart';
 
+import '../../app/env.dart';
 import '../game_config.dart';
 import '../../net/payloads/defense_payload.dart';
 import '../game_phase.dart';
@@ -53,12 +54,20 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   @override
   void onMount() {
     super.onMount();
+    // The screenshot mode skips the first waves and opens with the base one
+    // step grown, so aircraft and a fuller field show up at once.
+    final staged = Env.shots && !_duel && Env.shotWave > 1;
+    if (staged) {
+      _cleanWaves[0] = GameConfig.hqCleanWaves[1];
+      gameRef.armBase(2);
+    }
     gameRef.publishDefense(
       DefensePayload(
         id: gameRef.myId,
-        hp: GameConfig.baseHp,
+        hp: GameConfig.baseHp + (staged ? GameConfig.hqHpStep : 0),
         hp2: _duel ? GameConfig.baseHp : null,
-        wave: 0,
+        wave: staged ? Env.shotWave - 1 : 0,
+        hq: staged ? 2 : 1,
         nextWaveAt: startedAt + GameConfig.firstWaveSeconds * 1000,
       ),
     );

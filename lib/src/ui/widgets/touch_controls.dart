@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/env.dart';
 import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../theme.dart';
@@ -342,8 +343,15 @@ class _FloatingStickState extends State<_FloatingStick> {
           widget.homeOnRight ? zone.width - half - 6 : half + 6,
           zone.height - half - 6,
         );
-        final active = _origin != null;
+        // The picture of the controls shows both thumbs at work, see
+        // Env.shotSticks: driving ahead to the right, aiming up left past
+        // the fire ring.
+        final posed = Env.shotSticks && _origin == null;
+        final active = _origin != null || posed;
         final centre = _origin ?? home;
+        final knob = posed
+            ? Offset(widget.homeOnRight ? -0.55 : 0.35, -0.75) * _radius
+            : _knob;
         return Listener(
           behavior: HitTestBehavior.opaque,
           onPointerDown: (e) => _down(e, zone),
@@ -376,11 +384,11 @@ class _FloatingStickState extends State<_FloatingStick> {
                       size: widget.size,
                       label: widget.label,
                       active: active,
-                      knob: _knob,
+                      knob: knob,
                       ring: widget.ring,
                       firing:
                           widget.ring != null &&
-                          _knob.distance / _radius > widget.ring!,
+                          knob.distance / _radius > widget.ring!,
                     ),
                   ),
                 ),

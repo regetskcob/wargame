@@ -43,6 +43,13 @@ for encoded in $defines; do
       esac
     fi
   fi
+  # The screenshot mode makes the own tank invulnerable.
+  case "$name" in
+    SHOTS|SHOT_STICKS)
+      if [ "$CONFIGURATION" = "Release" ] && [ "$value" = "true" ]; then
+        fail "$name=true is for store pictures only, never for a Release build"
+      fi ;;
+  esac
   IFS=','
 done
 IFS="$old_ifs"

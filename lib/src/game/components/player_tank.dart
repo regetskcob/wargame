@@ -5,8 +5,10 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/env.dart';
 import '../../audio/audio_service.dart';
 import '../game_config.dart';
+import '../../l10n/l10n.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/tank_state_payload.dart';
@@ -347,10 +349,10 @@ class PlayerTank extends TankBase
       gameRef.fuelNotifier.value = fuel;
     }
     if (fuel <= 0 && before > 0) {
-      gameRef.showNotice('TANK LEER');
+      gameRef.showNotice(tr('TANK LEER', 'TANK EMPTY'));
     } else if (fuel <= GameConfig.fuelLowShare && !_warnedFuel) {
       _warnedFuel = true;
-      gameRef.showNotice('TREIBSTOFF KNAPP');
+      gameRef.showNotice(tr('TREIBSTOFF KNAPP', 'FUEL LOW'));
     }
   }
 
@@ -484,7 +486,7 @@ class PlayerTank extends TankBase
         _fireCooldown = 0.5;
         if (!isBot) {
           AudioService.play('tick', volume: 0.6);
-          gameRef.showNotice('MUNITION LEER');
+          gameRef.showNotice(tr('MUNITION LEER', 'AMMO EMPTY'));
         }
         return;
       }
@@ -578,7 +580,7 @@ class PlayerTank extends TankBase
   }
 
   void applyDamage(double amount, {required String? killerId}) {
-    if (hp <= 0) {
+    if (hp <= 0 || (Env.shots && controls == null)) {
       return;
     }
     // The shield holds off shells, mines and barrages, not the zone.
