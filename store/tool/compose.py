@@ -62,8 +62,8 @@ IOS_SHOTS = [
         "en-US": ("TWO THUMBS", "Drive left, aim right, aim assist on"),
     }),
     ("iphone-06-modi", "i_menu", IPHONE, {
-        "de-DE": ("DREI SPIELARTEN", "Allein, gegeneinander oder gemeinsam"),
-        "en-US": ("3 WAYS TO PLAY", "Alone, against others or together"),
+        "de-DE": ("VIER SPIELARTEN", "Allein, gegeneinander, im Trupp, Fahnenraub"),
+        "en-US": ("4 WAYS TO PLAY", "Solo, versus, as a squad, capture the flag"),
     }),
     ("ipad-01-gefecht", "p_battle", IPAD, {
         "de-DE": ("PANZERGEFECHT",
