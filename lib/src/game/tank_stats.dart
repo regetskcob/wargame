@@ -75,7 +75,7 @@ class TankStats {
       blurbDe: 'Schnellfeuer mit der Maschinenkanone',
       blurbEn: 'Rapid fire with the autocannon',
     ),
-    TankType.luchs: TankStats(
+    TankType.habicht: TankStats(
       maxHp: 105,
       speed: 1.05,
       acceleration: 1.05,

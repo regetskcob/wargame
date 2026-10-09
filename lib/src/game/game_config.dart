@@ -313,7 +313,7 @@ class GameConfig {
   static const creditsPerAircraft = 40;
 
   /// Shells that are not built to hit aircraft only scratch a helicopter
-  /// and never touch a jet. Flak and the Luchs hit them hard.
+  /// and never touch a jet. Flak and the Habicht hit them hard.
   static const groundGunVsHelicopter = 0.25;
   static const antiAirFactor = 2.0;
 

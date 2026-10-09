@@ -33,7 +33,7 @@ class Bullet extends PositionComponent
   final Color color;
   final double damage;
 
-  /// Fired by flak or the Luchs: brings down aircraft and drones.
+  /// Fired by flak or the Habicht: brings down aircraft and drones.
   final bool antiAir;
 
   /// A rifle bullet, drawn thinner than a shell.

@@ -8,7 +8,7 @@ enum TankType {
   // Animal names instead of real model or maker names.
   keiler('KEILER', 'Kampfpanzer', 'Main battle tank', level: 3),
   hermelin('HERMELIN', 'Schützenpanzer', 'Infantry fighting vehicle'),
-  luchs('LUCHS', 'Flugabwehr', 'Anti-aircraft', level: 2),
+  habicht('HABICHT', 'Flugabwehr', 'Anti-aircraft', level: 2),
   fuchs('FUCHS', 'Radpanzer', 'Wheeled armoured vehicle'),
   spitzmaus('SPITZMAUS', 'Waffenträger', 'Weapon carrier'),
 
@@ -44,7 +44,7 @@ const _trackMark = Color(0xFF3A3A3A);
 const _muzzles = {
   TankType.keiler: [Offset(24, -18)],
   TankType.hermelin: [Offset(24, -9)],
-  TankType.luchs: [Offset(18.5, -11), Offset(29.6, -11)],
+  TankType.habicht: [Offset(18.5, -11), Offset(29.6, -11)],
   TankType.fuchs: [Offset(24, -5)],
   TankType.spitzmaus: [Offset(27.5, 0)],
   TankType.dachs: [Offset(26, -9)],
@@ -56,7 +56,7 @@ const _muzzles = {
 const _pivots = {
   TankType.keiler: Offset(24, 24),
   TankType.hermelin: Offset(24, 23),
-  TankType.luchs: Offset(24, 24),
+  TankType.habicht: Offset(24, 24),
   TankType.fuchs: Offset(24, 24),
   TankType.spitzmaus: Offset(24, 27),
   TankType.dachs: Offset(24, 22),
@@ -135,7 +135,7 @@ void paintTank(
       _elch(canvas, hull, dark, light, turret);
     case TankType.hermelin:
       _hermelin(canvas, hull, dark, light, turret);
-    case TankType.luchs:
+    case TankType.habicht:
       _habicht(canvas, hull, dark, light, turret);
     case TankType.fuchs:
       _otter(canvas, hull, dark, light, turret);

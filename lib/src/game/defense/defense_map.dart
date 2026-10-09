@@ -457,7 +457,7 @@ class DefenseMap {
   static TankType allyType(int slot) => const [
     TankType.keiler,
     TankType.hermelin,
-    TankType.luchs,
+    TankType.habicht,
     TankType.keiler,
     TankType.fuchs,
   ][slot % 5];
@@ -475,7 +475,7 @@ class DefenseMap {
       return TankType.keiler;
     }
     if (wave >= 3 && roll < 6) {
-      return TankType.luchs;
+      return TankType.habicht;
     }
     return roll.isEven ? TankType.fuchs : TankType.hermelin;
   }
@@ -486,7 +486,7 @@ class DefenseMap {
   /// Everything else a wave brings: squads on foot along the road, attack
   /// helicopters, jets that bomb the base and kamikaze drones. Only the
   /// tanks come in the first wave, the air shows up from the second on, so
-  /// flak and the Luchs earn their keep.
+  /// flak and the Habicht earn their keep.
   static WavePlan planFor(int wave) => WavePlan(
     tanks: waveSize(wave),
     squads: 1 + wave ~/ 3,

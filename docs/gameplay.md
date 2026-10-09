@@ -51,7 +51,7 @@ Everything the game does, with the numbers behind it. The short version is in th
 ## On the battlefield
 
 - Eight vehicles with animal names instead of real model or maker names
-  (Hermelin, Fuchs, Spitzmaus, Luchs, Keiler, Walross, Dachs and
+  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Walross, Dachs and
   Auerochse), each with its own armour, speed and gun. Hermelin, Fuchs and
   Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
   and 8, and every later one is stronger than the ones before. The lobby
@@ -79,7 +79,7 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
-  Luchs that hits aircraft properly), mortars and later howitzers, three
+  Habicht that hits aircraft properly), mortars and later howitzers, three
   levels each, trenches that cover a tank, and armour, gun, engine and
   magazine upgrades for the tank. The enemy shoots guns and trenches to
   pieces.
@@ -116,7 +116,7 @@ the centre and half at the edge of the radius.
 | Hermelin | 100 | 8 | 1 | 0.17 | 47 | 90 |
 | Spitzmaus | 60 | 38 | 1 | 1.2 | 32 | 14 |
 | Fuchs | 70 | 11 | 1 | 0.26 | 42 | 55 |
-| Luchs | 105 | 9 | 2 | 0.26 | 69 | 45 |
+| Habicht | 105 | 9 | 2 | 0.26 | 69 | 45 |
 | Keiler | 165 | 33 | 1 | 0.52 | 63 | 20 |
 | Walross | 185 | 75 | 1 | 1.05 | 71 | 12 |
 | Dachs | 135 | 14 | 1 | 0.2 | 70 | 70 |
@@ -158,7 +158,7 @@ seconds up to 300.
 
 **What softens a hit.** A shield lets 40 % through, every armour upgrade
 takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
-to the tank's shells. Against aircraft, flak and the Luchs do double, other
+to the tank's shells. Against aircraft, flak and the Habicht do double, other
 shells a quarter to a helicopter and nothing to a jet.
 
 ## Defense thresholds

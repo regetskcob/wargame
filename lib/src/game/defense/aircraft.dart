@@ -30,7 +30,7 @@ enum AirKind {
 /// An aircraft of a defense round, mostly the enemy's. From the third wave
 /// the base sends its own as well, see [friendly]. It flies over the river,
 /// the trees and the houses. Shells meant for the ground barely touch it,
-/// flak and the twin guns of the Luchs bring it down.
+/// flak and the twin guns of the Habicht bring it down.
 ///
 /// Only the player who runs the enemies flies it and tells the others where
 /// it is. On every other client the same component follows those messages.
