@@ -6,7 +6,8 @@ Reads the raw simulator screenshots named in SHOTS from <raw dir>/de-DE and
 <raw dir>/en-US and writes the finished images for each language to
 store/ios/screenshots/<lang>/ for the App Store and to
 store/android/metadata/android/<lang>/images/ for Google Play, plus the Play
-feature graphic. Needs Pillow.
+feature graphic, the App Store header artwork (store/ios/header/<lang>/) and
+the Apple Watch shots (store/ios/watch/<lang>/). Needs Pillow.
 """
 
 import random
@@ -221,6 +222,63 @@ def feature_graphic(lang):
     save(canvas, play_dir(lang) / "featureGraphic")
 
 
+# App Store header artwork ("Kopfzeile"): gameplay without captions, as the
+# store lays the app's name and icon over it. The interesting part stays in
+# the middle, where every crop of the header keeps it.
+HEADERS = [(5244, 2950), (3840, 1646)]
+
+
+def header(lang, size, raw_dir):
+    w, h = size
+    canvas = backdrop(size, f"header-{w}")
+
+    def load(name, crop_status):
+        shot = Image.open(raw_dir / lang / f"{name}.png")
+        if crop_status:
+            shot = shot.crop(
+                (0, round(shot.height * 0.062), shot.width, shot.height))
+        return shot
+
+    centre = frame(load("p_defense", False), round(h * 0.70))
+    side = round(h * 0.62)
+    left = frame(load("i_battle", True), side)
+    right = frame(load("i_guns", True), side)
+    gap = round(h * 0.04)
+    total = left.width + centre.width + right.width + 2 * gap
+    x = (w - total) // 2
+    for img, top in (
+        (left, (h - side) // 2 + round(h * 0.05)),
+        (centre, (h - centre.height) // 2),
+        (right, (h - side) // 2 + round(h * 0.05)),
+    ):
+        shadow = Image.new("RGBA", (img.width + 80, img.height + 80))
+        ImageDraw.Draw(shadow).rounded_rectangle(
+            (40, 40, img.width + 40, img.height + 40), 40, fill=(0, 0, 0, 150))
+        shadow = shadow.filter(ImageFilter.GaussianBlur(30))
+        canvas.paste(shadow, (x - 40, top - 20), shadow)
+        canvas.paste(img, (x, top), img)
+        x += img.width + gap
+    save(canvas, ROOT / "store" / "ios" / "header" / lang / f"header-{w}x{h}")
+
+
+# Apple Watch shots go up as the simulator took them (422 x 514, Ultra 3 and
+# 4), without caption or frame. Like the header they live outside
+# screenshots/, which fastlane deliver uploads and which only takes the
+# sizes it knows; both are uploaded by hand in App Store Connect.
+WATCH_SHOTS = [
+    ("watch-01-start", "w_menu"),
+    ("watch-02-fahrzeug", "w_lobby"),
+    ("watch-03-gefecht", "w_battle"),
+    ("watch-04-verteidigung", "w_defense"),
+]
+
+
+def watch(lang, raw_dir):
+    for name, raw in WATCH_SHOTS:
+        shot = Image.open(raw_dir / lang / f"{raw}.png").convert("RGB")
+        save(shot, ROOT / "store" / "ios" / "watch" / lang / name)
+
+
 def save(canvas, out):
     out.parent.mkdir(parents=True, exist_ok=True)
     canvas.save(out.with_suffix(".png"), optimize=True)
@@ -233,3 +291,6 @@ if __name__ == "__main__":
         compose(*entry, source)
     for lang in LANGS:
         feature_graphic(lang)
+        for size in HEADERS:
+            header(lang, size, source)
+        watch(lang, source)

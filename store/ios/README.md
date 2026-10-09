@@ -18,9 +18,15 @@ in App Store Connect einfügen.
 | Hinweise für die Prüfung | `metadata/review_information/notes.txt` |
 | TestFlight: Beschreibung, Testhinweise | `metadata/de-DE/testflight.txt` |
 | App-Icon 1024 × 1024, ohne Alpha | `icon/AppIcon-1024.png` |
-| iPhone 6,9" (1320 × 2868) | `screenshots/de-DE/iphone-*.png` |
-| iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/de-DE/iphone63-*.png` |
-| iPad 13" (2752 × 2064) | `screenshots/de-DE/ipad-*.png` |
+| iPhone 6,9" (1320 × 2868) | `screenshots/<sprache>/iphone-*.png` |
+| iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/<sprache>/iphone63-*.png` |
+| iPad 13" (2752 × 2064) | `screenshots/<sprache>/ipad-*.png` |
+| Apple Watch Ultra 4 (422 × 514), von Hand hochladen | `watch/<sprache>/watch-*.png` |
+| Kopfzeile (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png` |
+
+`<sprache>` ist `de-DE` oder `en-US`. Watch-Bilder und Kopfzeile liegen
+außerhalb von `screenshots/`, weil `fastlane deliver` diesen Ordner hochlädt
+und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
 schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert

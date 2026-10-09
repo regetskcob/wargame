@@ -197,7 +197,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                 icon: Icons.visibility,
                 onPressed: game.spectateLiveMatch,
               ),
-            const WatchLabel('FAHRZEUG'),
+            WatchLabel(tr('FAHRZEUG', 'VEHICLE')),
             _TankPicker(game: game),
             if (host) ...[
               if (mode != GameMode.multi) ...[
