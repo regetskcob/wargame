@@ -604,7 +604,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               game.showTutorial();
             },
             icon: const Icon(Icons.school, size: 18),
-            label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
+            label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialog).pop(),
