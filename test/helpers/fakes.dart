@@ -86,11 +86,16 @@ class FakeProfiles implements ProfileService {
 }
 
 class FakeScores implements ScoreService {
+  FakeScores({this.top = const []});
+
+  /// What the leaderboard shows.
+  final List<ScoresRow> top;
+
   @override
   String? get myId => null;
 
   @override
-  Future<List<ScoresRow>> topScores({int limit = 20}) async => const [];
+  Future<List<ScoresRow>> topScores({int limit = 20}) async => top;
 
   @override
   Future<List<TankScoresRow>> myTankScores() async => const [];
@@ -160,10 +165,11 @@ TankGame offlineGame({
   ProfileService? profiles,
   NetService? net,
   RoomSlots? slots,
+  ScoreService? scores,
 }) => TankGame(
   net: net ?? FakeNet(),
   myId: 'me',
-  scoreService: FakeScores(),
+  scoreService: scores ?? FakeScores(),
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),
   directory: FakeDirectory(),

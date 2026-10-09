@@ -105,7 +105,10 @@ class _LeaderboardState extends State<Leaderboard> {
   Widget _table(List<String> labels, List<TableRow> rows) {
     final table = Table(
       defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-      columnWidths: const {0: FixedColumnWidth(48), 1: FlexColumnWidth(2.4)},
+      // The numbers take what they need and the name gets the rest, so the
+      // whole table fits on a phone without scrolling sideways.
+      columnWidths: const {0: FixedColumnWidth(44), 1: FlexColumnWidth()},
+      defaultColumnWidth: const IntrinsicColumnWidth(),
       children: [_headerOf(labels), ...rows],
     );
     // The Apple TV shows it in a column beside the menu and has no way to
@@ -121,17 +124,19 @@ class _LeaderboardState extends State<Leaderboard> {
               ),
       );
     }
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: _tableWidth),
-        child: table,
-      ),
+    return LayoutBuilder(
+      builder: (context, box) => box.maxWidth >= _tableWidth
+          ? table
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(width: _tableWidth, child: table),
+            ),
     );
   }
 
-  /// Below this width the columns get too tight to read.
-  static const _tableWidth = 740.0;
+  /// Below this width the names get too tight to read; only then the table
+  /// scrolls sideways.
+  static const _tableWidth = 320.0;
 
   /// The television draws larger, its columns stay readable a bit tighter.
   static const _tvTableWidth = 520.0;
