@@ -5,10 +5,7 @@ extension TankGameLobby on TankGame {
   void setMode(GameMode value) => mode.value = value;
 
   /// Welcome page: go on without an account.
-  void playAsGuest() {
-    rememberGuest();
-    welcomed.value = true;
-  }
+  void playAsGuest() => welcomed.value = true;
 
   /// Start page: take [value] and move on to the waiting room.
   void chooseMode(GameMode value, {bool duel = false}) {

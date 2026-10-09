@@ -11,8 +11,9 @@ import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
 import 'widgets/language_button.dart';
 
-/// First page when accounts are switched on: sign in or create an account,
-/// or play on as a guest. Players who are signed in never see it.
+/// Only after a mail link failed to sign in here: explains why, takes the
+/// code from the mail, or lets the player go on as a guest. Everybody else
+/// starts on the start page and signs in from its account button.
 class WelcomeView extends StatelessWidget {
   const WelcomeView({required this.game, super.key});
 

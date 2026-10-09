@@ -52,37 +52,6 @@ void _rememberHosted(String code) {
 /// The browser keeps its settings in `localStorage`, nothing to open.
 Future<void> openLocalStore() async {}
 
-const _guestKey = 'panzergefecht.guest';
-
-/// Whether this browser chose to play as a guest before.
-bool prefersGuest() {
-  try {
-    return web.window.localStorage.getItem(_guestKey) == '1';
-  } on Object {
-    return false;
-  }
-}
-
-/// Remembers that this browser plays as a guest, so the welcome page does
-/// not ask again.
-void rememberGuest() {
-  try {
-    web.window.localStorage.setItem(_guestKey, '1');
-  } on Object {
-    // Without storage the welcome page simply asks again next time.
-  }
-}
-
-/// Forgets the guest choice, so the welcome page asks again, as after
-/// signing out.
-void forgetGuest() {
-  try {
-    web.window.localStorage.removeItem(_guestKey);
-  } on Object {
-    // Without storage there is nothing remembered.
-  }
-}
-
 const _tutorialKey = 'panzergefecht.tutorial';
 
 /// Whether this browser has been through the tutorial, or skipped it.
