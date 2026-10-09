@@ -10,6 +10,7 @@ import '../../net/room.dart';
 import '../theme.dart';
 import 'choice_row.dart';
 import 'panel.dart';
+import 'square_icon_button.dart';
 import '../../l10n/l10n.dart';
 
 /// The room code, the link to hand around and its QR code.
@@ -75,7 +76,7 @@ class _RoomInviteState extends State<RoomInvite> {
           padding: const EdgeInsets.all(8),
           child: QrImageView(
             data: link,
-            size: 92,
+            size: 84,
             padding: EdgeInsets.zero,
             backgroundColor: Colors.white,
             errorCorrectionLevel: QrErrorCorrectLevel.M,
@@ -131,19 +132,25 @@ class _RoomInviteState extends State<RoomInvite> {
             children: [
               FilledButton.icon(
                 onPressed: _copy,
+                // Narrower than the theme so the share icon fits beside it
+                // next to the QR code on a phone.
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
+                ),
                 icon: Icon(_copied ? Icons.check : Icons.copy),
                 label: Text(
-                  _copied
-                      ? tr('KOPIERT', 'COPIED')
-                      : tr('LINK KOPIEREN', 'COPY LINK'),
+                  _copied ? tr('KOPIERT', 'COPIED') : tr('KOPIEREN', 'COPY'),
                   maxLines: 1,
                 ),
               ),
               Builder(
-                builder: (button) => OutlinedButton.icon(
+                builder: (button) => SquareIconButton(
+                  icon: Icons.ios_share,
+                  tooltip: tr('Teilen', 'Share'),
                   onPressed: () => _share(button),
-                  icon: const Icon(Icons.ios_share),
-                  label: Text(tr('TEILEN', 'SHARE'), maxLines: 1),
                 ),
               ),
             ],

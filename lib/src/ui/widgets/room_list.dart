@@ -9,6 +9,7 @@ import '../../net/room_code.dart';
 import '../../net/room_directory.dart';
 import '../theme.dart';
 import 'room_scanner.dart';
+import 'square_icon_button.dart';
 import '../../l10n/l10n.dart';
 import '../../tv/tv_input.dart';
 
@@ -83,8 +84,7 @@ class _RoomListState extends State<RoomList> {
         const SizedBox(height: 10),
         Row(
           children: [
-            SizedBox(
-              width: 140,
+            Expanded(
               child: TextField(
                 controller: _code,
                 textCapitalization: TextCapitalization.characters,
@@ -101,19 +101,19 @@ class _RoomListState extends State<RoomList> {
               onPressed: () => _join(_code.text),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
+            // The apps read the QR code of a waiting room with the camera. In
+            // the browser the phone camera opens the room link by itself, and
+            // the Apple TV has no camera.
+            if (!kIsWeb && !onTv) ...[
+              const SizedBox(width: 8),
+              SquareIconButton(
+                icon: Icons.qr_code_scanner,
+                tooltip: tr('QR-Code scannen', 'Scan QR code'),
+                onPressed: _scan,
+              ),
+            ],
           ],
         ),
-        // The apps read the QR code of a waiting room with the camera. In
-        // the browser the phone camera opens the room link by itself, and
-        // the Apple TV has no camera.
-        if (!kIsWeb && !onTv) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _scan,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: Text(tr('QR-CODE SCANNEN', 'SCAN QR CODE')),
-          ),
-        ],
       ],
     );
   }
