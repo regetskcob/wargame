@@ -17,9 +17,12 @@ import '../../tv/tv_input.dart';
 /// Part of the account sheet: pair a phone as the gamepad of this screen,
 /// or, on a phone, become the gamepad of another one.
 class ControllerSection extends StatelessWidget {
-  const ControllerSection({required this.game, super.key});
+  const ControllerSection({required this.game, this.heading = true, super.key});
 
   final TankGame game;
+
+  /// Off where the surrounding box already names the section.
+  final bool heading;
 
   @override
   Widget build(BuildContext context) {
@@ -36,11 +39,13 @@ class ControllerSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          tr('CONTROLLER', 'CONTROLLER'),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 6),
+        if (heading) ...[
+          Text(
+            tr('CONTROLLER', 'CONTROLLER'),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          const SizedBox(height: 6),
+        ],
         if (screen) _ScreenPairing(game: game),
         if (screen && phoneApp) const SizedBox(height: 14),
         if (phoneApp) _BecomePad(game: game),

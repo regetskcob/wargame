@@ -157,11 +157,17 @@ Watchers of the repository get a mail for both.
 `/wargame/`. Its texts and pictures are the App Store listing: name,
 subtitle, promotional text and description come from
 `store/ios/metadata/<lang>/`, screenshots and the device artwork from
-`store/ios/screenshots/` and `store/ios/header/` (Hugo mounts in
-`site/hugo.toml`, resized to WebP at build time). The page stays short on
-purpose: the device artwork of the App Store header opens it, right under
-the name and the play button, because one room for browser, phone, tablet,
-TV and watch is what sets the game apart. The description is read into its
+`store/ios/screenshots/` (Hugo mounts in `site/hugo.toml`, resized to WebP
+at build time). The page stays short on purpose: device artwork opens it,
+right under the name and the play button, because one room for browser,
+phone, tablet, TV and watch is what sets the game apart. Unlike the App
+Store header it shows every platform, out or coming, all alike on one
+table (desk, TV with a phone as its controller, pocket and wrist); the line
+under it (`platformsNote` in `site/i18n/`) says what is out today, so that
+is the place to update when a platform ships. `store/tool/landing.py <raw
+dir>` draws it from the raw shots of `tool/store_shots.sh` into
+`site/assets/header/<lang>/`, one table for wide screens and two for
+phones. The description is read into its
 parts, so its layout matters: an opening paragraph (not shown), then
 sections whose first line is a heading in capitals (only the first is
 used, the ways to play as `• Name: text`, of which the page shows the first

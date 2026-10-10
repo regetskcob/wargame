@@ -27,10 +27,20 @@
     <p class="kicker">{{ $subtitle }}</p>
     {{ partial "play-button.html" (dict "label" (i18n "play")) }}
     <p class="hint">{{ i18n "playHint" }}</p>
-    {{- $h := resources.Get (printf "store/header/%s/header-3840x1646.png" $store) }}
-    {{- $h1 := $h.Resize "1400x webp" }}{{ $h2 := $h.Resize "2800x webp" }}
-    <img class="devices" src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
-      width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
+    {{- /* Every platform, out or coming, drawn alike by store/tool/landing.py:
+         one table for wide screens, two for phones. The line below says
+         what is out today. */}}
+    {{- $h := resources.Get (printf "header/%s/devices.png" $store) }}
+    {{- $h1 := $h.Resize "1600x webp" }}{{ $h2 := $h.Resize "3200x webp" }}
+    {{- $n := resources.Get (printf "header/%s/devices-narrow.png" $store) }}
+    {{- $n1 := $n.Resize "700x webp" }}{{ $n2 := $n.Resize "1400x webp" }}
+    <picture>
+      <source media="(max-width: 760px)" srcset="{{ $n1.RelPermalink }} 1x, {{ $n2.RelPermalink }} 2x"
+        width="{{ $n1.Width }}" height="{{ $n1.Height }}">
+      <img class="devices" src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
+        width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
+    </picture>
+    <p class="hint platforms">{{ i18n "platformsNote" }}</p>
     <p class="lead">{{ $promo }}</p>
   </section>
 

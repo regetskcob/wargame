@@ -61,6 +61,7 @@ Zwei Befehle, ohne Hand am Simulator:
 ```sh
 tool/store_shots.sh /tmp/raw              # alle Rohbilder, ca. 15 Minuten
 python3 store/tool/compose.py /tmp/raw    # alle Store-Bilder daraus
+python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 ```
 
 `tool/store_shots.sh` baut je Plattform einen Debug-Build mit

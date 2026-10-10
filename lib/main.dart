@@ -44,8 +44,10 @@ Future<void> main() async {
         view.physicalSize.shortestSide / view.devicePixelRatio >=
         tabletShortSide;
     await SystemChrome.setPreferredOrientations([
-      // Store pictures of tablets are taken sideways (tool/store_shots.sh).
-      if (!tablet || Env.shotScene == null) DeviceOrientation.portraitUp,
+      // Store pictures of tablets and of the phone as a controller are
+      // taken sideways (tool/store_shots.sh).
+      if (!(tablet || Env.shotScene == 'pad') || Env.shotScene == null)
+        DeviceOrientation.portraitUp,
       if (tablet && Env.shotScene == null) DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,

@@ -179,7 +179,9 @@ class _AccountSheetState extends State<AccountSheet> {
   @override
   Widget build(BuildContext context) {
     final accounts = _game.accounts;
-    // Name, language and controllers, then the account itself.
+    // The call sign, the account it belongs to, then the settings of this
+    // device and the controllers in a quiet box of their own, as on the
+    // start page.
     final left = <Widget>[
       ValueListenableBuilder<TextEditingValue>(
         valueListenable: _name,
@@ -234,60 +236,6 @@ class _AccountSheetState extends State<AccountSheet> {
         },
       ),
       const SizedBox(height: 12),
-      Text(
-        tr('SPRACHE', 'LANGUAGE'),
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
-      const SizedBox(height: 8),
-      // The game keeps the choice with the account, so it
-      // comes along to every device.
-      ChoiceRow<AppLang>(
-        options: [
-          for (final lang in AppLang.values)
-            (lang, lang.label.toUpperCase(), null),
-        ],
-        selected: L10n.current,
-        onSelected: (lang) {
-          if (lang != null) {
-            unawaited(L10n.set(lang));
-          }
-        },
-      ),
-      if (Haptics.onPhone) const SizedBox(height: 12),
-      if (Haptics.onPhone)
-        // A plain row: a ListTile would paint its ink behind the panel.
-        ValueListenableBuilder<bool>(
-          valueListenable: Haptics.on,
-          builder: (context, on, _) => Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tr('VIBRATION', 'VIBRATION'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      tr(
-                        'Treffer, Explosionen und Rundenstart spüren',
-                        'Feel hits, blasts and the start of a round',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: on,
-                onChanged: (value) => unawaited(Haptics.set(value: value)),
-              ),
-            ],
-          ),
-        ),
-      const SizedBox(height: 16),
-      ControllerSection(game: _game),
-    ];
-    final right = <Widget>[
       if (Env.accounts)
         // Follows the saved call sign, which registering takes.
         ValueListenableBuilder<int>(
@@ -312,7 +260,7 @@ class _AccountSheetState extends State<AccountSheet> {
           ),
         ),
       // A guest has nothing lasting to delete, signing in or
-      // securing the account above is what they are offered.
+      // registering above is what they are offered.
       ValueListenableBuilder(
         valueListenable: accounts.user,
         builder: (context, _, _) => accounts.isGuest
@@ -366,6 +314,60 @@ class _AccountSheetState extends State<AccountSheet> {
                 ],
               ),
       ),
+    ];
+    final right = <Widget>[
+      Text(
+        tr('SPRACHE', 'LANGUAGE'),
+        style: Theme.of(context).textTheme.titleMedium,
+      ),
+      const SizedBox(height: 8),
+      // The game keeps the choice with the account, so it
+      // comes along to every device.
+      ChoiceRow<AppLang>(
+        options: [
+          for (final lang in AppLang.values)
+            (lang, lang.label.toUpperCase(), null),
+        ],
+        selected: L10n.current,
+        onSelected: (lang) {
+          if (lang != null) {
+            unawaited(L10n.set(lang));
+          }
+        },
+      ),
+      if (Haptics.onPhone) const SizedBox(height: 12),
+      if (Haptics.onPhone)
+        // A plain row: a ListTile would paint its ink behind the panel.
+        ValueListenableBuilder<bool>(
+          valueListenable: Haptics.on,
+          builder: (context, on, _) => Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr('VIBRATION', 'VIBRATION'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      tr(
+                        'Treffer, Explosionen und Rundenstart spüren',
+                        'Feel hits, blasts and the start of a round',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: on,
+                onChanged: (value) => unawaited(Haptics.set(value: value)),
+              ),
+            ],
+          ),
+        ),
+      const SizedBox(height: 24),
+      _ControllerBox(game: _game),
       const SizedBox(height: 12),
       const LegalLinks(),
     ];
@@ -404,7 +406,7 @@ class _AccountSheetState extends State<AccountSheet> {
                         Expanded(child: _column(right)),
                       ],
                     )
-                  : _column([...left, const SizedBox(height: 16), ...right]),
+                  : _column([...left, const SizedBox(height: 20), ...right]),
             ),
           ),
         ],
@@ -414,4 +416,51 @@ class _AccountSheetState extends State<AccountSheet> {
 
   static Widget _column(List<Widget> children) =>
       Column(crossAxisAlignment: CrossAxisAlignment.start, children: children);
+}
+
+/// The controllers drawn like the controller box on the start page: a
+/// quiet dark box without a frame, set apart from the account above.
+class _ControllerBox extends StatelessWidget {
+  const _ControllerBox({required this.game});
+
+  final TankGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x55000000),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                const Icon(
+                  Icons.sports_esports,
+                  color: GameColors.sand,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  tr('CONTROLLER', 'CONTROLLERS'),
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 1,
+                    color: GameColors.textDim,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            ControllerSection(game: game, heading: false),
+          ],
+        ),
+      ),
+    );
+  }
 }
