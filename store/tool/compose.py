@@ -6,8 +6,11 @@ Reads the raw simulator screenshots named in SHOTS from <raw dir>/de-DE and
 <raw dir>/en-US and writes the finished images for each language to
 store/ios/screenshots/<lang>/ for the App Store and to
 store/android/metadata/android/<lang>/images/ for Google Play, plus the Play
-feature graphic, the App Store header artwork (store/ios/header/<lang>/) and
-the Apple Watch shots (store/ios/watch/<lang>/). Needs Pillow.
+feature graphic, the Mac and Apple TV shots (store/ios/mac|tv/<lang>/) and
+the App Store header artwork (store/ios/header/<lang>/). The raw shots come
+from tool/store_shots.sh. The Apple Watch shots in store/ios/watch/<lang>/
+go up as the simulator took them (422 x 514) and are kept as they are; the
+header takes its watch from there. Needs Pillow.
 """
 
 import random
@@ -42,26 +45,18 @@ IPHONE = (1320, 2868)
 IPAD = (2752, 2064)
 IOS_SHOTS = [
     ("iphone-01-gefecht", "i_battle", IPHONE, {
-        "de-DE": ("PANZERGEFECHT", "Der letzte Panzer im Feld gewinnt"),
-        "en-US": ("TANK BATTLE", "The last tank standing wins"),
+        "de-DE": ("PANZERGEFECHT", "Links fahren, rechts zielen, der Letzte gewinnt"),
+        "en-US": ("TANK BATTLE", "Drive left, aim right, last tank wins"),
     }),
     ("iphone-02-verteidigung", "i_defense", IPHONE, {
-        "de-DE": ("VERTEIDIGUNG", "Haltet den Stützpunkt gegen 8 Wellen"),
-        "en-US": ("DEFENSE", "Hold the base against 8 waves"),
+        "de-DE": ("VERTEIDIGUNG", "Geschütze bauen, 8 Wellen halten"),
+        "en-US": ("DEFENSE", "Build guns, hold off 8 waves"),
     }),
-    ("iphone-03-geschuetze", "i_guns", IPHONE, {
-        "de-DE": ("GESCHÜTZE BAUEN", "Kanone, Flak und Mörser an der Straße"),
-        "en-US": ("BUILD GUNS", "Cannon, flak and mortar by the road"),
-    }),
-    ("iphone-04-fahrzeuge", "i_lobby", IPHONE, {
+    ("iphone-03-fahrzeuge", "i_lobby", IPHONE, {
         "de-DE": ("8 FAHRZEUGE", "Mit jedem Rang ein neues freigespielt"),
         "en-US": ("8 VEHICLES", "A new one with every rank"),
     }),
-    ("iphone-05-steuerung", "i_controls", IPHONE, {
-        "de-DE": ("ZWEI DAUMEN", "Links fahren, rechts zielen, Zielhilfe an"),
-        "en-US": ("TWO THUMBS", "Drive left, aim right, aim assist on"),
-    }),
-    ("iphone-06-modi", "i_menu", IPHONE, {
+    ("iphone-04-modi", "i_menu", IPHONE, {
         "de-DE": ("VIER SPIELARTEN", "Allein, gegeneinander, im Trupp, Fahnenraub"),
         "en-US": ("4 WAYS TO PLAY", "Solo, versus, as a squad, capture the flag"),
     }),
@@ -83,6 +78,44 @@ IOS_SHOTS = [
                   "Invite friends by code or QR code, pick your vehicle"),
     }),
 ]
+
+# The Mac App Store takes 16:10 (2880 x 1800), the Apple TV 16:9
+# (3840 x 2160). Both are uploaded by hand, so they live beside
+# screenshots/ like the watch.
+MAC = (2880, 1800)
+TV = (3840, 2160)
+MAC_SHOTS = [
+    ("mac-01-gefecht", "m_battle", MAC, {
+        "de-DE": ("PANZERGEFECHT",
+                  "Tastatur, Maus oder Controller, im Vollbild"),
+        "en-US": ("TANK BATTLE", "Keyboard, mouse or controller, full screen"),
+    }),
+    ("mac-02-verteidigung", "m_defense", MAC, {
+        "de-DE": ("VERTEIDIGUNG", "Geschütze bauen, 8 Wellen halten"),
+        "en-US": ("DEFENSE", "Build guns, hold off 8 waves"),
+    }),
+    ("mac-03-warteraum", "m_room", MAC, {
+        "de-DE": ("DEIN EINSATZ",
+                  "Freunde per Code oder QR-Code einladen, Fahrzeug wählen"),
+        "en-US": ("YOUR MISSION",
+                  "Invite friends by code or QR code, pick your vehicle"),
+    }),
+]
+TV_SHOTS = [
+    ("tv-01-gefecht", "tv_battle", TV, {
+        "de-DE": ("PANZERGEFECHT", "Auf dem großen Bildschirm, mit Controller"),
+        "en-US": ("TANK BATTLE", "On the big screen, with a controller"),
+    }),
+    ("tv-02-verteidigung", "tv_defense", TV, {
+        "de-DE": ("VERTEIDIGUNG", "Den Stützpunkt halten, mit Kameraden und Geschützen"),
+        "en-US": ("DEFENSE", "Hold the base with comrades and guns"),
+    }),
+]
+
+
+def store_dir(kind, lang):
+    return ROOT / "store" / "ios" / kind / lang
+
 
 # Google Play wants no side longer than twice the other, which rules out the
 # 6.9" iPhone canvas. Phones get 9:16, tablets 16:10, from the same raw shots.
@@ -120,6 +153,11 @@ SHOTS = [
     (lang, play_dir(lang) / name, raw, size, *text[lang])
     for lang in LANGS
     for name, raw, size, text in PLAY_SHOTS
+] + [
+    (lang, store_dir(kind, lang) / name, raw, size, *text[lang])
+    for lang in LANGS
+    for kind, shots in (("mac", MAC_SHOTS), ("tv", TV_SHOTS))
+    for name, raw, size, text in shots
 ]
 
 FEATURE = {
@@ -184,17 +222,21 @@ def device(shot, height, kind):
     """Draws [shot] inside an illustrated [kind] ("phone", "tablet" or
     "watch"): a dark body with a metal edge, its buttons and a soft gloss on
     the glass, scaled so the whole device is [height] tall."""
-    bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075, "tv": 0.018}[kind]
-    rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30, "tv": 0.012}[kind]
+    bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075, "tv": 0.018,
+             "laptop": 0.03}[kind]
+    rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30, "tv": 0.012,
+                "laptop": 0.035}[kind]
     rim = max(4, round(height * 0.006))
     pad = round(height * bezel)
     screen_h = height - 2 * (pad + rim)
     screen_w = round(shot.width * screen_h / shot.height)
     body_w, body_h = screen_w + 2 * (pad + rim), height
     # Room beside the body for the buttons, above and below for the band.
-    knob = round(body_w * 0.05) if kind == "watch" else rim * 2
+    knob = {"watch": round(body_w * 0.05),
+            "laptop": round(body_w * 0.07)}.get(kind, rim * 2)
     band = round(body_h * 0.18) if kind == "watch" else 0
-    stand = round(body_h * 0.10) if kind == "tv" else 0
+    stand = {"tv": round(body_h * 0.10),
+             "laptop": round(body_h * 0.05)}.get(kind, 0)
     out = Image.new("RGBA", (body_w + 2 * knob, body_h + 2 * band + stand))
     d = ImageDraw.Draw(out)
     ox, oy = knob, band
@@ -241,6 +283,17 @@ def device(shot, height, kind):
                     fill=METAL)
         d.rounded_rectangle((fx, oy + body_h + stand - rim * 3, fx + fw,
                              oy + body_h + stand - 1), rim, fill=METAL)
+    elif kind == "laptop":
+        # The keyboard half seen edge on: a slab wider than the lid, with
+        # the notch to open it in the middle of its front.
+        top = oy + body_h - rim
+        base_h = stand + rim
+        d.rounded_rectangle((0, top, out.width - 1, top + base_h - 1),
+                            base_h // 2, fill=METAL)
+        d.rectangle((0, top, out.width - 1, top + base_h // 3), fill=METAL_LIGHT)
+        nw = round(body_w * 0.14)
+        d.rounded_rectangle((ox + (body_w - nw) // 2, top, ox + (body_w + nw) // 2,
+                             top + base_h // 3), base_h // 6, fill=METAL)
     else:
         # Volume and power buttons on the edges.
         for x0, ys in (
@@ -309,7 +362,8 @@ def compose(lang, out, raw, size, headline, subline, raw_dir):
     # store than a bare cut-out; the frame brings its own Dynamic Island, so
     # the shot keeps its full height.
     shot = Image.open(raw_dir / lang / f"{raw}.png")
-    kind = "phone" if shot.height > shot.width else "tablet"
+    kind = {"i": "phone", "p": "tablet", "m": "laptop",
+            "tv": "tv"}[raw.split("_")[0]]
     shot_top = round(sub_y + sub.size * 1.9)
     room = h - shot_top - round(h * 0.035)
     framed = device(shot, room, kind)
@@ -350,11 +404,9 @@ HEADERS = [(5244, 2950), (3840, 1646)]
 
 
 def load_shot(raw_dir, lang, name):
-    shot = Image.open(raw_dir / lang / f"{name}.png")
-    if name.startswith("i_"):
-        # The iPhone's status strip with the Dynamic Island, as in compose().
-        shot = shot.crop((0, round(shot.height * 0.062), shot.width, shot.height))
-    return shot
+    # The game saves its own frame (tool/store_shots.sh), so there is no
+    # status bar to cut off.
+    return Image.open(raw_dir / lang / f"{name}.png")
 
 
 def drop_shadow(canvas, img, x, top):
@@ -406,17 +458,9 @@ def search_header(lang, size, raw_dir):
     save(canvas, ROOT / "store" / "ios" / "header" / lang / f"search-{w}x{h}")
 
 
-def landscape_phone(shot, height):
-    """[shot] of a phone held sideways, in the drawn frame of [device]."""
-    upright = device(shot.rotate(-90, expand=True), round(
-        height * shot.width / shot.height), "phone")
-    return upright.rotate(90, expand=True)
-
-
 def header(lang, size, raw_dir):
-    """The product page header, every screen the game runs on: iPhone, iPad,
-    the Apple TV with a phone in front of it as the controller, and the
-    watch."""
+    """The product page header, every screen the game runs on: the iPhone in
+    front of the iPad, the Mac, the Apple TV and the watch."""
     w, h = size
     canvas = backdrop(size, f"header-{w}")
     # The iPad is drawn as one with the iPhone, which stands in front of
@@ -432,37 +476,24 @@ def header(lang, size, raw_dir):
     drop_shadow(shade, iphone, 0, lift)
     pair.alpha_composite(shade)
     pair.alpha_composite(iphone, (0, lift))
-    boxes = row(canvas, [
+    # Likewise the MacBook stands in front of the television's right foot.
+    tv = device(load_shot(raw_dir, lang, "tv_battle"), round(h * 0.62), "tv")
+    mac = device(load_shot(raw_dir, lang, "m_defense"), round(h * 0.40), "laptop")
+    drop = round(h * 0.22)
+    screens = Image.new("RGBA", (tv.width + round(mac.width * 0.55),
+                                 max(tv.height, mac.height + drop)))
+    screens.alpha_composite(tv, (0, 0))
+    shade = Image.new("RGBA", screens.size)
+    mx = screens.width - mac.width
+    drop_shadow(shade, mac, mx, drop)
+    screens.alpha_composite(shade)
+    screens.alpha_composite(mac, (mx, drop))
+    row(canvas, [
         pair,
-        device(load_shot(raw_dir, lang, "tv_defense"), round(h * 0.66), "tv"),
+        screens,
         device(load_shot(raw_dir, lang, "w_battle"), round(h * 0.36), "watch"),
-    ], [round(h * 0.06), -round(h * 0.06), round(h * 0.08)])
-    tx, ty, tw, th = boxes[1]
-    phone = landscape_phone(load_shot(raw_dir, lang, "pad"), round(th * 0.36))
-    px = tx + tw - phone.width + round(tw * 0.04)
-    py = min(ty + th - round(phone.height * 0.55),
-             h - phone.height - round(h * 0.05))
-    drop_shadow(canvas, phone, px, py)
-    canvas.paste(phone, (px, py), phone)
+    ], [round(h * 0.06), -round(h * 0.02), round(h * 0.08)])
     save(canvas, ROOT / "store" / "ios" / "header" / lang / f"header-{w}x{h}")
-
-
-# Apple Watch shots go up as the simulator took them (422 x 514, Ultra 3 and
-# 4), without caption or frame. Like the header they live outside
-# screenshots/, which fastlane deliver uploads and which only takes the
-# sizes it knows; both are uploaded by hand in App Store Connect.
-WATCH_SHOTS = [
-    ("watch-01-start", "w_menu"),
-    ("watch-02-fahrzeug", "w_lobby"),
-    ("watch-03-gefecht", "w_battle"),
-    ("watch-04-verteidigung", "w_defense"),
-]
-
-
-def watch(lang, raw_dir):
-    for name, raw in WATCH_SHOTS:
-        shot = Image.open(raw_dir / lang / f"{raw}.png").convert("RGB")
-        save(shot, ROOT / "store" / "ios" / "watch" / lang / name)
 
 
 def save(canvas, out):
@@ -480,4 +511,3 @@ if __name__ == "__main__":
         for size in HEADERS:
             header(lang, size, source)
             search_header(lang, size, source)
-        watch(lang, source)

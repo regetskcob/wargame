@@ -10,12 +10,10 @@ launching: Spiel wird geladen …
 notFoundTitle: Hier steht kein Panzer
 notFoundText: Diese Seite gibt es nicht. Zurück zum Start oder direkt ins Gefecht.
 home: Zur Startseite
-shot-01-gefecht: Gefecht gegen CPU-Panzer in der Wüste
-shot-02-verteidigung: "Verteidigung: Kameraden halten den Stützpunkt im Schnee"
-shot-03-geschuetze: Geschütze am Stützpunkt bauen, während er unter Feuer liegt
-shot-04-fahrzeuge: Fahrzeug und Tarnung wählen
-shot-05-steuerung: Zwei Sticks und Zielhilfe im Stadtgefecht
-shot-06-modi: Die Startseite mit den vier Spielarten
+shot-01-gefecht: Stadtgefecht mit zwei Sticks und Zielhilfe
+shot-02-verteidigung: "Verteidigung: Geschütze am Stützpunkt am Fluss bauen"
+shot-03-fahrzeuge: Fahrzeug und Tarnung wählen
+shot-04-modi: Die Startseite mit den vier Spielarten
 devicesTitle: Auf jedem Bildschirm, in einem Raum
 device-web: Im Browser
 device-web-text: Sofort auf jedem Rechner, ohne Installation und ohne Anmeldung, mit Tastatur, Controller oder Handy.

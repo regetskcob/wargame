@@ -23,11 +23,13 @@ in App Store Connect einfügen.
 | iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/<sprache>/iphone63-*.png` |
 | iPad 13" (2752 × 2064) | `screenshots/<sprache>/ipad-*.png` |
 | Apple Watch Ultra 4 (422 × 514), von Hand hochladen | `watch/<sprache>/watch-*.png` |
-| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPhone vor dem iPad, Apple TV mit Handy als Controller davor, Watch |
+| Mac (2880 × 1800), von Hand hochladen | `mac/<sprache>/mac-*.png` |
+| Apple TV (3840 × 2160), von Hand hochladen | `tv/<sprache>/tv-*.png` |
+| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPhone vor dem iPad, Mac, Apple TV, Watch |
 | Kopfzeile, Tab „Suchergebnisse“ (dieselben Größen), von Hand hochladen | `header/<sprache>/search-*.png`: iPhone, iPad und Watch nebeneinander |
 
-`<sprache>` ist `de-DE` oder `en-US`. Watch-Bilder und Kopfzeile liegen
-außerhalb von `screenshots/`, weil `fastlane deliver` diesen Ordner hochlädt
+`<sprache>` ist `de-DE` oder `en-US`. Watch-, Mac- und TV-Bilder und die
+Kopfzeile liegen außerhalb von `screenshots/`, weil `fastlane deliver` diesen Ordner hochlädt
 und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
@@ -54,44 +56,41 @@ python3 store/tool/android_icons.py
 
 ## Screenshots neu erzeugen
 
-Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) je
-Sprache in `<ordner>/de-DE` und `<ordner>/en-US` legen, die Namen stehen in
-`SHOTS` in `../tool/compose.py`. Die Sprache stellt man im Spiel im Konto um.
-Der Simulator meldet einen eigenen Gamecontroller, der die Touch-Sticks
-ausblendet; mit `-ignoreGamepads YES` gestartet spielt die App wie auf einem
-Handy ohne Controller:
+Zwei Befehle, ohne Hand am Simulator:
 
 ```sh
-xcrun simctl launch <sim-id> de.regetskcob.wargame -ignoreGamepads YES
-xcrun simctl spawn <sim-id> defaults write de.regetskcob.wargame ignoreGamepads -bool YES
+tool/store_shots.sh /tmp/raw              # alle Rohbilder, ca. 15 Minuten
+python3 store/tool/compose.py /tmp/raw    # alle Store-Bilder daraus
 ```
 
-Für die Aufnahmen gibt es einen Screenshot-Modus, nur für Debug-Builds
-(`tool/check_dart_defines.sh` lässt ihn in keinen Release-Build):
-
-```sh
-flutter build ios --simulator --debug --dart-define=ACCOUNTS=true --dart-define=SHOTS=true
-```
+`tool/store_shots.sh` baut je Plattform einen Debug-Build mit
+`--dart-define=SHOTS=true` und startet ihn pro Szene und Sprache einmal,
+die Szene als Startargument (`-SHOT_SCENE battle -SHOT_LANG en -SHOT_OUT
+<datei>`). Die App geht selbst in die Szene (Startseite, Warteraum,
+Gefecht, Verteidigung), wartet, bis sie sich eingespielt hat, und schreibt
+ihr eigenes Bild, ohne Statusleiste und Simulator-Rahmen
+(`lib/src/game/tank_game/shots.dart`). Das sind 24 Aufnahmen: iPhone 17 Pro
+Max hochkant (4 Szenen), iPad Pro 13" quer (3), Apple TV 4K (2), Mac im
+Fenster mit 1440 × 900 Punkten (3), je Deutsch und Englisch. Nur einzelne
+Geräte: `tool/store_shots.sh /tmp/raw ios ipad tv mac` mit einer Auswahl.
+Die Simulatoren („Store iPhone 6.9“, „Store iPad 13“, „Store Apple TV“)
+legt das Skript bei Bedarf selbst an; flutter-tvos erwartet es unter
+`~/development/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
+Bild für die Kopfzeile kommt aus `watch/`.
 
 Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne
-Nebel, die Schwierigkeit steht auf leicht (Munition ohne Ende), und eine
-Verteidigungsrunde beginnt bei Welle `SHOT_WAVE` (Standard 3) mit
-ausgebautem Stützpunkt und 2000 Kasse für Geschütze. `SHOT_STICKS=true`
-zeigt beide Touch-Sticks gedrückt, für das Bild der Steuerung. Ohne den
-Modus war der Panzer im Simulator oft nach Sekunden zerstört, und Licht und
-Wetter hingen am Zufall.
+Nebel, die Schwierigkeit steht auf leicht (Munition ohne Ende), alle fahren
+den olivgrünen Hermelin, und eine Verteidigungsrunde beginnt bei Welle
+`SHOT_WAVE` (Standard 3) mit ausgebautem Stützpunkt, 2000 Kasse und offener
+Geschützliste. Im Gefecht stehen beide Touch-Sticks gedrückt.
+`tool/check_dart_defines.sh` lässt den Modus in keinen Release-Build.
 
-Der Apple-TV-Simulator nimmt ohne Simulator.app keine Fernbedienung an; für
-die TV-Aufnahmen öffnet ein lokal geänderter Build die Kopplung selbst und
-startet die Runde, sobald das Handy gekoppelt ist.
-
-Daraus entstehen beide Sprachsätze für App Store und Google Play, jede
-Aufnahme in einem gezeichneten iPhone bzw. iPad unter der Überschrift:
-
-```sh
-pip3 install --user pillow
-python3 store/tool/compose.py <ordner-mit-rohaufnahmen>
-```
+`compose.py` setzt jede Aufnahme in ein gezeichnetes Gerät (iPhone, iPad,
+MacBook, Fernseher) unter Überschrift und Unterzeile, alle auf demselben
+olivfarbenen Tarnhintergrund, und schreibt beide Sprachsätze für App Store,
+Mac App Store, Apple TV und Google Play, dazu die Kopfzeilen (die auch die
+Landingpage zeigt) und die Play-Grafik. Braucht Pillow
+(`pip3 install --user pillow`).
 
 ## Angaben in App Store Connect
 

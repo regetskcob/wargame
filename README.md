@@ -9,14 +9,14 @@ without ads.
 Android apps · Mac · Apple TV · Apple Watch (in progress)
 
 <p align="center">
-  <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad: the road, a river with bridges, the grown base, guns and CPU comrades" width="720">
+  <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad in the snow: the road, a river with bridges, the base and its guns" width="720">
 </p>
 
 <p align="center">
-  <img src="store/ios/screenshots/en-US/iphone-01-gefecht.png" alt="A battle against CPU tanks in the rain, with the closing zone" width="170">
-  <img src="store/ios/screenshots/en-US/iphone-02-verteidigung.png" alt="Defense: a jet bombs the enemy at the bridge" width="170">
-  <img src="store/ios/screenshots/en-US/iphone-04-fahrzeuge.png" alt="Picking a vehicle and its paint" width="170">
-  <img src="store/ios/screenshots/en-US/iphone-06-modi.png" alt="The start page with the three ways to play" width="170">
+  <img src="store/ios/screenshots/en-US/iphone-01-gefecht.png" alt="A town battle with two sticks, aim assist and the closing zone" width="170">
+  <img src="store/ios/screenshots/en-US/iphone-02-verteidigung.png" alt="Defense: building guns at the base by the river" width="170">
+  <img src="store/ios/screenshots/en-US/iphone-03-fahrzeuge.png" alt="Picking a vehicle and its paint" width="170">
+  <img src="store/ios/screenshots/en-US/iphone-04-modi.png" alt="The start page with the four ways to play" width="170">
 </p>
 
 <sub>Screenshots in German: [store/ios/screenshots/de-DE](store/ios/screenshots/de-DE).</sub>

@@ -69,7 +69,7 @@
 
   <section class="section" id="screens">
     <div class="shots" tabindex="0">
-      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-geschuetze" "04-fahrzeuge" "05-steuerung" "06-modi" }}
+      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-fahrzeuge" "04-modi" }}
       {{- $img := resources.Get (printf "store/screenshots/%s/iphone-%s.png" $store $f) }}
       {{- $a := $img.Resize "240x webp" }}{{ $b := $img.Resize "480x webp" }}
       <img src="{{ $a.RelPermalink }}" srcset="{{ $a.RelPermalink }} 1x, {{ $b.RelPermalink }} 2x"

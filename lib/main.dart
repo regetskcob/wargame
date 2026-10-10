@@ -27,6 +27,7 @@ Future<void> main() async {
   runApp(const LoadingApp());
   // A Wear OS watch runs the Android app with the watch screens.
   await detectWear();
+  await Env.loadShots();
   if (!kIsWeb &&
       !onTv &&
       !onWear &&
@@ -40,8 +41,9 @@ Future<void> main() async {
         view.physicalSize.shortestSide / view.devicePixelRatio >=
         tabletShortSide;
     await SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      if (tablet) DeviceOrientation.portraitDown,
+      // Store pictures of tablets are taken sideways (tool/store_shots.sh).
+      if (!tablet || Env.shotScene == null) DeviceOrientation.portraitUp,
+      if (tablet && Env.shotScene == null) DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,
     ]);

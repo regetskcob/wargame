@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Env {
   static const defaultSupabaseUrl = 'https://wowtrfleffnfaiadhujj.supabase.co';
@@ -83,8 +84,35 @@ class Env {
   static const shotWave = int.fromEnvironment('SHOT_WAVE', defaultValue: 3);
 
   /// Draws both touch sticks held over to one side while nobody touches
-  /// them, for the picture of the controls.
-  static const shotSticks = bool.fromEnvironment('SHOT_STICKS');
+  /// them, for the picture of the controls. The battle scene of
+  /// tool/store_shots.sh poses them as well.
+  static bool get shotSticks =>
+      const bool.fromEnvironment('SHOT_STICKS') || shotScene == 'battle';
+
+  /// The scene tool/store_shots.sh asks a screenshot build for, passed as
+  /// a launch argument (`-SHOT_SCENE battle`), which iOS, tvOS and macOS
+  /// put into the user defaults, so one build takes every picture: the game
+  /// walks there by itself and saves its own frame to [shotOut]. Taking
+  /// them by hand cost 10 to 20 tries a picture. Dart sees no environment
+  /// variables on iOS, hence the arguments. Set by [loadShots].
+  static String? shotScene;
+
+  /// `de` or `en` for the scene, the language of the device otherwise.
+  static String? shotLang;
+
+  /// Where the finished frame goes, a path the app may write to.
+  static String? shotOut;
+
+  /// Reads the launch arguments of a screenshot build, see [shotScene].
+  static Future<void> loadShots() async {
+    if (!shots || kIsWeb) {
+      return;
+    }
+    final prefs = SharedPreferencesAsync();
+    shotScene = await prefs.getString('SHOT_SCENE');
+    shotLang = await prefs.getString('SHOT_LANG');
+    shotOut = await prefs.getString('SHOT_OUT');
+  }
 
   static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 4);
   static const realtimeBudget = int.fromEnvironment(
