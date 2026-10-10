@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/choice_row.dart';
 import '../ui/widgets/pad_pairing.dart';
 import 'seats.dart';
 import 'tv_input.dart';
@@ -18,7 +19,10 @@ class LocalDuoPanel extends StatelessWidget {
       listenable: TvInputSeats.listenable,
       builder: (context, _) {
         final seats = duelSeats();
-        if (onTv || seats.isEmpty) {
+        final keyboard = KeyboardSeat.active;
+        // Controllers and phones, without the keyboard.
+        final others = seats.where((seat) => !seat.keyboard).length;
+        if (onTv || others == 0) {
           return const SizedBox.shrink();
         }
         // A quiet dark box without a frame, an icon in front and an arrow
@@ -81,6 +85,28 @@ class LocalDuoPanel extends StatelessWidget {
                               color: GameColors.textDim,
                             ),
                           ),
+                          // On a computer the keyboard makes a second seat,
+                          // so one controller is enough for two.
+                          if (KeyboardSeat.available &&
+                              (keyboard || others == 1)) ...[
+                            const SizedBox(height: 10),
+                            ChoiceRow<bool>(
+                              options: [
+                                (false, tr('ALLEIN', 'ALONE'), null),
+                                (
+                                  true,
+                                  tr(
+                                    'ZU ZWEIT MIT TASTATUR',
+                                    'TWO WITH THE KEYBOARD',
+                                  ),
+                                  null,
+                                ),
+                              ],
+                              selected: keyboard,
+                              onSelected: (v) =>
+                                  KeyboardSeat.enabled.value = v ?? keyboard,
+                            ),
+                          ],
                         ],
                       ),
                     ),
