@@ -20,6 +20,7 @@ class AccountPanel extends StatefulWidget {
     this.callSign,
     this.onSignedOut,
     this.initiallyOpen = false,
+    this.callSignAbove,
     super.key,
   });
 
@@ -40,6 +41,12 @@ class AccountPanel extends StatefulWidget {
   /// in comes first. Securing the fresh guest account there means creating
   /// a new one.
   final bool embedded;
+
+  /// Set where a call sign field already sits above the panel, as in the
+  /// account sheet: registering then takes that name instead of asking for
+  /// it a second time, and says so. Called right before the mail goes out,
+  /// so it can take a name that is typed but not yet saved.
+  final ValueGetter<String>? callSignAbove;
 
   /// Starts with securing and signing in shown, for a guest who opened the
   /// account to do just that.
@@ -154,7 +161,7 @@ class _AccountPanelState extends State<AccountPanel> {
 
   void _sendMail() {
     final email = _email.text.trim();
-    final name = _name.text.trim();
+    final name = (widget.callSignAbove?.call() ?? _name.text).trim();
     if (!_signIn && (name.length < 2 || name.length > 16)) {
       setState(() {
         _message = tr(
@@ -337,7 +344,10 @@ class _AccountPanelState extends State<AccountPanel> {
                           child: Text(
                             _open
                                 ? tr('SCHLIESSEN', 'CLOSE')
-                                : tr('SICHERN / ANMELDEN', 'SECURE / SIGN IN'),
+                                : tr(
+                                    'REGISTRIEREN / ANMELDEN',
+                                    'REGISTER / SIGN IN',
+                                  ),
                           ),
                         )
                       else
@@ -419,7 +429,18 @@ class _AccountPanelState extends State<AccountPanel> {
       }, style: dim),
       SizedBox(height: fresh ? 16 : 10),
       if (_step == _Step.idle) ...[
-        if (!_signIn) ...[
+        if (!_signIn && widget.callSignAbove != null) ...[
+          Text(
+            tr(
+              'Du registrierst dich als ${widget.callSign}. Den Rufnamen '
+                  'änderst du oben.',
+              'You register as ${widget.callSign}. Change the call sign '
+                  'above.',
+            ),
+            style: dim,
+          ),
+          const SizedBox(height: 8),
+        ] else if (!_signIn) ...[
           TextField(
             controller: _name,
             maxLength: 16,
@@ -451,7 +472,7 @@ class _AccountPanelState extends State<AccountPanel> {
               child: Text(switch ((_signIn, fresh)) {
                 (true, _) => tr('ANMELDELINK SENDEN', 'SEND SIGN-IN LINK'),
                 (false, true) => tr('KONTO ANLEGEN', 'CREATE ACCOUNT'),
-                (false, false) => tr('KONTO SICHERN', 'SECURE ACCOUNT'),
+                (false, false) => tr('REGISTRIEREN', 'REGISTER'),
               }),
             ),
             for (final (provider, label) in widget.accounts.providers.value)
@@ -506,8 +527,8 @@ class _AccountPanelState extends State<AccountPanel> {
           child: Text(
             _signIn
                 ? tr(
-                    'Noch kein Konto? Gastkonto sichern',
-                    'No account yet? Secure your guest account',
+                    'Noch kein Konto? Registrieren',
+                    'No account yet? Register',
                   )
                 : tr(
                     'Schon ein Konto? Anmelden',

@@ -3,6 +3,8 @@
 @Timeout(Duration(minutes: 3))
 library;
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -48,6 +50,9 @@ Widget _overlay(String id, TankGame game) => switch (id) {
   _ => const SizedBox.shrink(),
 };
 
+/// Any seed does; a fixed one makes a failure repeat.
+const _seed = 20261010;
+
 const _screens = {'desktop': Size(1280, 720), 'phone': Size(844, 390)};
 
 /// Shows what the game has open right now, as the GameWidget would.
@@ -87,6 +92,12 @@ Future<void> _show(WidgetTester tester, TankGame game, Size size) async {
 
 /// Plays [seconds] of the round outside the fake clock of the test, so
 /// the round's own timers and tanks loading in run as in the app.
+///
+/// No tank falls meanwhile: tanks take hits but are patched up to half
+/// their armour after each frame. A solo round has a single CPU tank, and
+/// now and then the shots sank it within three seconds, which won the
+/// round and took the HUD away before the test looked at it. The bots
+/// steer with an unseeded random, so a fixed seed alone does not stop it.
 Future<void> _play(WidgetTester tester, TankGame game, double seconds) =>
     tester.runAsync(() async {
       const dt = 1 / 30;
@@ -95,6 +106,9 @@ Future<void> _play(WidgetTester tester, TankGame game, double seconds) =>
           ..thrust = true
           ..fire = frame.isEven;
         game.update(dt);
+        for (final tank in [?game.myTank, ...game.botTanks.values]) {
+          tank.hp = max(tank.hp, tank.stats.maxHp / 2);
+        }
         await Future<void>.delayed(Duration.zero);
       }
     });
@@ -137,6 +151,8 @@ void _startNow(TankGame game, GameMode mode) {
     ..fillWithBots.value = true;
   final now = DateTime.now().millisecondsSinceEpoch;
   game.startRound(
+    // The same field, weather and paratrooper waves on every run.
+    seed: _seed,
     startedAt: mode == GameMode.defense
         ? now - GameConfig.firstWaveSeconds * 1000
         : now - 1,
