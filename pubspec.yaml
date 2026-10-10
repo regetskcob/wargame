@@ -49,6 +49,8 @@ flutter:
     - assets/audio/
     # The launch screen again, for the loading view that follows it.
     - assets/images/
+    # Shown with the licences of the components, as Apache 2.0 asks.
+    - assets/fonts/Roboto_LICENSE.txt
   # Bundled so every platform draws the same letters. The browser build
   # cannot reach system fonts and fell back to Roboto, while iOS and macOS
   # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.

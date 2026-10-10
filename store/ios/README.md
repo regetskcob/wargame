@@ -16,6 +16,7 @@ in App Store Connect einfügen.
 | Datenschutz-URL | `metadata/de-DE/privacy_url.txt` |
 | Copyright, Kategorien | `metadata/copyright.txt`, `metadata/primary_*.txt` |
 | Hinweise für die Prüfung | `metadata/review_information/notes.txt` |
+| Lizenzvereinbarung (EULA), nur falls statt Apples Standard-EULA gewünscht, von Hand | `license.txt` |
 | TestFlight: Beschreibung, Testhinweise | `metadata/de-DE/testflight.txt` |
 | App-Icon 1024 × 1024, ohne Alpha | `icon/AppIcon-1024.png` |
 | iPhone 6,9" (1320 × 2868) | `screenshots/<sprache>/iphone-*.png` |

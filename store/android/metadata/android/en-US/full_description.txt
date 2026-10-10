@@ -26,3 +26,5 @@ Jump in right away as a guest, no sign-up. If you like, secure your account with
 No ads, no tracking.
 
 Panzergefecht is a private, non-commercial game and has no connection to any armed forces or vehicle manufacturer.
+
+All rights reserved. Licences and open source components used: https://www.regetskcob.de/wargame/lizenzen/

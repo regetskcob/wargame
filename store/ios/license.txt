@@ -1,0 +1,17 @@
+Panzergefecht – Lizenz / Licence
+
+© 2026 Daniel Bocksteger. Alle Rechte vorbehalten.
+
+Panzergefecht darf über die Website und die offiziellen App-Stores kostenlos privat gespielt werden. Spiel, Quelltext, Grafiken, Klänge und Texte sind urheberrechtlich geschützt; jede weitere Nutzung, insbesondere Vervielfältigen, Bearbeiten, Weitergeben, öffentliches Zugänglichmachen oder eigene Builds und Server, ist ohne vorherige schriftliche Zustimmung nicht erlaubt. Der Quelltext ist auf GitHub öffentlich einsehbar, das ist aber keine Open-Source-Lizenz.
+
+Das Spiel nutzt Open-Source-Komponenten (u. a. Flutter, Flame, Supabase, audioplayers; BSD, MIT, Apache 2.0), die Schrift Roboto (Apache 2.0, auf lateinische Zeichen gekürzt) und unter Android Google ML Kit. Für sie gelten allein ihre eigenen Lizenzen. Alle Lizenztexte stehen in der App unter „Lizenzen“ und unter:
+https://www.regetskcob.de/wargame/lizenzen/
+
+---
+
+© 2026 Daniel Bocksteger. All rights reserved.
+
+Panzergefecht may be played privately and free of charge through the website and the official app stores. The game, its source code, graphics, sounds and texts are protected by copyright; any other use, in particular copying, modifying, passing on, making it publicly available or running your own builds and servers, is not permitted without prior written consent. The source code is publicly visible on GitHub, but this is not an open source licence.
+
+The game uses open source components (among them Flutter, Flame, Supabase, audioplayers; BSD, MIT, Apache 2.0), the Roboto font (Apache 2.0, cut down to Latin letters) and, on Android, Google ML Kit. They are governed by their own licences alone. All licence texts are in the app under "Licences" and at:
+https://www.regetskcob.de/wargame/lizenzen/

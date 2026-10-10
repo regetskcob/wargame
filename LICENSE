@@ -1,0 +1,14 @@
+Copyright (c) 2026 Daniel Bocksteger. All rights reserved.
+
+This repository is published for viewing only. It is NOT open source.
+
+No licence is granted to use, copy, modify, merge, publish, distribute,
+sublicense, build, host or run this software, its graphics, sounds or texts,
+in whole or in part, for any purpose, without prior written permission of the
+copyright holder. The only rights granted are those the GitHub Terms of
+Service require for public repositories (viewing and forking on GitHub).
+
+Third-party components used by the game remain under their own licences;
+see https://www.regetskcob.de/wargame/lizenzen/ and, in the app, "Licences".
+The Roboto font in assets/fonts/ is licensed under the Apache License 2.0,
+see assets/fonts/Roboto_LICENSE.txt.
