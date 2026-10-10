@@ -284,16 +284,27 @@ extension TankGameLobby on TankGame {
     }
   }
 
-  /// Red against blue is coming up: every tank drives in its team's colour,
-  /// so choosing a camouflage makes no sense.
+  /// Red against blue is coming up: every tank drives in its side's
+  /// colour, so choosing a camouflage makes no sense. The defense always
+  /// plays it, the defenders red and the attackers blue.
   bool get teamsAhead =>
       mode.value == GameMode.flag ||
-      (teamMode.value && mode.value != GameMode.defense);
+      mode.value == GameMode.defense ||
+      teamMode.value;
 
-  /// Colour of a player's tank as the lobby previews it: the team's colour
+  /// Colour of a player's tank as the lobby previews it: the side's colour
   /// in red against blue (neutral while AUTO has not decided yet),
   /// camouflage alone, one colour per seat when playing with others.
   Color lobbyColorOf(String id, int style) {
+    if (mode.value == GameMode.defense) {
+      // A duel takes exactly two players, the host on the left, red base.
+      final players = {myId, for (final member in roster.value) member.id};
+      if (!duelNext.value || players.length != 2) {
+        return GameConfig.teamColors[1];
+      }
+      final host = id == myId ? isHost.value : _rosterMember(id)?.host;
+      return GameConfig.teamColors[host ?? false ? 1 : 2];
+    }
     if (teamsAhead) {
       final team = id == myId ? teamPick : _rosterMember(id)?.team ?? 0;
       return GameConfig.teamColors[team.clamp(0, 2)];
@@ -308,8 +319,8 @@ extension TankGameLobby on TankGame {
 
   Color _colorFor(String id) {
     final activeRound = round;
-    // Red against blue: the hull tells friend from foe.
-    if (activeRound != null && activeRound.teamMode) {
+    // Red against blue, and every defense: the hull tells friend from foe.
+    if (activeRound != null && (activeRound.teamMode || activeRound.defense)) {
       final team = activeRound.teamOf(id);
       if (team > 0) {
         return GameConfig.teamColors[team];
