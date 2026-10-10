@@ -84,10 +84,12 @@ class Env {
   static const shotWave = int.fromEnvironment('SHOT_WAVE', defaultValue: 3);
 
   /// Draws both touch sticks held over to one side while nobody touches
-  /// them, for the picture of the controls. The battle scene of
-  /// tool/store_shots.sh poses them as well.
+  /// them, for the picture of the controls. The battle and the phone
+  /// controller scenes of tool/store_shots.sh pose them as well.
   static bool get shotSticks =>
-      const bool.fromEnvironment('SHOT_STICKS') || shotScene == 'battle';
+      const bool.fromEnvironment('SHOT_STICKS') ||
+      shotScene == 'battle' ||
+      shotScene == 'pad';
 
   /// The scene tool/store_shots.sh asks a screenshot build for, passed as
   /// a launch argument (`-SHOT_SCENE battle`), which iOS, tvOS and macOS

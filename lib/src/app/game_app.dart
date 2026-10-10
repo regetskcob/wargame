@@ -39,6 +39,7 @@ import '../ui/widgets/tablet_scale.dart';
 import '../watch/watch_lobby.dart';
 import '../watch/watch_overlays.dart';
 import '../watch/watch_support.dart';
+import 'env.dart';
 import 'live_activity.dart';
 import 'overlay_ids.dart';
 import 'routes.dart';
@@ -77,6 +78,10 @@ class _GameAppState extends State<GameApp> {
     PadScreen.instance.game = game;
     unawaited(PadScreen.instance.resume());
     _second?.attach();
+    if (Env.shotScene == 'pad') {
+      // The store picture of the phone as a controller (shots.dart).
+      _openPad('PZGFKATZ');
+    }
   }
 
   /// A second player on a big screen (TV, browser, tablet), with a game of
