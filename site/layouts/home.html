@@ -52,11 +52,12 @@
   </section>
 
   {{- /* Every screen the game runs on, in the page's own words: the store
-     description is the iOS app's and leaves out the browser and the TV. */}}
+     description is the iOS app's and leaves out the browser, the TV and the
+     Mac. */}}
   <section class="section" id="devices">
     <h2 class="section-title">{{ i18n "devicesTitle" }}</h2>
     <div class="modes">
-      {{- range slice "web" "phone" "gamepad" "watch" "tv" }}
+      {{- range slice "web" "phone" "gamepad" "watch" "tv" "mac" }}
       <article class="mode">
         {{ partial "icon.html" . }}
         <h3>{{ upper (i18n (printf "device-%s" .)) }}</h3>
