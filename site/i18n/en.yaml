@@ -15,6 +15,17 @@ shot-03-geschuetze: Building guns at the base during an air raid
 shot-04-fahrzeuge: Choosing the vehicle and its camouflage
 shot-05-steuerung: Two sticks and aim assist in a town battle
 shot-06-modi: The start page with the four ways to play
+devicesTitle: On every screen, in one room
+device-web: In the browser
+device-web-text: Right away on any computer, nothing to install, no sign-up, with keyboard, controller or phone.
+device-phone: Phone and tablet
+device-phone-text: iPhone and iPad, Android phones and tablets soon on Google Play. Two thumb sticks that appear wherever your thumb lands, on iPhone and iPad also a game controller.
+device-gamepad: Phone as controller
+device-gamepad-text: Scan a QR code and your phone steers your tank in the browser, on a tablet or soon on the Apple TV. With two phones you play two on one screen.
+device-watch: Apple Watch
+device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself.
+device-tv: Apple TV · soon
+device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
 support: Support
 supportTitle: Support
 supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
