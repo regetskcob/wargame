@@ -42,6 +42,28 @@ class RoundStartPayload {
   final int startedAt;
   final List<String> participants;
 
+  /// How far a round start may lie from this device's clock. Real ones
+  /// start a countdown from now; device clocks drift by seconds, not
+  /// minutes. A start in 1970 would open the round with the zone already
+  /// closed, one in a year would hold everybody in the countdown.
+  static const maxClockGap = Duration(minutes: 5);
+
+  /// Tanks a round can hold with room to spare: a room of [maxPilots]
+  /// filled up with CPU tanks or a capture the flag crew. Anybody can send a
+  /// round start, and every name in it becomes a tank on every receiver.
+  static const maxTanks = 32;
+
+  /// Whether this could be a round a real game started at [now]
+  /// (milliseconds since the epoch).
+  bool plausibleAt(int now) =>
+      (startedAt - now).abs() <= maxClockGap.inMilliseconds &&
+      participants.isNotEmpty &&
+      participants.length <= maxTanks &&
+      bots.length <= maxTanks &&
+      teams.length <= maxTanks * 2 &&
+      lanes.length <= 2 &&
+      participants.every((id) => id.isNotEmpty && id.length <= 64);
+
   /// Team per player, 1 red and 2 blue. Empty when everybody plays alone.
   final Map<String, int> teams;
 

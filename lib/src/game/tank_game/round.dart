@@ -160,6 +160,9 @@ extension TankGameRound on TankGame {
   }
 
   void _onRoundStart(RoundStartPayload payload) {
+    if (!payload.plausibleAt(clock.now().millisecondsSinceEpoch)) {
+      return;
+    }
     // A real round beats watching an old one.
     if (replaying.value) {
       stopReplay();
@@ -561,6 +564,14 @@ extension TankGameRound on TankGame {
                   activeRound.isAlly(raw.id) ||
                   activeRound.participants.contains(raw.id))) ||
           _respawnedInFlag(activeRound, raw.id);
+      // A wave has a handful of tanks on the road at once; a flood of
+      // made up `td-` ids must not put hundreds on every screen.
+      if (joins &&
+          activeRound.defense &&
+          !activeRound.participants.contains(raw.id) &&
+          remoteTanks.length >= TankGame.maxRemoteTanks) {
+        return;
+      }
       if (joins) {
         activeRound.alive.add(raw.id);
         aliveCount.value = activeRound.alive.length;
@@ -621,6 +632,10 @@ extension TankGameRound on TankGame {
   }
 
   void _onDeath(DeathPayload payload) {
+    final tag = payload.round;
+    if (tag != null && !replaying.value && tag != round?.startedAt) {
+      return;
+    }
     if (round?.alive.contains(payload.id) != true ||
         !guard.allowDeath(payload.id)) {
       return;
@@ -636,7 +651,11 @@ extension TankGameRound on TankGame {
     }
     net.send(
       NetEvent.death,
-      DeathPayload(id: myId, killerId: killerId).toJson(),
+      DeathPayload(
+        id: myId,
+        killerId: killerId,
+        round: round?.startedAt,
+      ).toJson(),
     );
     _recordKill(myId, killerId);
     if (round?.respawns ?? false) {
@@ -762,7 +781,11 @@ extension TankGameRound on TankGame {
     }
     net.send(
       NetEvent.death,
-      DeathPayload(id: bot.playerId, killerId: killerId).toJson(),
+      DeathPayload(
+        id: bot.playerId,
+        killerId: killerId,
+        round: activeRound.startedAt,
+      ).toJson(),
     );
     _recordKill(bot.playerId, killerId);
     activeRound.markDead(bot.playerId);
@@ -786,8 +809,26 @@ extension TankGameRound on TankGame {
     _checkRoundEnd();
   }
 
-  void _onPeerLeft(String id) {
+  void _onPeerLeft(String id, {bool confirmed = false}) {
     if (replaying.value) {
+      return;
+    }
+    // A phone that switches networks drops out of the presence for a few
+    // seconds and comes back with the same id. In a running round that
+    // must not wreck its tank, its guns or, for the host of a defense, the
+    // whole base: only who is still gone after a grace counts as left.
+    final running = const {
+      GamePhase.countdown,
+      GamePhase.playing,
+      GamePhase.spectating,
+    }.contains(phase.value);
+    if (!confirmed && round != null && running) {
+      final during = round;
+      Future<void>.delayed(GameConfig.peerLeftGrace, () {
+        if (identical(round, during) && _rosterMember(id) == null) {
+          _onPeerLeft(id, confirmed: true);
+        }
+      });
       return;
     }
     final tank = remoteTanks.remove(id);

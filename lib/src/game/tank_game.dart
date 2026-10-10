@@ -344,6 +344,41 @@ class TankGame extends FlameGame
   /// The guns the enemy digs in belong to this id, an enemy's like the
   /// waves' `td-…`, and are run by the player who runs the waves.
   static const enemyGunOwner = 'td-g';
+
+  /// Guns, trenches and base guns one builder can have at most, with room
+  /// to spare: a message beyond it is a flood, not a build.
+  static const maxTowersPerBuilder = 40;
+
+  /// Remote tanks a defense round shows at once: six enemies a lane, the
+  /// comrades and the players, with plenty of room to spare.
+  static const maxRemoteTanks = 60;
+
+  /// Aircraft in the air at once, both sides, with room to spare.
+  static const maxAircraft = 30;
+
+  /// Drones in the air at once, the enemy's included, with room to spare.
+  static const maxDrones = 40;
+
+  /// How far from its tank a remote grenade may start: the barrel's end
+  /// plus a few frames of drive between state messages.
+  static const maxLaunchOffset = 160.0;
+
+  /// The shortest gap between two grenades of one remote player.
+  static const minGrenadeGap = Duration(milliseconds: 150);
+
+  /// How often and how far apart a close is checked against the host's
+  /// presence before it counts.
+  static const closeChecks = 4;
+  static const closeCheckGap = Duration(milliseconds: 1500);
+
+  /// The shortest gap between two troop orders of one duel player.
+  static const minTroopsGap = Duration(milliseconds: 800);
+
+  /// When each duel player last sent troops.
+  final _lastTroops = <String, DateTime>{};
+
+  /// When each remote player last launched a grenade.
+  final _lastGrenade = <String, DateTime>{};
   int _enemyGunCounter = 0;
 
   /// Seconds until the local tank is back after it was destroyed in a

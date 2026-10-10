@@ -67,8 +67,10 @@ class LobbyPresence {
         if (a.owner != b.owner) {
           return a.owner ? -1 : 1;
         }
-        // Clients from before the limit say nothing: they were there first.
-        final byTime = (a.joinedAt ?? 0).compareTo(b.joinedAt ?? 0);
+        // Without a plausible time (none, or one from before the game
+        // existed, which only a client posing as the first comer sends) a
+        // member counts as the last to come.
+        final byTime = _joined(a).compareTo(_joined(b));
         return byTime != 0 ? byTime : a.id.compareTo(b.id);
       });
     final kept = {for (final member in order.take(max)) member.id};
@@ -77,6 +79,14 @@ class LobbyPresence {
         if (kept.contains(member.id)) member,
     ];
   }
+
+  static int _joined(LobbyPresence member) {
+    final at = member.joinedAt;
+    return at == null || at < _gameBorn ? 1 << 53 : at;
+  }
+
+  /// 2025-01-01, before the first room of the game opened.
+  static const _gameBorn = 1735689600000;
 
   /// Longest call sign the game shows. Longer ones come only from clients
   /// that do not play by the rules and are cut.
@@ -161,6 +171,18 @@ class LobbyPresence {
   }
 }
 
-String _cut(String name) => name.length > LobbyPresence.maxName
-    ? name.substring(0, LobbyPresence.maxName)
-    : name;
+/// [name] as the game shows it: without control and invisible characters
+/// (a right to left override turns the names after it around, a line break
+/// stretches the roster), without blanks around it, and at most
+/// [LobbyPresence.maxName] characters, never cutting one in half.
+String cleanCallSign(String name) {
+  final clean = name.replaceAll(_hidden, '').trim();
+  final runes = clean.runes;
+  return runes.length > LobbyPresence.maxName
+      ? String.fromCharCodes(runes.take(LobbyPresence.maxName)).trim()
+      : clean;
+}
+
+final _hidden = RegExp(r'[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]', unicode: true);
+
+String _cut(String name) => cleanCallSign(name);

@@ -162,6 +162,7 @@ class TowerPayload {
     this.kind = 0,
     this.level = 1,
     this.hp,
+    this.from,
   });
 
   factory TowerPayload.fromJson(Map<String, dynamic> json) {
@@ -173,6 +174,7 @@ class TowerPayload {
       kind: json['kind'] as int? ?? 0,
       level: json['level'] as int? ?? 1,
       hp: (json['hp'] as num?)?.toDouble(),
+      from: json['from'] as String?,
     );
   }
 
@@ -195,6 +197,11 @@ class TowerPayload {
   /// it; 0 or less destroys it. Null when it is built or upgraded.
   final double? hp;
 
+  /// Who sent it, when that is not the builder: the host reporting damage.
+  /// Without it the builder's own game took the message for its own echo
+  /// and never learned that its gun was hit or gone.
+  final String? from;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -204,6 +211,7 @@ class TowerPayload {
       if (kind != 0) 'kind': kind,
       if (level != 1) 'level': level,
       if (hp != null) 'hp': hp,
+      if (from != null) 'from': from,
     };
   }
 }

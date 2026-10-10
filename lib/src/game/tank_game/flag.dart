@@ -126,7 +126,8 @@ extension TankGameFlag on TankGame {
     if (activeRound == null ||
         match == null ||
         !activeRound.flag ||
-        payload.id != activeRound.flagHost) {
+        payload.id != activeRound.flagHost ||
+        net.duplicateIds.contains(payload.id)) {
       return;
     }
     match.apply(payload);

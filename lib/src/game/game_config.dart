@@ -78,6 +78,10 @@ class GameConfig {
   /// their own (`pad_budget_test.dart`).
   static const padLoad = 32;
   static const silentTankTimeout = Duration(seconds: 8);
+
+  /// How long a player missing from the room's presence during a round has
+  /// to come back before they count as gone (a phone switching networks).
+  static const peerLeftGrace = Duration(seconds: 6);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
   static const remoteTeleportDistance = 200.0;
