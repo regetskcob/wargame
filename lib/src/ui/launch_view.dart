@@ -292,6 +292,8 @@ class _QuickStart extends StatelessWidget {
 }
 
 /// Invites a guest to sign in or create an account, with what it brings.
+/// Drawn like the controller box: a quiet dark box without a frame, so it
+/// does not compete with the mode cards, the arrow opens the account.
 class _GuestCard extends StatelessWidget {
   const _GuestCard({required this.game});
 
@@ -299,63 +301,58 @@ class _GuestCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final text = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          tr('DU SPIELST ALS GAST', 'YOU ARE PLAYING AS A GUEST'),
-          style: const TextStyle(
-            color: GameColors.amber,
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          tr(
-            'Mit Konto sammelst du EP, Rang und Abzeichen, schaltest '
-                'Fahrzeuge frei und spielst auf jedem Gerät weiter.',
-            'With an account you collect XP, rank and badges, unlock '
-                'vehicles and carry on on every device.',
-          ),
-          style: const TextStyle(fontSize: 14, height: 1.3),
-        ),
-      ],
-    );
-    final button = FilledButton.icon(
-      onPressed: () => AccountSheet.show(context, game),
-      icon: const Icon(Icons.login),
-      label: Text(tr('ANMELDEN', 'SIGN IN')),
-    );
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x33FFB300),
-        shape: GameShapes.card(edge: GameColors.amber),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-        // Upright phones put the button under the text, wider screens
-        // beside it.
-        child: LayoutBuilder(
-          builder: (context, box) => box.maxWidth < 480
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [text, const SizedBox(height: 10), button],
-                )
-              : Row(
+    return Material(
+      color: const Color(0x55000000),
+      borderRadius: BorderRadius.circular(10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => AccountSheet.show(context, game),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+          child: Row(
+            children: [
+              const Icon(Icons.login, color: GameColors.sand, size: 24),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(
-                      Icons.person_outline,
-                      color: GameColors.amber,
-                      size: 28,
+                    Text(
+                      tr(
+                        'ALS GAST · ANMELDEN ODER KONTO ANLEGEN',
+                        'GUEST · SIGN IN OR CREATE AN ACCOUNT',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1,
+                        color: GameColors.textDim,
+                      ),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(child: text),
-                    const SizedBox(width: 12),
-                    button,
+                    const SizedBox(height: 2),
+                    Text(
+                      tr(
+                        'Mit Konto sammelst du EP, Rang und Abzeichen, '
+                            'schaltest Fahrzeuge frei und spielst auf jedem '
+                            'Gerät weiter.',
+                        'With an account you collect XP, rank and badges, '
+                            'unlock vehicles and carry on on every device.',
+                      ),
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: GameColors.textDim,
+                      ),
+                    ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: tr('Anmelden', 'Sign in'),
+                onPressed: () => AccountSheet.show(context, game),
+                icon: const Icon(Icons.chevron_right, color: GameColors.sand),
+              ),
+            ],
+          ),
         ),
       ),
     );
