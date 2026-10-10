@@ -42,7 +42,8 @@ Herstellernamen.
 ## Icon neu erzeugen
 
 `store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
-Karte) und schreibt es nach `icon/`, ins iOS-Icon-Set und nach `web/`.
+Karte) und schreibt es nach `icon/`, in die Icon-Sets für iOS und macOS und
+nach `web/`.
 Danach `store/tool/android_icons.py` für Android und Google Play:
 
 ```sh

@@ -68,4 +68,26 @@ void main() {
     await tester.pump();
     expect(input.aimHeld, isFalse);
   });
+
+  testWidgets('the stick labels stay on screen', (tester) async {
+    tester.view
+      ..physicalSize = const Size(844, 390)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: TouchControls(
+            input: TouchInput(),
+            special: ValueNotifier<(SpecialWeapon, int)?>(null),
+          ),
+        ),
+      ),
+    );
+    for (final label in ['FAHREN', 'ZIELEN · FEUER']) {
+      final rect = tester.getRect(find.text(label));
+      expect(rect.left, greaterThanOrEqualTo(0), reason: label);
+      expect(rect.right, lessThanOrEqualTo(844), reason: label);
+    }
+  });
 }

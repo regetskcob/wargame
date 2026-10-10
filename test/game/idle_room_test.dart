@@ -67,6 +67,23 @@ void main() {
     expect(game.closedReason.value, isNull);
   });
 
+  test('a host closing the waiting room goes straight on to the start '
+      'page', () async {
+    final net = FakeNet();
+    final game = offlineGame(net: net)
+      ..onGameResize(Vector2(1280, 720))
+      ..chooseMode(GameMode.multi);
+    game.overlays
+      ..addEntry(OverlayIds.closed, (_, _) => const SizedBox())
+      ..addEntry(OverlayIds.lobby, (_, _) => const SizedBox());
+    expect(game.isHost.value, isTrue);
+
+    await game.closeRoom();
+    expect(game.phase.value, GamePhase.lobby, reason: 'no closed screen');
+    expect(game.choosingMode.value, isTrue);
+    expect(game.closedReason.value, isNull);
+  });
+
   test('the waiting room opens with the defaults, the settings on demand', () {
     final game = offlineGame()..chooseMode(GameMode.multi);
     expect(game.configuring.value, isFalse);
