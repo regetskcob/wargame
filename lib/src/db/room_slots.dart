@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../game/game_config.dart';
+import 'server_status.dart';
 
 /// Shares the project's Realtime budget between rooms and phone controllers
 /// (migrations 0015 and 0016). Realtime's limit counts for the whole
@@ -29,6 +30,12 @@ class RoomSlots {
   /// tell (offline, a database without the migration) nothing is held
   /// back.
   Future<bool> claim(String key, int messages) async {
+    // A link opens the room before the guest sign-in is through; a claim
+    // without a session was refused and then let in unchecked. It waits
+    // for the sign-in the start shares (`ServerStatus.ensureSession`).
+    if (!await ServerStatus.ensureSession(_client.auth)) {
+      return true;
+    }
     try {
       return await _client.rpc<bool>(
             'claim_load',
