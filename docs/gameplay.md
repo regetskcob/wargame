@@ -5,9 +5,11 @@ Everything the game does, with the numbers behind it. The short version is in th
 ## Getting in
 
 - The game opens right on the start page that picks single player,
-  multiplayer or defense, with the call sign at the top to see and change
-  it. Everybody starts as a guest; the account button next to it signs in
-  or registers with an e-mail address. Signing in with an address that has
+  multiplayer or defense, with the call sign at the top. It is changed in
+  the account sheet and only taken with the tick or Enter, which then says
+  "Saved". Everybody starts as a guest; instead of the rank card a guest
+  sees a card that invites them to sign in, and it and the account button
+  open the sheet that signs in or registers with an e-mail address. Signing in with an address that has
   no account yet creates one. Only a mail link that fails to sign in in
   this tab shows a welcome page first, which explains why and takes the
   code from the mail instead.

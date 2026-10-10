@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../db/room_slots.dart';
 import '../db/server_status.dart';
+import '../app/env.dart';
 import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
@@ -150,7 +151,14 @@ class LaunchView extends StatelessWidget {
                 ),
               ),
       ),
-      PilotCard(progress: game.progress),
+      // A guest has no rank to show yet, so the way to one takes its place:
+      // the profile button alone went unnoticed.
+      ValueListenableBuilder(
+        valueListenable: game.accounts.user,
+        builder: (context, _, _) => Env.accounts && game.accounts.isGuest
+            ? _GuestCard(game: game)
+            : PilotCard(progress: game.progress),
+      ),
       const SizedBox(height: 20),
       // The television walks its menu with the remote, one more stop
       // there costs more than it saves.
@@ -279,6 +287,77 @@ class _QuickStart extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+/// Invites a guest to sign in or create an account, with what it brings.
+class _GuestCard extends StatelessWidget {
+  const _GuestCard({required this.game});
+
+  final TankGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          tr('DU SPIELST ALS GAST', 'YOU ARE PLAYING AS A GUEST'),
+          style: const TextStyle(
+            color: GameColors.amber,
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.5,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          tr(
+            'Mit Konto sammelst du EP, Rang und Abzeichen, schaltest '
+                'Fahrzeuge frei und spielst auf jedem Gerät weiter.',
+            'With an account you collect XP, rank and badges, unlock '
+                'vehicles and carry on on every device.',
+          ),
+          style: const TextStyle(fontSize: 14, height: 1.3),
+        ),
+      ],
+    );
+    final button = FilledButton.icon(
+      onPressed: () => AccountSheet.show(context, game),
+      icon: const Icon(Icons.login),
+      label: Text(tr('ANMELDEN', 'SIGN IN')),
+    );
+    return DecoratedBox(
+      decoration: ShapeDecoration(
+        color: const Color(0x33FFB300),
+        shape: GameShapes.card(edge: GameColors.amber),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+        // Upright phones put the button under the text, wider screens
+        // beside it.
+        child: LayoutBuilder(
+          builder: (context, box) => box.maxWidth < 480
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [text, const SizedBox(height: 10), button],
+                )
+              : Row(
+                  children: [
+                    const Icon(
+                      Icons.person_outline,
+                      color: GameColors.amber,
+                      size: 28,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(child: text),
+                    const SizedBox(width: 12),
+                    button,
+                  ],
+                ),
+        ),
+      ),
     );
   }
 }

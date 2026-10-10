@@ -67,6 +67,10 @@ class AccountSheet extends StatefulWidget {
 class _AccountSheetState extends State<AccountSheet> {
   var _busy = false;
   String? _error;
+
+  /// Set once a new call sign is taken, so the field can say so until the
+  /// next edit.
+  var _nameSaved = false;
   late final _name = TextEditingController(text: widget.game.myName);
 
   TankGame get _game => widget.game;
@@ -74,15 +78,24 @@ class _AccountSheetState extends State<AccountSheet> {
   @override
   void initState() {
     super.initState();
+    _shownName = _game.myName;
     _game.pilotVersion.addListener(_reloadName);
   }
 
-  /// Signing in here brings the account's call sign along.
+  /// The call sign the field was last filled with.
+  late String _shownName;
+
+  /// Signing in here brings the account's call sign along, unless the
+  /// player is in the middle of typing a new one.
   void _reloadName() {
-    if (_name.text.trim() != _game.myName) {
-      _name.text = _game.myName;
+    if (_name.text.trim() == _shownName) {
+      _name.text = _shownName = _game.myName;
     }
   }
+
+  bool get _nameDirty => _name.text.trim() != _game.myName;
+
+  bool get _nameValid => _name.text.trim().length >= 2;
 
   @override
   void dispose() {
@@ -91,12 +104,16 @@ class _AccountSheetState extends State<AccountSheet> {
     super.dispose();
   }
 
-  /// Takes the call sign while typing, the start page and the waiting
-  /// room behind the sheet follow along. An empty field keeps the old one.
-  void _rename(String value) {
-    if (value.trim().isNotEmpty) {
-      _game.claimCallSign(value);
+  /// Takes the call sign only on the save button or Enter: a name others
+  /// see should not change with every key, and the player wants to know
+  /// it was kept.
+  void _rename() {
+    if (!_nameDirty || !_nameValid) {
+      return;
     }
+    _game.claimCallSign(_name.text);
+    _name.text = _shownName = _game.myName;
+    setState(() => _nameSaved = true);
   }
 
   Future<void> _delete() async {
@@ -164,18 +181,57 @@ class _AccountSheetState extends State<AccountSheet> {
     final accounts = _game.accounts;
     // Name, language and controllers, then the account itself.
     final left = <Widget>[
-      TextField(
-        controller: _name,
-        maxLength: 16,
-        decoration: InputDecoration(
-          labelText: tr('RUFNAME', 'CALL SIGN'),
-          helperText: tr(
-            'Öffentlich sichtbar, zum Beispiel in der '
-                'Bestenliste',
-            'Publicly visible, for example on the leaderboard',
-          ),
-        ),
-        onChanged: _rename,
+      ValueListenableBuilder<TextEditingValue>(
+        valueListenable: _name,
+        builder: (context, _, _) {
+          final dirty = _nameDirty;
+          final saved = _nameSaved && !dirty;
+          return TextField(
+            controller: _name,
+            maxLength: 16,
+            textInputAction: TextInputAction.done,
+            decoration: InputDecoration(
+              labelText: tr('RUFNAME', 'CALL SIGN'),
+              helperText: saved
+                  ? tr('Gespeichert', 'Saved')
+                  : dirty
+                  ? tr(
+                      'Mit dem Haken oder Enter speichern',
+                      'Save with the tick or Enter',
+                    )
+                  : tr(
+                      'Öffentlich sichtbar, zum Beispiel in der '
+                          'Bestenliste',
+                      'Publicly visible, for example on the leaderboard',
+                    ),
+              helperStyle: saved
+                  ? const TextStyle(color: GameColors.amber)
+                  : null,
+              // Always there, so the field does not change width when it
+              // turns into a button.
+              suffixIcon: saved
+                  ? const Icon(Icons.check_circle, color: GameColors.amber)
+                  : IconButton(
+                      tooltip: tr('Rufnamen speichern', 'Save call sign'),
+                      onPressed: dirty && _nameValid ? _rename : null,
+                      // Dim until there is something to save.
+                      style: IconButton.styleFrom(
+                        foregroundColor: GameColors.amber,
+                        disabledForegroundColor: GameColors.textDim.withAlpha(
+                          90,
+                        ),
+                      ),
+                      icon: const Icon(Icons.check),
+                    ),
+            ),
+            onChanged: (_) {
+              if (_nameSaved) {
+                setState(() => _nameSaved = false);
+              }
+            },
+            onSubmitted: (_) => _rename(),
+          );
+        },
       ),
       const SizedBox(height: 12),
       Text(
