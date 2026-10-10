@@ -99,7 +99,8 @@ Future<void> main() async {
   final pad = padCodeFrom(padCodeOfPage() ?? '');
   if (pad != null) {
     await session;
-    runApp(ControllerApp(code: pad));
+    final name = await ControllerApp.padName(Supabase.instance.client);
+    runApp(ControllerApp(code: pad, name: name));
     return;
   }
   unawaited(session);

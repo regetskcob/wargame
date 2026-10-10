@@ -190,7 +190,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   phone or tablet brings the touch sticks back over a connected controller
   (`TankGame.touchOverPad`), until the controller is used again. On a
   split screen the second half wears the same plates as the first and goes
-  by the name of the phone that steers it, else PLAYER 2.
+  by the call sign of the phone that steers it (the account's when one is
+  signed in there, in the browser also the one it last played under), else
+  PLAYER 2.
 - An Apple TV app, played with the Siri Remote or a controller, with menus
   that fit the television without scrolling, see [Apple TV](platforms.md#apple-tv).
 - The Apple Vision Pro, running the iPad app: look at a spot and pinch to
