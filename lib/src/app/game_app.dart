@@ -78,7 +78,8 @@ class _GameAppState extends State<GameApp> {
     _second?.attach();
   }
 
-  /// A second player on the Apple TV, with a game of their own.
+  /// A second player on a big screen (TV, browser, tablet), with a game of
+  /// their own.
   late final SecondPlayer? _second = padsSupported
       ? SecondPlayer(() => game)
       : null;

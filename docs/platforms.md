@@ -154,7 +154,8 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Two players** on the Apple TV, in the browser and on an iPad: with two
+**Two players** on the Apple TV, in the browser and on an iPad or Android
+tablet: with two
 controllers in (or phones, the Siri Remote counting as one, handed out
 controllers first, then phones, the remote last), the second player gets a game of their own (`lib/src/tv/second_player.dart`) that
 joins the first player's room. Rounds then play on a split screen, side by side
@@ -163,7 +164,10 @@ or, on a tablet held upright, one above the other, each half from its own tank
 player puts both against the CPU tanks, multiplayer and defense take both
 pilots along. The browser reads controllers through its Gamepad API
 (`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
-pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`).
+pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
+Android from the key and motion events of its gamepads, which `MainActivity`
+hands to `android/.../GamepadPlugin.kt` (same channels and state as on iOS;
+not yet tried with a real controller).
 Phones are too small for two halves. One controller alone, a phone or a
 game controller, steers the own tank in every mode, and the touch sticks of
 a tablet step aside for it.

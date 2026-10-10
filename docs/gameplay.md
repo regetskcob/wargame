@@ -126,8 +126,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   shows the two sticks, the special weapon, the items and, in a defense
   round, the gun buttons, and feels hits as a buzz. Without the app the
   phone's browser does the same.
-- Game controllers: one steers the own tank in the browser, on an iPad and
-  on the Apple TV, as a paired phone does; two play two on one screen.
+- Game controllers: one steers the own tank in the browser, on iPhone, iPad,
+  Android and the Apple TV, as a paired phone does; two play two on one
+  screen of a computer, tablet or television.
 - An Apple TV app, played with the Siri Remote or a controller, with menus
   that fit the television without scrolling, see [Apple TV](platforms.md#apple-tv).
 
