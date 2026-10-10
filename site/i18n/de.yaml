@@ -1,7 +1,8 @@
 play: Spielen
 playHint: Kostenlos im Browser, ohne Anmeldung
 otherLanguage: English
-headerAlt: Panzergefecht auf iPhone, iPad, Apple TV mit Handy als Controller und Apple Watch
+headerAlt: Panzergefecht auf Laptop, iPad, Android-Tablet, Fernseher mit Handy als Controller, iPhone, Android-Handy, Wear-OS-Uhr und Apple Watch
+platformsNote: Heute im Browser, auf iPhone, iPad und Apple Watch. Android, Wear OS, Mac und Apple TV folgen.
 imprint: Impressum
 privacy: Datenschutz
 licenses: Lizenzen
@@ -22,7 +23,7 @@ device-phone-text: iPhone und iPad, Android-Handys und -Tablets bald bei Google 
 device-gamepad: Handy als Controller
 device-gamepad-text: QR-Code scannen, und dein Handy steuert deinen Panzer im Browser, auf dem Tablet oder bald auf dem Apple TV. Mit zwei Handys spielt ihr zu zweit an einem Bildschirm.
 device-watch: Apple Watch
-device-watch-text: Ein eigenes Spiel am Handgelenk. Die Digital Crown lenkt, der Panzer zielt und feuert selbst.
+device-watch-text: Ein eigenes Spiel am Handgelenk. Die Digital Crown lenkt, der Panzer zielt und feuert selbst. Auf runden Wear-OS-Uhren bald bei Google Play.
 device-tv: Apple TV · bald
 device-tv-text: Auf dem großen Bildschirm mit Siri Remote, Controller oder Handy, zu zweit im Split-Screen oder im Stützpunkt-Duell. Kommt bald in den App Store.
 device-mac: Mac · bald

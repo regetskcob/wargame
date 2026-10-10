@@ -17,6 +17,7 @@ import 'src/net/room.dart';
 import 'src/tv/tv_input.dart';
 import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
+import 'src/vision/vision_support.dart';
 import 'src/watch/wear_crown.dart';
 
 Future<void> main() async {
@@ -29,6 +30,8 @@ Future<void> main() async {
   await detectWear();
   // So does a television, with the screens of the Apple TV.
   await detectTv();
+  // An Apple Vision Pro runs the iPad app, aiming where the player looks.
+  await detectVision();
   await Env.loadShots();
   if (!kIsWeb &&
       !onTv &&
@@ -43,8 +46,10 @@ Future<void> main() async {
         view.physicalSize.shortestSide / view.devicePixelRatio >=
         tabletShortSide;
     await SystemChrome.setPreferredOrientations([
-      // Store pictures of tablets are taken sideways (tool/store_shots.sh).
-      if (!tablet || Env.shotScene == null) DeviceOrientation.portraitUp,
+      // Store pictures of tablets and of the phone as a controller are
+      // taken sideways (tool/store_shots.sh).
+      if (!(tablet || Env.shotScene == 'pad') || Env.shotScene == null)
+        DeviceOrientation.portraitUp,
       if (tablet && Env.shotScene == null) DeviceOrientation.portraitDown,
       DeviceOrientation.landscapeLeft,
       DeviceOrientation.landscapeRight,

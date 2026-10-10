@@ -46,14 +46,14 @@ class VitalsPlate extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _line(
-              Icons.health_and_safety,
+              Icons.health_and_safety_outlined,
               armour,
               armour > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
               '${hp.ceil().clamp(0, maxHp.ceil())}',
             ),
             if (!endless)
               _line(
-                Icons.inventory_2,
+                Icons.inventory_2_outlined,
                 shells,
                 ammo == 0
                     ? GameColors.danger
@@ -64,7 +64,7 @@ class VitalsPlate extends StatelessWidget {
               ),
             if (tank != null)
               _line(
-                Icons.local_gas_station,
+                Icons.local_gas_station_outlined,
                 tank.clamp(0.0, 1.0),
                 tank <= 0
                     ? GameColors.danger

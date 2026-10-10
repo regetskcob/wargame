@@ -17,7 +17,7 @@ class LanguageButton extends StatelessWidget {
           message: next.label,
           child: TextButton.icon(
             onPressed: () => L10n.set(next),
-            icon: const Icon(Icons.language, size: 20),
+            icon: const Icon(Icons.language_outlined, size: 20),
             label: Text(
               lang.code,
               style: const TextStyle(

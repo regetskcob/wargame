@@ -18,20 +18,17 @@ class TutorialButton extends StatelessWidget {
       builder: (context, done, _) => done
           ? TextButton.icon(
               onPressed: game.showTutorial,
-              icon: const Icon(Icons.school, size: 18),
+              icon: const Icon(Icons.school_outlined, size: 18),
               label: Text(tr('EINWEISUNG', 'BRIEFING')),
             )
           : OutlinedButton.icon(
               onPressed: game.showTutorial,
               style: OutlinedButton.styleFrom(
                 foregroundColor: GameColors.amber,
-                side: const BorderSide(color: GameColors.amber, width: 1.5),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 10,
-                ),
+                side: const BorderSide(color: GameColors.amber),
+                padding: const EdgeInsets.symmetric(horizontal: 14),
               ),
-              icon: const Icon(Icons.school, size: 18),
+              icon: const Icon(Icons.school_outlined, size: 18),
               label: Text(tr('EINWEISUNG', 'BRIEFING')),
             ),
     );

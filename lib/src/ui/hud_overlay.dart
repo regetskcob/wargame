@@ -228,6 +228,7 @@ class _HudOverlayState extends State<HudOverlay> {
                       input: game.touch,
                       special: game.specialNotifier,
                       assist: game.difficulty != BotLevel.hard,
+                      onLook: game.lookAt,
                     ),
             ),
           SafeArea(
@@ -808,7 +809,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               credits >= near.kind.upgradeCost(near.level)
           ? () => game.upgradeTower(near)
           : null,
-      icon: const Icon(Icons.upgrade, size: 16),
+      icon: const Icon(Icons.upgrade_outlined, size: 16),
       label: Text(
         !near.kind.upgradable
             ? tr('${near.kind.label} BESETZT', '${near.kind.label} OCCUPIED')
@@ -945,7 +946,7 @@ class _DefensePanelState extends State<_DefensePanel> {
     return FilledButton.icon(
       style: _buttonStyle,
       onPressed: game.callWaveNow,
-      icon: const Icon(Icons.fast_forward, size: 16),
+      icon: const Icon(Icons.fast_forward_outlined, size: 16),
       label: Text(
         touch || steeredByPad(game)
             ? tr('WELLE JETZT', 'WAVE NOW')
@@ -1052,7 +1053,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         final withdraw = OutlinedButton.icon(
           style: _buyStyle(GameColors.sand),
           onPressed: game.withdrawDefense,
-          icon: const Icon(Icons.flag, size: 16),
+          icon: const Icon(Icons.flag_outlined, size: 16),
           label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
         );
         final children = <Widget>[];
@@ -1098,7 +1099,10 @@ class _DefensePanelState extends State<_DefensePanel> {
                         FilledButton.icon(
                           style: _buttonStyle,
                           onPressed: game.extendDefense,
-                          icon: const Icon(Icons.all_inclusive, size: 16),
+                          icon: const Icon(
+                            Icons.all_inclusive_outlined,
+                            size: 16,
+                          ),
                           label: Text(
                             tr('VERLÄNGERN', 'EXTEND'),
                             style: _small,
@@ -1205,7 +1209,11 @@ class _DefensePanelState extends State<_DefensePanel> {
               Tooltip(
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
-                child: const Icon(Icons.flag, size: 12, color: GameColors.sand),
+                child: const Icon(
+                  Icons.flag_outlined,
+                  size: 12,
+                  color: GameColors.sand,
+                ),
               ),
               const SizedBox(width: 4),
               bar,

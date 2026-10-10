@@ -93,4 +93,24 @@ void main() {
       findsOneWidget,
     );
   });
+
+  testWidgets('closing the sheet while typing lets go of the keyboard', (
+    tester,
+  ) async {
+    final game = offlineGame()..myName = 'Panzer-1234';
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: AccountButton(game: game)),
+      ),
+    );
+    await tester.tap(find.byType(AccountButton));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextField, 'RUFNAME'));
+    await tester.pump();
+    expect(tester.testTextInput.isVisible, isTrue);
+
+    await tester.tap(find.byTooltip('Schließen'));
+    await tester.pumpAndSettle();
+    expect(tester.testTextInput.isVisible, isFalse);
+  });
 }

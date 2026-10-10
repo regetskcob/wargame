@@ -3,9 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/special_weapon.dart';
 import 'package:wargame/src/game/touch_input.dart';
 import 'package:wargame/src/ui/widgets/touch_controls.dart';
+import 'package:wargame/src/vision/vision_support.dart';
 
 void main() {
-  Future<TouchInput> pump(WidgetTester tester, {bool assist = true}) async {
+  Future<TouchInput> pump(
+    WidgetTester tester, {
+    bool assist = true,
+    ValueChanged<Offset>? onLook,
+  }) async {
     tester.view
       ..physicalSize = const Size(400, 800)
       ..devicePixelRatio = 1;
@@ -18,6 +23,7 @@ void main() {
             input: input,
             special: ValueNotifier<(SpecialWeapon, int)?>(null),
             assist: assist,
+            onLook: onLook,
           ),
         ),
       ),
@@ -95,5 +101,58 @@ void main() {
       expect(rect.left, greaterThanOrEqualTo(0), reason: label);
       expect(rect.right, lessThanOrEqualTo(844), reason: label);
     }
+  });
+
+  group('on a Vision Pro', () {
+    setUp(() => onVisionForTesting = true);
+    tearDown(() => onVisionForTesting = false);
+
+    testWidgets('a pinch aims where the player looks and fires while held', (
+      tester,
+    ) async {
+      Offset? looked;
+      final input = await pump(tester, onLook: (at) => looked = at);
+      expect(find.text('ZIELEN · FEUER'), findsNothing);
+      expect(find.text('HINSEHEN · PINCH'), findsOneWidget);
+
+      final pinch = await tester.startGesture(const Offset(300, 150));
+      await tester.pump();
+      expect(looked, const Offset(300, 150));
+      // The game aims at the point itself, not with a stick angle.
+      expect(input.aim, isNull);
+      expect(input.aimHeld && input.aimFire, isTrue);
+
+      // The other hand pinches too; letting go of one keeps firing.
+      final second = await tester.startGesture(const Offset(320, 300));
+      await pinch.up();
+      await tester.pump();
+      expect(input.aimFire, isTrue);
+      await second.up();
+      await tester.pump();
+      expect(input.aimFire || input.aimHeld, isFalse);
+    });
+
+    testWidgets('a pinch in the lower left still drives', (tester) async {
+      Offset? looked;
+      final input = await pump(tester, onLook: (at) => looked = at);
+      final gesture = await tester.startGesture(const Offset(90, 600));
+      await gesture.moveBy(const Offset(60, 0));
+      await tester.pump();
+      expect(input.drive, isNotNull);
+      expect(looked, isNull);
+      expect(input.aimFire, isFalse);
+      await gesture.up();
+    });
+
+    testWidgets('without a game the turret points from the middle', (
+      tester,
+    ) async {
+      final input = await pump(tester);
+      final pinch = await tester.startGesture(const Offset(370, 400));
+      await tester.pump();
+      // Straight to the right of the middle is a quarter turn.
+      expect(input.aim, closeTo(1.57, 0.1));
+      await pinch.up();
+    });
   });
 }

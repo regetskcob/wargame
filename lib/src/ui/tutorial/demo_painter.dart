@@ -456,7 +456,7 @@ class DemoPainter extends CustomPainter {
     _roundButton(
       canvas,
       _assistButton,
-      Icons.gps_fixed,
+      Icons.gps_fixed_outlined,
       tr('ZIELHILFE', 'AIM ASSIST'),
       on ? GameColors.amber : GameColors.textDim,
       lit: on,
@@ -670,7 +670,13 @@ class DemoPainter extends CustomPainter {
         ..strokeWidth = 2
         ..color = GameColors.sand,
     );
-    _icon(canvas, base.center, Icons.fort, _tankSize * 0.6, GameColors.sand);
+    _icon(
+      canvas,
+      base.center,
+      Icons.fort_outlined,
+      _tankSize * 0.6,
+      GameColors.sand,
+    );
 
     final pos = Offset(_w * 0.34, roadY + _tankSize * 1.1);
     final gun = Offset(_w * 0.5, roadY + _tankSize * 0.9);

@@ -152,7 +152,11 @@ class _PilotCardState extends State<PilotCard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.military_tech, size: 14, color: GameColors.sand),
+              const Icon(
+                Icons.military_tech_outlined,
+                size: 14,
+                color: GameColors.sand,
+              ),
               const SizedBox(width: 3),
               Text(
                 '$earned/${Achievement.all.length}',
@@ -164,7 +168,9 @@ class _PilotCardState extends State<PilotCard> {
                 ),
               ),
               Icon(
-                _badgesOpen ? Icons.expand_less : Icons.expand_more,
+                _badgesOpen
+                    ? Icons.expand_less_outlined
+                    : Icons.expand_more_outlined,
                 size: 16,
                 color: GameColors.sand,
               ),
@@ -246,7 +252,7 @@ class BadgeChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              earned ? Icons.military_tech : Icons.lock_outline,
+              earned ? Icons.military_tech_outlined : Icons.lock_outline,
               size: 13,
               color: color,
             ),

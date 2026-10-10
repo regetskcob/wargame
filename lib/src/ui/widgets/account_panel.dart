@@ -7,7 +7,6 @@ import '../../db/account_service.dart';
 import '../../net/room.dart';
 import '../theme.dart';
 import 'choice_row.dart';
-import 'panel.dart';
 import '../../l10n/l10n.dart';
 
 /// Guest or lasting account: secure the guest account by e-mail or with a
@@ -292,10 +291,11 @@ class _AccountPanelState extends State<AccountPanel> {
             children: [..._guest(context), ..._status()],
           );
         }
+        // A quiet dark box without a frame, like the controllers below.
         return DecoratedBox(
-          decoration: ShapeDecoration(
-            color: const Color(0x44000000),
-            shape: GameShapes.card(),
+          decoration: BoxDecoration(
+            color: const Color(0x55000000),
+            borderRadius: BorderRadius.circular(10),
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -317,7 +317,9 @@ class _AccountPanelState extends State<AccountPanel> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            guest ? Icons.person_outline : Icons.verified_user,
+                            guest
+                                ? Icons.person_outline
+                                : Icons.verified_user_outlined,
                             size: 18,
                             color: guest
                                 ? GameColors.textDim
@@ -344,7 +346,10 @@ class _AccountPanelState extends State<AccountPanel> {
                           child: Text(
                             _open
                                 ? tr('SCHLIESSEN', 'CLOSE')
-                                : tr('SICHERN / ANMELDEN', 'SECURE / SIGN IN'),
+                                : tr(
+                                    'REGISTRIEREN / ANMELDEN',
+                                    'REGISTER / SIGN IN',
+                                  ),
                           ),
                         )
                       else
@@ -452,12 +457,20 @@ class _AccountPanelState extends State<AccountPanel> {
           ),
           const SizedBox(height: 4),
         ],
-        TextField(
-          controller: _email,
-          keyboardType: TextInputType.emailAddress,
-          autofillHints: const [AutofillHints.email],
-          decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
-          onSubmitted: (_) => _sendMail(),
+        // In a group of its own, without autocorrect and capitals: only
+        // then do iOS and Android offer the saved address above the
+        // keyboard.
+        AutofillGroup(
+          child: TextField(
+            controller: _email,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.send,
+            autofillHints: const [AutofillHints.email],
+            autocorrect: false,
+            textCapitalization: TextCapitalization.none,
+            decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
+            onSubmitted: (_) => _sendMail(),
+          ),
         ),
         SizedBox(height: fresh ? 16 : 8),
         Wrap(
@@ -469,7 +482,7 @@ class _AccountPanelState extends State<AccountPanel> {
               child: Text(switch ((_signIn, fresh)) {
                 (true, _) => tr('ANMELDELINK SENDEN', 'SEND SIGN-IN LINK'),
                 (false, true) => tr('KONTO ANLEGEN', 'CREATE ACCOUNT'),
-                (false, false) => tr('KONTO SICHERN', 'SECURE ACCOUNT'),
+                (false, false) => tr('REGISTRIEREN', 'REGISTER'),
               }),
             ),
             for (final (provider, label) in widget.accounts.providers.value)
@@ -524,8 +537,8 @@ class _AccountPanelState extends State<AccountPanel> {
           child: Text(
             _signIn
                 ? tr(
-                    'Noch kein Konto? Gastkonto sichern',
-                    'No account yet? Secure your guest account',
+                    'Noch kein Konto? Registrieren',
+                    'No account yet? Register',
                   )
                 : tr(
                     'Schon ein Konto? Anmelden',

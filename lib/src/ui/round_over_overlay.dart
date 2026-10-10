@@ -214,7 +214,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                 children: [
                   FilledButton.icon(
                     onPressed: host ? game.rematch : null,
-                    icon: const Icon(Icons.replay),
+                    icon: const Icon(Icons.replay_outlined),
                     label: Text(
                       host
                           ? tr('NEUES SPIEL', 'NEW GAME')

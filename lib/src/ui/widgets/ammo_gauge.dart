@@ -46,7 +46,7 @@ class AmmoGauge extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.inventory_2, size: 16, color: color),
+                Icon(Icons.inventory_2_outlined, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   endless
@@ -101,7 +101,7 @@ class FuelGauge extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.local_gas_station, size: 16, color: color),
+                Icon(Icons.local_gas_station_outlined, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   fuel <= 0
@@ -152,7 +152,7 @@ class SpecialPlate extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond, size: 16, color: weapon.color),
+          Icon(Icons.diamond_outlined, size: 16, color: weapon.color),
           const SizedBox(width: 8),
           Text(
             '${weapon.label}  ×$charges',

@@ -46,16 +46,13 @@ class TankChoice extends StatelessWidget {
       child: Container(
         width: width,
         padding: const EdgeInsets.symmetric(vertical: 8),
-        decoration: ShapeDecoration(
-          color: selected ? const Color(0x33FFB300) : const Color(0x55000000),
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            // The same width for all: a thicker border would make the
-            // selected card bigger than the others.
-            side: BorderSide(
-              color: selected ? GameColors.amber : GameColors.oliveLight,
-              width: 2,
-            ),
+        // No frame for the others, a thin amber line and tint for the
+        // chosen one. The line is always there, so the cards stay one size.
+        decoration: BoxDecoration(
+          color: selected ? const Color(0x26FFB300) : const Color(0x33000000),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: selected ? GameColors.amber : Colors.transparent,
           ),
         ),
         child: Column(
@@ -106,7 +103,7 @@ class TankChoice extends StatelessWidget {
           const Positioned(
             right: 8,
             top: 8,
-            child: Icon(Icons.lock, size: 18, color: GameColors.amber),
+            child: Icon(Icons.lock_outlined, size: 18, color: GameColors.amber),
           ),
         ],
       ),

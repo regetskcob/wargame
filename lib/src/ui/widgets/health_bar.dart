@@ -24,7 +24,7 @@ class HealthBar extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.health_and_safety, size: 16, color: color),
+                Icon(Icons.health_and_safety_outlined, size: 16, color: color),
                 const SizedBox(width: 4),
                 Text(
                   tr(

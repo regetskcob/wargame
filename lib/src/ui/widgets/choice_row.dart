@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../theme.dart';
 
-/// Options laid out as wrapping, beveled chips. Unlike a segmented button the
+/// Options laid out as wrapping chips. Unlike a segmented button the
 /// labels may sit on several lines on a narrow screen without breaking words.
 class ChoiceRow<T> extends StatelessWidget {
   const ChoiceRow({
@@ -57,24 +57,27 @@ class ChoiceRow<T> extends StatelessWidget {
         constraints: BoxConstraints(minHeight: minHeight),
         alignment: expand ? Alignment.center : null,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        // Idle choices are a thin line only, the chosen one a line and a
+        // tint in amber.
         decoration: ShapeDecoration(
-          color: on ? const Color(0x33FFB300) : const Color(0x44000000),
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-            side: BorderSide(
-              color: on ? GameColors.amber : GameColors.oliveLight,
-              width: on ? 2 : 1.5,
-            ),
+          color: on ? const Color(0x22FFB300) : null,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+            side: on ? const BorderSide(color: GameColors.amber) : hairline,
           ),
         ),
-        child: Text(
-          label,
-          textAlign: expand ? TextAlign.center : null,
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1,
-            color: color ?? (on ? GameColors.amber : GameColors.text),
+        // Centred on the height, which can be more than one line of text.
+        child: Align(
+          widthFactor: expand ? null : 1,
+          child: Text(
+            label,
+            textAlign: expand ? TextAlign.center : null,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: color ?? (on ? GameColors.amber : GameColors.text),
+            ),
           ),
         ),
       ),

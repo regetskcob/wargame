@@ -23,7 +23,7 @@ tvos_flutter="$HOME/development/flutter-tvos/bin"
 
 # <raw name>:<scene> per device; PHONE_SCENES, TABLET_SCENES, TV_SCENES,
 # MAC_SCENES and SHOT_LANGS (e.g. "en:en-US") retake only some.
-phone_scenes="${PHONE_SCENES:-i_battle:battle i_defense:defense i_lobby:lobby i_menu:menu}"
+phone_scenes="${PHONE_SCENES:-i_battle:battle i_defense:defense i_lobby:lobby i_menu:menu i_pad:pad}"
 tablet_scenes="${TABLET_SCENES:-p_battle:battle p_defense:defense p_room:room}"
 tv_scenes="${TV_SCENES:-tv_battle:battle tv_defense:defense}"
 mac_scenes="${MAC_SCENES:-m_battle:battle m_defense:defense m_room:room}"

@@ -57,7 +57,7 @@ void main() {
   testWidgets('copy and share sit side by side in the invite', (tester) async {
     await show(tester, RoomInvite(game: offlineGame()));
     final copy = tester.getRect(find.text('KOPIEREN'));
-    final share = tester.getRect(find.byIcon(Icons.ios_share));
+    final share = tester.getRect(find.byIcon(Icons.ios_share_outlined));
     expect(share.center.dy, closeTo(copy.center.dy, 1));
     expect(find.text('TEILEN'), findsNothing);
     // Privat and public split the full width below, all at one height.

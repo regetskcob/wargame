@@ -26,7 +26,7 @@ class LeaveRoundButton extends StatelessWidget {
           : tr('Runde verlassen (Esc)', 'Leave round (Esc)'),
       color: GameColors.textDim.withValues(alpha: 0.7),
       onPressed: () => game.leaveAsked.value = true,
-      icon: const Icon(Icons.logout),
+      icon: const Icon(Icons.logout_outlined),
     );
   }
 }

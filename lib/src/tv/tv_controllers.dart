@@ -39,15 +39,15 @@ class TvControllers extends StatelessWidget {
                   for (final (i, pad) in TvInput.instance.pads.indexed)
                     _Chip(
                       icon: pad.kind == TvPadKind.remote
-                          ? Icons.settings_remote
-                          : Icons.sports_esports,
+                          ? Icons.settings_remote_outlined
+                          : Icons.sports_esports_outlined,
                       label:
                           '${i + 1} · '
                           '${pad.kind == TvPadKind.remote ? remoteName : 'Controller'}',
                     ),
                   for (final (_, name) in PadScreen.instance.phones.value)
                     _Chip(
-                      icon: Icons.smartphone,
+                      icon: Icons.smartphone_outlined,
                       label: name.isEmpty ? tr('Handy', 'Phone') : name,
                     ),
                   if (TvInput.instance.pads.isEmpty &&

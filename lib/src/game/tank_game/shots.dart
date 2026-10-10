@@ -15,6 +15,7 @@ extension TankGameShots on TankGame {
     'room': 8,
     'battle': 14,
     'defense': 12,
+    'pad': 5,
   };
 
   Future<void> _stageShot(String scene) async {
@@ -42,6 +43,9 @@ extension TankGameShots on TankGame {
       case 'defense':
         chooseMode(GameMode.defense);
         startRound();
+      case 'pad':
+      // The app shell opens the phone controller over the game, see
+      // GameApp.initState.
     }
     await Future<void>.delayed(Duration(seconds: _settle[scene] ?? 6));
     // The account may have loaded its own language meanwhile.

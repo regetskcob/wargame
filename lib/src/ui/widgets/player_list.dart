@@ -37,7 +37,7 @@ class PlayerList extends StatelessWidget {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield, size: 16, color: colorOf(member)),
+                Icon(Icons.shield_outlined, size: 16, color: colorOf(member)),
                 const SizedBox(width: 8),
                 Text(
                   member.id == myId
@@ -46,7 +46,11 @@ class PlayerList extends StatelessWidget {
                 ),
                 if (member.host) ...[
                   const SizedBox(width: 6),
-                  const Icon(Icons.star, size: 13, color: GameColors.amber),
+                  const Icon(
+                    Icons.star_outlined,
+                    size: 13,
+                    color: GameColors.amber,
+                  ),
                 ],
                 if (member.team > 0) ...[
                   const SizedBox(width: 8),

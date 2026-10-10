@@ -1,6 +1,6 @@
 # Platforms
 
-The web game is the main target. The same code runs as apps on iOS, Android, the Mac, the Apple Watch and the Apple TV.
+The web game is the main target. The same code runs as apps on iOS, Android, the Mac, the Apple Watch and the Apple TV, and the iPad app on the Apple Vision Pro.
 
 ## Mobile apps (iOS and Android)
 
@@ -166,6 +166,37 @@ on, open `macos/Runner.xcworkspace`, pick the team under Signing &
 Capabilities and archive (Product > Archive): from the organizer either upload
 to App Store Connect or export with Developer ID, which Xcode notarizes. CI
 builds it unsigned next to the iOS app.
+
+## Apple Vision Pro
+
+Flutter has no visionOS build: there is no fork like flutter-tvos, and the
+engine leans on `UIScreen`, which visionOS lacks. So the iPad app runs on the
+Vision Pro as a compatible app in a window, and a pinch arrives as a tap where
+the player looks. `GamepadPlugin.swift` answers `vision` on the `wargame/tv`
+channel with `ProcessInfo.isiOSAppOnVision` (iOS 26.1), and
+`lib/src/vision/vision_support.dart` keeps it as `onVision` before the game
+starts. Branch on `onVision` only.
+
+On the Vision Pro the round changes in three ways:
+
+- **Look to aim, pinch to fire.** The right stick gives way to the whole
+  window: a pinch aims the turret at the spot looked at (`TankGame.lookAt`,
+  the same pointer the mouse sets) and fires while the fingers stay
+  together. Moving the pinched hand does not move the aim, since visionOS
+  reports the hand after the first touch. Grenades and the barrage land on
+  that spot as they do on the mouse cursor. A pinch in the lower left still
+  drives with the floating stick, so both hands play at once.
+- **A still window.** The screen shake is off (a window rattling in the room
+  makes people feel sick); the red edge of a hit stays.
+- **Its own tutorial cards** for driving, looking and pinching.
+
+Game controllers and a paired phone work as on the iPad. The simulator build
+for iOS installs on an Apple Vision Pro simulator (visionOS runtime from Xcode
+Settings > Components) with `xcrun simctl install`, runs online there and
+reports `onVision`. Taps cannot be injected into that simulator, so looking
+and pinching are tried by hand in its window, and not yet on a real headset.
+A native shell with SwiftUI ornaments around the game would need Flutter on
+visionOS first.
 
 ## Apple Watch
 

@@ -1,7 +1,8 @@
 play: Play
 playHint: Free in the browser, no sign-up
 otherLanguage: Deutsch
-headerAlt: Panzergefecht on iPhone, iPad, Apple TV with a phone as controller and Apple Watch
+headerAlt: Panzergefecht on a laptop, iPad, Android tablet, a TV with a phone as its controller, iPhone, Android phone, Wear OS watch and Apple Watch
+platformsNote: Today in the browser, on iPhone, iPad and Apple Watch. Android, Wear OS, Mac and Apple TV are coming.
 imprint: Imprint
 privacy: Privacy
 licenses: Licences
@@ -22,7 +23,7 @@ device-phone-text: iPhone and iPad, Android phones and tablets soon on Google Pl
 device-gamepad: Phone as controller
 device-gamepad-text: Scan a QR code and your phone steers your tank in the browser, on a tablet or soon on the Apple TV. With two phones you play two on one screen.
 device-watch: Apple Watch
-device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself.
+device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself. Soon on round Wear OS watches through Google Play.
 device-tv: Apple TV · soon
 device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
 device-mac: Mac · soon
