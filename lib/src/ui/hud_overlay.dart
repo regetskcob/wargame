@@ -53,6 +53,10 @@ const _inventoryHeight = GameConfig.inventorySlots * 60.0;
 /// its 8 px margin, a 56 px slot and a gap.
 const _inventoryInset = 8 + 56 + 8.0;
 
+/// How high the defense build panel reaches up from the bottom on a
+/// keyboard screen, with a little air above it.
+const _defensePanelReach = 250.0;
+
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
 
@@ -255,32 +259,35 @@ class _HudOverlayState extends State<HudOverlay> {
                     onLook: game.lookAt,
                   ),
           ),
-        SafeArea(
-          minimum: const EdgeInsets.all(8),
-          child: Align(
-            alignment: touch
-                ? const Alignment(-1, 0.15)
-                : const Alignment(-1, 0.1),
-            child: _HudButtons(
-              game: game,
-              child: steeredByPad(game)
-                  ? ValueListenableBuilder<TvPadKind>(
-                      valueListenable: TvInput.instance.kind,
-                      builder: (context, kind, _) => InventoryBar(
+        LayoutBuilder(
+          builder: (context, constraints) => SafeArea(
+            minimum: const EdgeInsets.all(8),
+            child: Align(
+              alignment: Alignment(
+                -1,
+                _inventoryAlign(game, touch, constraints.maxHeight),
+              ),
+              child: _HudButtons(
+                game: game,
+                child: steeredByPad(game)
+                    ? ValueListenableBuilder<TvPadKind>(
+                        valueListenable: TvInput.instance.kind,
+                        builder: (context, kind, _) => InventoryBar(
+                          inventory: game.inventory,
+                          onUse: game.useItem,
+                          labels: kind == TvPadKind.remote
+                              ? const ['⏯']
+                              : (game.round?.duel ?? false)
+                              ? tvDuelSlotLabels
+                              : tvGamepadSlotLabels,
+                        ),
+                      )
+                    : InventoryBar(
                         inventory: game.inventory,
                         onUse: game.useItem,
-                        labels: kind == TvPadKind.remote
-                            ? const ['⏯']
-                            : (game.round?.duel ?? false)
-                            ? tvDuelSlotLabels
-                            : tvGamepadSlotLabels,
+                        compact: touch,
                       ),
-                    )
-                  : InventoryBar(
-                      inventory: game.inventory,
-                      onUse: game.useItem,
-                      compact: touch,
-                    ),
+              ),
             ),
           ),
         ),
@@ -661,6 +668,30 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Where the inventory sits on the left edge, as the y of an [Alignment]:
+  /// a little below the middle, except in a defense round on a keyboard
+  /// screen, where the build panel fills the lower left corner and five
+  /// items ran under it. There the column goes up until its foot clears
+  /// the panel, at most to the top.
+  double _inventoryAlign(TankGame game, bool touch, double height) {
+    const usual = 0.1;
+    if (touch) {
+      return 0.15;
+    }
+    if (!(game.round?.defense ?? false)) {
+      return usual;
+    }
+    final room = height - 16 - _inventoryHeight;
+    if (room <= 0) {
+      return -1;
+    }
+    // The column's top lies at 8 + room * (y + 1) / 2; its foot has to
+    // stay above the panel.
+    final clear =
+        2 * (height - _defensePanelReach - _inventoryHeight - 8) / room - 1;
+    return clear.clamp(-1.0, usual);
+  }
+
   /// Whether the gauges in the top left corner would reach down into the
   /// inventory, which sits vertically centred (a little low) on the left edge.
   /// Short windows such as a laptop browser bring it up under the gauges.
@@ -668,8 +699,9 @@ class _HudOverlayState extends State<HudOverlay> {
     final scale = MediaQuery.textScalerOf(context).scale(1);
     final plates = 1 + (game.endlessAmmo ? 0 : 1) + (game.usesFuel ? 1 : 0);
     final gaugesBottom = 16 + plates * _plateHeight * scale;
-    // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
-    final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
+    // Same placement as the Align inside the SafeArea in build().
+    final align = _inventoryAlign(game, false, height);
+    final inventoryTop = 8 + (height - 16 - _inventoryHeight) * (align + 1) / 2;
     return gaugesBottom + 8 > inventoryTop;
   }
 
