@@ -32,8 +32,9 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
 - **Capture the flag:** red against blue, steal the other side's flag and
   bring it home, with CPU tanks filling both sides.
 - **Two on one screen:** split screen on the Apple TV, a tablet (iPad or
-  Android), a Mac or in the browser with two controllers or phones, and a **duel** of two bases
-  against each other.
+  Android), a Mac or in the browser with two controllers or phones (on a
+  computer the keyboard counts as one), and a **duel** of two bases against
+  each other.
 
 ## Highlights
 

@@ -57,7 +57,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   base, and all of them chase whoever has their own flag. The round is
   rated like a team round.
 - **Two on one screen:** on the Apple TV, in the browser and on an iPad,
-  with two controllers or phones. Single player, multiplayer, defense and
+  with two controllers or phones; on a computer also the keyboard and one
+  controller or phone. Single player, multiplayer, defense and
   capture the flag play on a split screen, each half from its own tank;
   single player puts both against the CPU tanks, and capture the flag
   puts both on one side or, as picked in the settings, against each other.
