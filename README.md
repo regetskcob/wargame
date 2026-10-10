@@ -31,8 +31,8 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
   watchtower to a citadel, and extend into endless waves.
 - **Capture the flag:** red against blue, steal the other side's flag and
   bring it home, with CPU tanks filling both sides.
-- **Two on one screen:** split screen on the Apple TV, an iPad or in the
-  browser with two controllers or phones, and a **duel** of two bases
+- **Two on one screen:** split screen on the Apple TV, an iPad, a Mac or
+  in the browser with two controllers or phones, and a **duel** of two bases
   against each other.
 
 ## Highlights

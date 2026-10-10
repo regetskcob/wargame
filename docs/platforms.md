@@ -63,10 +63,18 @@ phone the LAN address of your Mac.
 bundle id `de.regetskcob.wargame` as the iOS app, so both can share one App
 Store record as a universal purchase. It runs the same screens as the
 browser: keyboard and mouse, no touch controls (they appear after the first
-touch, as in the browser), the start page as on a large screen. The window
-opens at 1280 x 800, keeps at least 720 x 480 and remembers where it was
-left. Game controllers are not read yet: `padsSupported` covers only the
-Apple TV, iOS and the browser.
+touch, as in the browser), the start page as on a large screen. It starts in
+full screen every time (state restoration is off, so macOS cannot reopen it
+as a window); View > Exit Full Screen or ⌃⌘F leaves it for a 1280 x 800
+window that keeps at least 720 x 480.
+
+Game controllers work as on the iPad: `macos/Runner/GamepadPlugin.swift`
+reads them through GameController and streams them to the same
+`lib/src/tv/tv_input.dart`, the first one steers the own tank, two of them
+play on a split screen (see **Two players** below), and the display stays
+awake during a round. Only pads with two sticks count. The menus stay with
+keyboard and mouse, as in the browser. Phones pair as controllers too, the
+Mac is the screen.
 
 The app is sandboxed and asks for two things in `Runner/*.entitlements`:
 outgoing connections (`network.client`, without it Supabase is out of reach
@@ -186,7 +194,7 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Two players** on the Apple TV, in the browser and on an iPad: with two
+**Two players** on the Apple TV, in the browser, on an iPad and on the Mac: with two
 controllers in (or phones, the Siri Remote counting as one, handed out
 controllers first, then phones, the remote last), the second player gets a game of their own (`lib/src/tv/second_player.dart`) that
 joins the first player's room. Rounds then play on a split screen, side by side
@@ -195,7 +203,8 @@ or, on a tablet held upright, one above the other, each half from its own tank
 player puts both against the CPU tanks, multiplayer and defense take both
 pilots along. The browser reads controllers through its Gamepad API
 (`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
-pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`).
+pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
+the Mac the same way (`macos/Runner/GamepadPlugin.swift`).
 Phones are too small for two halves. One controller alone, a phone or a
 game controller, steers the own tank in every mode, and the touch sticks of
 a tablet step aside for it.
