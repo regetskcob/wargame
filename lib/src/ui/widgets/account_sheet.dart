@@ -289,12 +289,20 @@ class _AccountSheetState extends State<AccountSheet> {
     ];
     final right = <Widget>[
       if (Env.accounts)
-        AccountPanel(
-          accounts: accounts,
-          onCallSign: _game.claimCallSign,
-          callSign: _game.myName,
-          onSignedOut: () => Navigator.of(context).pop(),
-          initiallyOpen: true,
+        // Follows the saved call sign, which registering takes.
+        ValueListenableBuilder<int>(
+          valueListenable: _game.pilotVersion,
+          builder: (context, _, _) => AccountPanel(
+            accounts: accounts,
+            onCallSign: _game.claimCallSign,
+            callSign: _game.myName,
+            callSignAbove: () {
+              _rename();
+              return _game.myName;
+            },
+            onSignedOut: () => Navigator.of(context).pop(),
+            initiallyOpen: true,
+          ),
         )
       else
         Text(
