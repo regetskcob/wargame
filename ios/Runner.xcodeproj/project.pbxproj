@@ -26,6 +26,8 @@
 		5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */; };
 		5B1E5A062F0A000100C0FFEE /* MessagesExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B1E5A072F0A000100C0FFEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B1E5A042F0A000100C0FFEE /* Assets.xcassets */; };
+		5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
+		5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -106,6 +108,8 @@
 		5B1E5A022F0A000100C0FFEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MessagesExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B1E5A042F0A000100C0FFEE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5B1E5A202F0A000100C0FFEE /* ChatResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResult.swift; sourceTree = "<group>"; };
+		5B1E5A232F0A000100C0FFEE /* MessagesExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MessagesExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -210,6 +214,7 @@
 			isa = PBXGroup;
 			children = (
 				4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */,
+				5B1E5A202F0A000100C0FFEE /* ChatResult.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -220,6 +225,7 @@
 				5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */,
 				5B1E5A042F0A000100C0FFEE /* Assets.xcassets */,
 				5B1E5A022F0A000100C0FFEE /* Info.plist */,
+				5B1E5A232F0A000100C0FFEE /* MessagesExtension.entitlements */,
 			);
 			path = MessagesExtension;
 			sourceTree = "<group>";
@@ -459,6 +465,7 @@
 				4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */,
 				A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */,
 				4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
+				5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +484,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */,
+				5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -898,6 +906,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
 				INFOPLIST_FILE = MessagesExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -927,6 +936,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
 				INFOPLIST_FILE = MessagesExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -954,6 +964,7 @@
 				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
 				DEVELOPMENT_TEAM = 86HB5U6788;
 				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
 				INFOPLIST_FILE = MessagesExtension/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;

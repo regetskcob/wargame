@@ -28,15 +28,28 @@ final class MessagesViewController: MSMessagesAppViewController {
   }
 
   private func show(_ conversation: MSConversation) {
+    let chat = ChatRooms.key(of: conversation)
+    // Tapping a bubble opens the extension expanded with that message.
+    let tapped = presentationStyle == .expanded
+      ? conversation.selectedMessage.flatMap { message in
+        Invite(message: message).map { (message, $0) }
+      } : nil
+    if let tapped, let session = tapped.0.session {
+      // Whoever follows the bubble into the room may bring the result back.
+      ChatRooms.remember(tapped.1, session: session, chat: chat)
+    }
+    let offer = ChatRooms.pending(chat: chat)
+      .flatMap { tapped == nil || $0.invite.room == tapped?.1.room ? $0 : nil }
     let view = ChatView(
-      // Tapping a bubble opens the extension expanded with that message.
-      invite: presentationStyle == .expanded
-        ? conversation.selectedMessage.flatMap(Invite.init(message:)) : nil,
-      sentByMe: conversation.selectedMessage.flatMap(Invite.init(message:))
-        .map { Invite.hosted.contains($0.room) } ?? false,
+      invite: tapped?.1,
+      sentByMe: tapped.map { Invite.hosted.contains($0.1.room) } ?? false,
       others: conversation.remoteParticipantIdentifiers.count,
+      result: offer.map { $0.result.line(in: $0.invite.mode) },
       send: { [weak self] mode in self?.send(mode, in: conversation) },
-      open: { [weak self] invite, host in self?.openGame(invite, host: host) }
+      open: { [weak self] invite, host in self?.openGame(invite, host: host) },
+      share: { [weak self] in
+        if let offer { self?.share(offer, in: conversation) }
+      }
     )
     if let hosting {
       hosting.rootView = view
@@ -59,6 +72,8 @@ final class MessagesViewController: MSMessagesAppViewController {
 
   /// The invitation waiting in the input field until the player sends it.
   private var staged: Invite?
+  /// The same for a result that replaces the bubble of its room.
+  private var stagedResult: ChatResult?
 
   /// Puts the invitation into the input field, where the player can add a
   /// line and send it. Messages stages it there even when asked to send
@@ -74,19 +89,45 @@ final class MessagesViewController: MSMessagesAppViewController {
     requestPresentationStyle(.compact)
   }
 
+  /// Puts the result of the last round into the input field, in the
+  /// session of the invitation, so the chat shows it in place of the old
+  /// bubble once it is sent.
+  private func share(_ offer: ChatRooms.Offer, in conversation: MSConversation) {
+    stagedResult = offer.result
+    let message = offer.invite.message(
+      session: offer.session, result: offer.result.line(in: offer.invite.mode))
+    conversation.insert(message) { [weak self] error in
+      if error != nil {
+        DispatchQueue.main.async { self?.stagedResult = nil }
+      }
+    }
+    requestPresentationStyle(.compact)
+  }
+
   /// Once the invitation goes out, the sender follows it into the room, as
   /// its host: the one who invites picks the mode, the others follow.
   override func didStartSending(_ message: MSMessage, conversation: MSConversation) {
     super.didStartSending(message, conversation: conversation)
-    guard let invite = staged, Invite(message: message)?.room == invite.room else { return }
+    let room = Invite(message: message)?.room
+    if let result = stagedResult, result.room == room {
+      stagedResult = nil
+      ChatRooms.markShared(result)
+      show(conversation)
+      return
+    }
+    guard let invite = staged, invite.room == room else { return }
     staged = nil
     Invite.rememberHosted(invite.room)
+    if let session = message.session {
+      ChatRooms.remember(invite, session: session, chat: ChatRooms.key(of: conversation))
+    }
     openGame(invite, host: true)
   }
 
   override func didCancelSending(_ message: MSMessage, conversation: MSConversation) {
     super.didCancelSending(message, conversation: conversation)
     staged = nil
+    stagedResult = nil
   }
 
   /// Messages lets an extension open its own app only, and only while the
@@ -212,18 +253,109 @@ struct Invite {
     return components.url!
   }
 
-  func message() -> MSMessage {
+  /// The bubble of the invitation. Every invitation has a session of its
+  /// own, so its [result] can later take the bubble's place, which still
+  /// leads into the room for another round.
+  func message(session: MSSession = MSSession(), result: String? = nil) -> MSMessage {
     let layout = MSMessageTemplateLayout()
     layout.image = UIImage(named: mode.picture)
     layout.caption = "Panzergefecht · \(mode.title)"
-    layout.subcaption = tr("Tippen und mitspielen", "Tap to join")
+    layout.subcaption = result ?? tr("Tippen und mitspielen", "Tap to join")
     layout.trailingSubcaption = tr("Raum \(room)", "Room \(room)")
-    // One session per round, so a later result can replace this bubble.
-    let message = MSMessage(session: MSSession())
+    let message = MSMessage(session: session)
     message.layout = layout
     message.url = webURL
-    message.summaryText = "Panzergefecht: \(mode.title)"
+    message.summaryText = result.map { "Panzergefecht: \($0)" } ?? "Panzergefecht: \(mode.title)"
     return message
+  }
+}
+
+/// The rooms this device invited to or joined from a chat, with the session
+/// of their bubble, so the result of a round there can replace it. Kept in
+/// the extension's own defaults, the app knows nothing of chats.
+enum ChatRooms {
+  private struct Entry: Codable {
+    let session: Data
+    let mode: String
+    let chat: String
+    /// When the last result of the room went into the chat.
+    var shared: Date?
+  }
+
+  /// A result waiting to be posted, with what it needs for that.
+  struct Offer {
+    let result: ChatResult
+    let invite: Invite
+    let session: MSSession
+  }
+
+  private static let key = "chatRooms"
+
+  /// Names a chat by who else is in it. The identifiers stay the same as
+  /// long as the extension stays installed.
+  static func key(of conversation: MSConversation) -> String {
+    conversation.remoteParticipantIdentifiers.map(\.uuidString).sorted().joined(separator: ",")
+  }
+
+  private static var entries: [String: Entry] {
+    get {
+      UserDefaults.standard.data(forKey: key)
+        .flatMap { try? JSONDecoder().decode([String: Entry].self, from: $0) } ?? [:]
+    }
+    set {
+      // A few dozen rooms are plenty, the oldest results are stale anyway.
+      let kept = newValue.count > 40 ? [:] : newValue
+      UserDefaults.standard.set(try? JSONEncoder().encode(kept), forKey: key)
+    }
+  }
+
+  static func remember(_ invite: Invite, session: MSSession, chat: String) {
+    guard entries[invite.room] == nil,
+          let data = try? NSKeyedArchiver.archivedData(
+            withRootObject: session, requiringSecureCoding: true)
+    else { return }
+    entries[invite.room] = Entry(session: data, mode: invite.mode.rawValue, chat: chat)
+  }
+
+  /// The newest result of a room of [chat] that has not gone into it yet,
+  /// from the last day.
+  static func pending(chat: String) -> Offer? {
+    let known = entries
+    for result in ChatResult.all() where result.at > .now.addingTimeInterval(-86_400) {
+      guard let entry = known[result.room], entry.chat == chat,
+            entry.shared.map({ $0 < result.at }) ?? true,
+            let mode = Invite.Mode(rawValue: entry.mode),
+            let session = try? NSKeyedUnarchiver.unarchivedObject(
+              ofClass: MSSession.self, from: entry.session)
+      else { continue }
+      return Offer(result: result, invite: Invite(room: result.room, mode: mode), session: session)
+    }
+    return nil
+  }
+
+  static func markShared(_ result: ChatResult) {
+    entries[result.room]?.shared = result.at
+  }
+}
+
+extension ChatResult {
+  /// The line in the bubble, from the sender's side of the round.
+  func line(in mode: Invite.Mode) -> String {
+    switch mode {
+    case .defense:
+      return won
+        ? tr("Stützpunkt gehalten bis Welle \(max(wave, waves))", "Base held until wave \(max(wave, waves))")
+        : tr("Stützpunkt gefallen in Welle \(wave)", "Base fell in wave \(wave)")
+    case .duel:
+      let name = won ? pilot : winner ?? tr("Der Gegner", "The opponent")
+      return tr("\(name) gewinnt das Duell", "\(name) wins the duel")
+    case .multi, .flag:
+      let head = (won ? pilot : winner).map { tr("\($0) gewinnt", "\($0) wins") }
+        ?? tr("Runde vorbei", "Round over")
+      let tally = kills == 1
+        ? tr("1 Abschuss", "1 kill") : tr("\(kills) Abschüsse", "\(kills) kills")
+      return "\(head) · \(pilot): \(tally)"
+    }
   }
 }
 
@@ -250,8 +382,11 @@ struct ChatView: View {
   let sentByMe: Bool
   /// Everybody else in the chat. Messages hides who they are.
   let others: Int
+  /// The line of a finished round of this chat that is not in it yet.
+  let result: String?
   let send: (Invite.Mode) -> Void
   let open: (Invite, Bool) -> Void
+  let share: () -> Void
   /// The app could not be opened, so it is missing or not on the home screen.
   var failed = false
 
@@ -260,6 +395,9 @@ struct ChatView: View {
       Palette.background.ignoresSafeArea()
       ScrollView {
         VStack(alignment: .leading, spacing: 10) {
+          if let result {
+            offer(result)
+          }
           if let invite {
             join(invite)
           } else {
@@ -299,6 +437,24 @@ struct ChatView: View {
         .foregroundStyle(Palette.textDim)
       }
     }
+  }
+
+  private func offer(_ line: String) -> some View {
+    VStack(alignment: .leading, spacing: 8) {
+      Label(tr("Letzte Runde", "Last round"), systemImage: "trophy.fill")
+        .font(.caption.bold())
+        .foregroundStyle(Palette.amber)
+      Text(line).font(.subheadline.bold()).foregroundStyle(Palette.text)
+      Button(action: share) {
+        Label(tr("Ergebnis in den Chat", "Post the result"), systemImage: "arrow.up.message.fill")
+          .font(.subheadline.bold())
+          .frame(maxWidth: .infinity, minHeight: 44)
+      }
+      .buttonStyle(.borderedProminent)
+      .tint(Palette.olive)
+    }
+    .padding(12)
+    .background(Palette.surface, in: RoundedRectangle(cornerRadius: 10))
   }
 
   private func row(_ mode: Invite.Mode) -> some View {

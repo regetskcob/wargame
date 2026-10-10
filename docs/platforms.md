@@ -88,6 +88,18 @@ interactive bubble.
    for the local player. Everybody else joins as a guest, and the lobby
    gives each their own tank as with any other room link.
 
+5. When a round ends, `LiveActivityPlugin.swift` (which hears of every
+   round anyway) leaves its result in the defaults of the app group
+   `group.de.regetskcob.wargame`, as `ChatResult` (`ios/Shared`). The app
+   writes every round, it knows nothing of chats. The extension keeps the
+   session of every bubble it sent or followed, archived with the chat it
+   came from, and offers the newest result of such a room the next time it
+   opens in that chat: "Ergebnis in den Chat" puts a bubble with the same
+   picture and the result line in the same session into the input field,
+   so once it is sent the chat shows it in place of the invitation, which
+   collapses to a line. The link still leads into the room for another
+   round. Results older than a day are not offered.
+
 Guests learn the mode when the round starts, as with every room, so their
 waiting room shows the default text until then. While the host's app sits
 in the background behind Messages, a guest who comes in first stands in as
@@ -96,8 +108,13 @@ host and hands back once the owner returns.
 To try it, build for the simulator, install the app, open Messages, a chat
 with one of its fake numbers and the app list behind "+". After installing
 a new build, quit Messages once, or it keeps looking for the old extension.
-The icons in `iMessage App Icon.stickersiconset` are cut from the app icon,
-the pictures in the bubble from the iPad store screenshots.
+`python3 store/tool/imessage.py` draws the icons in
+`iMessage App Icon.stickersiconset` from the layers of the app icon and the
+two pictures of the bubble: tanks of three colours on the battle ground for
+Last Tank Standing and capture the flag, the red defence holding its base
+on a sandy road against blue tanks for the defense and the duel. Both app
+and extension carry the app group in their entitlements; signing in the
+`testflight` workflow registers it with `-allowProvisioningUpdates`.
 
 ## Mac
 

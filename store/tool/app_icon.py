@@ -81,8 +81,9 @@ def terrain(seed=7):
     return img.resize((SIZE, SIZE), Image.LANCZOS)
 
 
-def tank():
-    """The tank with its shadow on a transparent SIZE x SIZE layer."""
+def tank(hull=HULL, turret=TURRET, barrel=BARREL, muzzle=MUZZLE):
+    """The tank with its shadow on a transparent SIZE x SIZE layer, in the
+    olive of the icon unless other colours are given."""
     s = SIZE * SS
     shadow = Image.new("L", (s, s), 0)
     sd = ImageDraw.Draw(shadow)
@@ -99,14 +100,14 @@ def tank():
                             fill=TRACK)
         for x in range(262, 780, 40):
             d.rectangle(_box(x, top + 8, x + 14, top + 92), fill=TRACK_MARK)
-    d.rounded_rectangle(_box(272, 400, 752, 624), radius=40 * SS, fill=HULL)
+    d.rounded_rectangle(_box(272, 400, 752, 624), radius=40 * SS, fill=hull)
     d.rectangle(_box(510, 476, 882, 548), fill=OUTLINE)
-    d.rectangle(_box(510, 480, 880, 544), fill=BARREL)
+    d.rectangle(_box(510, 480, 880, 544), fill=barrel)
     d.rounded_rectangle(_box(876, 458, 936, 566), radius=10 * SS, fill=OUTLINE)
-    d.rounded_rectangle(_box(880, 462, 932, 562), radius=8 * SS, fill=MUZZLE)
+    d.rounded_rectangle(_box(880, 462, 932, 562), radius=8 * SS, fill=muzzle)
     d.ellipse(_box(338, 410, 542, 614), fill=OUTLINE)
-    d.ellipse(_box(344, 416, 536, 608), fill=TURRET)
-    d.ellipse(_box(400, 472, 480, 552), fill=BARREL)
+    d.ellipse(_box(344, 416, 536, 608), fill=turret)
+    d.ellipse(_box(400, 472, 480, 552), fill=barrel)
     centred = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     centred.paste(img, _box(*SHIFT))
     return centred.resize((SIZE, SIZE), Image.LANCZOS)
