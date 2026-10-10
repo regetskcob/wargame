@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
+import '../app/env.dart';
 import '../app/routes.dart';
 import '../game/game_phase.dart';
 import '../game/special_weapon.dart';
@@ -139,7 +140,9 @@ class _ControllerViewState extends State<ControllerView> {
   Widget _header(PadStatus? status) {
     return ValueListenableBuilder<bool>(
       valueListenable: _remote.screenOnline,
-      builder: (context, online, _) {
+      builder: (context, paired, _) {
+        // The store picture shows the controller as if paired.
+        final online = paired || Env.shotScene == 'pad';
         final hint = !online
             ? _everOnline
                   ? tr(

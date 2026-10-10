@@ -219,30 +219,34 @@ METAL_LIGHT = (196, 198, 186)
 
 
 def device(shot, height, kind):
-    """Draws [shot] inside an illustrated [kind] ("phone", "tablet" or
-    "watch"): a dark body with a metal edge, its buttons and a soft gloss on
+    """Draws [shot] inside an illustrated [kind] ("phone", "tablet",
+    "watch", "tv", "laptop", the Android "android" and "atablet", the round
+    "wear" watch or the "monitor" of a desktop browser): a dark body with a metal edge, its buttons and a soft gloss on
     the glass, scaled so the whole device is [height] tall."""
     bezel = {"phone": 0.022, "tablet": 0.035, "watch": 0.075, "tv": 0.018,
-             "laptop": 0.03}[kind]
+             "laptop": 0.03, "android": 0.02, "atablet": 0.03, "wear": 0.09,
+             "monitor": 0.02}[kind]
     rounding = {"phone": 0.16, "tablet": 0.05, "watch": 0.30, "tv": 0.012,
-                "laptop": 0.035}[kind]
+                "laptop": 0.035, "android": 0.08, "atablet": 0.03,
+                "wear": 0.5, "monitor": 0.012}[kind]
+    strapped = kind in ("watch", "wear")
     rim = max(4, round(height * 0.006))
     pad = round(height * bezel)
     screen_h = height - 2 * (pad + rim)
     screen_w = round(shot.width * screen_h / shot.height)
     body_w, body_h = screen_w + 2 * (pad + rim), height
     # Room beside the body for the buttons, above and below for the band.
-    knob = {"watch": round(body_w * 0.05),
+    knob = {"watch": round(body_w * 0.05), "wear": round(body_w * 0.05),
             "laptop": round(body_w * 0.07)}.get(kind, rim * 2)
-    band = round(body_h * 0.18) if kind == "watch" else 0
-    stand = {"tv": round(body_h * 0.10),
+    band = round(body_h * 0.18) if strapped else 0
+    stand = {"tv": round(body_h * 0.10), "monitor": round(body_h * 0.16),
              "laptop": round(body_h * 0.05)}.get(kind, 0)
     out = Image.new("RGBA", (body_w + 2 * knob, body_h + 2 * band + stand))
     d = ImageDraw.Draw(out)
     ox, oy = knob, band
     radius = round(min(body_w, body_h) * rounding)
 
-    if kind == "watch":
+    if strapped:
         # The band, fading out towards both ends.
         bw = round(body_w * 0.62)
         bx = ox + (body_w - bw) // 2
@@ -261,8 +265,9 @@ def device(shot, height, kind):
         strap.putalpha(Image.composite(fade, Image.new("L", out.size, 0),
                                        strap.getchannel("A")))
         out.alpha_composite(strap)
-        # Digital crown and side button.
-        cy = oy + round(body_h * 0.30)
+        # Digital crown and side button; a round watch has its crown
+        # half way up and no button.
+        cy = oy + round(body_h * (0.42 if kind == "wear" else 0.30))
         ch = round(body_h * 0.16)
         d.rounded_rectangle((ox + body_w - knob, cy, ox + body_w + knob, cy + ch),
                             knob // 2, fill=METAL)
@@ -271,13 +276,16 @@ def device(shot, height, kind):
             d.line((ox + body_w + knob // 3, yy, ox + body_w + knob, yy),
                    fill=METAL_LIGHT, width=max(2, rim // 2))
         sy = cy + ch + round(body_h * 0.08)
-        d.rounded_rectangle(
-            (ox + body_w - knob, sy, ox + body_w + knob // 2,
-             sy + round(body_h * 0.22)), knob // 3, fill=METAL)
-    elif kind == "tv":
-        # A slim foot below the screen.
-        fw, fx = round(body_w * 0.30), ox + round(body_w * 0.35)
-        neck = round(body_w * 0.04)
+        if kind == "watch":
+            d.rounded_rectangle(
+                (ox + body_w - knob, sy, ox + body_w + knob // 2,
+                 sy + round(body_h * 0.22)), knob // 3, fill=METAL)
+    elif kind in ("tv", "monitor"):
+        # A slim foot below the screen; a desk monitor stands on a taller
+        # neck and a wider plate.
+        share = 0.30 if kind == "tv" else 0.36
+        fw, fx = round(body_w * share), ox + round(body_w * (1 - share) / 2)
+        neck = round(body_w * (0.04 if kind == "tv" else 0.07))
         d.rectangle((ox + (body_w - neck) // 2, oy + body_h - rim,
                      ox + (body_w + neck) // 2, oy + body_h + stand - rim * 2),
                     fill=METAL)
@@ -297,8 +305,9 @@ def device(shot, height, kind):
     else:
         # Volume and power buttons on the edges.
         for x0, ys in (
-            (ox - knob, (0.18, 0.27) if kind == "phone" else (0.08,)),
-            (ox + body_w - knob // 2, (0.24,) if kind == "phone" else ()),
+            (ox - knob, {"phone": (0.18, 0.27), "tablet": (0.08,)}.get(kind, ())),
+            (ox + body_w - knob // 2, {"phone": (0.24,), "android": (0.18, 0.30),
+                                       "atablet": (0.12,)}.get(kind, ())),
         ):
             for y in ys:
                 top = oy + round(body_h * y)
@@ -319,6 +328,8 @@ def device(shot, height, kind):
     screen_radius = max(0, radius - rim - pad)
     if kind == "watch":
         screen_radius = round(min(screen_w, screen_h) * 0.22)
+    elif kind == "wear":
+        screen_radius = min(screen_w, screen_h) // 2
     mask = Image.new("L", (screen_w, screen_h), 0)
     ImageDraw.Draw(mask).rounded_rectangle(
         (0, 0, screen_w - 1, screen_h - 1), screen_radius, fill=255)
@@ -339,7 +350,11 @@ def device(shot, height, kind):
         iw, ih = round(screen_w * 0.30), round(screen_w * 0.085)
         ix, iy = sx + (screen_w - iw) // 2, sy + round(screen_w * 0.03)
         d.rounded_rectangle((ix, iy, ix + iw, iy + ih), ih // 2, fill=(0, 0, 0))
-    elif kind == "tablet":
+    elif kind == "android":
+        r = round(screen_w * 0.028)
+        cx, cy = sx + screen_w // 2, sy + round(screen_w * 0.05)
+        d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(0, 0, 0))
+    elif kind in ("tablet", "atablet"):
         r = max(3, pad // 6)
         cx, cy = ox + body_w // 2, oy + rim + pad // 2
         d.ellipse((cx - r, cy - r, cx + r, cy + r), fill=(10, 12, 16))
