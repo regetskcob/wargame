@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/env.dart';
 import '../../game/tank_game.dart';
+import '../../haptics.dart';
 import '../../net/room.dart';
 import '../theme.dart';
 import 'account_panel.dart';
@@ -196,6 +197,22 @@ class _AccountSheetState extends State<AccountSheet> {
           }
         },
       ),
+      if (Haptics.onPhone)
+        ValueListenableBuilder<bool>(
+          valueListenable: Haptics.on,
+          builder: (context, on, _) => SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(tr('VIBRATION', 'VIBRATION')),
+            subtitle: Text(
+              tr(
+                'Treffer, Explosionen und Rundenstart spüren',
+                'Feel hits, blasts and the start of a round',
+              ),
+            ),
+            value: on,
+            onChanged: (value) => unawaited(Haptics.set(value: value)),
+          ),
+        ),
       const SizedBox(height: 16),
       ControllerSection(game: _game),
     ];
