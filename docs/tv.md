@@ -11,7 +11,7 @@ across all televisions.
 | Platform | Devices | Build | State |
 | --- | --- | --- | --- |
 | Apple TV | Apple TV HD, 4K | `tvos/` (flutter-tvos) | Plays fully, tried in the Simulator only |
-| Android TV / Google TV | Google TV Streamer, Chromecast with Google TV, Sony, Philips, TCL TVs … | the Android app | Started: detection, remote, banner, manifest; not yet tried on a device |
+| Android TV / Google TV | Google TV Streamer, Chromecast with Google TV, Sony, Philips, TCL TVs … | the Android app | Plays in the Android TV emulator (Google TV, 4K); no real device yet |
 | Fire TV on Fire OS | Fire TV Stick 4K Max, 4K Plus, Fire TV Cube, TVs with Fire TV built in | the Android app | Same build as Android TV; Amazon Appstore listing open |
 | Fire TV on Vega OS | Fire TV Stick 4K Select (2025), Fire TV Stick HD (2026) | none yet | No Flutter; a web shell is worth a spike, see below |
 
@@ -60,10 +60,16 @@ Done:
 
 Open:
 
-- Try it in the Android TV emulator (system image "Android TV" or "Google
-  TV", 1080p) and on a real device: focus walk through every menu, the
-  remote in a round, Back from every screen, screen saver during a round
-  (`keepAwake`).
+- Tried in the Google TV emulator (4K, 960×540 logical): the app shows on
+  the home screen, the start page has the television layout with the
+  remote as controller 1, the d-pad walks the focus, OK opens, Back steps
+  back to the start page, and in a round the d-pad drives. Still to try:
+  every menu and dialog, firing and items with a real remote, a game
+  controller, the screen saver during a round (`keepAwake`), and a real
+  device.
+- Up from the first button does not wrap round to the last one, so
+  reaching Start in the waiting room takes many presses down past the
+  camouflage. Left and right could jump between the rows instead.
 - Remotes without play/pause or menu (some Chromecast remotes) have no
   button for items and special weapons yet; a long press on OK could take
   it.
