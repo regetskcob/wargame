@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 
 import '../game_config.dart';
@@ -21,8 +22,7 @@ class StormZone extends PositionComponent {
         (GameConfig.zoneMinRadius - GameConfig.worldRadius) * progress;
   }
 
-  double get radius =>
-      radiusAt(startedAt, DateTime.now().millisecondsSinceEpoch);
+  double get radius => radiusAt(startedAt, clock.now().millisecondsSinceEpoch);
 
   @override
   void render(Canvas canvas) {

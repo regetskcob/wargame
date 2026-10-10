@@ -244,14 +244,19 @@ class _AssistToggleState extends State<_AssistToggle> {
   @override
   void initState() {
     super.initState();
-    widget.input.assist = true;
+    widget.input
+      ..assist = true
+      ..assistOwner = this;
   }
 
   @override
   void dispose() {
-    widget.input
-      ..assist = false
-      ..assistFire = false;
+    if (identical(widget.input.assistOwner, this)) {
+      widget.input
+        ..assist = false
+        ..assistFire = false
+        ..assistOwner = null;
+    }
     super.dispose();
   }
 

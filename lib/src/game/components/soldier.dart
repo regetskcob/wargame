@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:clock/clock.dart' as wall;
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
@@ -406,7 +407,7 @@ class SoldierField extends Component {
 
   /// Seconds since the round clock started.
   double get clock =>
-      (DateTime.now().millisecondsSinceEpoch - startedAt) / 1000;
+      (wall.clock.now().millisecondsSinceEpoch - startedAt) / 1000;
 
   double clockAt(int millis) => (millis - startedAt) / 1000;
 

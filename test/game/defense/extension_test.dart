@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -56,7 +57,7 @@ void main() {
     expect(game.phase.value, GamePhase.playing);
     expect(game.defenseWonAlready, isFalse);
 
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     game.publishDefense(
       game.defense.value!.copyWith(
         wave: GameConfig.defenseWaves,

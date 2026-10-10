@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,7 +10,7 @@ import 'package:wargame/src/game/tank_game.dart';
 import '../helpers/fakes.dart';
 
 void main() {
-  final later = DateTime.now().add(const Duration(minutes: 11));
+  final later = clock.now().add(const Duration(minutes: 11));
 
   test('a host left alone on the start page leaves the room quietly and '
       'joins it again with the next step', () {
@@ -41,7 +42,7 @@ void main() {
     game.overlays.addEntry(OverlayIds.closed, (_, _) => const SizedBox());
     expect(game.beforeWaitingRoom, isFalse);
 
-    game.closeWhenIdle(now: DateTime.now());
+    game.closeWhenIdle(now: clock.now());
     expect(game.phase.value, GamePhase.lobby);
 
     game.closeWhenIdle(now: later);

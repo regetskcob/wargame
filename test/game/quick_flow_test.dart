@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,9 +85,9 @@ void main() {
       'countdown', () async {
     final game = await loadedGame();
     expect(game.choosingMode.value, isTrue);
-    final before = DateTime.now().millisecondsSinceEpoch;
+    final before = clock.now().millisecondsSinceEpoch;
     game.quickStart();
-    final after = DateTime.now().millisecondsSinceEpoch;
+    final after = clock.now().millisecondsSinceEpoch;
     expect(game.mode.value, GameMode.solo);
     expect(game.phase.value, GamePhase.countdown);
     const wait = GameConfig.soloCountdownSeconds * 1000;
@@ -105,7 +106,7 @@ void main() {
     game.callWaveNow();
     expect(
       game.defense.value!.nextWaveAt,
-      lessThanOrEqualTo(DateTime.now().millisecondsSinceEpoch),
+      lessThanOrEqualTo(clock.now().millisecondsSinceEpoch),
     );
     expect(game.canCallWave, isFalse);
   });

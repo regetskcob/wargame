@@ -8,6 +8,7 @@ library;
 
 import 'dart:io';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -28,9 +29,9 @@ const _key = String.fromEnvironment(
 
 /// Waits until [check] holds, polling, or fails after [seconds].
 Future<void> _until(bool Function() check, {int seconds = 15}) async {
-  final end = DateTime.now().add(Duration(seconds: seconds));
+  final end = clock.now().add(Duration(seconds: seconds));
   while (!check()) {
-    if (DateTime.now().isAfter(end)) {
+    if (clock.now().isAfter(end)) {
       fail('timed out');
     }
     await Future<void>.delayed(const Duration(milliseconds: 50));

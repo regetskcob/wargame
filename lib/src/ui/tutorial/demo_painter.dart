@@ -205,11 +205,36 @@ class DemoPainter extends CustomPainter {
     if (p.mouse case final mouse?) {
       _crosshair(canvas, mouse);
     }
+    if (p.ring case final ring?) {
+      canvas.drawCircle(
+        ring,
+        p.ringRadius,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 3
+          ..color = GameColors.amber,
+      );
+      canvas.drawCircle(
+        ring,
+        p.ringRadius,
+        Paint()..color = GameColors.amber.withValues(alpha: 0.15),
+      );
+    }
     _pill(
       canvas,
       Offset(_w / 2, top + 10),
       [
-        tr('TREFFER ${p.hits}', 'HITS ${p.hits}'),
+        if (p.done)
+          tr('GESCHAFFT ✓', 'DONE ✓')
+        else if (p.goal == PracticeGoal.reach)
+          tr('AUFGABE: IN DEN KREIS FAHREN', 'TASK: DRIVE INTO THE RING')
+        else
+          tr(
+            'AUFGABE: ${TutorialPractice.hitsNeeded} TREFFER '
+                '(${p.hits}/${TutorialPractice.hitsNeeded})',
+            'TASK: ${TutorialPractice.hitsNeeded} HITS '
+                '(${p.hits}/${TutorialPractice.hitsNeeded})',
+          ),
         if (p.grenades && !touch)
           tr('GRANATEN ${p.charges} (F)', 'GRENADES ${p.charges} (F)'),
       ].join('  ·  '),
@@ -807,7 +832,7 @@ class DemoPainter extends CustomPainter {
         at + Offset(0, size * 0.75 + 14),
         type.level == 1
             ? tr('AB START', 'FROM START')
-            : tr('AB RANG ${type.level}', 'FROM RANK ${type.level}'),
+            : tr('AB STUFE ${type.level}', 'FROM LEVEL ${type.level}'),
         size: 9,
         color: type.level == 1 ? GameColors.textDim : GameColors.amber,
         center: true,

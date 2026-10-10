@@ -5,6 +5,7 @@ import 'dart:math';
 import 'dart:ui'
     show Canvas, Color, Gradient, ImageByteFormat, Offset, Paint, Rect, Size;
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart' show Rectangle;
@@ -212,6 +213,16 @@ class TankGame extends FlameGame
   /// the one of the half, -1 for none when a phone steers the half.
   int tvPlayer = onTv ? 0 : -1;
 
+  /// A touch on the screen took over from the controller of [tvPlayer]:
+  /// the touch sticks show until the controller is used again. In a play
+  /// test a phone that saw a controller hid its sticks for good, and no
+  /// touch brought them back.
+  final touchOverPad = ValueNotifier<bool>(false);
+
+  /// The compact plates without touch: a split screen's second game shows
+  /// them when the first one does, or the two halves wore different HUDs.
+  final compactHud = ValueNotifier<bool>(false);
+
   /// Mouse position in widget pixels, null until a mouse is seen. The turret
   /// follows it.
   Vector2? pointer;
@@ -316,7 +327,7 @@ class TankGame extends FlameGame
   double _hostClashFor = 0;
 
   /// Last time anything happened in the room, to close it when it idles.
-  DateTime _lastActivity = DateTime.now();
+  DateTime _lastActivity = clock.now();
 
   /// Why the room was closed, shown on the closed screen.
   final closedReason = ValueNotifier<String?>(null);
@@ -650,7 +661,7 @@ class TankGame extends FlameGame
     final activeRound = round;
     if (phase.value == GamePhase.countdown && activeRound != null) {
       final remainingMs =
-          activeRound.startedAt - DateTime.now().millisecondsSinceEpoch;
+          activeRound.startedAt - clock.now().millisecondsSinceEpoch;
       final seconds = (remainingMs / 1000).ceil();
       if (seconds > 0 && seconds != _lastTick) {
         _lastTick = seconds;

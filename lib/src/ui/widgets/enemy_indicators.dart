@@ -71,8 +71,8 @@ const _follow = 7.0;
 const _fade = 5.0;
 
 /// The distance shown next to an arrow: metres in steps of five, so the
-/// label changes rarely and is easy to read in passing.
-@visibleForTesting
+/// label changes rarely and is easy to read in passing. The zone's radius
+/// in the HUD uses it too.
 int indicatorMetres(double distance) => ((distance / 10) / 5).round() * 5;
 
 /// Moves [from] towards [to] by [t] (0..1) along the shorter way round.
@@ -255,11 +255,21 @@ class _IndicatorPainter extends CustomPainter {
   final Iterable<_Marker> markers;
   final List<Rect> plates;
 
+  /// Closest two arrows may sit: their distances stacked into one
+  /// unreadable label ("106 m" over "72 m").
+  static const _gap = 34.0;
+
   @override
   void paint(Canvas canvas, Size size) {
     final inner = (Offset.zero & size).deflate(30);
     final centre = inner.center;
-    for (final marker in markers) {
+    final placed = <Offset>[];
+    // The nearest enemy keeps its spot, those further away make room.
+    final ordered = [...markers]
+      ..sort(
+        (a, b) => a.flag == b.flag ? a.metres - b.metres : (a.flag ? -1 : 1),
+      );
+    for (final marker in ordered) {
       // The arrow sits where its direction leaves the inner frame, so it
       // slides along the edge and round the corners as the angle turns.
       final direction = Offset(cos(marker.angle), sin(marker.angle));
@@ -282,13 +292,47 @@ class _IndicatorPainter extends CustomPainter {
           marker.alpha,
         );
       } else {
-        _arrow(
-          canvas,
+        final at = _apart(
           EnemyIndicators.clearOf(centre + direction * reach, plates, inner),
-          marker,
+          along: tx <= ty ? const Offset(0, 1) : const Offset(1, 0),
+          placed: placed,
+          plates: plates,
+          inner: inner,
         );
+        if (marker.alpha > 0.3) {
+          placed.add(at);
+        }
+        _arrow(canvas, at, marker);
       }
     }
+  }
+
+  /// [at] moved [along] the edge, a step either way in turn, until it keeps
+  /// [_gap] from every arrow [placed] before it, off the [plates] and in
+  /// [inner].
+  static Offset _apart(
+    Offset at, {
+    required Offset along,
+    required List<Offset> placed,
+    required List<Rect> plates,
+    required Rect inner,
+  }) {
+    bool free(Offset spot) =>
+        inner.inflate(1).contains(spot) &&
+        EnemyIndicators.clearOf(spot, plates, inner) == spot &&
+        placed.every((other) => (other - spot).distance >= _gap);
+    if (free(at)) {
+      return at;
+    }
+    for (var step = 1; step <= 6; step++) {
+      for (final sign in const [1, -1]) {
+        final spot = at + along * (_gap * step * sign);
+        if (free(spot)) {
+          return spot;
+        }
+      }
+    }
+    return at;
   }
 
   void _arrow(Canvas canvas, Offset at, _Marker marker) {

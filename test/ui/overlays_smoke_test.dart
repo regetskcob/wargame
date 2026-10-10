@@ -5,6 +5,7 @@ library;
 
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -154,7 +155,7 @@ void _startNow(TankGame game, GameMode mode) {
   game
     ..chooseMode(mode)
     ..fillWithBots.value = true;
-  final now = DateTime.now().millisecondsSinceEpoch;
+  final now = clock.now().millisecondsSinceEpoch;
   game.startRound(
     // The same field, weather and paratrooper waves on every run.
     seed: _seed,
@@ -288,7 +289,7 @@ void main() {
                 killerTeam: 2 - i % 2,
                 byMe: i == 0,
                 meDied: false,
-                at: DateTime.now(),
+                at: clock.now(),
               ),
           ];
         await _show(tester, game, size);
@@ -303,7 +304,7 @@ void main() {
         final game = await _game(tester);
         await _start(tester, game, GameMode.defense);
         game.touchMode.value = screen != 'desktop';
-        final now = DateTime.now().millisecondsSinceEpoch;
+        final now = clock.now().millisecondsSinceEpoch;
         await _act(
           tester,
           () => game.publishDefense(
@@ -338,7 +339,7 @@ void main() {
           game
             ..fillWithBots.value = false
             ..chooseMode(GameMode.multi)
-            ..startRound(startedAt: DateTime.now().millisecondsSinceEpoch - 1);
+            ..startRound(startedAt: clock.now().millisecondsSinceEpoch - 1);
         });
         await _play(tester, game, 0.5);
         await _act(tester, () => game.onLocalDeath(null));

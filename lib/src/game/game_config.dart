@@ -562,11 +562,18 @@ class GameConfig {
   /// Paint schemes everybody has from the start.
   static const freeColors = 4;
 
-  /// Any vehicle and one of the free paint schemes, for a CPU tank.
-  static int randomStyle(Random random) => styleOf(
-    random.nextInt(TankType.values.length),
-    random.nextInt(freeColors),
-  );
+  /// A vehicle up to rank [maxLevel] and one of the free paint schemes, for
+  /// a CPU tank. Any vehicle without a limit.
+  static int randomStyle(Random random, {int maxLevel = 99}) {
+    final allowed = [
+      for (final type in TankType.values)
+        if (type.level <= maxLevel) type,
+    ];
+    return styleOf(
+      allowed[random.nextInt(allowed.length)].index,
+      random.nextInt(freeColors),
+    );
+  }
 
   /// A vehicle everybody has from the start and a free paint scheme, for a
   /// fresh player: nobody begins in a vehicle their rank does not allow.

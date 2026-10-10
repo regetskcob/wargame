@@ -114,6 +114,12 @@ class TvPadState {
   final Set<String> held;
 
   bool operator [](String button) => held.contains(button);
+
+  /// Whether a stick is pushed or a button held: somebody uses it.
+  bool get busy =>
+      held.isNotEmpty || [lx, ly, rx, ry].any((axis) => axis.abs() > _busyZone);
+
+  static const _busyZone = 0.3;
 }
 
 /// The controllers of the Apple TV, as the native side reports them.
@@ -200,7 +206,9 @@ class TvInput {
 /// Whether [game] is steered with a controller or the Siri Remote: always on
 /// the Apple TV, elsewhere when a controller plays this half.
 bool steeredByPad(TankGame game) =>
-    onTv || TvInput.instance.player(game.tvPlayer).kind != TvPadKind.none;
+    onTv ||
+    (!game.touchOverPad.value &&
+        TvInput.instance.player(game.tvPlayer).kind != TvPadKind.none);
 
 /// Buttons that set off the inventory slots on a controller, in slot order.
 const tvGamepadSlotButtons = ['x', 'y', 'left', 'up', 'right', 'down'];
@@ -255,11 +263,16 @@ class TvSteering {
     final state = TvInput.instance.player(game.tvPlayer);
     final before = _before;
     _before = state;
+    // After a touch the controller waits until it is used again.
+    if (game.touchOverPad.value && !onTv && state.busy) {
+      game.touchOverPad.value = false;
+    }
     // A paired phone steers instead: its sticks must not be overwritten.
     final phone = PadScreen.instance.steers(game);
     if (phase != GamePhase.playing ||
         game.myTank == null ||
         phone ||
+        (game.touchOverPad.value && !onTv) ||
         state.kind == TvPadKind.none) {
       if (_active) {
         _active = false;

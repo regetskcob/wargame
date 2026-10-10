@@ -228,7 +228,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                   ),
                   OutlinedButton(
                     onPressed: game.backToLobby,
-                    child: _LobbyLabel(lobbyAt: game.lobbyAt.value),
+                    child: _LobbyLabel(
+                      lobbyAt: game.lobbyAt.value,
+                      withOthers: game.mode.value.withOthers,
+                    ),
                   ),
                   OutlinedButton.icon(
                     onPressed: game.watchReplay,
@@ -248,9 +251,13 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
 /// The way back to the waiting room, with the seconds left when the end
 /// screen goes there by itself, so it never vanishes unannounced.
 class _LobbyLabel extends StatefulWidget {
-  const _LobbyLabel({required this.lobbyAt});
+  const _LobbyLabel({required this.lobbyAt, required this.withOthers});
 
   final int? lobbyAt;
+
+  /// Named as the waiting room calls itself: the camp it once said led to
+  /// a screen titled get ready or waiting room.
+  final bool withOthers;
 
   @override
   State<_LobbyLabel> createState() => _LobbyLabelState();
@@ -278,7 +285,9 @@ class _LobbyLabelState extends State<_LobbyLabel> {
 
   @override
   Widget build(BuildContext context) {
-    final label = tr('ZURÜCK INS LAGER', 'BACK TO CAMP');
+    final label = widget.withOthers
+        ? tr('ZUM WARTERAUM', 'TO THE WAITING ROOM')
+        : tr('ZUR BEREITSTELLUNG', 'TO GET READY');
     final at = widget.lobbyAt;
     if (at == null) {
       return Text(label);

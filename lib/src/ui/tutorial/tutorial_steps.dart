@@ -653,7 +653,7 @@ List<TutorialStep> get _tour => [
           'ranks, rating, badges and leaderboards.',
     ),
     chips: [
-      TutorialChip(Icons.replay_outlined, tr('REVANCHE', 'REMATCH')),
+      TutorialChip(Icons.replay_outlined, tr('NEUES SPIEL', 'NEW GAME')),
       TutorialChip(Icons.movie_outlined, tr('WIEDERHOLUNG', 'REPLAY')),
       TutorialChip(Icons.military_tech_outlined, tr('RÄNGE', 'RANKS')),
       TutorialChip(Icons.workspace_premium_outlined, tr('ABZEICHEN', 'BADGES')),

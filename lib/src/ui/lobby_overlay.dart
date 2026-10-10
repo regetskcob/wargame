@@ -556,8 +556,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ),
             ValueListenableBuilder(
               valueListenable: game.lastReplay,
+              // Without anything to watch the row keeps its room, unseen:
+              // the menu sits in the middle and jumped up by half a row
+              // when the first replay appeared.
               builder: (context, replay, _) => live == null && replay == null
-                  ? const SizedBox.shrink()
+                  ? Visibility(
+                      visible: false,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: OutlinedButton.icon(
+                          onPressed: null,
+                          icon: const Icon(Icons.movie_outlined),
+                          label: Text(
+                            tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
+                          ),
+                        ),
+                      ),
+                    )
                   : Padding(
                       padding: const EdgeInsets.only(top: 12),
                       child: Wrap(
@@ -580,7 +598,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                               onPressed: game.watchReplay,
                               icon: const Icon(Icons.movie_outlined),
                               label: Text(
-                                tr('LETZTE RUNDE ANSEHEN', 'WATCH LAST ROUND'),
+                                tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                               ),
                             ),
                         ],

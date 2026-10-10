@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
@@ -551,7 +552,7 @@ class StrikeJet extends PositionComponent {
 
   static const _speed = 520.0;
 
-  double get _seconds => (DateTime.now().millisecondsSinceEpoch - at) / 1000;
+  double get _seconds => (clock.now().millisecondsSinceEpoch - at) / 1000;
 
   void _place() => position.setFrom(over + _heading * (_seconds * _speed));
 

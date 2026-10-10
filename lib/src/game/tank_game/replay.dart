@@ -17,7 +17,7 @@ extension TankGameReplay on TankGame {
       return;
     }
     // A short moment to look around before the first shots.
-    final startedAt = DateTime.now().millisecondsSinceEpoch + 1500;
+    final startedAt = clock.now().millisecondsSinceEpoch + 1500;
     _replayPlayer = ReplayPlayer(replay, startedAt: startedAt);
     net.muted = true;
     replaying.value = true;
@@ -57,7 +57,7 @@ extension TankGameReplay on TankGame {
     if (player == null) {
       return;
     }
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     for (final event in player.due(now).toList()) {
       final json = event.payload;
       switch (event.event) {

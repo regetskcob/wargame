@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
@@ -477,7 +478,7 @@ class PlayerTank extends TankBase
     if (round == null || round.defense) {
       return;
     }
-    final radius = round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
+    final radius = round.safeRadiusAt(clock.now().millisecondsSinceEpoch);
     if (position.length > radius) {
       applyDamage(GameConfig.zoneDamagePerSecond * dt, killerId: null);
     }

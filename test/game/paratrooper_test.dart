@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -12,7 +13,7 @@ Future<SoldierField> _field(
 ) async {
   final game = FlameGame();
   final startedAt =
-      DateTime.now().millisecondsSinceEpoch - (secondsAgo * 1000).round();
+      clock.now().millisecondsSinceEpoch - (secondsAgo * 1000).round();
   final field = SoldierField(seed: seed, startedAt: startedAt);
   game.world.add(field);
   await tester.pumpWidget(GameWidget(game: game, key: UniqueKey()));

@@ -75,7 +75,7 @@ extension TankGameInfantry on TankGame {
         squad: '${tank.playerId}-q${_squadCounter++}',
         x: at.x,
         y: at.y,
-        at: DateTime.now().millisecondsSinceEpoch,
+        at: clock.now().millisecondsSinceEpoch,
         rifles: para ? 0 : GameConfig.squadRifles,
         rockets: para ? GameConfig.paraDropRockets : GameConfig.squadRockets,
         para: para,

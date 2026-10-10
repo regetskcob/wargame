@@ -61,7 +61,7 @@ extension TankGameItems on TankGame {
       return;
     }
     final elapsed =
-        (DateTime.now().millisecondsSinceEpoch - activeRound.startedAt) / 1000;
+        (clock.now().millisecondsSinceEpoch - activeRound.startedAt) / 1000;
     for (final slot in _powerUpSlots) {
       if (elapsed >= slot.appearsAt &&
           !_gone.contains(slot.id) &&
@@ -273,7 +273,7 @@ extension TankGameItems on TankGame {
       sin(random.nextDouble() * 2 * pi),
     );
     final from = target - heading * 1400;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     for (var i = 0; i < GameConfig.airstrikeBombs; i++) {
       final at =
           target + heading * ((i - (GameConfig.airstrikeBombs - 1) / 2) * 60);
@@ -494,7 +494,7 @@ extension TankGameItems on TankGame {
       x: target.x,
       y: target.y,
       at:
-          DateTime.now().millisecondsSinceEpoch +
+          clock.now().millisecondsSinceEpoch +
           (GameConfig.artilleryDelay * 1000).round(),
     );
     _addArtillery(payload);
@@ -526,7 +526,7 @@ extension TankGameItems on TankGame {
   }
 
   void _onArtillery(ArtilleryPayload payload) {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     // Never further out than the delay, and never long past.
     final late = payload.at - now;
     if (late > GameConfig.artilleryDelay * 1000 + 1000 || late < -1000) {

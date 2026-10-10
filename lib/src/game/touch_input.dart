@@ -32,6 +32,12 @@ class TouchInput {
   /// Set by the tank while assisted aim is on target.
   bool assistFire = false;
 
+  /// The aim assist button that switched [assist] on last. Only that one
+  /// switches it off when it goes: a HUD built anew mounts its button
+  /// before the old one is disposed, and the old one used to turn the
+  /// assist off under the new button that still read "on".
+  Object? assistOwner;
+
   /// How far a grenade should fly. Bots set it, players aim with the mouse.
   double? lobDistance;
 

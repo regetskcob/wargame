@@ -30,6 +30,36 @@ void main() {
     );
   });
 
+  test('the driving card is done once the tank rolls into the ring', () {
+    final practice = TutorialPractice(
+      touch: true,
+      bounds: bounds,
+      goal: PracticeGoal.reach,
+    );
+    expect(practice.targets, isEmpty);
+    final ring = practice.ring!;
+    for (var i = 0; i < 200 && !practice.done; i++) {
+      final to = ring - practice.pos;
+      practice.input.drive = (to.dx / to.distance, to.dy / to.distance);
+      practice.tick(0.05);
+    }
+    expect(practice.done, isTrue);
+    expect(practice.ring, isNull);
+  });
+
+  test('a shooting card is done after three hits', () {
+    final practice = TutorialPractice(touch: false, bounds: bounds);
+    practice.mouseDown = true;
+    for (var i = 0; i < 600 && !practice.done; i++) {
+      final target = practice.targets.where((t) => t.standing).firstOrNull;
+      practice
+        ..mouse = target?.at
+        ..tick(0.05);
+    }
+    expect(practice.hits, TutorialPractice.hitsNeeded);
+    expect(practice.done, isTrue);
+  });
+
   test('the drive stick turns the tank toward the thumb and drives', () {
     final practice = TutorialPractice(touch: true, bounds: bounds);
     final start = practice.pos;

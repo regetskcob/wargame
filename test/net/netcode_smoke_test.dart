@@ -9,6 +9,7 @@ library;
 
 import 'dart:async';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:supabase/supabase.dart';
@@ -122,7 +123,7 @@ void main() {
               id: id,
               name: 'SmokeTestPilot',
               wins: 9999,
-              updatedAt: DateTime.now(),
+              updatedAt: clock.now(),
             ),
           ),
       throwsA(isA<PostgrestApiException>()),
@@ -156,7 +157,7 @@ void main() {
     );
     addTearDown(account.dispose);
     final signUp = await account.auth.signUp(
-      email: 'smoke-${DateTime.now().microsecondsSinceEpoch}@example.com',
+      email: 'smoke-${clock.now().microsecondsSinceEpoch}@example.com',
       password: 'smoke-test-password',
     );
     final accountId = signUp.user!.id;

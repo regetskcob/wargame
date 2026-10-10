@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/payloads/round_start_payload.dart';
@@ -11,7 +12,7 @@ void main() {
   );
 
   test('the recorder keeps messages relative to the round start', () {
-    final startedAt = DateTime.now().millisecondsSinceEpoch - 2000;
+    final startedAt = clock.now().millisecondsSinceEpoch - 2000;
     final recorder = ReplayRecorder()
       ..start(round(startedAt), names: {'a': 'A'}, styles: {'a': 3});
     recorder

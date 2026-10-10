@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/kill_feed.dart';
@@ -14,7 +15,7 @@ KillEntry _entry({
   killerTeam: 1,
   byMe: false,
   meDied: false,
-  at: at ?? DateTime.now(),
+  at: at ?? clock.now(),
 );
 
 void main() {
@@ -24,7 +25,7 @@ void main() {
       _entry(killer: null, victim: 'Panzer-3'),
       _entry(
         victim: 'Alt',
-        at: DateTime.now().subtract(const Duration(seconds: 30)),
+        at: clock.now().subtract(const Duration(seconds: 30)),
       ),
     ]);
     await tester.pumpWidget(

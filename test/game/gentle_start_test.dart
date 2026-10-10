@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/bot_level.dart';
@@ -52,7 +53,7 @@ void main() {
         ..chooseMode(GameMode.solo)
         ..botLevel.value = BotLevel.normal
         // Already begun, so the wall clock has no say in when play starts.
-        ..startRound(startedAt: DateTime.now().millisecondsSinceEpoch);
+        ..startRound(startedAt: clock.now().millisecondsSinceEpoch);
       // Let the freshly added tanks finish loading.
       await Future<void>.delayed(Duration.zero);
       game.update(0);
@@ -89,7 +90,7 @@ void main() {
   );
 
   test('the aim assist holds its fire while the CPU tanks do', () async {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     final early = await loadedGame();
     early
       ..chooseMode(GameMode.solo)

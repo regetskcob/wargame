@@ -267,7 +267,7 @@ extension TankGameAir on TankGame {
 
   /// The host's jet is over its target: a string of bombs along its path.
   void dropBombs(Aircraft plane) {
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     for (var i = 0; i < GameConfig.jetBombs; i++) {
       final at =
           plane.goal +

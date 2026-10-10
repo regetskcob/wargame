@@ -51,6 +51,23 @@
       url(assets/assets/images/launch_ground.jpg) center / cover no-repeat; }
     #launch { position: fixed; left: 50%; top: 50%; width: 160px;
       transform: translate(-50%, -50%); }
+    /* What happens while the first visit downloads several megabytes:
+       without it the tank stood there for seconds as if nothing moved.
+       Flutter's loading view covers it once it draws. */
+    #status { position: fixed; left: 50%; top: calc(50% + 70px);
+      transform: translateX(-50%); width: min(320px, 80vw);
+      font: 600 13px/1.4 system-ui, sans-serif; color: #F1E9CF;
+      text-align: center; text-shadow: 0 1px 3px #000; }
+    #status .bar { height: 3px; margin: 0 auto 10px; width: 120px;
+      background: rgba(0, 0, 0, 0.35); border-radius: 2px; overflow: hidden; }
+    #status .bar::after { content: ''; display: block; height: 100%;
+      width: 40%; background: #F2B33D; border-radius: 2px;
+      animation: slide 1.2s ease-in-out infinite; }
+    #status .tip { margin-top: 6px; font-weight: 400; opacity: 0.85; }
+    @keyframes slide { from { transform: translateX(-100%); }
+      to { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) {
+      #status .bar::after { animation: none; width: 100%; opacity: 0.5; } }
   </style>
   <script>
     // The game speaks German on German browsers and English elsewhere.
@@ -64,6 +81,40 @@
 </head>
 <body>
   <img id="launch" src="assets/assets/images/launch_tank.png" alt="">
+  <div id="status" role="status">
+    <div class="bar"></div>
+    <div id="loading">Das Spiel lädt …</div>
+    <div class="tip" id="tip"></div>
+  </div>
+  <script>
+    (function () {
+      var de = document.documentElement.lang === 'de';
+      var tips = de ? [
+        'Tipp: Ein Raum-Link lädt Freunde direkt in deinen Warteraum.',
+        'Tipp: Dein Handy wird per QR-Code zum Controller.',
+        'Tipp: Kisten bringen Reparatur, Nebel, Schnellfeuer und Minen.',
+        'Tipp: Im Sperrgebiet verliert dein Panzer Panzerung.',
+      ] : [
+        'Tip: a room link brings friends straight into your waiting room.',
+        'Tip: a QR code turns your phone into a controller.',
+        'Tip: crates bring repairs, smoke, rapid fire and mines.',
+        'Tip: the closed zone wears down your armour.',
+      ];
+      if (!de) {
+        document.getElementById('loading').textContent = 'Loading the game …';
+      }
+      document.getElementById('tip').textContent =
+        tips[Math.floor(Math.random() * tips.length)];
+      // Gone once Flutter takes over the page, so a screen reader does not
+      // keep announcing it; Flutter's loading view shows its own spinner.
+      new MutationObserver(function (_, observer) {
+        if (document.querySelector('flutter-view')) {
+          document.getElementById('status').remove();
+          observer.disconnect();
+        }
+      }).observe(document.body, { childList: true, subtree: true });
+    })();
+  </script>
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

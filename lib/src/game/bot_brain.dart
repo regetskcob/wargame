@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
@@ -102,6 +103,9 @@ class BotBrain extends Component with HasGameRef<TankGame> {
   static bool _human(TankBase candidate) =>
       candidate is RemoteTank || (candidate is PlayerTank && !candidate.isBot);
 
+  /// How much closer a person seems than a CPU tank when picking a target.
+  static const _humanPull = 0.35;
+
   /// Nearest tank that is not on this bot's team. While it holds its fire
   /// it leaves people alone and only goes for other CPU tanks: in the play
   /// test a bot drove straight at the new player, the aim assist shot at it
@@ -117,7 +121,12 @@ class BotBrain extends Component with HasGameRef<TankGame> {
           (_holdFire > 0 && _human(candidate))) {
         return;
       }
-      final distance = candidate.position.distanceTo(tank.position);
+      // People count as closer than they are: left to the nearest tank, the
+      // CPU tanks fought each other and a player who did nothing at all won
+      // up to one round in six on easy (test/game/balance_sim_test.dart).
+      final distance =
+          candidate.position.distanceTo(tank.position) *
+          (_human(candidate) ? _humanPull : 1);
       if (distance < bestDistance) {
         bestDistance = distance;
         best = candidate;
@@ -161,7 +170,7 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     _target = target;
     final safeRadius = round == null
         ? GameConfig.worldRadius
-        : round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
+        : round.safeRadiusAt(clock.now().millisecondsSinceEpoch);
     _wantThrust = false;
     _wantBrake = false;
 

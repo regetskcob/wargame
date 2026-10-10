@@ -159,6 +159,12 @@ extension TankGameLobby on TankGame {
   /// test a slow progress threw away a loaded call sign, and a guest came
   /// back under another name. A call sign typed while this loads stays.
   Future<void> _loadPilot() async {
+    // The second player on a shared screen signs in with the first one's
+    // account: its call sign must not take the first one's name, or both
+    // tanks of a split screen carried the same call sign.
+    if (sharesScreen) {
+      return;
+    }
     final edits = _pilotEdits;
     final profileLoad = Future<PlayersRow?>.sync(profiles.load)
         .timeout(_pilotTimeout)
@@ -189,6 +195,10 @@ extension TankGameLobby on TankGame {
 
   /// Call sign and style kept on this device, before the server answers.
   void _adoptStoredPilot() {
+    // The device's call sign belongs to the first player, see _loadPilot.
+    if (sharesScreen) {
+      return;
+    }
     if (storedPilot() case (final name, final style)) {
       _adoptPilot(name, style);
     }
@@ -531,7 +541,7 @@ extension TankGameLobby on TankGame {
     if (phase.value != GamePhase.lobby || dozing) {
       return;
     }
-    final idle = (now ?? DateTime.now()).difference(_lastActivity);
+    final idle = (now ?? clock.now()).difference(_lastActivity);
     if (idle < GameConfig.lobbyIdleTimeout) {
       return;
     }
@@ -567,7 +577,7 @@ extension TankGameLobby on TankGame {
       return;
     }
     dozing = false;
-    _lastActivity = DateTime.now();
+    _lastActivity = clock.now();
     fireAndForget(net.connect(_presencePayload()), 'Joining the room');
   }
 
@@ -612,7 +622,7 @@ extension TankGameLobby on TankGame {
     // No address bar to start over from: meet in the same room again.
     _setHost(true);
     choosingMode.value = true;
-    _lastActivity = DateTime.now();
+    _lastActivity = clock.now();
     closedReason.value = null;
     _setPhase(GamePhase.lobby);
     await net.connect(_presencePayload());
@@ -635,7 +645,7 @@ extension TankGameLobby on TankGame {
     final before = {for (final member in roster.value) member.id};
     final after = {for (final member in members) member.id};
     if (before.length != after.length || !before.containsAll(after)) {
-      _lastActivity = DateTime.now();
+      _lastActivity = clock.now();
     }
     roster.value = members;
     _adoptHostMode(members);

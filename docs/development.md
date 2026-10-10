@@ -24,6 +24,16 @@ tests also check that `GameConfig.roomLoad` and `GameConfig.padLoad` are
 not below what rooms and phones measurably send. All of them run without a server; see
 [Realtime limits](netcode.md#realtime-limits).
 
+The game logic reads the time through `clock.now()` (package `clock`),
+never `DateTime.now()`, so a test can run a round on a fake clock with
+`withClock`: the closing zone, the gentle start and the waves then follow
+the simulated seconds. Widget tests run on such a clock already, so their
+`startedAt` comes from `clock.now()` too. `test/game/balance_sim_test.dart`
+uses it to play hundreds of solo rounds against each difficulty and is
+skipped in the normal run (tag `balance` in `dart_test.yaml`); see
+[Balance](gameplay.md#balance). Each simulated frame awaits once, or new
+shells and tanks never finish loading and no shell of the player lands.
+
 Three smoke tests play whole rounds without a server and only ask that
 nothing throws. `test/game/smoke_test.dart` runs every mode on every bot
 level with the local tank driving, firing and setting off every item, and

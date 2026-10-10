@@ -152,7 +152,7 @@ class NetService {
           }
         } else if (change.status == RealtimeSubscribeStatus.channelError ||
             change.status == RealtimeSubscribeStatus.closed) {
-          _scheduleReconnect();
+          _scheduleReconnect(change.error ?? change.status.name);
         }
       }),
     );
@@ -338,7 +338,9 @@ class NetService {
     }
   }
 
-  void _scheduleReconnect() {
+  /// [why] goes into the log: on the watch the channel kept dropping and
+  /// the log did not say why.
+  void _scheduleReconnect([Object? why]) {
     // An error is often followed by a close: one attempt for both.
     if (_disposed || _reconnect != null) {
       return;
@@ -350,7 +352,7 @@ class NetService {
     final wait = _backoff.next();
     debugPrint(
       'Room channel $room dropped, rejoining in ${wait.inSeconds} s '
-      '(attempt ${_backoff.failures})',
+      '(attempt ${_backoff.failures}${why == null ? '' : ': $why'})',
     );
     _reconnect = Timer(wait, () async {
       _reconnect = null;

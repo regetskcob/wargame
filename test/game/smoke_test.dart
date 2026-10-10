@@ -5,6 +5,7 @@ library;
 
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/bot_level.dart';
@@ -34,7 +35,7 @@ Future<TankGame> _round(GameMode mode, BotLevel level) async {
     ..chooseMode(mode)
     ..fillWithBots.value = true
     ..botLevel.value = level;
-  final now = DateTime.now().millisecondsSinceEpoch;
+  final now = clock.now().millisecondsSinceEpoch;
   game.startRound(
     startedAt: mode == GameMode.defense
         ? now - GameConfig.firstWaveSeconds * 1000

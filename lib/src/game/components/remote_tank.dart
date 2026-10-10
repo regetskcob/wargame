@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flame/extensions.dart';
 
 import '../game_config.dart';
@@ -24,11 +25,11 @@ class RemoteTank extends TankBase {
   late double _targetAngle;
 
   /// When the last state arrived, to notice tanks that went silent.
-  DateTime lastSeen = DateTime.now();
+  DateTime lastSeen = clock.now();
   late double _targetTurret = turretAngle;
 
   void applyState(TankStatePayload state) {
-    lastSeen = DateTime.now();
+    lastSeen = clock.now();
     _target.setValues(state.x, state.y);
     velocity.setValues(state.vx, state.vy);
     _targetAngle = state.rotation;

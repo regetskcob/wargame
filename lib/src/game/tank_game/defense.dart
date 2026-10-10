@@ -205,7 +205,7 @@ extension TankGameDefense on TankGame {
         squad: id,
         x: map.entry.x,
         y: map.entry.y,
-        at: DateTime.now().millisecondsSinceEpoch,
+        at: clock.now().millisecondsSinceEpoch,
         rifles: 4,
         rockets: wave >= 3 ? 1 : 0,
         road: true,
@@ -224,7 +224,7 @@ extension TankGameDefense on TankGame {
       return;
     }
     final duel = round?.duel ?? false;
-    final now = DateTime.now().millisecondsSinceEpoch;
+    final now = clock.now().millisecondsSinceEpoch;
     for (var i = 0; i < count; i++) {
       // In a duel the infantry fights for the side of its base.
       final id = duel ? 'ally-L$lane-q$wave-$i' : 'ally-q$wave-$i';
@@ -351,7 +351,7 @@ extension TankGameDefense on TankGame {
         extended: true,
         until: state.wave + GameConfig.defenseExtension,
         nextWaveAt:
-            DateTime.now().millisecondsSinceEpoch +
+            clock.now().millisecondsSinceEpoch +
             GameConfig.waveBreakSeconds * 1000,
       ),
     );
@@ -364,7 +364,7 @@ extension TankGameDefense on TankGame {
     return state != null &&
         round?.botHost == myId &&
         state.result == DefenseResult.running &&
-        state.nextWaveAt > DateTime.now().millisecondsSinceEpoch + 1000 &&
+        state.nextWaveAt > clock.now().millisecondsSinceEpoch + 1000 &&
         !state.deciding;
   }
 
@@ -376,9 +376,7 @@ extension TankGameDefense on TankGame {
       return;
     }
     publishDefense(
-      defense.value!.copyWith(
-        nextWaveAt: DateTime.now().millisecondsSinceEpoch,
-      ),
+      defense.value!.copyWith(nextWaveAt: clock.now().millisecondsSinceEpoch),
     );
   }
 

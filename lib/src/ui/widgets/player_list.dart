@@ -27,7 +27,7 @@ class PlayerList extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          tr('BESATZUNGEN IM LAGER', 'CREWS IN CAMP'),
+          tr('BESATZUNGEN IM RAUM', 'CREWS IN THE ROOM'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
@@ -67,7 +67,7 @@ class PlayerList extends StatelessWidget {
                 Text(
                   member.inMatch
                       ? tr('im Einsatz', 'in battle')
-                      : tr('im Lager', 'in camp'),
+                      : tr('wartet', 'waiting'),
                   style: const TextStyle(
                     color: GameColors.textDim,
                     fontSize: 12,

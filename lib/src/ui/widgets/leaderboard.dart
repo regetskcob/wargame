@@ -28,6 +28,11 @@ class _LeaderboardState extends State<Leaderboard> {
   late Future<List<ScoresRow>> _scores;
   Timer? _refresh;
 
+  /// The last list that arrived, shown while the next one loads: the line
+  /// "loading" in its place shrank the table every 30 seconds and the
+  /// start page jumped.
+  List<ScoresRow>? _last;
+
   @override
   void initState() {
     super.initState();
@@ -45,8 +50,16 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   void _reload() {
-    _scores = widget.game.scoreService.topScores(limit: 100);
+    _scores = widget.game.scoreService.topScores(limit: 100).then((rows) {
+      _last = rows;
+      return rows;
+    });
   }
+
+  /// Pilots with something to show: a row of three zeros is a round left
+  /// early, not a place on the board.
+  static bool _scored(ScoresRow row) =>
+      row.points > 0 || row.wins > 0 || row.kills > 0;
 
   /// Points first, then rating, wins and kills break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
@@ -157,15 +170,27 @@ class _LeaderboardState extends State<Leaderboard> {
             ],
           );
         }
-        if (snapshot.connectionState != ConnectionState.done) {
-          return Text(
-            tr('Bestenliste wird geladen …', 'Loading leaderboard …'),
-            style: const TextStyle(color: GameColors.textDim),
+        final rows = snapshot.connectionState == ConnectionState.done
+            ? snapshot.data
+            : _last;
+        if (rows == null) {
+          // The table's rows, empty, while the first list loads: the one
+          // line "loading" grew into the table and the start page, which
+          // sits in the middle of a tablet, jumped under the finger.
+          return Semantics(
+            label: tr('Bestenliste wird geladen …', 'Loading leaderboard …'),
+            child: ExcludeSemantics(
+              child: _table(_labels, [
+                for (var i = 0; i < widget.rows; i++) _placeholderRow(i + 1),
+              ]),
+            ),
           );
         }
-        final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
-          ..sort(_byRank);
-        final me = widget.game.scoreService.myId;
+        final scores = rows.where(_scored).toList()..sort(_byRank);
+        // A guest plays unranked: a row under the guest's id is a leftover
+        // of an earlier name and never the guest's own place.
+        final service = widget.game.scoreService;
+        final me = service.isGuest ? null : service.myId;
         if (scores.isEmpty) {
           return _empty;
         }
@@ -230,6 +255,20 @@ class _LeaderboardState extends State<Leaderboard> {
     Color(0xFFCFD8DC),
     Color(0xFFCD7F32),
   ];
+
+  TableRow _placeholderRow(int rank) {
+    const dim = TextStyle(color: GameColors.textDim);
+    return TableRow(
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+      ),
+      children: [
+        _cell('$rank', style: dim),
+        _cell('…', style: dim, align: TextAlign.left),
+        for (var i = 0; i < 3; i++) _cell('–', style: dim),
+      ],
+    );
+  }
 
   TableRow _row(int rank, ScoresRow row, {required bool mine}) {
     final medal = rank <= 3 ? _medals[rank - 1] : null;

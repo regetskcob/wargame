@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
+
 import 'bot_level.dart';
 import 'components/storm_zone.dart';
 import 'game_config.dart';
@@ -207,7 +209,7 @@ class RoundState {
     if (!alive.remove(id)) {
       return false;
     }
-    downAt[id] = DateTime.now().millisecondsSinceEpoch;
+    downAt[id] = clock.now().millisecondsSinceEpoch;
     fallen.add(id);
     return true;
   }

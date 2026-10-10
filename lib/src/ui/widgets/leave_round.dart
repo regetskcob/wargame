@@ -25,6 +25,8 @@ class LeaveRoundButton extends StatelessWidget {
           ? tr('Runde verlassen', 'Leave round')
           : tr('Runde verlassen (Esc)', 'Leave round (Esc)'),
       color: GameColors.textDim.withValues(alpha: 0.7),
+      // A dark disc under it, or the dim icon vanished on snow and sand.
+      style: IconButton.styleFrom(backgroundColor: const Color(0x80141A0E)),
       onPressed: () => game.leaveAsked.value = true,
       icon: const Icon(Icons.logout_outlined),
     );

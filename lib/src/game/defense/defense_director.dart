@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 
 import '../../app/env.dart';
@@ -49,7 +50,7 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   double _spawnTimer = 0;
   double _keepalive = 0;
 
-  int get _now => DateTime.now().millisecondsSinceEpoch;
+  int get _now => clock.now().millisecondsSinceEpoch;
 
   @override
   void onMount() {

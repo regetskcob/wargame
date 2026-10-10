@@ -27,9 +27,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   card moves on by itself after a while. On a controls card the player can
   take over at any time: a thumb on the sticks, a game key or a click turns
   the scene into a training ground with their own tank, the game's controls
-  and a few enemy tanks to hit (grenades on the special weapon card). The
-  card then folds its text away and waits for NEXT. The Apple TV keeps the
-  demonstration only.
+  and a task: drive into the ring on the driving card, three hits on the
+  others (a few enemy tanks stand around, grenades on the special weapon
+  card). The card then folds its text away and shows the task with its
+  progress; done, it says so and moves on to the next card after a moment,
+  NEXT still works at any time. The Apple TV keeps the demonstration only.
 
 ## Ways to play
 
@@ -109,7 +111,10 @@ Everything the game does, with the numbers behind it. The short version is in th
 - A gentle start: for the first 10, 6 or 3 s of playing time (easy,
   normal, hard) CPU tanks leave people alone and only fight each other,
   unless a person hits them first, and the aim assist only aims without
-  firing (`TankGame.ceasefire`). A device that
+  firing (`TankGame.ceasefire`). After that a person counts as nearly three
+  times closer than another CPU tank when they pick a target
+  (`BotBrain._humanPull`), so the CPU tanks no longer finish each other off
+  while a player waits (see [Balance](#balance)). A device that
   never finished a round starts on easy, and the first round a host starts
   in a session opens by day under a clear sky for at least a minute. The
   waiting room shows difficulty, terrain and mode in one line that opens
@@ -117,6 +122,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   the briefing) goes straight into a solo round with the tank and
   difficulty used last, and alone the countdown takes
   2 s instead of 3.
+- CPU tanks drive the vehicles a new player has (Hermelin, Spitzmaus,
+  Fuchs) on easy and normal, and up to rank 3 (Habicht, Keiler) on hard
+  (`BotLevel.maxVehicleLevel`). They once came in any vehicle, the Wolf
+  and the Hirsch with three times the armour of a starter.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel
@@ -177,12 +186,45 @@ Everything the game does, with the numbers behind it. The short version is in th
   phone's browser does the same.
 - Game controllers: one steers the own tank in the browser, on iPhone, iPad,
   Android and the Apple TV, as a paired phone does; two play two on one
-  screen of a computer, tablet or television.
+  screen of a computer, tablet or television. A touch on the screen of a
+  phone or tablet brings the touch sticks back over a connected controller
+  (`TankGame.touchOverPad`), until the controller is used again. On a
+  split screen the second half wears the same plates as the first and goes
+  by the name of the phone that steers it, else PLAYER 2.
 - An Apple TV app, played with the Siri Remote or a controller, with menus
   that fit the television without scrolling, see [Apple TV](platforms.md#apple-tv).
 - The Apple Vision Pro, running the iPad app: look at a spot and pinch to
   aim and fire there, pinch and drag in the lower left to drive, without
   screen shake, see [Apple Vision Pro](platforms.md#apple-vision-pro).
+
+## Balance
+
+`test/game/balance_sim_test.dart` plays solo rounds with a stand-in for the
+player on a faked round clock: idle, idle with the aim assist (a phone
+player who only waits), and a player who drives and shoots like a CPU tank
+of the easy or normal level. Against 1 to 4 CPU tanks (2.5 on average) an
+even fight wins about 29 % of the rounds. It is skipped in the normal test
+run; `flutter test test/game/balance_sim_test.dart --run-skipped
+--dart-define=ROUNDS=60` starts it.
+
+Wins in 30 to 60 rounds each, before and after the changes of October 2026
+(CPU vehicles by level, the pull towards people):
+
+| Level | Player | Before | After |
+| --- | --- | --- | --- |
+| easy | idle | 7–25 % | 5–8 % |
+| easy | aim assist only | 63 % | 80–95 % |
+| easy | like an easy CPU | 27 % | 25–33 % |
+| easy | like a normal CPU | 53 % | 52–63 % |
+| normal | idle | 3 % | 0–3 % |
+| normal | aim assist only | 37 % | 35–43 % |
+| normal | like a normal CPU | 10 % | 18–33 % |
+| hard | like a normal CPU | 7 % | 5–8 % |
+
+Doing nothing no longer wins, easy is easy, normal is about an even fight
+for a player as good as its CPU tanks, and hard stays for players clearly
+better than them: softer aim or slower reactions on hard changed little,
+a CPU tank's accuracy there is what decides.
 
 ## Weapons and damage
 

@@ -1,3 +1,7 @@
 tags:
   # Needs a running local Supabase stack, see test/net/netcode_smoke_test.dart.
   supabase:
+  # Plays hundreds of solo rounds against the CPU tanks, a few minutes:
+  # flutter test test/game/balance_sim_test.dart --run-skipped
+  balance:
+    skip: "Balance run, start it by hand (see docs/gameplay.md)."

@@ -44,7 +44,10 @@ extension TankGameRound on TankGame {
     );
     final bots = <String, int>{
       for (var i = 1; i <= botCount; i++)
-        'cpu-$i': GameConfig.randomStyle(random),
+        'cpu-$i': GameConfig.randomStyle(
+          random,
+          maxLevel: botLevel.value.maxVehicleLevel,
+        ),
     };
     ids
       ..addAll(bots.keys)
@@ -63,7 +66,7 @@ extension TankGameRound on TankGame {
       // is nobody to wait for, only the moment to look at the field.
       startedAt:
           startedAt ??
-          DateTime.now().millisecondsSinceEpoch +
+          clock.now().millisecondsSinceEpoch +
               (humans.length > 1
                       ? GameConfig.countdownSeconds
                       : GameConfig.soloCountdownSeconds) *
@@ -188,7 +191,7 @@ extension TankGameRound on TankGame {
   /// recorded messages and the local player only watches.
   void _applyRoundStart(RoundStartPayload payload, {bool replay = false}) {
     _clearWorld();
-    _lastActivity = DateTime.now();
+    _lastActivity = clock.now();
     final activeRound = RoundState(
       seed: payload.seed,
       startedAt: payload.startedAt,
@@ -600,7 +603,7 @@ extension TankGameRound on TankGame {
     }
     final down = activeRound.downAt[id];
     return down == null ||
-        DateTime.now().millisecondsSinceEpoch - down >
+        clock.now().millisecondsSinceEpoch - down >
             GameConfig.respawnSeconds * 500;
   }
 
@@ -613,7 +616,7 @@ extension TankGameRound on TankGame {
     final started = round?.startedAt;
     return started == null
         ? 0
-        : (DateTime.now().millisecondsSinceEpoch - started) / 1000;
+        : (clock.now().millisecondsSinceEpoch - started) / 1000;
   }
 
   void _onDeath(DeathPayload payload) {
@@ -725,7 +728,7 @@ extension TankGameRound on TankGame {
       killerTeam: killerId == null ? 0 : activeRound.teamOf(killerId),
       byMe: killerId == myId,
       meDied: victimId == myId,
-      at: DateTime.now(),
+      at: clock.now(),
     );
     killFeed.value = [
       ...killFeed.value,
@@ -742,7 +745,7 @@ extension TankGameRound on TankGame {
     if (current != GamePhase.playing && current != GamePhase.spectating) {
       return;
     }
-    final now = DateTime.now();
+    final now = clock.now();
     for (final entry in remoteTanks.entries.toList()) {
       if (now.difference(entry.value.lastSeen) > GameConfig.silentTankTimeout) {
         _handleRemoteDeath(entry.key, explode: false);
@@ -984,7 +987,7 @@ extension TankGameRound on TankGame {
       return false;
     }
     final elapsed =
-        (DateTime.now().millisecondsSinceEpoch - active.startedAt) / 1000;
+        (clock.now().millisecondsSinceEpoch - active.startedAt) / 1000;
     return elapsed < active.botLevel.holdFire;
   }
 
@@ -1001,8 +1004,7 @@ extension TankGameRound on TankGame {
       return;
     }
     lobbyAt.value =
-        DateTime.now().millisecondsSinceEpoch +
-        GameConfig.roundOverSeconds * 1000;
+        clock.now().millisecondsSinceEpoch + GameConfig.roundOverSeconds * 1000;
     Future<void>.delayed(
       const Duration(seconds: GameConfig.roundOverSeconds),
       () {
@@ -1022,7 +1024,7 @@ extension TankGameRound on TankGame {
     round = null;
     GameConfig.swapSides = false;
     myTeam = 0;
-    _lastActivity = DateTime.now();
+    _lastActivity = clock.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
   }
@@ -1087,7 +1089,7 @@ extension TankGameRound on TankGame {
     round = null;
     GameConfig.swapSides = false;
     myTeam = 0;
-    _lastActivity = DateTime.now();
+    _lastActivity = clock.now();
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
   }

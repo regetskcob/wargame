@@ -378,9 +378,19 @@ abstract class TankBase extends PositionComponent {
 class TankTag extends PositionComponent {
   TankTag() : super(anchor: Anchor.center);
 
+  // A dark halo, or the light names vanish on snow and sand.
   static final _namePaints = [
     for (final color in GameConfig.sideColors)
-      TextPaint(style: TextStyle(color: color, fontSize: 11)),
+      TextPaint(
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          shadows: const [
+            Shadow(color: Color(0xCC000000), blurRadius: 3),
+            Shadow(color: Color(0x99000000), blurRadius: 1),
+          ],
+        ),
+      ),
   ];
 
   static TextPaint _namePaint(int team) =>

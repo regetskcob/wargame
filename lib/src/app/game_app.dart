@@ -252,6 +252,9 @@ class _GameAppState extends State<GameApp> {
         }
         if (event.kind == PointerDeviceKind.touch) {
           game.touchMode.value = true;
+          if (!onTv) {
+            game.touchOverPad.value = true;
+          }
         } else if (event.kind == PointerDeviceKind.mouse) {
           _aimWithMouse(event.localPosition);
           if (event.buttons & kPrimaryMouseButton != 0 && !game.pointerOnHud) {
@@ -385,7 +388,9 @@ class ControllerApp extends StatelessWidget {
         theme: buildGameTheme(),
         home: ControllerView(
           code: code,
-          name: tr('Handy', 'Phone'),
+          // The call sign this browser plays under, so the second half
+          // of a split screen is not just called "phone".
+          name: storedPilot()?.$1 ?? tr('Handy', 'Phone'),
           onClose: leavePadPage,
         ),
       ),

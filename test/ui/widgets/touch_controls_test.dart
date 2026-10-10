@@ -46,6 +46,33 @@ void main() {
     expect(input.drive, isNull);
   });
 
+  testWidgets('a HUD built anew keeps the aim assist on', (tester) async {
+    // The new controls mount before the old ones are disposed: the old
+    // button used to switch the assist off under the new one, which still
+    // read "on", and the turret never fired again that round.
+    tester.view
+      ..physicalSize = const Size(400, 800)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    final input = TouchInput();
+    final special = ValueNotifier<(SpecialWeapon, int)?>(null);
+    Widget controls(int build) => MaterialApp(
+      home: Scaffold(
+        body: TouchControls(
+          key: ValueKey(build),
+          input: input,
+          special: special,
+        ),
+      ),
+    );
+    await tester.pumpWidget(controls(1));
+    expect(input.assist, isTrue);
+    await tester.pumpWidget(controls(2));
+    expect(input.assist, isTrue);
+    await tester.pumpWidget(const SizedBox());
+    expect(input.assist, isFalse);
+  });
+
   testWidgets('without the assist there is no button and it stays off', (
     tester,
   ) async {

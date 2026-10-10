@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -117,7 +118,7 @@ void main() {
   group('NetService.send', () {
     RoundStartPayload round() => RoundStartPayload(
       seed: 1,
-      startedAt: DateTime.now().millisecondsSinceEpoch,
+      startedAt: clock.now().millisecondsSinceEpoch,
       participants: const ['me'],
     );
 

@@ -165,6 +165,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         touch: _touch,
         bounds: _practiceBounds,
         grenades: _step.scene == DemoScene.special,
+        goal: _step.scene == DemoScene.drive
+            ? PracticeGoal.reach
+            : PracticeGoal.hit,
         input: _input,
       );
     });
@@ -191,9 +194,18 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     }
     final dt = (elapsed - _lastTick).inMicroseconds / 1e6;
     _lastTick = elapsed;
+    final before = practice.done;
     practice
       ..bounds = _practiceBounds
       ..tick(dt, pressed: HardwareKeyboard.instance.logicalKeysPressed);
+    if (practice.done && !before) {
+      // The task is done: a moment to see it, then the next card.
+      Future<void>.delayed(const Duration(milliseconds: 1400), () {
+        if (mounted && identical(_practice, practice)) {
+          _next();
+        }
+      });
+    }
     if (practice.grenades) {
       final loadout = (SpecialWeapon.grenades, practice.charges);
       if (_special.value != loadout) {

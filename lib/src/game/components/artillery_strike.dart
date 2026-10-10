@@ -1,6 +1,7 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 
 import '../game_config.dart';
@@ -40,7 +41,7 @@ class ArtilleryStrike extends PositionComponent with HasGameRef<TankGame> {
   double _age = 0;
 
   double get _secondsToImpact =>
-      (at - DateTime.now().millisecondsSinceEpoch) / 1000;
+      (at - clock.now().millisecondsSinceEpoch) / 1000;
 
   @override
   void update(double dt) {

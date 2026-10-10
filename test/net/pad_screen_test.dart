@@ -1,3 +1,4 @@
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/upgrades.dart';
@@ -276,7 +277,7 @@ void main() {
     game.publishDefense(
       game.defense.value!.copyWith(
         wave: GameConfig.defenseWaves,
-        nextWaveAt: DateTime.now().millisecondsSinceEpoch + 20000,
+        nextWaveAt: clock.now().millisecondsSinceEpoch + 20000,
       ),
     );
     final deciding = PadScreen.statusOf(game);

@@ -109,14 +109,14 @@ class _HudOverlayState extends State<HudOverlay> {
               'Closed zone fully shrunk',
             );
     }
+    // In metres like the arrows at the edge: the bare world units read
+    // "Radius 844" next to an enemy "85 m" away.
+    final metres = indicatorMetres(radius);
     return compact
-        ? tr(
-            'Sicher: Radius ${radius.round()}',
-            'Safe: radius ${radius.round()}',
-          )
+        ? tr('Sicher: Radius $metres m', 'Safe: radius $metres m')
         : tr(
-            'Sperrgebiet zieht sich zu: sicherer Radius ${radius.round()}',
-            'Closed zone is shrinking: safe radius ${radius.round()}',
+            'Sperrgebiet zieht sich zu: sicherer Radius $metres m',
+            'Closed zone is shrinking: safe radius $metres m',
           );
   }
 
@@ -223,73 +223,79 @@ class _HudOverlayState extends State<HudOverlay> {
   @override
   Widget build(BuildContext context) {
     final game = widget.game;
-    return ValueListenableBuilder<bool>(
-      valueListenable: game.touchMode,
-      builder: (context, touch, _) => Stack(
-        children: [
-          if (touch) _compact(game) else _status(game),
-          _effects(game),
-          EnemyIndicators(
-            game: game,
-            keepOut: [_gaugesKey, _statusKey, _mapKey, _defenseKey],
+    return ListenableBuilder(
+      listenable: Listenable.merge([game.touchMode, game.compactHud]),
+      builder: (context, _) => _layers(game),
+    );
+  }
+
+  Widget _layers(TankGame game) {
+    final touch = game.touchMode.value;
+    return Stack(
+      children: [
+        if (touch || game.compactHud.value) _compact(game) else _status(game),
+        _effects(game),
+        EnemyIndicators(
+          game: game,
+          keepOut: [_gaugesKey, _statusKey, _mapKey, _defenseKey],
+        ),
+        // A paired phone or a controller brings its own sticks.
+        if (touch)
+          ListenableBuilder(
+            listenable: Listenable.merge([
+              PadScreen.instance.paired,
+              TvInput.instance.count,
+              game.touchOverPad,
+            ]),
+            builder: (context, _) =>
+                PadScreen.instance.paired.value != null || steeredByPad(game)
+                ? const SizedBox.shrink()
+                : TouchControls(
+                    input: game.touch,
+                    special: game.specialNotifier,
+                    assist: game.difficulty != BotLevel.hard,
+                    onLook: game.lookAt,
+                  ),
           ),
-          // A paired phone or a controller brings its own sticks.
-          if (touch)
-            ListenableBuilder(
-              listenable: Listenable.merge([
-                PadScreen.instance.paired,
-                TvInput.instance.count,
-              ]),
-              builder: (context, _) =>
-                  PadScreen.instance.paired.value != null || steeredByPad(game)
-                  ? const SizedBox.shrink()
-                  : TouchControls(
-                      input: game.touch,
-                      special: game.specialNotifier,
-                      assist: game.difficulty != BotLevel.hard,
-                      onLook: game.lookAt,
-                    ),
-            ),
-          SafeArea(
-            minimum: const EdgeInsets.all(8),
-            child: Align(
-              alignment: touch
-                  ? const Alignment(-1, 0.15)
-                  : const Alignment(-1, 0.1),
-              child: _HudButtons(
-                game: game,
-                child: steeredByPad(game)
-                    ? ValueListenableBuilder<TvPadKind>(
-                        valueListenable: TvInput.instance.kind,
-                        builder: (context, kind, _) => InventoryBar(
-                          inventory: game.inventory,
-                          onUse: game.useItem,
-                          labels: kind == TvPadKind.remote
-                              ? const ['⏯']
-                              : (game.round?.duel ?? false)
-                              ? tvDuelSlotLabels
-                              : tvGamepadSlotLabels,
-                        ),
-                      )
-                    : InventoryBar(
+        SafeArea(
+          minimum: const EdgeInsets.all(8),
+          child: Align(
+            alignment: touch
+                ? const Alignment(-1, 0.15)
+                : const Alignment(-1, 0.1),
+            child: _HudButtons(
+              game: game,
+              child: steeredByPad(game)
+                  ? ValueListenableBuilder<TvPadKind>(
+                      valueListenable: TvInput.instance.kind,
+                      builder: (context, kind, _) => InventoryBar(
                         inventory: game.inventory,
                         onUse: game.useItem,
-                        compact: touch,
+                        labels: kind == TvPadKind.remote
+                            ? const ['⏯']
+                            : (game.round?.duel ?? false)
+                            ? tvDuelSlotLabels
+                            : tvGamepadSlotLabels,
                       ),
-              ),
+                    )
+                  : InventoryBar(
+                      inventory: game.inventory,
+                      onUse: game.useItem,
+                      compact: touch,
+                    ),
             ),
           ),
-          if (game.round?.defense ?? false)
-            _DefensePanel(
-              plateKey: _defenseKey,
-              game: game,
-              touch: touch,
-              counts: touch ? _waveCounts() : '',
-              waveLabel: touch ? _waveLabel(compact: true) : '',
-            ),
-          LeaveRoundPrompt(game: game),
-        ],
-      ),
+        ),
+        if (game.round?.defense ?? false)
+          _DefensePanel(
+            plateKey: _defenseKey,
+            game: game,
+            touch: touch,
+            counts: touch ? _waveCounts() : '',
+            waveLabel: touch ? _waveLabel(compact: true) : '',
+          ),
+        LeaveRoundPrompt(game: game),
+      ],
     );
   }
 
@@ -821,6 +827,9 @@ class _DefensePanel extends StatefulWidget {
 enum _Shop { closed, towers, upgrades }
 
 class _DefensePanelState extends State<_DefensePanel> {
+  /// Widest the defense panel grows on a desktop.
+  static const _deskPanelWidth = 540.0;
+
   /// The store picture of the defense shows the guns to build.
   _Shop _shop = Env.shotScene == 'defense' ? _Shop.towers : _Shop.closed;
 
@@ -1452,7 +1461,17 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ),
                       child: KeyedSubtree(key: widget.plateKey, child: panel),
                     )
-                  : KeyedSubtree(key: widget.plateKey, child: panel),
+                  : touch
+                  ? KeyedSubtree(key: widget.plateKey, child: panel)
+                  // The money line, the note and the guns wrap instead of
+                  // stretching the panel: it once took two thirds of a
+                  // laptop screen.
+                  : ConstrainedBox(
+                      constraints: const BoxConstraints(
+                        maxWidth: _deskPanelWidth,
+                      ),
+                      child: KeyedSubtree(key: widget.plateKey, child: panel),
+                    ),
             ),
           ),
         ),

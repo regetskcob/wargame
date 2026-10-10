@@ -42,6 +42,15 @@ class PracticeBlast {
   double t = 0;
 }
 
+/// What a card of the training ground asks of the player.
+enum PracticeGoal {
+  /// Drive into the ring.
+  reach,
+
+  /// Hit the standing tanks a few times.
+  hit,
+}
+
 /// The training ground once the player takes over a tutorial step: their
 /// own tank drives, aims and fires with the game's controls, a couple of
 /// enemy tanks stand around to be hit and come back after a moment.
@@ -54,15 +63,39 @@ class TutorialPractice extends ChangeNotifier {
     required this.touch,
     required Rect bounds,
     this.grenades = false,
+    this.goal = PracticeGoal.hit,
     TouchInput? input,
   }) : input = input ?? TouchInput(),
        _bounds = bounds,
        pos = bounds.center {
-    for (var i = 0; i < 2; i++) {
-      targets.add(PracticeTarget(_spot(i)));
+    if (goal == PracticeGoal.reach) {
+      ring = _spot(0);
+    } else {
+      for (var i = 0; i < 2; i++) {
+        targets.add(PracticeTarget(_spot(i)));
+      }
     }
     _nextSpot = 2;
   }
+
+  /// The task of this card: the play test found the tutorial only acted
+  /// the controls out, a task makes the player use them.
+  final PracticeGoal goal;
+
+  /// Where to drive to, on a card with [PracticeGoal.reach].
+  Offset? ring;
+
+  /// Hits a card with [PracticeGoal.hit] asks for.
+  static const hitsNeeded = 3;
+
+  /// Whether the task is done.
+  bool get done => switch (goal) {
+    PracticeGoal.reach => ring == null,
+    PracticeGoal.hit => hits >= hitsNeeded,
+  };
+
+  /// How big the ring is to drive into.
+  double get ringRadius => tankSize * 0.9;
 
   /// Touch reads [input] like the game's touch controls, otherwise the keys
   /// and the mouse.
@@ -184,6 +217,9 @@ class TutorialPractice extends ChangeNotifier {
     flash = max(0, flash - dt * 6);
     _special(dt);
     _fly(dt);
+    if (ring case final at? when (at - pos).distance < ringRadius * 0.6) {
+      ring = null;
+    }
     notifyListeners();
   }
 

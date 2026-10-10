@@ -3,6 +3,7 @@
 @Timeout(Duration(minutes: 3))
 library;
 
+import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -66,7 +67,7 @@ Future<void> _play(List<TankGame> games, {double seconds = 10}) async {
 /// countdown on both sides.
 Future<void> _start(TankGame host, TankGame guest, GameMode mode) async {
   host.chooseMode(mode);
-  final now = DateTime.now().millisecondsSinceEpoch;
+  final now = clock.now().millisecondsSinceEpoch;
   host.startRound(
     startedAt: mode == GameMode.defense
         ? now - GameConfig.firstWaveSeconds * 1000

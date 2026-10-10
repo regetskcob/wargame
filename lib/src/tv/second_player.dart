@@ -188,6 +188,10 @@ class SecondPlayer extends ChangeNotifier {
   /// Each seat steers its game: a controller by its number, a phone by the
   /// route the pairing gives it.
   void _hand(TankGame host, TankGame guest) {
+    // The second half wears the plates of the first: on a tablet the
+    // compact ones, though no finger steers it.
+    guest.compactHud.value = host.touchMode.value;
+    _name(guest);
     if (listEquals(_handed, _seats) &&
         identical(_handedHost, host) &&
         identical(_handedGuest, guest)) {
@@ -203,6 +207,19 @@ class SecondPlayer extends ChangeNotifier {
       if (phone != null) {
         PadScreen.instance.route(phone, game);
       }
+    }
+  }
+
+  /// The second tank goes by the name of the phone that steers it, else
+  /// PLAYER 2: it carried the first player's call sign.
+  void _name(TankGame guest) {
+    final phone = _seats.length > 1 ? _seats[1].phoneName : '';
+    // A phone without a call sign only says it is a phone.
+    final named = phone.isNotEmpty && phone != 'Handy' && phone != 'Phone';
+    final name = named ? phone : tr('SPIELER 2', 'PLAYER 2');
+    if (guest.myName != name) {
+      guest.myName = name;
+      unawaited(guest.pushPresence());
     }
   }
 

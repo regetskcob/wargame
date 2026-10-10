@@ -73,6 +73,16 @@ enum BotLevel {
     BotLevel.hard => 1200,
   };
 
+  /// Highest rank of the vehicles CPU tanks of this level drive. A
+  /// balance run found that a player as good as a CPU tank won one round
+  /// in ten on normal instead of one in three or four: the CPU tanks also
+  /// came in the Wolf and the Hirsch, with three times the armour of the
+  /// vehicles a new player starts with.
+  int get maxVehicleLevel => switch (this) {
+    BotLevel.easy || BotLevel.normal => 1,
+    BotLevel.hard => 3,
+  };
+
   /// Hard bots dodge barrages and keep their distance smarter.
   bool get evasive => this == hard;
 
