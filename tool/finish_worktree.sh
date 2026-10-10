@@ -9,9 +9,10 @@
 # A worktree counts as finished when nothing would be lost: no uncommitted
 # or untracked files, HEAD contained in origin/main, the branch moved at
 # least once (a fresh session's branch has not, and looks merged too) and,
-# with --all, it was not used within the last 12 hours. Its merged branch and its
-# Xcode DerivedData go with it. Run by /ship and /release as their last
-# step; the session's working directory is gone afterwards.
+# with --all, it was not used within the last 12 hours. Its merged branch,
+# its Xcode DerivedData and the Claude scratchpad of its session go with
+# it. Run by /ship and /release as their last step; the session's working
+# directory and scratchpad are gone afterwards.
 
 set -uo pipefail
 
@@ -32,6 +33,9 @@ common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || {
 main_dir=$(dirname "$common")
 worktrees_dir="$main_dir/.claude/worktrees"
 derived="$HOME/Library/Developer/Xcode/DerivedData"
+# Claude Code keeps a scratchpad per working directory, named after the path
+# with "/" and "." turned into "-".
+scratch_root="/private/tmp/claude-$(id -u)"
 
 git -C "$main_dir" fetch -q origin main || echo "fetch failed, using the last known origin/main" >&2
 
@@ -79,6 +83,7 @@ finish() {
     p=$(/usr/libexec/PlistBuddy -c 'Print :WorkspacePath' "$d/info.plist" 2>/dev/null) || continue
     case "$p" in "$w"/*) rm -rf "$d" ;; esac
   done
+  rm -rf "$scratch_root/$(printf '%s' "$w" | tr '/.' '--')"
   # Ignored build output does not block a removal, untracked files were
   # ruled out above, so no --force is needed.
   git -C "$main_dir" worktree remove "$w" || return 1

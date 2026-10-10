@@ -40,7 +40,8 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
 8. Free the disk. When the session's task is done with this ship (nothing
    left the user asked for here), run `tool/finish_worktree.sh` as the very
    last command, after the report is written. It removes this app-made
-   worktree with its builds, its Xcode DerivedData and its merged branch,
+   worktree with its builds, its Xcode DerivedData, its Claude scratchpad
+   (`/private/tmp/claude-<uid>/…`) and its merged branch,
    and refuses when anything is uncommitted or not on `origin/main`. Say
    in the report that the worktree is gone and the session can be
    archived; later work needs a new session. If the user still wants more

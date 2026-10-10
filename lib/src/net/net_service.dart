@@ -159,6 +159,16 @@ class NetService {
     channel.subscribe();
   }
 
+  /// Tests: hears messages handed in with [deliverForTest] instead of a
+  /// channel, so two games can play each other without a server.
+  @visibleForTesting
+  void listenWithoutChannel() => _registerHandlers(null);
+
+  /// Tests: one message that came in, as from the channel.
+  @visibleForTesting
+  void deliverForTest(NetEvent event, Map<String, dynamic> json) =>
+      _deliver(event, json);
+
   /// What every event does when it comes in, from the channel or from the
   /// other player's game on this device.
   void _registerHandlers(RealtimeChannel? channel) {

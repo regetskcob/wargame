@@ -701,8 +701,20 @@ class _HudOverlayState extends State<HudOverlay> {
             ],
           ),
           const SizedBox(height: 8),
-          IgnorePointer(child: KillFeedView(feed: game.killFeed)),
-          const Spacer(),
+          // Six kills in a short window would push the mini map off the
+          // screen: the feed gets the room left, and the oldest lines at
+          // its top give way first.
+          Expanded(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: UnconstrainedBox(
+                constrainedAxis: Axis.horizontal,
+                alignment: Alignment.bottomLeft,
+                clipBehavior: Clip.hardEdge,
+                child: IgnorePointer(child: KillFeedView(feed: game.killFeed)),
+              ),
+            ),
+          ),
           Align(
             alignment: Alignment.bottomRight,
             child: IgnorePointer(child: MiniMap(game: game)),
