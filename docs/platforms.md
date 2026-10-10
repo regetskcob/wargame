@@ -1,6 +1,6 @@
 # Platforms
 
-The web game is the main target. The same code runs as apps on iOS, Android, the Apple Watch and the Apple TV.
+The web game is the main target. The same code runs as apps on iOS, Android, the Mac, the Apple Watch and the Apple TV.
 
 ## Mobile apps (iOS and Android)
 
@@ -56,6 +56,38 @@ Google Play track with fastlane, see `store/android/README.md` for the
 secrets. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
+
+## Mac
+
+`macos/` builds the game as a Mac app, `Panzergefecht.app`, with the same
+bundle id `de.regetskcob.wargame` as the iOS app, so both can share one App
+Store record as a universal purchase. It runs the same screens as the
+browser: keyboard and mouse, no touch controls (they appear after the first
+touch, as in the browser), the start page as on a large screen. The window
+opens at 1280 x 800, keeps at least 720 x 480 and remembers where it was
+left. Game controllers are not read yet: `padsSupported` covers only the
+Apple TV, iOS and the browser.
+
+The app is sandboxed and asks for two things in `Runner/*.entitlements`:
+outgoing connections (`network.client`, without it Supabase is out of reach
+and the app plays offline) and the camera, for the QR code button in the room
+list (`mobile_scanner`, text in `NSCameraUsageDescription`). Room links from
+the web do not open the app yet: associated domains need a signed build with
+a provisioning profile. `python3 store/tool/app_icon.py` also writes the Mac
+icon set, the square on Apple's rounded plate with a shadow, since macOS does
+not round icons itself.
+
+```sh
+flutter run -d macos
+flutter build macos --release \
+  --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_KEY=... --dart-define=ACCOUNTS=true
+```
+
+The build signs ad hoc, enough to run it on the Mac that built it. To hand it
+on, open `macos/Runner.xcworkspace`, pick the team under Signing &
+Capabilities and archive (Product > Archive): from the organizer either upload
+to App Store Connect or export with Developer ID, which Xcode notarizes. CI
+builds it unsigned next to the iOS app.
 
 ## Apple Watch
 

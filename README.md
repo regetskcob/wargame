@@ -6,7 +6,7 @@ mode, or red against blue in capture the flag. In German and English,
 without ads.
 
 **[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
-Android apps · Apple TV · Apple Watch (in progress)
+Android apps · Mac · Apple TV · Apple Watch (in progress)
 
 <p align="center">
   <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad: the road, a river with bridges, the grown base, guns and CPU comrades" width="720">
@@ -120,8 +120,8 @@ flutter run -d chrome \
 
 - [Gameplay in detail](docs/gameplay.md): every feature, damage tables,
   defense thresholds.
-- [Platforms](docs/platforms.md): iOS and Android apps, Apple Watch,
-  Apple TV and two players on one screen.
+- [Platforms](docs/platforms.md): iOS and Android apps, the Mac, Apple
+  Watch, Apple TV and two players on one screen.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
 - [Development](docs/development.md): tests, regenerating the typed models,

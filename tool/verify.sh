@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Runs what CI runs, plus the iOS and Android builds, so a push to main only
+# Runs what CI runs, plus the iOS, macOS and Android builds, so a push to main only
 # happens when everything is green. `--quick` stops after the tests.
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -29,7 +29,9 @@ if command -v hugo >/dev/null; then
 fi
 step "flutter build ios --release --no-codesign"
 flutter build ios --release --no-codesign
+step "flutter build macos --release"
+flutter build macos --release
 step "flutter build appbundle --release"
 flutter build appbundle --release
 
-printf '\nAll green: format, analyze, test, web, landing page, iOS, Android.\n'
+printf '\nAll green: format, analyze, test, web, landing page, iOS, macOS, Android.\n'
