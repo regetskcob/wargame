@@ -7,9 +7,13 @@ extension TankGameView on TankGame {
       point.distanceTo(camera.viewfinder.position);
 
   /// Rattles the screen. Strengths add up and fade out within a fraction of
-  /// a second.
+  /// a second. On an Apple Vision Pro the window stays still: a window
+  /// shaking in the room makes people feel sick, the red edge of a hit is
+  /// enough there.
   void shake(double strength) {
-    _shake = min(14.0, _shake + strength);
+    if (!onVision) {
+      _shake = min(14.0, _shake + strength);
+    }
     Haptics.shake(strength);
   }
 
@@ -156,6 +160,11 @@ extension TankGameView on TankGame {
     );
     camera.setBounds(Rectangle.fromLTRB(-dx, -dy, dx, dy));
   }
+
+  /// Vision Pro: the spot the player looked at when pinching, in global
+  /// pixels, aims the turret like the mouse does. The game fills the window
+  /// there, so global and widget pixels agree.
+  void lookAt(Offset at) => pointer = Vector2(at.dx, at.dy);
 
   /// World position the mouse points at.
   Vector2? pointerWorld() {

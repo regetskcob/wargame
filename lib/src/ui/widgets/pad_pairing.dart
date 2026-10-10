@@ -125,7 +125,7 @@ class _ScreenPairing extends StatelessWidget {
             children: [
               FilledButton.icon(
                 onPressed: () => PadPairingDialog.show(context),
-                icon: const Icon(Icons.qr_code_2),
+                icon: const Icon(Icons.qr_code_2_outlined),
                 label: Text(
                   paired != null
                       ? tr('CODE ZEIGEN', 'SHOW CODE')
@@ -135,7 +135,7 @@ class _ScreenPairing extends StatelessWidget {
               if (paired != null)
                 OutlinedButton.icon(
                   onPressed: () => unawaited(pad.close()),
-                  icon: const Icon(Icons.link_off),
+                  icon: const Icon(Icons.link_off_outlined),
                   label: Text(tr('TRENNEN', 'UNPAIR')),
                 ),
             ],
@@ -192,7 +192,7 @@ class _BecomePad extends StatelessWidget {
           children: [
             FilledButton.icon(
               onPressed: () => _scan(context),
-              icon: const Icon(Icons.qr_code_scanner),
+              icon: const Icon(Icons.qr_code_scanner_outlined),
               label: Text(tr('ALS CONTROLLER NUTZEN', 'USE AS CONTROLLER')),
             ),
             TextButton(
@@ -333,7 +333,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                 IconButton(
                   tooltip: tr('Schließen', 'Close'),
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close),
+                  icon: const Icon(Icons.close_outlined),
                 ),
               ],
             ),
@@ -401,7 +401,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                             )
                           else
                             const Icon(
-                              Icons.check_circle,
+                              Icons.check_circle_outlined,
                               size: 16,
                               color: GameColors.amber,
                             ),

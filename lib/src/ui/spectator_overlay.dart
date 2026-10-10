@@ -135,7 +135,7 @@ class SpectatorOverlay extends StatelessWidget {
         ),
         const SizedBox(width: 12),
       ] else ...[
-        const Icon(Icons.visibility, size: 18),
+        const Icon(Icons.visibility_outlined, size: 18),
         const SizedBox(width: 8),
       ],
       if (narrow) Flexible(child: name) else name,

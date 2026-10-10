@@ -143,7 +143,9 @@ class _RoomInviteState extends State<RoomInvite> {
                   minimumSize: const Size(0, _buttonHeight),
                   maximumSize: const Size(double.infinity, _buttonHeight),
                 ),
-                icon: Icon(_copied ? Icons.check : Icons.copy),
+                icon: Icon(
+                  _copied ? Icons.check_outlined : Icons.copy_outlined,
+                ),
                 label: Text(
                   _copied ? tr('KOPIERT', 'COPIED') : tr('KOPIEREN', 'COPY'),
                   maxLines: 1,
@@ -159,7 +161,7 @@ class _RoomInviteState extends State<RoomInvite> {
                     height: _buttonHeight,
                   ),
                   icon: Icon(
-                    Icons.ios_share,
+                    Icons.ios_share_outlined,
                     semanticLabel: tr('Teilen', 'Share'),
                   ),
                 ),

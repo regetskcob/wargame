@@ -79,7 +79,10 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  const Icon(Icons.hourglass_top, color: GameColors.amber),
+                  const Icon(
+                    Icons.hourglass_top_outlined,
+                    color: GameColors.amber,
+                  ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

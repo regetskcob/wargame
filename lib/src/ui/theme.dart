@@ -16,9 +16,15 @@ class GameColors {
 
 const _stencil = TextStyle(fontFamily: 'Roboto', letterSpacing: 1.2);
 
-final _buttonShape = BeveledRectangleBorder(
-  borderRadius: BorderRadius.circular(6),
+/// Buttons keep to a plain, softly rounded shape: the beveled corners
+/// belong to panels and cards, so a button inside one does not repeat its
+/// frame.
+final _buttonShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.circular(4),
 );
+
+/// The one thin line of a secondary button or an idle choice.
+const hairline = BorderSide(color: Color(0x998A9A5B));
 
 ThemeData buildGameTheme() {
   const scheme = ColorScheme.dark(
@@ -58,8 +64,9 @@ ThemeData buildGameTheme() {
         ),
       );
   final labelStyle = _stencil.copyWith(
-    fontWeight: FontWeight.w800,
-    fontSize: 14,
+    fontWeight: FontWeight.w700,
+    fontSize: 13,
+    letterSpacing: 1.5,
   );
   return base.copyWith(
     textTheme: text,
@@ -71,8 +78,8 @@ ThemeData buildGameTheme() {
         disabledBackgroundColor: GameColors.surface,
         disabledForegroundColor: GameColors.textDim,
         shape: _buttonShape,
-        side: const BorderSide(color: GameColors.sand, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        minimumSize: const Size(0, 44),
         textStyle: labelStyle,
       ),
     ),
@@ -80,8 +87,9 @@ ThemeData buildGameTheme() {
       style: OutlinedButton.styleFrom(
         foregroundColor: GameColors.sand,
         shape: _buttonShape,
-        side: const BorderSide(color: GameColors.sand, width: 1.5),
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        side: hairline,
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+        minimumSize: const Size(0, 44),
         textStyle: labelStyle,
       ),
     ),
@@ -92,20 +100,23 @@ ThemeData buildGameTheme() {
         textStyle: labelStyle,
       ),
     ),
-    inputDecorationTheme: const InputDecorationTheme(
+    inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: Color(0x66000000),
-      labelStyle: TextStyle(color: GameColors.textDim, letterSpacing: 1.5),
-      floatingLabelStyle: TextStyle(color: GameColors.amber),
+      fillColor: const Color(0x44000000),
+      labelStyle: const TextStyle(
+        color: GameColors.textDim,
+        letterSpacing: 1.5,
+      ),
+      floatingLabelStyle: const TextStyle(color: GameColors.amber),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.zero,
-        borderSide: BorderSide(color: GameColors.oliveLight, width: 1.5),
+        borderRadius: BorderRadius.circular(4),
+        borderSide: hairline,
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.zero,
-        borderSide: BorderSide(color: GameColors.amber, width: 2),
+        borderRadius: BorderRadius.circular(4),
+        borderSide: const BorderSide(color: GameColors.amber),
       ),
-      counterStyle: TextStyle(color: GameColors.textDim),
+      counterStyle: const TextStyle(color: GameColors.textDim),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
       style: SegmentedButton.styleFrom(
@@ -113,7 +124,7 @@ ThemeData buildGameTheme() {
         foregroundColor: GameColors.text,
         selectedBackgroundColor: GameColors.olive,
         selectedForegroundColor: GameColors.text,
-        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
+        side: hairline,
         shape: _buttonShape,
         textStyle: labelStyle.copyWith(fontSize: 12),
       ),

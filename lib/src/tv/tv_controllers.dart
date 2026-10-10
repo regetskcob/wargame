@@ -39,26 +39,33 @@ class TvControllers extends StatelessWidget {
                   for (final (i, pad) in TvInput.instance.pads.indexed)
                     _Chip(
                       icon: pad.kind == TvPadKind.remote
-                          ? Icons.settings_remote
-                          : Icons.sports_esports,
+                          ? Icons.settings_remote_outlined
+                          : Icons.sports_esports_outlined,
                       label:
                           '${i + 1} · '
-                          '${pad.kind == TvPadKind.remote ? 'Siri Remote' : 'Controller'}',
+                          '${pad.kind == TvPadKind.remote ? remoteName : 'Controller'}',
                     ),
                   for (final (_, name) in PadScreen.instance.phones.value)
                     _Chip(
-                      icon: Icons.smartphone,
+                      icon: Icons.smartphone_outlined,
                       label: name.isEmpty ? tr('Handy', 'Phone') : name,
                     ),
                   if (TvInput.instance.pads.isEmpty &&
                       PadScreen.instance.phones.value.isEmpty)
                     Text(
-                      tr(
-                        'Kein Controller verbunden. Die Siri Remote steuert '
-                            'die Menüs.',
-                        'No controller connected. The Siri Remote steers '
-                            'the menus.',
-                      ),
+                      onAppleTv
+                          ? tr(
+                              'Kein Controller verbunden. Die Siri Remote '
+                                  'steuert die Menüs.',
+                              'No controller connected. The Siri Remote '
+                                  'steers the menus.',
+                            )
+                          : tr(
+                              'Kein Controller verbunden. Die Fernbedienung '
+                                  'steuert die Menüs.',
+                              'No controller connected. The remote steers '
+                                  'the menus.',
+                            ),
                       style: const TextStyle(color: GameColors.textDim),
                     ),
                 ],

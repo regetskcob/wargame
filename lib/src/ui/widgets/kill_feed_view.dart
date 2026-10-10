@@ -111,7 +111,11 @@ class _KillFeedViewState extends State<KillFeedView> {
                 ),
               ),
               const SizedBox(width: 8),
-              const Icon(Icons.gps_fixed, size: 14, color: GameColors.amber),
+              const Icon(
+                Icons.gps_fixed_outlined,
+                size: 14,
+                color: GameColors.amber,
+              ),
               const SizedBox(width: 8),
             ],
             Text(

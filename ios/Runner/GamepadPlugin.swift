@@ -37,6 +37,15 @@ class GamepadPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
       // so a round would dim in the middle of a fight.
       UIApplication.shared.isIdleTimerDisabled = call.arguments as? Bool ?? false
       result(nil)
+    case "vision":
+      // The iPad app on an Apple Vision Pro: Flutter has no visionOS build,
+      // so the game runs there as a compatible app and only learns where it
+      // is from here. Looking and pinching arrive as taps.
+      if #available(iOS 26.1, *) {
+        result(ProcessInfo.processInfo.isiOSAppOnVision)
+      } else {
+        result(false)
+      }
     default:
       result(FlutterMethodNotImplemented)
     }

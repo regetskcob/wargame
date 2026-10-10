@@ -18,10 +18,9 @@ class CallSign extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 260),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: ShapeDecoration(
-          color: const Color(0x44000000),
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-            side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(4),
+            side: hairline,
           ),
         ),
         child: Row(

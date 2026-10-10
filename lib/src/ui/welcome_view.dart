@@ -35,7 +35,7 @@ class WelcomeView extends StatelessWidget {
     // Side by side the guest box is as tall as the account box, and its
     // button sits on the same line as the account's.
     Widget guest({bool stretched = false}) => _Box(
-      icon: Icons.person_outline,
+      icon: Icons.person,
       title: tr('ALS GAST', 'AS GUEST'),
       kicker: tr('OHNE KONTO SPIELEN', 'PLAY WITHOUT AN ACCOUNT'),
       stretched: stretched,
@@ -62,7 +62,7 @@ class WelcomeView extends StatelessWidget {
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: game.playAsGuest,
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(Icons.chevron_right_outlined),
             label: Text(tr('ALS GAST SPIELEN', 'PLAY AS GUEST')),
           ),
         ],

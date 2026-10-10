@@ -28,7 +28,7 @@ class ServerNotice extends StatelessWidget {
               padding: const EdgeInsets.all(14),
               child: Row(
                 children: [
-                  const Icon(Icons.cloud_off, color: GameColors.amber),
+                  const Icon(Icons.cloud_off_outlined, color: GameColors.amber),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(

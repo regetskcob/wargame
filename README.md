@@ -6,7 +6,7 @@ mode, or red against blue in capture the flag. In German and English,
 without ads.
 
 **[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
-Android apps · Mac · Apple TV · Apple Watch (in progress)
+Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
 
 <p align="center">
   <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad in the snow: the road, a river with bridges, the base and its guns" width="720">
@@ -126,6 +126,8 @@ flutter run -d chrome \
   defense thresholds.
 - [Platforms](docs/platforms.md): iOS and Android apps, the Mac, Apple
   Watch, Apple TV and two players on one screen.
+- [Televisions](docs/tv.md): Apple TV, Android TV, Fire TV and Vega OS,
+  what works where and what is next.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
 - [Development](docs/development.md): tests, regenerating the typed models,
@@ -143,6 +145,8 @@ flutter run -d chrome \
   OS bundle are ready; next the form factor in the Play Console and a real
   watch.
 - The iMessage app on real phones and in a group chat.
+- The Apple Vision Pro (iPad app, look and pinch to fire) in its simulator
+  and on a real headset.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

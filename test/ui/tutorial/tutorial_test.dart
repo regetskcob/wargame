@@ -5,6 +5,7 @@ import 'package:wargame/src/net/room.dart';
 import 'package:wargame/src/ui/tutorial/demo_painter.dart';
 import 'package:wargame/src/ui/tutorial/tutorial_overlay.dart';
 import 'package:wargame/src/ui/tutorial/tutorial_steps.dart';
+import 'package:wargame/src/vision/vision_support.dart';
 
 void main() {
   Future<List<int>> pump(
@@ -65,6 +66,20 @@ void main() {
       keys.skip(controlSteps(touch: false)).map((s) => s.title),
     );
     expect(touch.last.scene, DemoScene.ready);
+  });
+
+  test('a Vision Pro explains looking and pinching with the same scenes', () {
+    final touch = tutorialSteps(touch: true);
+    onVisionForTesting = true;
+    addTearDown(() => onVisionForTesting = false);
+    final vision = tutorialSteps(touch: true);
+    expect(vision.map((s) => s.scene), touch.map((s) => s.scene));
+    expect(vision.first.text, contains('Zeigefinger'));
+    expect(vision[1].text, contains('hinsiehst'));
+    expect(
+      vision.take(controlSteps(touch: true)).map((s) => s.text),
+      everyElement(isNot(contains('Stick'))),
+    );
   });
 
   testWidgets('walks through every card and closes at the end', (tester) async {
