@@ -45,6 +45,7 @@ extension TankGameReplay on TankGame {
     net.muted = false;
     _clearWorld();
     round = null;
+    GameConfig.swapSides = false;
     _setPhase(GamePhase.lobby);
     unawaited(pushPresence());
   }

@@ -197,6 +197,12 @@ extension TankGameRound on TankGame {
       flag: payload.flag && !payload.defense,
     );
     myTeam = activeRound.teamOf(myId);
+    // Two players on one screen share one view of the duel.
+    GameConfig.swapSides =
+        activeRound.duel &&
+        !localGuest &&
+        !sharesScreen &&
+        activeRound.laneOf(myId) == 1;
     guard.reset();
     killFeed.value = const [];
     if (!replay) {
@@ -1009,6 +1015,7 @@ extension TankGameRound on TankGame {
     }
     _clearWorld();
     round = null;
+    GameConfig.swapSides = false;
     myTeam = 0;
     _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
@@ -1073,6 +1080,7 @@ extension TankGameRound on TankGame {
     overview.value = false;
     _clearWorld();
     round = null;
+    GameConfig.swapSides = false;
     myTeam = 0;
     _lastActivity = DateTime.now();
     _setPhase(GamePhase.lobby);
