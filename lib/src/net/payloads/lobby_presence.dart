@@ -15,6 +15,7 @@ class LobbyPresence {
     this.joinedAt,
     this.pad = false,
     this.flag = false,
+    this.mode,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -34,7 +35,24 @@ class LobbyPresence {
       joinedAt: json['joined'] as int?,
       pad: json['pad'] as bool? ?? false,
       flag: json['flag'] as bool? ?? false,
+      // Older clients send nothing; a wrong type must not drop the member.
+      mode: json['mode'] is String ? json['mode'] as String : null,
     );
+  }
+
+  /// Whether this member, claiming the host role, should keep it over the
+  /// player [myId] who claims it too. The owner beats a stand-in. Two
+  /// owners happen when one browser opens the room in a second tab, as
+  /// both remember having opened it: then, as between two stand-ins, the
+  /// smaller id keeps the role, so the room never stays with two hosts.
+  bool outranksHost(String myId, {required bool iOwn}) {
+    if (!host || id == myId) {
+      return false;
+    }
+    if (owner != iOwn) {
+      return owner;
+    }
+    return id.compareTo(myId) < 0;
   }
 
   /// The members a room keeps when more than [max] are in it: the owner
@@ -114,6 +132,11 @@ class LobbyPresence {
   /// The match is a capture the flag round, its flags run by [botHost].
   final bool flag;
 
+  /// The way to play the host picked in the waiting room, a `GameMode`
+  /// name, so guests read the same mode before the round starts. Only the
+  /// host sends it.
+  final String? mode;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -133,6 +156,7 @@ class LobbyPresence {
       if (joinedAt != null) 'joined': joinedAt,
       if (pad) 'pad': true,
       if (flag) 'flag': true,
+      if (mode != null) 'mode': mode,
     };
   }
 }

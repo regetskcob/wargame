@@ -57,6 +57,12 @@ const _inventoryInset = 8 + 56 + 8.0;
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
 
+  // The plates the arrows to enemies off screen keep clear of.
+  final _gaugesKey = GlobalKey();
+  final _statusKey = GlobalKey();
+  final _mapKey = GlobalKey();
+  final _defenseKey = GlobalKey();
+
   @override
   void initState() {
     super.initState();
@@ -213,7 +219,10 @@ class _HudOverlayState extends State<HudOverlay> {
         children: [
           if (touch) _compact(game) else _status(game),
           _effects(game),
-          EnemyIndicators(game: game),
+          EnemyIndicators(
+            game: game,
+            keepOut: [_gaugesKey, _statusKey, _mapKey, _defenseKey],
+          ),
           // A paired phone or a controller brings its own sticks.
           if (touch)
             ListenableBuilder(
@@ -262,6 +271,7 @@ class _HudOverlayState extends State<HudOverlay> {
           ),
           if (game.round?.defense ?? false)
             _DefensePanel(
+              plateKey: _defenseKey,
               game: game,
               touch: touch,
               counts: touch ? _waveCounts() : '',
@@ -376,7 +386,11 @@ class _HudOverlayState extends State<HudOverlay> {
           // Upright phones lack the width for three plates in a row, so the
           // map moves under the gauges on the left.
           final upright = constraints.maxWidth < _uprightWidth;
-          final map = MiniMap(game: game, size: upright ? 104 : 112);
+          final map = MiniMap(
+            key: _mapKey,
+            game: game,
+            size: upright ? 104 : 112,
+          );
           return Stack(
             children: [
               Align(
@@ -386,6 +400,7 @@ class _HudOverlayState extends State<HudOverlay> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     IgnorePointer(
+                      key: _gaugesKey,
                       child: ListenableBuilder(
                         listenable: Listenable.merge([
                           game.hpNotifier,
@@ -429,6 +444,7 @@ class _HudOverlayState extends State<HudOverlay> {
                     // A defense round shows the waves in its own panel.
                     if (!(game.round?.defense ?? false))
                       IgnorePointer(
+                        key: _statusKey,
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 8,
@@ -629,6 +645,7 @@ class _HudOverlayState extends State<HudOverlay> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               IgnorePointer(
+                key: _gaugesKey,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -665,6 +682,7 @@ class _HudOverlayState extends State<HudOverlay> {
                     const SizedBox(width: 8),
                     Flexible(
                       child: IgnorePointer(
+                        key: _statusKey,
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
@@ -719,7 +737,9 @@ class _HudOverlayState extends State<HudOverlay> {
           ),
           Align(
             alignment: Alignment.bottomRight,
-            child: IgnorePointer(child: MiniMap(game: game)),
+            child: IgnorePointer(
+              child: MiniMap(key: _mapKey, game: game),
+            ),
           ),
         ],
       ),
@@ -732,12 +752,15 @@ class _HudOverlayState extends State<HudOverlay> {
 /// upgrades for the tank.
 class _DefensePanel extends StatefulWidget {
   const _DefensePanel({
+    required this.plateKey,
     required this.game,
     required this.touch,
     required this.counts,
     required this.waveLabel,
   });
 
+  /// Lets the arrows to enemies off screen keep clear of the panel.
+  final GlobalKey plateKey;
   final TankGame game;
   final bool touch;
 
@@ -891,7 +914,7 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${tr('MITTEL', 'FUNDS')} $credits   ·   ${_buildKeys(game)}'
+          '${tr('GELD', 'FUNDS')} $credits   ·   ${_buildKeys(game)}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
             color: GameColors.amber,
@@ -979,7 +1002,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           runSpacing: 4,
           children: [
             Text(
-              tr('MITTEL $credits', 'FUNDS $credits'),
+              tr('GELD $credits', 'FUNDS $credits'),
               style: const TextStyle(
                 color: GameColors.amber,
                 fontSize: 12,
@@ -1316,9 +1339,9 @@ class _DefensePanelState extends State<_DefensePanel> {
                           constraints.maxWidth - VitalsPlate.outerWidth - 6,
                         ),
                       ),
-                      child: panel,
+                      child: KeyedSubtree(key: widget.plateKey, child: panel),
                     )
-                  : panel,
+                  : KeyedSubtree(key: widget.plateKey, child: panel),
             ),
           ),
         ),

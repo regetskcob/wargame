@@ -182,7 +182,7 @@ class LaunchView extends StatelessWidget {
       if (!onTv && padsSupported) ...[
         ListenableBuilder(
           listenable: TvInputSeats.listenable,
-          builder: (context, _) => duelSeats().length >= 2
+          builder: (context, _) => duelSeats().length >= 2 && splitScreenFits()
               ? Padding(
                   padding: const EdgeInsets.only(top: 12),
                   child: _DuelCard(game: game),

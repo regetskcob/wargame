@@ -453,6 +453,7 @@ class _AccountPanelState extends State<AccountPanel> {
                 'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
                 'Publicly visible, for example on the leaderboard',
               ),
+              helperMaxLines: 2,
             ),
           ),
           const SizedBox(height: 4),

@@ -216,6 +216,8 @@ class _AccountSheetState extends State<AccountSheet> {
               helperStyle: saved
                   ? const TextStyle(color: GameColors.amber)
                   : null,
+              // A phone has not the width for the hint beside the counter.
+              helperMaxLines: 2,
               // Always there, so the field does not change width when it
               // turns into a button.
               suffixIcon: saved
@@ -403,10 +405,12 @@ class _AccountSheetState extends State<AccountSheet> {
               );
             },
           ),
-          const SizedBox(height: 8),
           Flexible(
             child: FitOrScroll(
-              padding: const EdgeInsets.only(right: 8),
+              // The room above lies inside the scrolling, where the call
+              // sign's label floats over its field: outside, a sheet that
+              // scrolls cut the label off at the top.
+              padding: const EdgeInsets.only(top: 10, right: 8),
               // The television has the width for two columns.
               child: onTv
                   ? Row(

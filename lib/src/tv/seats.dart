@@ -5,6 +5,7 @@ import '../l10n/l10n.dart';
 import '../net/pad_link.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/panel.dart';
+import '../ui/widgets/tablet_scale.dart';
 import 'tv_input.dart';
 
 /// Who steers a player's half of the split screen: a controller, a phone
@@ -38,6 +39,18 @@ class DuelSeat {
   final String phoneName;
   final bool keyboard;
 
+  @override
+  bool operator ==(Object other) =>
+      other is DuelSeat &&
+      other.pad == pad &&
+      other.kind == kind &&
+      other.phone == phone &&
+      other.phoneName == phoneName &&
+      other.keyboard == keyboard;
+
+  @override
+  int get hashCode => Object.hash(pad, kind, phone, phoneName, keyboard);
+
   String get label => keyboard
       ? tr('Tastatur', 'keyboard')
       : phone != null
@@ -70,6 +83,18 @@ abstract final class KeyboardSeat {
       defaultTargetPlatform != TargetPlatform.android;
 
   static bool get active => enabled.value && available;
+}
+
+/// Whether two halves of a split screen fit: the television, a computer
+/// or a tablet. A phone keeps one player, however many controllers it
+/// sees, so it offers neither the split screen nor the duel.
+bool splitScreenFits() {
+  if (onTv) {
+    return true;
+  }
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  final size = view.physicalSize / view.devicePixelRatio;
+  return size.shortestSide >= tabletShortSide;
 }
 
 /// Who can play a duel, in the order the halves are handed out: the

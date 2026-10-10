@@ -72,6 +72,33 @@ void main() {
     expect(screen.gameOf('a'), same(main));
   });
 
+  test(
+    'handing out the same routes again changes and claims nothing',
+    () async {
+      final left = offlineGame(slots: slots);
+      screen
+        ..code.value = 'ABCDEFGH'
+        ..debugPeers(const [('a', 'Anna')])
+        ..route('a', left);
+      await Future<void>.delayed(Duration.zero);
+      final claims = slots.claims.length;
+      var changes = 0;
+      void count() => changes++;
+      left.padSteered.addListener(count);
+      // The second player on an iPad hands the seats out with every change
+      // of the roster; the same seats again must not set anything off, or it
+      // runs in circles.
+      screen.route('a', left);
+      screen
+        ..clearRoutes()
+        ..clearRoutes();
+      await Future<void>.delayed(Duration.zero);
+      left.padSteered.removeListener(count);
+      expect(changes, 1, reason: 'only the one real clear');
+      expect(slots.claims.length, claims + 1);
+    },
+  );
+
   test('a game may route the phones again while they are cleared', () {
     final left = offlineGame();
     final right = offlineGame();

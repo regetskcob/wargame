@@ -12,9 +12,45 @@ import '../theme.dart';
 /// Arrows on the edge of the view that point at enemy tanks which are off
 /// screen, with the distance next to each.
 class EnemyIndicators extends StatefulWidget {
-  const EnemyIndicators({required this.game, super.key});
+  const EnemyIndicators({
+    required this.game,
+    this.keepOut = const [],
+    super.key,
+  });
 
   final TankGame game;
+
+  /// The HUD's plates. An arrow that would land on one slides along the
+  /// edge past it, so it never covers the gauges or the map.
+  final List<GlobalKey> keepOut;
+
+  /// Room around a plate for the arrow and the distance beside it.
+  static const _margin = 30.0;
+
+  /// [at] on the edge, or the nearest spot along the edge clear of every
+  /// plate: below or above a plate on the side edges, beside it on the top
+  /// and bottom ones. A rectangle holds its top and left edge, so those
+  /// spots lie a point outside it.
+  static Offset clearOf(Offset at, List<Rect> plates, Rect inner) {
+    final grown = [for (final plate in plates) plate.inflate(_margin)];
+    final hit = grown.where((rect) => rect.contains(at)).firstOrNull;
+    if (hit == null) {
+      return at;
+    }
+    final room = inner.inflate(1);
+    final options = [
+      Offset(at.dx, hit.bottom),
+      Offset(at.dx, hit.top - 1),
+      Offset(hit.right, at.dy),
+      Offset(hit.left - 1, at.dy),
+    ].where((o) => room.contains(o) && !grown.any((r) => r.contains(o)));
+    if (options.isEmpty) {
+      return at;
+    }
+    return options.reduce(
+      (a, b) => (a - at).distance <= (b - at).distance ? a : b,
+    );
+  }
 
   @override
   State<EnemyIndicators> createState() => _EnemyIndicatorsState();
@@ -23,6 +59,7 @@ class EnemyIndicators extends StatefulWidget {
 class _EnemyIndicatorsState extends State<EnemyIndicators>
     with SingleTickerProviderStateMixin {
   late final Ticker _ticker = createTicker((_) => setState(() {}))..start();
+  final _self = GlobalKey();
 
   @override
   void dispose() {
@@ -34,16 +71,34 @@ class _EnemyIndicatorsState extends State<EnemyIndicators>
   Widget build(BuildContext context) {
     return IgnorePointer(
       child: SizedBox.expand(
-        child: CustomPaint(painter: _IndicatorPainter(widget.game)),
+        child: CustomPaint(
+          key: _self,
+          painter: _IndicatorPainter(widget.game, _blocked),
+        ),
       ),
     );
+  }
+
+  /// Where the plates are, in the coordinates of this painter.
+  List<Rect> _blocked() {
+    final self = _self.currentContext?.findRenderObject();
+    if (self is! RenderBox || !self.attached) {
+      return const [];
+    }
+    return [
+      for (final key in widget.keepOut)
+        if (key.currentContext?.findRenderObject() case final RenderBox box
+            when box.attached && box.hasSize)
+          self.globalToLocal(box.localToGlobal(Offset.zero)) & box.size,
+    ];
   }
 }
 
 class _IndicatorPainter extends CustomPainter {
-  _IndicatorPainter(this.game);
+  _IndicatorPainter(this.game, this.blocked);
 
   final TankGame game;
+  final List<Rect> Function() blocked;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -56,6 +111,7 @@ class _IndicatorPainter extends CustomPainter {
     final centre = view.center;
     final inner = view.deflate(30);
     final camera = game.camera.viewfinder.position;
+    final plates = blocked();
 
     final enemies =
         <TankBase>[...game.remoteTanks.values, ...game.botTanks.values]
@@ -97,7 +153,11 @@ class _IndicatorPainter extends CustomPainter {
         final ty = direction.dy == 0
             ? double.infinity
             : (inner.height / 2) / direction.dy.abs();
-        final edge = centre + direction * min(tx, ty) * 0.9;
+        final edge = EnemyIndicators.clearOf(
+          centre + direction * min(tx, ty) * 0.9,
+          plates,
+          inner,
+        );
         _flagMarker(canvas, edge, GameConfig.teamColors[flag.team]);
       }
     }
@@ -119,7 +179,11 @@ class _IndicatorPainter extends CustomPainter {
       final ty = direction.dy == 0
           ? double.infinity
           : (inner.height / 2) / direction.dy.abs();
-      final at = centre + direction * min(tx, ty);
+      final at = EnemyIndicators.clearOf(
+        centre + direction * min(tx, ty),
+        plates,
+        inner,
+      );
       final angle = atan2(direction.dy, direction.dx);
       final distance = tank.position.distanceTo(me.position);
       final near = distance < 450;

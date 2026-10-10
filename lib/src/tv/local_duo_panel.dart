@@ -19,6 +19,7 @@ class LocalDuoPanel extends StatelessWidget {
       listenable: TvInputSeats.listenable,
       builder: (context, _) {
         final seats = duelSeats();
+        final two = seats.length >= 2 && splitScreenFits();
         final keyboard = KeyboardSeat.active;
         // Controllers and phones, without the keyboard.
         final others = seats.where((seat) => !seat.keyboard).length;
@@ -62,7 +63,7 @@ class LocalDuoPanel extends StatelessWidget {
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            seats.length >= 2
+                            two
                                 ? tr(
                                     'Spieler 1: ${seats[0].label}, Spieler 2: '
                                         '${seats[1].label}. Die Runden laufen '
@@ -71,6 +72,12 @@ class LocalDuoPanel extends StatelessWidget {
                                     'Player 1: ${seats[0].label}, player 2: '
                                         '${seats[1].label}. Rounds play on a '
                                         'split screen, and the duel is open.',
+                                  )
+                                : !splitScreenFits()
+                                // A phone has no room for a second half.
+                                ? tr(
+                                    '${seats[0].label} steuert deinen Panzer.',
+                                    '${seats[0].label} steers your tank.',
                                   )
                                 : tr(
                                     '${seats[0].label} steuert deinen Panzer. '

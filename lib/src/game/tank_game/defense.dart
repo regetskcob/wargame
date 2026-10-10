@@ -548,7 +548,7 @@ extension TankGameDefense on TankGame {
       return;
     }
     if (credits.value < GameConfig.troopCost) {
-      showNotice(tr('ZU WENIG MITTEL', 'NOT ENOUGH FUNDS'));
+      showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
       return;
     }
     credits.value -= GameConfig.troopCost;
@@ -801,7 +801,7 @@ extension TankGameDefense on TankGame {
     }
     final cost = tower.kind.upgradeCost(tower.level);
     if (credits.value < cost) {
-      showNotice(tr('ZU WENIG MITTEL', 'NOT ENOUGH FUNDS'));
+      showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
       return;
     }
     credits.value -= cost;
