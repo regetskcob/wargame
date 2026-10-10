@@ -83,7 +83,10 @@
   all time leaderboard is a typed Postgres Changes stream on `scores`.
 - Replays need no extra traffic: the client keeps every message of the round
   with its time, and since the world follows from the seed, playing them back
-  into a round that starts now shows the round again.
+  into a round that starts now shows the round again. To bound memory in long
+  defense sessions, positions (`state`, `states`) are thinned to one every
+  half second per sender after 20 000 messages, and recording stops at
+  60 000; shots, hits and deaths are never thinned.
 - Public rooms announce themselves through Presence on a separate
   `game-rooms` channel and vanish when their host leaves.
 - A phone controller pairs on a channel of its own, `pad-<CODE>`, with an

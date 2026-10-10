@@ -11,6 +11,7 @@ import '../game/tank_game.dart';
 import '../game/touch_input.dart';
 import '../game/defense/tower.dart';
 import '../game/upgrades.dart';
+import 'payloads/lobby_presence.dart';
 import 'payloads/pad_payload.dart';
 import 'retry_backoff.dart';
 import 'room.dart';
@@ -167,7 +168,9 @@ abstract class _PadChannel {
         for (final other in others)
           (
             other['id'] as String,
-            other['name'] is String ? other['name'] as String : '',
+            other['name'] is String
+                ? cleanCallSign(other['name'] as String)
+                : '',
           ),
       ]);
     }
@@ -208,10 +211,18 @@ abstract class _PadChannel {
     });
   }
 
+  /// More phones than ever steer one screen (a split screen has two).
+  static const maxLanes = 4;
+
   /// Opens the lane [lane] next to the shared channel, once connected.
   void _openLane(String lane) {
     final code = _code;
     if (_channel == null || code == null || _lanes.containsKey(lane)) {
+      return;
+    }
+    // One socket holds only so many channels: made up phones in the
+    // presence must not open a lane each.
+    if (_lanes.length >= maxLanes) {
       return;
     }
     final channel = _client.channel(

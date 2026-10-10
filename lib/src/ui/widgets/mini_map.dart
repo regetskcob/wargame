@@ -17,6 +17,9 @@ class MiniMap extends StatefulWidget {
   /// Edge of the map in the lower right corner of a desktop.
   static const defaultSize = 150.0;
 
+  /// How often the map paints anew.
+  static const repaintEvery = Duration(milliseconds: 66);
+
   final TankGame game;
   final double size;
 
@@ -25,11 +28,21 @@ class MiniMap extends StatefulWidget {
 }
 
 class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
-  late final Ticker _ticker = createTicker((_) => setState(() {}))..start();
+  /// Repaints the map without rebuilding the widget. A dot that moves a few
+  /// pixels on a 150 pixel map needs no 60 Hz, 15 are plenty.
+  final _frame = ValueNotifier<int>(0);
+  Duration _last = Duration.zero;
+  late final Ticker _ticker = createTicker((elapsed) {
+    if (elapsed - _last >= MiniMap.repaintEvery) {
+      _last = elapsed;
+      _frame.value++;
+    }
+  })..start();
 
   @override
   void dispose() {
     _ticker.dispose();
+    _frame.dispose();
     super.dispose();
   }
 
@@ -38,7 +51,7 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
     return IgnorePointer(
       child: SizedBox.square(
         dimension: widget.size,
-        child: CustomPaint(painter: _MiniMapPainter(widget.game)),
+        child: CustomPaint(painter: _MiniMapPainter(widget.game, _frame)),
       ),
     );
   }
@@ -48,9 +61,32 @@ class _MiniMapPainter extends CustomPainter {
   /// How far from the own tank crates and gems still show.
   static const _itemReach = 450.0;
 
-  _MiniMapPainter(this.game);
+  /// Seconds the list of buildings is reused before the world is walked
+  /// again, for buildings that come up during a round.
+  static const _buildingsFor = Duration(seconds: 2);
+
+  _MiniMapPainter(this.game, Listenable frame) : super(repaint: frame);
 
   final TankGame game;
+
+  /// Walking every component of the world on each paint cost more than the
+  /// rest of the map together; buildings barely change in a round.
+  List<Building> _buildings = const [];
+  Object? _buildingsRound;
+  DateTime? _buildingsAt;
+
+  List<Building> get _currentBuildings {
+    final now = DateTime.now();
+    final at = _buildingsAt;
+    if (!identical(_buildingsRound, game.round) ||
+        at == null ||
+        now.difference(at) > _buildingsFor) {
+      _buildingsRound = game.round;
+      _buildingsAt = now;
+      _buildings = game.world.descendants().whereType<Building>().toList();
+    }
+    return _buildings;
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -112,7 +148,10 @@ class _MiniMapPainter extends CustomPainter {
 
     // Buildings faded, as a rough guide only.
     final solidPaint = Paint()..color = GameColors.sand.withValues(alpha: 0.35);
-    for (final solid in game.world.descendants().whereType<Building>()) {
+    for (final solid in _currentBuildings) {
+      if (!solid.isMounted) {
+        continue;
+      }
       final c = toMap(solid.position.x, solid.position.y);
       final w = (solid.size.x * scale).clamp(2.0, 9.0);
       final h = (solid.size.y * scale).clamp(2.0, 9.0);
@@ -408,5 +447,5 @@ class _MiniMapPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_MiniMapPainter old) => true;
+  bool shouldRepaint(_MiniMapPainter old) => old.game != game;
 }

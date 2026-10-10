@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'inbound_limiter.dart';
 import 'net_events.dart';
 import 'payloads/death_payload.dart';
 import 'payloads/flag_payload.dart';
@@ -304,6 +305,7 @@ class NetService {
   }
 
   final _handlers = <NetEvent, void Function(Map<String, dynamic> json)>{};
+  final _limiter = InboundLimiter();
 
   void _listen(
     RealtimeChannel? channel,
@@ -329,12 +331,18 @@ class NetService {
   /// One message that came in.
   void _deliver(NetEvent event, Map<String, dynamic> json) {
     final roundStart = event == NetEvent.roundStart;
+    // A message about this player sent by somebody else (the host telling
+    // a builder what is left of their gun) names its sender in `from`.
+    final from = json['from'] ?? json['id'];
     // Round starts come through a replay as well, and are not part of it.
-    if (json['id'] == myId || (muted && !roundStart)) {
+    if (from == myId || (muted && !roundStart)) {
       return;
     }
     final handler = _handlers[event];
     if (handler == null) {
+      return;
+    }
+    if (!_limiter.admit(event, from is String ? from : null)) {
       return;
     }
     // Anybody can send anything on the channel: a message that does not

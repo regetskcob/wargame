@@ -570,6 +570,14 @@ extension TankGameDefense on TankGame {
       showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
       return;
     }
+    // The host lets one order a sender through per gap; a tap faster than
+    // that would pay for a tank that never rolls.
+    final now = clock.now();
+    final last = _lastTroops[myId];
+    if (last != null && now.difference(last) < TankGame.minTroopsGap) {
+      return;
+    }
+    _lastTroops[myId] = now;
     credits.value -= GameConfig.troopCost;
     final payload = TroopsPayload(id: myId, serial: _troopCounter++);
     if (activeRound.botHost == myId) {
@@ -592,6 +600,14 @@ extension TankGameDefense on TankGame {
         net.duplicateIds.contains(payload.id)) {
       return;
     }
+    // Troops cost money the sender's game counts, which a flood skips: one
+    // tank per sender and gap is more than any purse buys.
+    final now = clock.now();
+    final last = _lastTroops[payload.id];
+    if (last != null && now.difference(last) < TankGame.minTroopsGap) {
+      return;
+    }
+    _lastTroops[payload.id] = now;
     _launchTroops(payload);
   }
 
@@ -737,6 +753,7 @@ extension TankGameDefense on TankGame {
         kind: tower.kind.index,
         level: tower.level,
         hp: max(0, tower.hp),
+        from: myId,
       ).toJson(),
     );
     if (tower.hp <= 0) {
@@ -887,9 +904,31 @@ extension TankGameDefense on TankGame {
   }
 
   void _onTower(TowerPayload payload) {
-    if (round?.defense ?? false) {
-      _addTower(payload);
+    final activeRound = round;
+    if (activeRound == null || !activeRound.defense) {
+      return;
     }
+    // Only the host that runs the enemies tells what is left of a gun, and
+    // only players in the round, or that host for the enemy, build guns.
+    // Hosts from before `from` send no sender, and are still believed.
+    if (payload.hp != null &&
+        payload.from != null &&
+        payload.from != activeRound.botHost) {
+      return;
+    }
+    final builder =
+        activeRound.participants.contains(payload.id) ||
+        (activeRound.isEnemy(payload.id) &&
+            (payload.from ?? activeRound.botHost) == activeRound.botHost);
+    if (!builder || !payload.x.isFinite || !payload.y.isFinite) {
+      return;
+    }
+    if (!towers.containsKey('${payload.id}#${payload.index}') &&
+        towers.values.where((t) => t.ownerId == payload.id).length >=
+            TankGame.maxTowersPerBuilder) {
+      return;
+    }
+    _addTower(payload);
   }
 
   void _addTower(TowerPayload payload) {

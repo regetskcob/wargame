@@ -218,6 +218,11 @@ extension TankGameAir on TankGame {
       known.applyState(payload);
       return;
     }
+    if (aircraft.length >= TankGame.maxAircraft ||
+        !payload.x.isFinite ||
+        !payload.y.isFinite) {
+      return;
+    }
     final kind =
         AirKind.values[payload.kind.clamp(0, AirKind.values.length - 1)];
     final plane = Aircraft(

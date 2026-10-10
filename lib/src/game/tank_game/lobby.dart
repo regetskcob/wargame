@@ -537,6 +537,19 @@ extension TankGameLobby on TankGame {
         (owners.length == 1 && owners.single.id != id)) {
       return;
     }
+    // A host that closes the room leaves its channel right after. Anybody
+    // can send a close in the host's name, but not take the host's
+    // presence away: the room only closes once the host is really gone.
+    if (!net.isLocalPeer(id) && !_closeConfirmed(id)) {
+      return;
+    }
+    _closedByHost();
+  }
+
+  void _closedByHost() {
+    if (phase.value == GamePhase.closed) {
+      return;
+    }
     _enterClosed(
       tr(
         'Der Gastgeber hat den Warteraum geschlossen.',
@@ -771,5 +784,21 @@ extension TankGameLobby on TankGame {
       ),
     );
     fireAndForget(net.dispose(), 'Leaving the room');
+  }
+
+  /// Whether the host [id] that sent a close has left the room, else checks
+  /// again a few times and closes once it has.
+  bool _closeConfirmed(String id, {int attempt = 0}) {
+    if (_rosterMember(id) == null) {
+      return true;
+    }
+    if (attempt < TankGame.closeChecks) {
+      Future<void>.delayed(TankGame.closeCheckGap, () {
+        if (_closeConfirmed(id, attempt: attempt + 1)) {
+          _closedByHost();
+        }
+      });
+    }
+    return false;
   }
 }

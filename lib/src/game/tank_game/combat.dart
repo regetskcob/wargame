@@ -179,7 +179,17 @@ extension TankGameCombat on TankGame {
           weapon == SpecialWeapon.shell) {
         return;
       }
-      remoteTanks[payload.id]?.fireEffects();
+      // A grenade leaves its own tank's barrel, at most as fast as the
+      // launcher reloads: anything else is a made up salvo.
+      final shooter = remoteTanks[payload.id];
+      if (shooter != null &&
+          shooter.position.distanceTo(from) > TankGame.maxLaunchOffset) {
+        return;
+      }
+      if (!_grenadeDue(payload.id)) {
+        return;
+      }
+      shooter?.fireEffects();
     }
     AudioService.play('cannon', volume: 0.5, distance: _distanceToView(from));
     _launchGrenade(
@@ -202,7 +212,14 @@ extension TankGameCombat on TankGame {
     }
     final known = drones[payload.droneId];
     if (known != null) {
-      known.applyState(payload);
+      if (known.ownerId == payload.id) {
+        known.applyState(payload);
+      }
+      return;
+    }
+    if (drones.length >= TankGame.maxDrones ||
+        !payload.x.isFinite ||
+        !payload.y.isFinite) {
       return;
     }
     final drone = Drone(
@@ -220,6 +237,11 @@ extension TankGameCombat on TankGame {
 
   void _onBlast(BlastPayload payload) {
     if (round == null) {
+      return;
+    }
+    // Only drones are announced when they go off, by the player flying
+    // them. A blast without that drone would hit anybody anywhere.
+    if (drones[payload.blastId]?.ownerId != payload.id) {
       return;
     }
     final weapon = SpecialWeapon.values.asNameMap()[payload.weapon];
@@ -599,5 +621,16 @@ extension TankGameCombat on TankGame {
       volume: 0.8,
       distance: _distanceToView(position),
     );
+  }
+
+  /// Whether a remote player's grenade may fly now, counting it.
+  bool _grenadeDue(String id) {
+    final now = clock.now();
+    final last = _lastGrenade[id];
+    if (last != null && now.difference(last) < TankGame.minGrenadeGap) {
+      return false;
+    }
+    _lastGrenade[id] = now;
+    return true;
   }
 }

@@ -18,9 +18,12 @@ LobbyPresence _pilot(
   colorIndex: 0,
   phase: 'lobby',
   owner: owner,
-  joinedAt: joined,
+  joinedAt: joined == null ? null : _t0 + joined,
   pad: pad,
 );
+
+/// A time when the game was running: [_pilot]'s `joined` counts from it.
+const _t0 = 1790000000000;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -71,14 +74,22 @@ void main() {
       expect(kept, ['p0', 'p1', 'p2', 'owner']);
     });
 
-    test('clients from before the limit count as there first', () {
+    test('a member without a plausible time of joining counts as the last '
+        'to come, so a forged early time cannot push the others out', () {
+      final forged = LobbyPresence(
+        id: 'eve',
+        name: 'eve',
+        colorIndex: 0,
+        phase: 'lobby',
+        joinedAt: 0,
+      );
       final members = [
         for (var i = 0; i < 4; i++) _pilot('p$i', joined: 10 + i),
         _pilot('old'),
+        forged,
       ];
       final kept = LobbyPresence.admitted(members, 4).map((m) => m.id);
-      expect(kept, contains('old'));
-      expect(kept, isNot(contains('p3')));
+      expect(kept, ['p0', 'p1', 'p2', 'p3']);
     });
 
     test('every client agrees, whatever order the presences come in', () {
@@ -96,7 +107,7 @@ void main() {
 
     test('the time of joining travels with the presence', () {
       final back = LobbyPresence.fromJson(_pilot('a', joined: 7).toJson());
-      expect(back.joinedAt, 7);
+      expect(back.joinedAt, _t0 + 7);
       expect(LobbyPresence.fromJson(_pilot('b').toJson()).joinedAt, isNull);
     });
   });

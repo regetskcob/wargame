@@ -1,3 +1,5 @@
+import 'package:clock/clock.dart';
+
 import 'net_events.dart';
 import 'payloads/round_start_payload.dart';
 
@@ -34,13 +36,22 @@ class Replay {
 
 /// Collects the messages of the current round.
 class ReplayRecorder {
-  /// Safety cap, roughly ten minutes of a full room.
-  static const maxEvents = 120000;
+  /// Safety cap on everything kept. The events are decoded maps, so a long
+  /// defense session would otherwise hold tens of megabytes.
+  static const maxEvents = 60000;
+
+  /// From this many events on, positions (`state`, `states`) are kept at
+  /// most every [thinStateMs] per sender instead of at 10 Hz. Shots, hits
+  /// and deaths stay complete, and tanks still glide between the sparser
+  /// positions, so a long round stays watchable to its end.
+  static const thinAfter = 20000;
+  static const thinStateMs = 500;
 
   RoundStartPayload? _round;
   Map<String, String> _names = const {};
   Map<String, int> _styles = const {};
   final _events = <ReplayEvent>[];
+  final _lastState = <String, int>{};
 
   bool get recording => _round != null;
 
@@ -53,6 +64,7 @@ class ReplayRecorder {
     _names = names;
     _styles = styles;
     _events.clear();
+    _lastState.clear();
   }
 
   void add(NetEvent event, Map<String, dynamic> payload) {
@@ -62,13 +74,18 @@ class ReplayRecorder {
         _events.length >= maxEvents) {
       return;
     }
-    _events.add(
-      ReplayEvent(
-        DateTime.now().millisecondsSinceEpoch - round.startedAt,
-        event,
-        payload,
-      ),
-    );
+    final at = clock.now().millisecondsSinceEpoch - round.startedAt;
+    if (event == NetEvent.state || event == NetEvent.states) {
+      final key = '${event.name}:${payload['id']}';
+      if (_events.length >= thinAfter) {
+        final last = _lastState[key];
+        if (last != null && at - last < thinStateMs) {
+          return;
+        }
+      }
+      _lastState[key] = at;
+    }
+    _events.add(ReplayEvent(at, event, payload));
   }
 
   /// Ends the recording and hands it over, null when nothing was recorded.
