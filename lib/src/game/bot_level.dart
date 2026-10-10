@@ -17,20 +17,20 @@ enum BotLevel {
   normal(
     'MITTEL',
     'NORMAL',
-    aimError: 0.12,
-    reaction: 0.4,
+    aimError: 0.16,
+    reaction: 0.5,
     think: 0.15,
-    lead: 1,
-    holdFire: 6,
+    lead: 0.8,
+    holdFire: 8,
   ),
   hard(
     'SCHWER',
     'HARD',
-    aimError: 0.05,
-    reaction: 0.18,
-    think: 0.08,
+    aimError: 0.09,
+    reaction: 0.3,
+    think: 0.1,
     lead: 1,
-    holdFire: 3,
+    holdFire: 5,
   );
 
   const BotLevel(
@@ -73,14 +73,30 @@ enum BotLevel {
     BotLevel.hard => 1200,
   };
 
+  /// How much closer a person seems than a CPU tank when a CPU tank picks
+  /// its target: left to the nearest, the CPU tanks fought each other and
+  /// doing nothing won; pulled too hard, all of them went for the player at
+  /// once and normal could hardly be survived.
+  double get humanPull => switch (this) {
+    easy => 0.35,
+    normal || hard => 0.5,
+  };
+
   /// Highest rank of the vehicles CPU tanks of this level drive. A
   /// balance run found that a player as good as a CPU tank won one round
   /// in ten on normal instead of one in three or four: the CPU tanks also
   /// came in the Wolf and the Hirsch, with three times the armour of the
   /// vehicles a new player starts with.
   int get maxVehicleLevel => switch (this) {
-    BotLevel.easy || BotLevel.normal => 1,
-    BotLevel.hard => 3,
+    BotLevel.easy || BotLevel.normal || BotLevel.hard => 1,
+  };
+
+  /// How much longer a CPU tank of this level takes between shots than a
+  /// person in the same vehicle. Easy has its endless ammunition for that.
+  double get fireFactor => switch (this) {
+    easy => 1,
+    normal => 1.6,
+    hard => 1.4,
   };
 
   /// Hard bots dodge barrages and keep their distance smarter.

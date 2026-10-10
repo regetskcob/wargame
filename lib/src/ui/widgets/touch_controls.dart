@@ -37,7 +37,8 @@ class TouchControls extends StatelessWidget {
   final TouchInput input;
   final ValueListenable<(SpecialWeapon, int)?> special;
 
-  /// Whether the aim assist and its button are offered. Not on hard.
+  /// Whether the aim assist and its button are offered: in a round on
+  /// every level, not where the screen does not ask for it.
   final bool assist;
 
   /// On a Vision Pro: the spot looked at when pinching, in global pixels,

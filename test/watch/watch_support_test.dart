@@ -92,12 +92,8 @@ void main() {
       final input = TouchInput();
       final steering = WatchSteering(input);
       final tank = Object();
-      void frame({bool playing = true}) => steering.update(
-        playing: playing,
-        tank: tank,
-        tankAngle: 0,
-        hard: false,
-      );
+      void frame({bool playing = true}) =>
+          steering.update(playing: playing, tank: tank, tankAngle: 0);
 
       frame();
       expect(WearCrown.instance.enabled, isTrue);

@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../app/env.dart';
-import '../game/bot_level.dart';
 import '../game/components/storm_zone.dart';
 import '../net/pad_link.dart';
 import '../net/payloads/defense_payload.dart';
@@ -253,7 +252,6 @@ class _HudOverlayState extends State<HudOverlay> {
                 : TouchControls(
                     input: game.touch,
                     special: game.specialNotifier,
-                    assist: game.difficulty != BotLevel.hard,
                     onLook: game.lookAt,
                   ),
           ),

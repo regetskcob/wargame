@@ -20,8 +20,22 @@ iPhone, the vibration motor on Android): a light tap for a blast close by, a
 hard knock for a heavy hit, the own tank destroyed and the end of a round, a
 click per second of the countdown and a firm tap at the start. A switch in the
 account sheet turns it off, Android also follows the system setting for touch
-vibration. iPads and most Android tablets have no motor and stay still. Android has the `INTERNET`
-permission in the main manifest, so release builds can reach Supabase.
+vibration. iPads and most Android tablets have no motor and stay still.
+The player's own moments always tap; blasts out on the field only when
+strong enough, at most twice a second and never right after an own tap, so
+a late defense wave does not buzz without a pause (`Haptics.admits`).
+
+Sounds work the same way (`lib/src/audio/sound_mixer.dart`): the player's
+own play at once on voices of their own; sounds on the field fall off with
+the square of the distance and share a budget of five per quarter second,
+a quieter one waiting behind louder ones. On the phones each sound has a
+few voices, and a new sound takes a free one or the quietest playing one,
+never a louder one in the middle of its sound: restarted in turn they cut
+each other off and stuttered in a late defense wave. The browser runs all
+sounds through a limiter against crackling.
+
+Android has the `INTERNET` permission in the main manifest, so release
+builds can reach Supabase.
 
 The start page does not wait for the server: a first visit signs in as a
 guest in the background (`ServerStatus.ensureSession`, shared with the
@@ -218,8 +232,7 @@ a waiting room with vehicle, difficulty and public or private, a slim HUD (tanks
 left or wave, armour, magazine, up to three inventory items, in a defense
 round a button to build a gun), and an end screen. The Digital Crown scrolls
 the menus. In a round it steers: the tank drives all the time and fires by
-itself at the nearest enemy (the aim assist, on hard the gun fires straight
-ahead), and turning the crown turns the direction of travel. The crown reports scroll
+itself at the nearest enemy (the aim assist, on every level), and turning the crown turns the direction of travel. The crown reports scroll
 distance with the system's acceleration (about 0.75 per detent, thousands for
 a flick), so `WatchSteering.steer` takes its logarithm: a detent corrects by
 about two degrees, a quick turn swings at full speed. The heading stays within
@@ -341,7 +354,7 @@ It plays with the Siri Remote or a game controller, whichever is in hand:
 | | Controller | Siri Remote |
 | --- | --- | --- |
 | Drive | left stick, the tank turns and drives that way | thumb on the touch surface, where it rests is the direction |
-| Aim | right stick, released the aim assist takes over | aim assist (none on hard) |
+| Aim | right stick, released the aim assist takes over | aim assist |
 | Fire | R2 or A | click |
 | Special weapon | L2 | play/pause |
 | Inventory | X, Y, then ←, ↑, →, ↓ for slots 1 to 6 | play/pause, the top slot, when no weapon is armed |

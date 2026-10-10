@@ -65,8 +65,8 @@ void main() {
     }
   });
 
-  test('easy and normal CPU tanks drive the starter vehicles', () {
-    for (final level in [BotLevel.easy, BotLevel.normal]) {
+  test('CPU tanks drive the starter vehicles on every level', () {
+    for (final level in BotLevel.values) {
       final random = Random(1);
       for (var i = 0; i < 50; i++) {
         final style = GameConfig.randomStyle(
@@ -76,5 +76,12 @@ void main() {
         expect(GameConfig.typeOf(style).level, 1);
       }
     }
+  });
+
+  test('normal and hard CPU tanks fire slower than people', () {
+    expect(BotLevel.easy.fireFactor, 1);
+    expect(BotLevel.normal.fireFactor, greaterThan(1));
+    expect(BotLevel.hard.fireFactor, greaterThan(1));
+    expect(BotLevel.hard.humanPull, greaterThan(BotLevel.easy.humanPull));
   });
 }

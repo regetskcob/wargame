@@ -5,7 +5,6 @@ import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import '../game/bot_level.dart';
 import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
@@ -666,7 +665,7 @@ class PadScreen extends _PadChannel {
       defense: defense,
       credits: defense ? game.credits.value : 0,
       tower: defense ? game.towerChoice.value : null,
-      assist: game.difficulty != BotLevel.hard,
+      assist: true,
       shop: [
         if (defense)
           for (final kind in TowerKind.values)

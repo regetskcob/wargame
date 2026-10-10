@@ -680,7 +680,6 @@ class TankGame extends FlameGame
       playing: phase.value == GamePhase.playing,
       tank: myTank,
       tankAngle: myTank?.angle ?? 0,
-      hard: difficulty == BotLevel.hard,
     );
     _tvSteering.update();
     _playReplay();

@@ -308,7 +308,8 @@ extension TankGameRound on TankGame {
     tank
       ..team = activeRound.teamOf(id)
       ..usesFuel = usesFuel
-      ..endlessAmmo = endlessAmmo;
+      ..endlessAmmo = endlessAmmo
+      ..fireFactor = activeRound.botLevel.fireFactor;
     botTanks[id] = tank;
     world.add(tank);
     final brain = BotBrain(

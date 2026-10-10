@@ -1,9 +1,8 @@
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'audio_backend.dart';
+import 'sound_mixer.dart';
 import 'audio_backend_native.dart'
     if (dart.library.js_interop) 'audio_backend_web.dart';
 
@@ -24,6 +23,7 @@ class AudioService {
 
   static final muted = ValueNotifier<bool>(false);
   static final AudioBackend _backend = createAudioBackend();
+  static final _mixer = SoundMixer();
   static bool _ready = false;
   static bool _engineStarting = false;
 
@@ -48,21 +48,20 @@ class AudioService {
     }
   }
 
-  /// Plays [name] at [volume], which is lowered the further the sound is from
-  /// the camera when [distance] is given.
+  /// Plays [name] at [volume]. With a [distance] from the camera it is a
+  /// sound out on the field: quieter the further away, and left out when the
+  /// field is busy and it is not among the loudest (see [SoundMixer]).
+  /// Without one it is the player's own and always plays.
   static void play(String name, {double volume = 1, double? distance}) {
     if (!_ready || muted.value) {
       return;
     }
-    var v = volume;
-    if (distance != null) {
-      v *= max(0.0, 1 - distance / 900);
-    }
-    if (v <= 0.02) {
+    final level = _mixer.admit(name, volume, distance);
+    if (level == null) {
       return;
     }
     try {
-      _backend.play(name, v.clamp(0.0, 1.0));
+      _backend.play(name, level, own: distance == null);
     } on Object catch (error) {
       debugPrint('Audio play failed: $error');
     }

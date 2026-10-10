@@ -190,11 +190,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     ),
                     BotLevel.hard => tr(
                       'Steile Hügel, knapper Nachschub und treffsichere '
-                          'CPU-Panzer. Dazu gibt es Luftschläge als Gem, aber keine '
-                          'Zielhilfe.',
+                          'CPU-Panzer. Dazu gibt es Luftschläge als Gem.',
                       'Steep hills, scarce supplies and sharp-shooting CPU '
-                          'tanks. Air strikes come as gems, but there is no '
-                          'aim assist.',
+                          'tanks. Air strikes come as gems.',
                     ),
                   }),
                 ],

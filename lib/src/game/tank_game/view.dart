@@ -6,22 +6,25 @@ extension TankGameView on TankGame {
   double _distanceToView(Vector2 point) =>
       point.distanceTo(camera.viewfinder.position);
 
+  /// How far [point] is from the camera, for the volume of a sound there.
+  double soundDistance(Vector2 point) => _distanceToView(point);
+
   /// Rattles the screen. Strengths add up and fade out within a fraction of
   /// a second. On an Apple Vision Pro the window stays still: a window
   /// shaking in the room makes people feel sick, the red edge of a hit is
   /// enough there.
-  void shake(double strength) {
+  void shake(double strength, {bool field = false}) {
     if (!onVision) {
       _shake = min(14.0, _shake + strength);
     }
-    Haptics.shake(strength);
+    Haptics.shake(strength, field: field);
   }
 
   /// Shakes by [strength], weaker the further [at] is from the middle of the
   /// screen, so far away explosions barely register.
   void shakeAt(Vector2 at, double strength) {
     final distance = _distanceToView(at);
-    shake(strength * (1 - (distance / 700).clamp(0.0, 1.0)));
+    shake(strength * (1 - (distance / 700).clamp(0.0, 1.0)), field: true);
   }
 
   /// Leaves a scorched hole in the ground until the round ends.

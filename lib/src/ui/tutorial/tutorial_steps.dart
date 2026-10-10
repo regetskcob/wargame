@@ -104,10 +104,9 @@ List<TutorialStep> get _gamepad => [
     text: tr(
       'Der rechte Stick richtet den Turm aus, ganz gleich, wohin der Panzer '
           'fährt. Lässt du ihn los, dreht die Zielhilfe den Turm auf den '
-          'nächsten Gegner. Auf Schwer gibt es keine.',
+          'nächsten Gegner.',
       'The right stick aims the turret, no matter where the tank is driving. '
-          'Let go and the aim assist turns it to the nearest enemy. On Hard '
-          'there is none.',
+          'Let go and the aim assist turns it to the nearest enemy.',
     ),
   ),
   TutorialStep(
@@ -392,10 +391,10 @@ List<TutorialStep> get _vision => [
     text: tr(
       'Ohne Pinch dreht die Zielhilfe den Turm auf den nächsten Gegner in '
           'Reichweite und feuert. Der Knopf ZIELHILFE unten rechts schaltet '
-          'sie aus und wieder an. Auf Schwer gibt es keine Zielhilfe.',
+          'sie aus und wieder an.',
       'Without a pinch the aim assist turns the turret to the nearest enemy '
           'in range and fires. The AIM ASSIST button at the lower right '
-          'switches it off and on again. On Hard there is no aim assist.',
+          'switches it off and on again.',
     ),
   ),
   ..._touch.skip(4).take(1),

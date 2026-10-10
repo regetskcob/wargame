@@ -108,13 +108,14 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Crates and gems go into an inventory at the left edge and are set off
   later with the keys 1 to 6 or a tap. Every gem carries a symbol of what
   it holds. Only filled slots show, empty frames would cover the field.
-- A gentle start: for the first 10, 6 or 3 s of playing time (easy,
+- A gentle start: for the first 10, 8 or 5 s of playing time (easy,
   normal, hard) CPU tanks leave people alone and only fight each other,
   unless a person hits them first, and the aim assist only aims without
   firing (`TankGame.ceasefire`). After that a person counts as nearly three
-  times closer than another CPU tank when they pick a target
-  (`BotBrain._humanPull`), so the CPU tanks no longer finish each other off
-  while a player waits (see [Balance](#balance)). A device that
+  times closer (easy) or twice as close (normal, hard) as another CPU tank
+  when they pick a target (`BotLevel.humanPull`), so the CPU tanks no longer
+  finish each other off while a player waits, nor all go for the player at
+  once (see [Balance](#balance)). A device that
   never finished a round starts on easy, and the first round a host starts
   in a session opens by day under a clear sky for at least a minute. The
   waiting room shows difficulty, terrain and mode in one line that opens
@@ -123,9 +124,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   difficulty used last, and alone the countdown takes
   2 s instead of 3.
 - CPU tanks drive the vehicles a new player has (Hermelin, Spitzmaus,
-  Fuchs) on easy and normal, and up to rank 3 (Habicht, Keiler) on hard
-  (`BotLevel.maxVehicleLevel`). They once came in any vehicle, the Wolf
-  and the Hirsch with three times the armour of a starter.
+  Fuchs) on every level (`BotLevel.maxVehicleLevel`). They once came in any
+  vehicle, the Wolf and the Hirsch with three times the armour of a
+  starter. On normal and hard they take 1.6 and 1.4 times as long between
+  shots as a person in the same vehicle (`BotLevel.fireFactor`).
+- The aim assist is there on every level; hard once took it away, and on a
+  phone hard could then hardly be won.
 - At night, in fog or sand CPU tanks fire at people only as far as those
   can see (`BotBrain.reach`): there is no arrow for a tank beyond sight, and
   in a play test on hard one shot the player from out of view.
@@ -212,26 +216,31 @@ player who only waits), and a player who drives and shoots like a CPU tank
 of the easy or normal level. Against 1 to 4 CPU tanks (2.5 on average) an
 even fight wins about 29 % of the rounds. It is skipped in the normal test
 run; `flutter test test/game/balance_sim_test.dart --run-skipped
---dart-define=ROUNDS=60` starts it.
+--dart-define=ROUNDS=60` starts it. The rounds open by day, so night and
+fog are not part of it.
 
-Wins in 30 to 60 rounds each, before and after the changes of October 2026
-(CPU vehicles by level, the pull towards people):
+Wins in 100 rounds each, October 2026: before any change, after the first
+pass (CPU vehicles, pull towards people) and now, with normal and hard made
+easier so that hard stays playable on a phone:
 
-| Level | Player | Before | After |
-| --- | --- | --- | --- |
-| easy | idle | 7–25 % | 5–8 % |
-| easy | aim assist only | 63 % | 80–95 % |
-| easy | like an easy CPU | 27 % | 25–33 % |
-| easy | like a normal CPU | 53 % | 52–63 % |
-| normal | idle | 3 % | 0–3 % |
-| normal | aim assist only | 37 % | 35–43 % |
-| normal | like a normal CPU | 10 % | 18–33 % |
-| hard | like a normal CPU | 7 % | 5–8 % |
+| Level | Player | First | Then | Now |
+| --- | --- | --- | --- | --- |
+| easy | idle | 7–25 % | 5–8 % | 9 % |
+| easy | aim assist only | 63 % | 80–95 % | 81 % |
+| easy | like a normal CPU | 53 % | 52–63 % | 43 % |
+| normal | idle | 3 % | 0–3 % | 5 % |
+| normal | aim assist only | 37 % | 35–43 % | 61 % |
+| normal | like a normal CPU | 10 % | 18–33 % | 28 % |
+| hard | idle | 3 % | 0–2 % | 4 % |
+| hard | aim assist only | 0–8 % | 0–8 % | 31 % |
+| hard | like a normal CPU | 7 % | 5–8 % | 17 % |
 
-Doing nothing no longer wins, easy is easy, normal is about an even fight
-for a player as good as its CPU tanks, and hard stays for players clearly
-better than them: softer aim or slower reactions on hard changed little,
-a CPU tank's accuracy there is what decides.
+What moved the numbers: the aim assist on hard, CPU tanks in starter
+vehicles, longer pauses between their shots and a softer pull towards
+people on normal and hard, a larger aim error, slower reactions and a
+longer gentle start (8 s on normal, 5 s on hard). Slower fire alone barely
+changed hard: three or four accurate tanks going for the player at once
+was what decided.
 
 ## Weapons and damage
 

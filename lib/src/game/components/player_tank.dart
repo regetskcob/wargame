@@ -14,7 +14,6 @@ import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/tank_state_payload.dart';
 import '../defense/defense_map.dart';
-import '../bot_level.dart';
 import '../game_phase.dart';
 import '../inventory.dart';
 import '../special_weapon.dart';
@@ -430,11 +429,9 @@ class PlayerTank extends TankBase
     double? target;
     final stick = input.aim;
     var assisted = false;
-    // On hard there is no aim assist: the turret is the player's own job.
-    if (!isBot &&
-        input.assist &&
-        !input.aimHeld &&
-        gameRef.difficulty != BotLevel.hard) {
+    // On every level: hard once took it away, and on a phone hard could
+    // hardly be won with the sticks alone.
+    if (!isBot && input.assist && !input.aimHeld) {
       final prey = gameRef.assistTarget(this);
       if (prey != null) {
         final flight = prey.position.distanceTo(position) / stats.bulletSpeed;
@@ -472,6 +469,11 @@ class PlayerTank extends TankBase
           (target - turretAngle).toNormalizedAngle().abs() < 0.1;
     }
   }
+
+  /// Null for the player's own tank, whose sounds always play, else how far
+  /// from the camera this tank is.
+  double? get _soundDistance =>
+      identical(this, gameRef.myTank) ? null : gameRef.soundDistance(position);
 
   void _applyZoneDamage(double dt) {
     final round = gameRef.round;
@@ -671,7 +673,9 @@ class PlayerTank extends TankBase
       if (hp <= 0) {
         return;
       }
-      AudioService.play('hit');
+      // Loud for the own tank, by distance for the CPU tanks of this
+      // device: late in a defense round their hits drowned everything.
+      AudioService.play('hit', distance: _soundDistance);
       if (other.ownerId == gameRef.myId) {
         gameRef.registerHit(min(other.damage, hp), bulletId: other.bulletId);
       }
@@ -705,7 +709,7 @@ class PlayerTank extends TankBase
       final impact = load.abs();
       if (impact > 0.4) {
         applyDamage(3 + 6 * impact, killerId: null);
-        AudioService.play('hit', volume: 0.6);
+        AudioService.play('hit', volume: 0.6, distance: _soundDistance);
       }
     }
   }

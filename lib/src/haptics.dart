@@ -22,7 +22,50 @@ class Haptics {
 
   /// Shakes come in bursts; one tap per burst is enough.
   static const _minGap = Duration(milliseconds: 150);
+
+  /// Taps for what happens out on the field: at most one in this time, and
+  /// none this soon after a tap of the player's own. Late in a defense round
+  /// every blast nearby tapped, the phone buzzed without a pause and the
+  /// own hits were lost in it, or skipped for a far blast just before.
+  static const _fieldGap = Duration(milliseconds: 500);
+
+  /// Field taps weaker than this are left out.
+  static const _fieldFloor = 3.0;
+
   static DateTime _last = DateTime.fromMillisecondsSinceEpoch(0);
+  static DateTime _lastOwn = DateTime.fromMillisecondsSinceEpoch(0);
+
+  /// The clock the gaps are measured on, replaced in tests.
+  @visibleForTesting
+  static DateTime Function() now = DateTime.now;
+
+  /// Whether a shake of [strength] gets a tap: always for the player's own,
+  /// from [field] only when strong enough and the wrist had a rest.
+  @visibleForTesting
+  static bool admits(double strength, {bool field = false}) {
+    if (strength < 1 || (field && strength < _fieldFloor)) {
+      return false;
+    }
+    final at = now();
+    if (field) {
+      if (at.difference(_last) < _fieldGap ||
+          at.difference(_lastOwn) < _fieldGap) {
+        return false;
+      }
+    } else if (at.difference(_lastOwn) < _minGap) {
+      return false;
+    } else {
+      _lastOwn = at;
+    }
+    _last = at;
+    return true;
+  }
+
+  @visibleForTesting
+  static void resetGaps() {
+    _last = DateTime.fromMillisecondsSinceEpoch(0);
+    _lastOwn = _last;
+  }
 
   /// Whether this device is a phone or tablet with a motor to drive.
   static bool get onPhone =>
@@ -54,17 +97,12 @@ class Haptics {
     }
   }
 
-  /// The screen shakes by [strength]: own tank hit, or a blast close by. A
-  /// small shake is a light tap, a heavy one a hard knock.
-  static void shake(double strength) {
-    if (strength < 1) {
+  /// The screen shakes by [strength]: own tank hit, or a blast close by
+  /// ([field]). A small shake is a light tap, a heavy one a hard knock.
+  static void shake(double strength, {bool field = false}) {
+    if (!admits(strength, field: field)) {
       return;
     }
-    final now = DateTime.now();
-    if (now.difference(_last) < _minGap) {
-      return;
-    }
-    _last = now;
     final heavy = strength >= 8;
     _play(
       watch: heavy ? WatchHapticType.notification : WatchHapticType.click,

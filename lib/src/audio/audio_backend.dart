@@ -6,8 +6,9 @@ abstract class AudioBackend {
   /// Hands over the encoded sound files by name.
   Future<void> load(Map<String, Uint8List> files);
 
-  /// Plays [name] once at [volume] (0 to 1).
-  void play(String name, double volume);
+  /// Plays [name] once at [volume] (0 to 1). [own] sounds come from the
+  /// player and must never be cut off or left out for the field's.
+  void play(String name, double volume, {bool own = false});
 
   /// Starts [name] as a loop, replacing a running one.
   Future<void> startLoop(String name, double volume);

@@ -81,13 +81,11 @@ class WatchSteering {
   bool _active = false;
 
   /// Call every frame. [tank] identifies the tank, [tankAngle] is its
-  /// heading, [hard] switches off the aim assist, so the gun fires straight
-  /// ahead all the time instead.
+  /// heading. The aim assist turns the gun and fires on every level.
   void update({
     required bool playing,
     required Object? tank,
     required double tankAngle,
-    required bool hard,
   }) {
     if (!onWatch) {
       return;
@@ -122,7 +120,7 @@ class WatchSteering {
     _input
       ..drive = (sin(_heading), -cos(_heading))
       ..assist = true
-      ..fire = hard;
+      ..fire = false;
   }
 
   void _enableCrown() =>

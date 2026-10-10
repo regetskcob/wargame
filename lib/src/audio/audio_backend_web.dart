@@ -18,6 +18,16 @@ class _WebAudioBackend implements AudioBackend {
   }
 
   final web.AudioContext _context = web.AudioContext();
+
+  /// Every sound goes through a limiter: many blasts at once added up past
+  /// full scale and crackled.
+  late final web.AudioNode _master = _context.createDynamicsCompressor()
+    ..threshold.value = -12
+    ..knee.value = 6
+    ..ratio.value = 12
+    ..attack.value = 0.003
+    ..release.value = 0.15
+    ..connect(_context.destination);
   final _buffers = <String, web.AudioBuffer>{};
   web.AudioBufferSourceNode? _loop;
   web.GainNode? _loopGain;
@@ -50,7 +60,7 @@ class _WebAudioBackend implements AudioBackend {
       ..loop = loop;
     final gain = _context.createGain()..gain.value = volume;
     source.connect(gain);
-    gain.connect(_context.destination);
+    gain.connect(_master);
     if (loop) {
       _loopGain = gain;
     }
@@ -58,7 +68,7 @@ class _WebAudioBackend implements AudioBackend {
   }
 
   @override
-  void play(String name, double volume) {
+  void play(String name, double volume, {bool own = false}) {
     if (!_buffers.containsKey(name)) {
       return;
     }

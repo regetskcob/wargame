@@ -6,7 +6,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_tvos/flutter_tvos.dart';
 
 import '../app/overlay_ids.dart';
-import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
@@ -230,7 +229,7 @@ const tvDuelSlotLabels = ['X', '←', '↑', '→', '↓'];
 ///
 /// The remote has one surface, so it plays like the watch: where the thumb
 /// rests is where the tank drives, the turret aims and fires by itself
-/// (the aim assist, which hard switches off), and a click fires the gun.
+/// (the aim assist), and a click fires the gun.
 /// Play/pause sets off the special weapon, without one the first item and
 /// without that builds a gun in a defense round.
 class TvSteering {
@@ -287,7 +286,6 @@ class TvSteering {
     }
     _active = true;
     bool pressed(String button) => state[button] && !before[button];
-    final hard = game.difficulty == BotLevel.hard;
     final defense = game.mode.value == GameMode.defense;
     switch (state.kind) {
       case TvPadKind.gamepad:
@@ -295,7 +293,7 @@ class TvSteering {
           ..drive = stick(state.lx, state.ly, _deadZone)
           ..fire = state['r2'] || state['a']
           ..special = state['l2']
-          ..assist = !hard;
+          ..assist = true;
         final aim = stick(state.rx, state.ry, _aimZone);
         input.aimHeld = aim != null;
         if (aim != null) {
@@ -322,7 +320,7 @@ class TvSteering {
         input
           ..drive = stick(state.lx, state.ly, _deadZone)
           ..aimHeld = false
-          ..assist = !hard
+          ..assist = true
           ..fire = state['a']
           ..special = armed && state['x'];
         if (!armed && pressed('x')) {

@@ -173,7 +173,8 @@ class PadStatus {
   final int credits;
   final TowerKind? tower;
 
-  /// Whether the round allows the aim assist. Not on hard.
+  /// Whether the round allows the aim assist. Every level does since
+  /// 1.3; kept on the wire for older phones.
   final bool assist;
 
   /// The guns of a defense round that are there to build: kind, cost and

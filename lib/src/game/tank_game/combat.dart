@@ -285,7 +285,12 @@ extension TankGameCombat on TankGame {
       if (ownerId == myId) {
         registerHit(min(damage, tank.hp));
       }
-      AudioService.play('hit');
+      AudioService.play(
+        'hit',
+        distance: identical(tank, myTank)
+            ? null
+            : _distanceToView(tank.position),
+      );
       tank.applyDamage(damage, killerId: ownerId);
       net.send(
         NetEvent.hit,
