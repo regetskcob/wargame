@@ -59,7 +59,13 @@ void main() {
     await tester.pump();
     expect(input.assist, isTrue);
 
-    final gesture = await tester.startGesture(const Offset(310, 600));
+    // The switch sits right above the aim stick, in reach of the thumb.
+    final toggle = tester.getRect(find.text('ZIELHILFE AN'));
+    final label = tester.getRect(find.text('ZIELEN · FEUER'));
+    expect(toggle.bottom, lessThan(label.top));
+    expect(label.top - toggle.bottom, lessThan(40));
+
+    final gesture = await tester.startGesture(const Offset(310, 700));
     await gesture.moveBy(const Offset(0, -40));
     await tester.pump();
     expect(input.aimHeld, isTrue);

@@ -54,6 +54,12 @@ class TouchControls extends StatelessWidget {
           // round fold out over the upper right corner. They keep enough
           // room above the stick for its label.
           final buttonTop = max(zoneTop, height - stick - 104);
+          // Upright, the aim zone starts below the buttons rather than around
+          // them: a thumb landing for the stick toggled the assist now and
+          // then, and parking it far above the stick put it out of reach.
+          final aimTop = upright
+              ? buttonTop + _SpecialButton.size + 4
+              : zoneTop;
           final zoneWidth = width * 0.44;
           return Stack(
             children: [
@@ -73,7 +79,7 @@ class TouchControls extends StatelessWidget {
               ),
               Positioned(
                 right: 0,
-                top: zoneTop,
+                top: aimTop,
                 bottom: 0,
                 width: zoneWidth,
                 child: _FloatingStick(
@@ -93,12 +99,16 @@ class TouchControls extends StatelessWidget {
                     ..aimHeld = false,
                 ),
               ),
-              // Upright, the switch sits just above the aim zone: inside it,
-              // a thumb landing for the stick toggled it now and then.
+              // Flush over the aim stick, moving aside for a special weapon
+              // and bottom-aligned with its button.
               if (assist)
-                Positioned(
-                  right: upright ? 8 : 84,
-                  top: upright ? zoneTop - _AssistToggle.height - 8 : buttonTop,
+                ValueListenableBuilder<(SpecialWeapon, int)?>(
+                  valueListenable: special,
+                  builder: (context, loadout, child) => Positioned(
+                    right: loadout == null ? 8 : 16 + _SpecialButton.size,
+                    top: buttonTop + _SpecialButton.size - _AssistToggle.height,
+                    child: child!,
+                  ),
                   child: _AssistToggle(input: input),
                 ),
               Positioned(
@@ -218,6 +228,8 @@ class _SpecialButton extends StatefulWidget {
     required this.onHeld,
   });
 
+  static const size = 68.0;
+
   final SpecialWeapon weapon;
   final int charges;
   final ValueChanged<bool> onHeld;
@@ -254,8 +266,8 @@ class _SpecialButtonState extends State<_SpecialButton> {
       onPointerUp: (_) => _set(false),
       onPointerCancel: (_) => _set(false),
       child: Container(
-        width: 68,
-        height: 68,
+        width: _SpecialButton.size,
+        height: _SpecialButton.size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           color: _down ? color.withValues(alpha: 0.6) : const Color(0x88000000),

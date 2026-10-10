@@ -150,8 +150,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   depots, flags and the zone stay.
 - Keyboard and mouse, or two touch sticks on phones and tablets. The left
   stick points where the tank should go, the right one aims and fires, and
-  an aim assist (on by default, switched with a button that says it fires
-  by itself) turns the turret onto the nearest enemy and fires while the
+  an aim assist (on by default, switched with a button right above the aim
+  stick that says it fires by itself) turns the turret onto the nearest enemy and fires while the
   right thumb rests. Upright phones look 20 % closer
   (`GameConfig.uprightPhoneZoom`), outside defense rounds.
 - The phone as a controller for the game on a computer or tablet: the
