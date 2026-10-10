@@ -106,10 +106,10 @@ class _ScreenPairing extends StatelessWidget {
                 : tr(
                     'Steuere deinen Panzer hier mit dem Handy: Koppeln '
                         'öffnet einen QR-Code, den du mit der Panzergefecht-'
-                        'App oder der Handykamera scannst.',
+                        'App auf dem Handy scannst.',
                     'Steer your tank here with your phone: pairing shows a '
-                        'QR code to scan with the Panzergefecht app or the '
-                        'phone camera.',
+                        'QR code to scan with the Panzergefecht app on the '
+                        'phone.',
                   ),
             style: const TextStyle(color: GameColors.textDim, fontSize: 13),
           ),
@@ -337,12 +337,12 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
               padding: const EdgeInsets.only(right: 8),
               child: Text(
                 tr(
-                  'Scanne den Code mit der Panzergefecht-App (Konto, Als '
-                      'Controller nutzen) oder mit der Kamera des Handys. Das '
-                      'Handy wird dann zum Gamepad für diesen Bildschirm.',
-                  'Scan the code with the Panzergefecht app (Account, Use '
-                      'as controller) or the phone camera. The phone then '
-                      'becomes the gamepad of this screen.',
+                  'Scanne den Code mit der Panzergefecht-App auf dem Handy '
+                      '(Konto, Als Controller nutzen). Das Handy wird dann zum '
+                      'Gamepad für diesen Bildschirm.',
+                  'Scan the code with the Panzergefecht app on the phone '
+                      '(Account, Use as controller). The phone then becomes '
+                      'the gamepad of this screen.',
                 ),
                 style: const TextStyle(color: GameColors.textDim, fontSize: 13),
               ),

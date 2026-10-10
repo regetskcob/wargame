@@ -182,8 +182,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   right thumb rests. Upright phones look 20 % closer
   (`GameConfig.uprightPhoneZoom`), outside defense rounds.
 - The phone as a controller for the game on a computer or tablet: the
-  account sheet in the browser shows a pairing QR code, the app scans it
-  (Account, Use as controller) or the phone camera opens it. The phone then
+  account sheet in the browser shows a pairing QR code, the app on the
+  phone scans it (Account, Use as controller). The phone then
   shows the two sticks, armour, shells and fuel, the items in the game's
   slots (down the left edge upright, between the thumbs sideways) and, in a
   defense round, the funds beside the name and the shop in two groups,
@@ -191,11 +191,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   upgrade of the gun next to it, the tank's upgrades, the host's *Wave now*
   and, after each stretch of waves, *+4 waves* or *End*. A dot on *Towers*
   and *Upgrades* (on the screen's buttons as well) says the funds reach for
-  something behind them. Hits are felt as a buzz. Without the app the
-  phone's browser does the same. Only phones become controllers (shorter
-  side under 600 points): a tablet offers no *Use as controller*, and a
-  pairing link opened on one, in the app or the browser, says so instead
-  of taking a seat.
+  something behind them. Hits are felt as a buzz. Only the app on a phone
+  becomes a controller (shorter side under 600 points): a tablet offers no
+  *Use as controller*, and a pairing link opened on a tablet or in any
+  browser (a phone camera without the app) points to the app instead of
+  taking a seat. The browser game pairs controllers, it never is one.
 - Game controllers: one steers the own tank in the browser, on iPhone, iPad,
   Android and the Apple TV, as a paired phone does; two play two on one
   screen of a computer, tablet or television. A touch on the screen of a

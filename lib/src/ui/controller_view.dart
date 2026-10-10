@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -64,10 +65,10 @@ class _ControllerViewState extends State<ControllerView> {
   /// The list of the defense shop that is folded out, null for none.
   _Shop? _shop;
 
-  /// Only a phone becomes a controller. A tablet that opened a pairing
-  /// link (from its camera, a QR code or the browser) says so instead and
-  /// never takes a seat on the screen.
-  final _phone = deviceIsPhone;
+  /// Only the app on a phone becomes a controller. A tablet, or any
+  /// browser that opened a pairing link, says so instead and never takes a
+  /// seat on the screen.
+  final _phone = !kIsWeb && deviceIsPhone;
 
   @override
   void initState() {
@@ -192,19 +193,31 @@ class _ControllerViewState extends State<ControllerView> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    tr('NUR AUF DEM HANDY', 'ON PHONES ONLY'),
+                    kIsWeb
+                        ? tr('NUR IN DER APP', 'IN THE APP ONLY')
+                        : tr('NUR AUF DEM HANDY', 'ON PHONES ONLY'),
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    tr(
-                      'Als Controller dient nur ein Handy. Auf einem Tablet '
-                          'spielst du selbst und kannst unter Konto › Handy '
-                          'koppeln ein Handy als Controller dazunehmen.',
-                      'Only a phone serves as a controller. On a tablet you '
-                          'play yourself and can add a phone as a controller '
-                          'under Account › Pair phone.',
-                    ),
+                    kIsWeb
+                        ? tr(
+                            'Als Controller dient die Panzergefecht-App auf '
+                                'dem Handy. Öffne dort Konto › Als Controller '
+                                'nutzen und scanne den Code.',
+                            'The Panzergefecht app on a phone serves as the '
+                                'controller. Open Account › Use as controller '
+                                'there and scan the code.',
+                          )
+                        : tr(
+                            'Als Controller dient nur ein Handy. Auf einem '
+                                'Tablet spielst du selbst und kannst unter '
+                                'Konto › Handy koppeln ein Handy als '
+                                'Controller dazunehmen.',
+                            'Only a phone serves as a controller. On a tablet '
+                                'you play yourself and can add a phone as a '
+                                'controller under Account › Pair phone.',
+                          ),
                     style: const TextStyle(color: GameColors.textDim),
                   ),
                   const SizedBox(height: 16),

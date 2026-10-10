@@ -56,9 +56,9 @@ String? padCodeFrom(String text) {
 final _code = RegExp('^[$_alphabet]{$padCodeLength}\$');
 
 /// Link the QR code carries: the browser game with the code in the
-/// address, built like the room links. The camera of a phone with the app
-/// opens the app, any other phone the game in its browser, as a controller
-/// either way.
+/// address, built like the room links. The app on a phone scans it and
+/// becomes the controller; opened in a browser it only points to the app,
+/// since the browser game never serves as a controller.
 String padLink(String code) =>
     Uri.parse(roomLink('-')).replace(queryParameters: {'pad': code}).toString();
 

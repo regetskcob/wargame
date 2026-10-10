@@ -96,13 +96,12 @@ Future<void> main() async {
     AccountService.mailLinkFailed = auth.currentUser?.isAnonymous ?? true;
     leaveMailLink();
   }
-  // A phone browser that opened a pairing link steers the game elsewhere.
-  // Its channel claims a share of the server, which takes a session.
+  // A browser that opened a pairing link (a phone camera without the app)
+  // never becomes a controller: the page only points to the app and leads
+  // on to the game, without taking a seat on the server.
   final pad = padCodeFrom(padCodeOfPage() ?? '');
   if (pad != null) {
-    await session;
-    final name = await ControllerApp.padName(Supabase.instance.client);
-    runApp(ControllerApp(code: pad, name: name));
+    runApp(ControllerApp(code: pad));
     return;
   }
   unawaited(session);

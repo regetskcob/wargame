@@ -14,7 +14,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../db/account_service.dart';
 import '../db/online_service.dart';
 import '../db/profile_service.dart';
-import '../db/supabase_schema.g.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
@@ -391,34 +390,13 @@ class _TvBack extends StatelessWidget {
   }
 }
 
-/// The browser on a phone that opened a pairing link without the app: the
-/// page is the controller of that screen and nothing else.
+/// A browser that opened a pairing link, as a phone camera without the app
+/// does. The browser game never becomes a controller: the page points to
+/// the app and leads on to the game.
 class ControllerApp extends StatelessWidget {
-  const ControllerApp({required this.code, this.name, super.key});
+  const ControllerApp({required this.code, super.key});
 
   final String code;
-
-  /// The call sign the phone shows up under on the screen, see [padName].
-  final String? name;
-
-  /// The call sign of a signed in account on this browser, else the one it
-  /// last played under: the screen calls the second half of a split screen
-  /// after it, instead of just "phone". Gives up after a few seconds, the
-  /// pad must not wait for a slow server.
-  static Future<String?> padName(SupabaseClient client) async {
-    final user = client.auth.currentUser;
-    if (user != null && !user.isAnonymous) {
-      final profile = await ProfileService(client)
-          .load()
-          .timeout(const Duration(seconds: 3))
-          .then<PlayersRow?>((row) => row, onError: (Object _) => null);
-      final name = profile?.name ?? user.userMetadata['call_sign'];
-      if (name is String && name.trim().isNotEmpty) {
-        return name.trim();
-      }
-    }
-    return storedPilot()?.$1;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -433,7 +411,7 @@ class ControllerApp extends StatelessWidget {
         theme: buildGameTheme(),
         home: ControllerView(
           code: code,
-          name: name ?? tr('Handy', 'Phone'),
+          name: tr('Handy', 'Phone'),
           onClose: leavePadPage,
         ),
       ),
