@@ -600,7 +600,7 @@ class PlayerTank extends TankBase
     }
     if (killerId != null) {
       amount *= armorFactor;
-      if (gameRef.inTrench(position)) {
+      if (gameRef.inTrench(position, of: playerId)) {
         amount *= GameConfig.trenchCover;
       }
     }

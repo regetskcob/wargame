@@ -381,6 +381,10 @@ class TankGame extends FlameGame
 
   /// Whether the next round starts with red against blue.
   final teamMode = ValueNotifier<bool>(false);
+
+  /// Two players on this screen capturing the flag: on the same side
+  /// against the CPU tanks, or one red and one blue.
+  final duoTogether = ValueNotifier<bool>(true);
   final spectatingName = ValueNotifier<String?>(null);
 
   String myName = 'Panzer-${1000 + Random().nextInt(9000)}';

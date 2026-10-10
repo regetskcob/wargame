@@ -12,7 +12,13 @@ class LiveActivityPlugin: NSObject, FlutterPlugin {
     registrar.addMethodCallDelegate(LiveActivityPlugin(), channel: channel)
   }
 
+  /// The round that runs, from its start, for the result in the chat.
+  private var round: [String: Any] = [:]
+
   func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
+    if let args = call.arguments as? [String: Any] {
+      recordForChat(call.method, args)
+    }
     guard #available(iOS 16.2, *), let args = call.arguments as? [String: Any] else {
       result(nil)
       return
@@ -30,6 +36,32 @@ class LiveActivityPlugin: NSObject, FlutterPlugin {
         break
       }
       result(nil)
+    }
+  }
+
+  /// A round that ends with its result on the lock screen also leaves it
+  /// for the iMessage app, whether or not Live Activities are on.
+  private func recordForChat(_ method: String, _ args: [String: Any]) {
+    switch method {
+    case "start":
+      round = args
+    case "end" where args["linger"] as? Bool == true:
+      guard let state = args["state"] as? [String: Any],
+            let room = round["room"] as? String,
+            let outcome = state["outcome"] as? String, outcome != "none"
+      else { return }
+      ChatResult.record(ChatResult(
+        room: room,
+        pilot: round["pilot"] as? String ?? "",
+        mode: round["mode"] as? String ?? "multi",
+        won: outcome == "won",
+        winner: state["winner"] as? String,
+        kills: (state["kills"] as? NSNumber)?.intValue ?? 0,
+        wave: (state["wave"] as? NSNumber)?.intValue ?? 0,
+        waves: (state["waves"] as? NSNumber)?.intValue ?? 8,
+        at: .now))
+    default:
+      break
     }
   }
 

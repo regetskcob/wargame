@@ -57,9 +57,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   base, and all of them chase whoever has their own flag. The round is
   rated like a team round.
 - **Two on one screen:** on the Apple TV, in the browser and on an iPad,
-  with two controllers or phones. Single player, multiplayer and defense
-  play on a split screen, each half from its own tank; single player puts
-  both against the CPU tanks. Free of Realtime messages, see
+  with two controllers or phones; on a computer also the keyboard and one
+  controller or phone. Single player, multiplayer, defense and
+  capture the flag play on a split screen, each half from its own tank;
+  single player puts both against the CPU tanks, and capture the flag
+  puts both on one side or, as picked in the settings, against each other.
+  Free of Realtime messages, see
   [Apple TV](platforms.md#apple-tv).
 - **Duel (two on one screen):** red against blue on a defense map, a base
   at either end of the road. Each side's waves roll against the other's
@@ -81,7 +84,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   in a duel each player sees their own side red and the other one blue
   (two players on one screen: the left base red, the right one blue). A ring in the team's
   colour stays only around hulls of another colour and shows while a hit
-  flashes the hull white.
+  flashes the hull white. The own tank always wears its ring, in the
+  team's colour or amber without sides, with a dark rim, so it stands out
+  among its side.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of
@@ -206,7 +211,7 @@ seconds up to 300.
 | Who | Damage | Notes |
 | --- | --- | --- |
 | Cannon | 18 per shot, 0.45 s, range 420 | +35 % per level |
-| Flak | 6 per shot, 0.16 s, range 480 | 12 against aircraft, 1.8 on the ground |
+| Flak | 6 per shot, 0.16 s, range 600 | 12 against aircraft (proximity fuse, bursts within 30), 1.8 on the ground |
 | Mortar emplacement | 50, radius 75, range 130–620 | +35 % per level |
 | Howitzer | 110, radius 75, range 240–1050 | +35 % per level |
 | Helicopter (both sides) | 10 per rocket, every 1.8 s, range 420 | |
@@ -220,7 +225,12 @@ takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
 to the tank's shells. Against aircraft, flak and the Habicht do double, other
 shells a quarter to a helicopter and nothing to a jet. On the ground flak
 does only 30 % of its damage, about a quarter of what a cannon fires in the
-same time, so a row of flak no longer holds the road.
+same time, so a row of flak no longer holds the road. Against the sky it
+got sharper instead: its shells burst within 30 of an aircraft or drone,
+the mount swings 10 radians a second (the other guns 6) and every gun
+works out its lead a few times over. A jet at 420 a second used to slip
+through three flak guns around the base; now one stops it about one time
+in three before it bombs, two almost always.
 
 ## Defense thresholds
 
@@ -276,7 +286,14 @@ Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
-player, they do not count as guns.
+player, they do not count as guns. Guns keep off the road, trenches may
+cut across it (not over a bridge): tanks roll over a trench and soldiers
+march on through it, and only a tank of the side that dug it takes cover
+there, so an enemy rolling over a trench on the road gets none.
+
+On the easy level shells never run out, so the HUD leaves the ammunition
+gauge out. On a desktop the defense panel keeps clear of the mini map and
+wraps its buttons in a narrow window.
 
 **The enemy's guns.** From wave 3 the enemy digs in guns beside the first
 stretch of the road, one more every second wave up to 4 (wave 3: 1, wave 5:

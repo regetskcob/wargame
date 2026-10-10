@@ -138,6 +138,27 @@ void main() {
     expect(map.whyNotBuild(free, [free + Vector2(20, 0)]), isNotNull);
   });
 
+  test('a trench may cut across the road, but not a bridge', () {
+    for (final seed in [0, 4, 8, 12]) {
+      final map = DefenseMap.forSeed(seed);
+      final (onRoad, _) = map.alongRoad(map.roadLength * 0.5);
+      if (map.inWater(onRoad, margin: 26) ||
+          map.bridges.any(
+            (b) => b.centre.distanceTo(onRoad) < b.halfLength + 30,
+          )) {
+        continue;
+      }
+      expect(map.whyNotBuild(onRoad, const []), isNotNull);
+      expect(map.whyNotBuild(onRoad, const [], onRoad: true), isNull);
+      for (final bridge in map.bridges) {
+        expect(
+          map.whyNotBuild(bridge.centre, const [], onRoad: true),
+          isNotNull,
+        );
+      }
+    }
+  });
+
   test('CPU comrades fight on the side of the players', () {
     final round = RoundState(
       seed: 1,
