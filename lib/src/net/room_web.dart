@@ -72,6 +72,27 @@ void rememberTutorialSeen() {
   }
 }
 
+const _veteranKey = 'panzergefecht.veteran';
+
+/// Whether this browser has played a round to its end. Until then the CPU
+/// tanks start on the easy level.
+bool roundPlayed() {
+  try {
+    return web.window.localStorage.getItem(_veteranKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that a round was played to its end.
+void rememberRoundPlayed() {
+  try {
+    web.window.localStorage.setItem(_veteranKey, '1');
+  } on Object {
+    // Without storage the next visit simply starts on easy again.
+  }
+}
+
 /// Back from a sign-in mail: drops its one time code and any room from the
 /// address, so a reload does not try the code again and the game opens a
 /// fresh room on the start page.

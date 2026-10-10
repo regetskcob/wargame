@@ -680,6 +680,7 @@ extension TankGameDefense on TankGame {
         roundStats.kills++;
       }
       world.add(KillMarker(position: tower.position.clone()));
+      _showGain(tower.position, bounty);
       showNotice(
         tr(
           'FEINDLICHE ${tower.kind.label} ZERSTÖRT  +$bounty',
@@ -1085,13 +1086,6 @@ extension TankGameDefense on TankGame {
       }
     }
     _setPhase(GamePhase.roundOver);
-    Future<void>.delayed(
-      const Duration(seconds: GameConfig.roundOverSeconds),
-      () {
-        if (round == activeRound && phase.value == GamePhase.roundOver) {
-          backToLobby();
-        }
-      },
-    );
+    _leaveEndScreenLater(activeRound);
   }
 }

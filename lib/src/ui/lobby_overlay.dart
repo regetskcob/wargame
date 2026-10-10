@@ -755,6 +755,54 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// What the settings behind the gear hold, in one line that opens them.
+  /// In the play test difficulty and terrain went unnoticed behind the gear.
+  Widget _settingsSummary() {
+    final game = widget.game;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        game.botLevel,
+        game.mapChoice,
+        game.teamMode,
+        game.mode,
+      ]),
+      builder: (context, _) {
+        final map = game.mapChoice.value;
+        final mode = game.mode.value;
+        final parts = [
+          game.botLevel.value.label,
+          map == null
+              ? tr('GELÄNDE ZUFÄLLIG', 'RANDOM TERRAIN')
+              : MapTheme.all[map].name.toUpperCase(),
+          if (mode == GameMode.solo || mode == GameMode.multi)
+            game.teamMode.value
+                ? 'TEAMS'
+                : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
+        ];
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: game.editSettings,
+            style: TextButton.styleFrom(
+              foregroundColor: GameColors.amber,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              visualDensity: VisualDensity.compact,
+            ),
+            icon: const Icon(Icons.tune, size: 16),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                parts.join('  ·  '),
+                maxLines: 1,
+                style: const TextStyle(fontSize: 12, letterSpacing: 1),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   /// The waiting room: who is here, the player's own tank and the start.
   /// The host reaches the settings through the gear in the heading.
   Widget _room(BuildContext context, {required bool narrow}) {
@@ -792,6 +840,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
               ],
             ),
+            if (host) ...[const SizedBox(height: 6), _settingsSummary()],
             const SizedBox(height: 18),
             if (mode.withOthers) ...[
               const ServerNotice(),

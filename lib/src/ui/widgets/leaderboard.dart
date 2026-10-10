@@ -2,13 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../db/score_points.dart';
 import '../../db/supabase_schema.g.dart';
 import '../../game/tank_game.dart';
 import '../theme.dart';
 import '../../l10n/l10n.dart';
 import '../../tv/tv_input.dart';
 
-/// Ranking of all pilots by rating, with the totals behind it. The own row
+/// Ranking of all pilots by points over all their totals, with the totals
+/// behind it. The own row
 /// is highlighted, and added below the list when it is further down.
 class Leaderboard extends StatefulWidget {
   const Leaderboard({required this.game, this.rows = 5, super.key});
@@ -43,30 +45,23 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   void _reload() {
-    _scores = widget.game.scoreService.topScores(limit: 50);
+    _scores = widget.game.scoreService.topScores(limit: 100);
   }
 
-  /// Pilots with a rated round first, then rating, then wins, kills and
-  /// damage break ties.
+  /// Points first, then rating, wins and kills break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
-    final byRated = _rated(b).compareTo(_rated(a));
-    if (byRated != 0) {
-      return byRated;
+    for (final (x, y) in [
+      (a.points, b.points),
+      (a.rating, b.rating),
+      (a.wins, b.wins),
+      (a.kills, b.kills),
+    ]) {
+      if (x != y) {
+        return y.compareTo(x);
+      }
     }
-    final byRating = b.rating.compareTo(a.rating);
-    if (byRating != 0) {
-      return byRating;
-    }
-    final byWins = b.wins.compareTo(a.wins);
-    if (byWins != 0) {
-      return byWins;
-    }
-    final byKills = b.kills.compareTo(a.kills);
-    return byKills != 0 ? byKills : b.damage.compareTo(a.damage);
+    return 0;
   }
-
-  /// Without a rated opponent yet the rating is only the starting value.
-  static int _rated(ScoresRow row) => row.ratedRounds > 0 ? 1 : 0;
 
   /// The first [widget.rows] places, and the own place below them when it
   /// is further down.
@@ -209,7 +204,7 @@ class _LeaderboardState extends State<Leaderboard> {
   static List<String> get _labels => [
     '',
     'PILOT',
-    tr('WERTUNG', 'RATING'),
+    tr('PUNKTE', 'POINTS'),
     tr('SIEGE', 'WINS'),
     tr('ABSCHÜSSE', 'KILLS'),
   ];
@@ -258,7 +253,10 @@ class _LeaderboardState extends State<Leaderboard> {
         // A long name breaks onto a second line on a phone instead of
         // losing its end.
         _cell(row.name, style: base, align: TextAlign.left, lines: 2),
-        _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
+        _cell(
+          '${row.points}',
+          style: base.copyWith(fontWeight: FontWeight.w900),
+        ),
         _cell('${row.wins}', style: base),
         _cell('${row.kills}', style: base),
       ],

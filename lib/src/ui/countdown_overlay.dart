@@ -39,7 +39,9 @@ class _CountdownOverlayState extends State<CountdownOverlay> {
     return IgnorePointer(
       child: SafeArea(
         minimum: const EdgeInsets.all(16),
-        child: Center(
+        // Above the middle, where the own tank waits for the start.
+        child: Align(
+          alignment: const Alignment(0, -0.45),
           // Long map names shrink on upright phones instead of overflowing.
           child: FittedBox(
             fit: BoxFit.scaleDown,

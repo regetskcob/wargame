@@ -27,7 +27,8 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     required this.controls,
     this.level = BotLevel.normal,
     this.objective,
-  }) : items = BotItems(level);
+  }) : items = BotItems(level),
+       _holdFire = level.holdFire;
 
   final PlayerTank tank;
   final TouchInput controls;
@@ -39,6 +40,9 @@ class BotBrain extends Component with HasGameRef<TankGame> {
   final Vector2? Function(PlayerTank tank)? objective;
 
   final _random = Random();
+
+  /// Seconds of playing time left before this tank fires its first shot.
+  double _holdFire;
   double _think = 0;
   double _aimError = 0;
   double _errorTimer = 0;
@@ -71,6 +75,8 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       controls.reset();
       return;
     }
+    // Hit by a person before its time is up, it shoots back right away.
+    _holdFire = tank.provoked ? 0 : max(0, _holdFire - dt);
     _errorTimer -= dt;
     if (_errorTimer <= 0) {
       _errorTimer = 0.6;
@@ -91,7 +97,15 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     items.think(gameRef, tank, _target, dt);
   }
 
-  /// Nearest tank that is not on this bot's team.
+  /// Whether a person drives [candidate]: the local tank or one from the
+  /// net. CPU tanks of this host are player tanks with controls of their own.
+  static bool _human(TankBase candidate) =>
+      candidate is RemoteTank || (candidate is PlayerTank && !candidate.isBot);
+
+  /// Nearest tank that is not on this bot's team. While it holds its fire
+  /// it leaves people alone and only goes for other CPU tanks: in the play
+  /// test a bot drove straight at the new player, the aim assist shot at it
+  /// and the hold was over before the player had moved.
   TankBase? _pickTarget() {
     TankBase? best;
     var bestDistance = double.infinity;
@@ -99,7 +113,8 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       if (candidate == null ||
           candidate == tank ||
           !candidate.isMounted ||
-          gameRef.sameTeam(tank.playerId, candidate.playerId)) {
+          gameRef.sameTeam(tank.playerId, candidate.playerId) ||
+          (_holdFire > 0 && _human(candidate))) {
         return;
       }
       final distance = candidate.position.distanceTo(tank.position);
@@ -365,7 +380,12 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       _fireGate = 0;
     }
     // A short reaction time before the first shot at a fresh target.
-    controls.fire = _fireGate > level.reaction && tank.ammo > 0;
+    final hold = _holdFire > 0 && _human(target);
+    controls.fire = !hold && _fireGate > level.reaction && tank.ammo > 0;
+    if (hold) {
+      controls.special = false;
+      return;
+    }
     _special(dt, aimPoint, onTarget);
   }
 

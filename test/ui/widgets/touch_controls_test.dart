@@ -52,10 +52,10 @@ void main() {
       'takes over while held', (tester) async {
     final input = await pump(tester);
     expect(input.assist, isTrue);
-    await tester.tap(find.text('ZIELHILFE'));
+    await tester.tap(find.text('ZIELHILFE AN'));
     await tester.pump();
     expect(input.assist, isFalse);
-    await tester.tap(find.text('ZIELHILFE'));
+    await tester.tap(find.text('ZIELHILFE AUS'));
     await tester.pump();
     expect(input.assist, isTrue);
 

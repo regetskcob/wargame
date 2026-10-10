@@ -93,10 +93,12 @@ class TouchControls extends StatelessWidget {
                     ..aimHeld = false,
                 ),
               ),
+              // Upright, the switch sits just above the aim zone: inside it,
+              // a thumb landing for the stick toggled it now and then.
               if (assist)
                 Positioned(
-                  right: 84,
-                  top: buttonTop,
+                  right: upright ? 8 : 84,
+                  top: upright ? zoneTop - _AssistToggle.height - 8 : buttonTop,
                   child: _AssistToggle(input: input),
                 ),
               Positioned(
@@ -125,6 +127,8 @@ class TouchControls extends StatelessWidget {
 /// finding the enemy by itself leaves both thumbs for driving and dodging.
 class _AssistToggle extends StatefulWidget {
   const _AssistToggle({required this.input});
+
+  static const height = 44.0;
 
   final TouchInput input;
 
@@ -159,24 +163,45 @@ class _AssistToggleState extends State<_AssistToggle> {
           ..assistFire = false;
       }),
       child: Container(
-        width: 68,
-        height: 68,
+        height: _AssistToggle.height,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: on ? const Color(0x55FFB300) : const Color(0x88000000),
-          border: Border.all(color: color, width: 2.5),
+          borderRadius: BorderRadius.circular(_AssistToggle.height / 2),
+          // Dark in both states, so the label reads on snow and sand too.
+          color: const Color(0xB3141A0E),
+          border: Border.all(color: color, width: 2),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.gps_fixed, size: 18, color: color),
-            Text(
-              tr('ZIELHILFE', 'AIM ASSIST'),
-              style: const TextStyle(fontSize: 10, letterSpacing: 0.3),
-            ),
-            Text(
-              on ? tr('AN', 'ON') : tr('AUS', 'OFF'),
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+            const SizedBox(width: 6),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  on
+                      ? tr('ZIELHILFE AN', 'AIM ASSIST ON')
+                      : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+                // It also pulls the trigger, which spends the shells: say so.
+                Text(
+                  on
+                      ? tr('feuert selbst', 'fires by itself')
+                      : tr('du zielst selbst', 'you aim yourself'),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    letterSpacing: 0.3,
+                    color: GameColors.text,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

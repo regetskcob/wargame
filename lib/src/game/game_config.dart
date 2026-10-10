@@ -20,6 +20,11 @@ class GameConfig {
   /// the phone's distance are hard to make out.
   static const watchZoom = 1.12;
 
+  /// Upright phones look closer still, see `viewScale`. Below this short
+  /// side in logical pixels a screen counts as a phone.
+  static const uprightPhoneZoom = 1.2;
+  static const phoneShortSide = 500.0;
+
   /// Top speed of every tank in a solo round on the watch. Steering with the
   /// crown is slower than with a thumb, so the round runs a little calmer.
   /// Only solo: in a shared round all players drive alike.
@@ -434,7 +439,10 @@ class GameConfig {
 
   /// With other people, CPU tanks fill the field up to this many tanks.
   static const fillTo = 4;
-  static const roundOverSeconds = 10;
+
+  /// How long the end screen of a round with other people stays before it
+  /// goes back to the waiting room. Alone it stays until the player picks.
+  static const roundOverSeconds = 15;
 
   /// Paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white and
   /// NATO grey for everybody, then four that come with higher ranks.

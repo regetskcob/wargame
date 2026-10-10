@@ -87,7 +87,15 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Crates with repair, smoke, rapid fire, a shield, mines and artillery.
 - Crates and gems go into an inventory at the left edge and are set off
   later with the keys 1 to 6 or a tap. Every gem carries a symbol of what
-  it holds.
+  it holds. Only filled slots show, empty frames would cover the field.
+- A gentle start: for the first 10, 6 or 3 s of playing time (easy,
+  normal, hard) CPU tanks leave people alone and only fight each other,
+  unless a person hits them first, and the aim assist only aims without
+  firing (`TankGame.ceasefire`). A device that
+  never finished a round starts on easy, and the first round a host starts
+  in a session opens by day under a clear sky for at least a minute. The
+  waiting room shows difficulty, terrain and mode in one line that opens
+  the settings.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel
@@ -113,9 +121,13 @@ Everything the game does, with the numbers behind it. The short version is in th
   the base and kamikaze drones. Cannons, flak (the only thing besides the
   Habicht that hits aircraft properly), mortars and later howitzers, three
   levels each, trenches that cover a tank, and armour, gun, engine and
-  magazine upgrades for the tank. The enemy shoots guns and trenches to
-  pieces and from wave 3 digs in cannons and flak of its own beside the
-  first stretch of the road.
+  magazine upgrades for the tank, one list at a time in the panel. The
+  enemy shoots guns and trenches to pieces and from wave 3 digs in cannons
+  and flak of its own beside the first stretch of the road. Money comes
+  with the player's own kills (rising from the wreck, less with every
+  wave) and every wave beaten off (+50). On a desktop the camera may run
+  past the field's edge by the width of the mini map, so the base at the
+  end of the road never hides under it.
 - On iOS a widget with the pilots online, a Live Activity for the running
   round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
@@ -125,8 +137,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   depots, flags and the zone stay.
 - Keyboard and mouse, or two touch sticks on phones and tablets. The left
   stick points where the tank should go, the right one aims and fires, and
-  an aim assist (on by default, switched with a button) turns the turret
-  onto the nearest enemy while the right thumb rests.
+  an aim assist (on by default, switched with a button that says it fires
+  by itself) turns the turret onto the nearest enemy and fires while the
+  right thumb rests. Upright phones look 20 % closer
+  (`GameConfig.uprightPhoneZoom`), outside defense rounds.
 - The phone as a controller for the game on a computer or tablet: the
   account sheet in the browser shows a pairing QR code, the app scans it
   (Account, Use as controller) or the phone camera opens it. The phone then
@@ -289,7 +303,18 @@ still a win.
 
 ## After the round
 
-- A rematch button on the end screen and a replay of the last round.
+- A rematch button on the end screen and a replay of the last round. With
+  other people in the round the end screen goes back to the waiting room
+  after 15 s and counts down on its button; alone it stays until the
+  player picks.
 - Ranks from experience, an Elo rating, ten badges and one leaderboard of all
-  pilots by rating.
+  pilots by points.
+- Leaderboard points weigh every total a pilot has, so more rounds, wins and
+  kills always count (`lib/src/db/score_points.dart`): 10 per round, 50 per
+  win, 20 per kill, 1 per 20 damage, up to 20 per round for accuracy (hits
+  per shot), 1 per 30 s alive, and twice the rating's distance from the
+  start of 1000 once a rated round moved it. Never below zero. Ties go to
+  the rating, then wins, then kills. The rating alone ranked badly: it only
+  moves in rounds with a rated opponent, so one even round outranked a
+  dozen rounds with eleven wins.
 

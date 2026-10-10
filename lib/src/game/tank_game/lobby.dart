@@ -367,6 +367,8 @@ extension TankGameLobby on TankGame {
   }
 
   /// Closes the waiting room: as host for everybody, as guest just for you.
+  /// The host closed it on purpose, so a closed screen would only be in the
+  /// way: they go straight on to choosing the next mode.
   Future<void> closeRoom() async {
     if (phase.value == GamePhase.closed) {
       return;
@@ -374,16 +376,18 @@ extension TankGameLobby on TankGame {
     final host = isHost.value;
     _enterClosed(
       host
-          ? tr(
-              'Du hast den Warteraum geschlossen.',
-              'You closed the waiting room.',
-            )
+          ? null
           : tr(
               'Du hast den Warteraum verlassen.',
               'You left the waiting room.',
             ),
     );
-    await (host ? net.closeRoom() : net.dispose());
+    if (!host) {
+      await net.dispose();
+      return;
+    }
+    await net.closeRoom();
+    await backToStart();
   }
 
   void _onClose(String id) {
@@ -456,7 +460,7 @@ extension TankGameLobby on TankGame {
     fireAndForget(net.connect(_presencePayload()), 'Joining the room');
   }
 
-  void _enterClosed(String reason) {
+  void _enterClosed(String? reason) {
     _dropSlot();
     _clearWorld();
     round = null;
