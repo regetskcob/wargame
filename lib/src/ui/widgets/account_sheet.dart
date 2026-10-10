@@ -197,20 +197,35 @@ class _AccountSheetState extends State<AccountSheet> {
           }
         },
       ),
+      if (Haptics.onPhone) const SizedBox(height: 12),
       if (Haptics.onPhone)
+        // A plain row: a ListTile would paint its ink behind the panel.
         ValueListenableBuilder<bool>(
           valueListenable: Haptics.on,
-          builder: (context, on, _) => SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(tr('VIBRATION', 'VIBRATION')),
-            subtitle: Text(
-              tr(
-                'Treffer, Explosionen und Rundenstart spüren',
-                'Feel hits, blasts and the start of a round',
+          builder: (context, on, _) => Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr('VIBRATION', 'VIBRATION'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      tr(
+                        'Treffer, Explosionen und Rundenstart spüren',
+                        'Feel hits, blasts and the start of a round',
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            value: on,
-            onChanged: (value) => unawaited(Haptics.set(value: value)),
+              Switch(
+                value: on,
+                onChanged: (value) => unawaited(Haptics.set(value: value)),
+              ),
+            ],
           ),
         ),
       const SizedBox(height: 16),
