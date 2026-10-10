@@ -213,7 +213,13 @@ the key and motion events of its gamepads, which `MainActivity` hands to
 tried with a real controller).
 Phones are too small for two halves. One controller alone, a phone or a
 game controller, steers the own tank in every mode, and the touch sticks of
-a tablet step aside for it.
+a tablet step aside for it. On a computer, in the browser or the Mac app,
+the keyboard and mouse can be the first player's seat: with one controller
+or phone in, the controllers panel on the start page offers "two with the
+keyboard" (`KeyboardSeat` in `lib/src/tv/seats.dart`), and the controller
+or phone steers the second half. It is off until switched on, so somebody
+alone with a controller keeps the whole screen. The keyboard only reaches
+the first player's game, which holds the focus.
 
 The two games talk on the device (`LocalLink` in `net_service.dart`): nothing
 goes over Realtime and the room takes no slot. The first player's presence
