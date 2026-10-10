@@ -44,7 +44,13 @@
   (`presence_throttle.dart`); faster changes wait and only the latest goes
   out.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
-  players in a match advertise the seed so late joiners can spectate.
+  players in a match advertise the seed so late joiners can spectate. The
+  host also names the way to play it picked (`mode`), so a guest's waiting
+  room describes the host's mode before the round brings it.
+- One host per room: a doubled host settles after three seconds. The owner
+  (who opened the room) keeps the role against a stand-in, two stand-ins
+  leave it to the smaller id, and so do two owners, which happens when one
+  browser opens the room in a second tab (both remember having opened it).
 - In the defense mode the players hold a base together on a fixed map without
   the closing zone. The host runs the enemy waves like CPU tanks and is the
   authority over the base: it broadcasts the base's hit points, the wave and

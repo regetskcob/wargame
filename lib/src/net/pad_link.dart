@@ -436,6 +436,9 @@ class PadScreen extends _PadChannel {
 
   /// Hands the phone [padId] to [target], as a duel does for its halves.
   void route(String padId, TankGame target) {
+    if (identical(_routes[padId], target)) {
+      return;
+    }
     _release(gameOf(padId));
     _routes[padId] = target;
     _statusGates.remove(padId);
@@ -445,6 +448,9 @@ class PadScreen extends _PadChannel {
 
   /// Every phone back to the way without a duel: the first steers [game].
   void clearRoutes() {
+    if (_routes.isEmpty) {
+      return;
+    }
     // Emptied before the games hear of it: a game told it lost its phone
     // can hand the phones out again (the Apple TV's second player does), and
     // that must not change the map this loop walks.

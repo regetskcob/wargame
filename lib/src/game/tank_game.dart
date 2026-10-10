@@ -558,6 +558,8 @@ class TankGame extends FlameGame
     L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;
     padSteered.addListener(_onPadSteered);
+    // Guests read the host's mode from its presence.
+    mode.addListener(_pushModeAsHost);
     await net.connect(_presencePayload());
     directory.connect();
     for (final notifier in <Listenable>[

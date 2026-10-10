@@ -482,8 +482,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// Watch and replay above, then leave on the left and start on the
-  /// right, both as wide.
+  /// Leave on the left and start on the right, both as wide, then watch
+  /// and replay below. A replay that comes with the end of a round then
+  /// leaves the start where it was, instead of pushing it down past the
+  /// lower edge of a phone.
   Widget _actions() {
     final game = widget.game;
     return ValueListenableBuilder<List<LobbyPresence>>(
@@ -526,12 +528,38 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
+            Row(
+              children: [
+                Expanded(child: leave),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _TvFirstFocus(
+                    enabled: live == null && game.canStart,
+                    builder: (focus) => FilledButton.icon(
+                      focusNode: focus,
+                      onPressed: live == null && game.canStart
+                          ? () {
+                              _apply();
+                              game.startRound();
+                            }
+                          : null,
+                      icon: const Icon(Icons.flag_outlined),
+                      label: _oneLine(
+                        game.canStart
+                            ? tr('STARTEN', 'START')
+                            : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
             ValueListenableBuilder(
               valueListenable: game.lastReplay,
               builder: (context, replay, _) => live == null && replay == null
                   ? const SizedBox.shrink()
                   : Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
+                      padding: const EdgeInsets.only(top: 12),
                       child: Wrap(
                         spacing: 12,
                         runSpacing: 12,
@@ -558,32 +586,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         ],
                       ),
                     ),
-            ),
-            Row(
-              children: [
-                Expanded(child: leave),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: _TvFirstFocus(
-                    enabled: live == null && game.canStart,
-                    builder: (focus) => FilledButton.icon(
-                      focusNode: focus,
-                      onPressed: live == null && game.canStart
-                          ? () {
-                              _apply();
-                              game.startRound();
-                            }
-                          : null,
-                      icon: const Icon(Icons.flag_outlined),
-                      label: _oneLine(
-                        game.canStart
-                            ? tr('STARTEN', 'START')
-                            : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
             ),
           ],
         );

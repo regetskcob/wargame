@@ -203,7 +203,7 @@ class _PlayerPanel extends StatelessWidget {
                   const SizedBox(height: 6),
                   Text(
                     '${tr('MUNITION', 'AMMO')} ${game.ammoNotifier.value}'
-                    '   ·   ${tr('MITTEL', 'FUNDS')} ${game.credits.value}',
+                    '   ·   ${tr('GELD', 'FUNDS')} ${game.credits.value}',
                     style: const TextStyle(fontWeight: FontWeight.w700),
                   ),
                   Text(

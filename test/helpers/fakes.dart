@@ -122,8 +122,17 @@ class FakeNet extends NetService {
   var connects = 0;
   var disposes = 0;
 
+  /// What the game last put in its presence.
+  LobbyPresence? presence;
+
   @override
-  Future<void> connect(LobbyPresence me) async => connects++;
+  Future<void> connect(LobbyPresence me) async {
+    presence = me;
+    connects++;
+  }
+
+  @override
+  Future<void> updatePresence(LobbyPresence me) async => presence = me;
 
   @override
   Future<void> dispose() async => disposes++;

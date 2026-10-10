@@ -225,10 +225,17 @@ extension TankGameLobby on TankGame {
       },
       joinedAt: net.joinedAt,
       pad: padSteered.value,
+      mode: isHost.value ? mode.value.name : null,
     );
   }
 
   Future<void> pushPresence() => net.updatePresence(_presencePayload());
+
+  void _pushModeAsHost() {
+    if (isHost.value) {
+      unawaited(pushPresence());
+    }
+  }
 
   void setTeamPick(int team) {
     teamPick = team;
@@ -342,13 +349,13 @@ extension TankGameLobby on TankGame {
       _hostlessFor = 0;
       _setHost(true);
     }
+    // The owner only steps down for another owner: the same browser in a
+    // second tab.
     final outranked = members.any(
-      (m) => m.host && m.id != myId && (m.owner || m.id.compareTo(myId) < 0),
+      (m) => m.outranksHost(myId, iOwn: net.isHost),
     );
-    // The owner never steps down.
     if (_hostClashFor >= GameConfig.hostSettleSeconds &&
         isHost.value &&
-        !net.isHost &&
         outranked) {
       _hostClashFor = 0;
       _setHost(false);
@@ -631,7 +638,27 @@ extension TankGameLobby on TankGame {
       _lastActivity = DateTime.now();
     }
     roster.value = members;
+    _adoptHostMode(members);
     _watchSlot();
+  }
+
+  /// A guest's waiting room shows the way to play the host picked, not the
+  /// one the guest came with: the round brings the host's mode anyway.
+  void _adoptHostMode(List<LobbyPresence> members) {
+    if (isHost.value || phase.value != GamePhase.lobby) {
+      return;
+    }
+    for (final member in members) {
+      if (!member.host || member.id == myId) {
+        continue;
+      }
+      final picked = GameMode.values.asNameMap()[member.mode];
+      // Guests always play together, a solo host is not waiting for them.
+      if (picked != null && picked != GameMode.solo) {
+        mode.value = picked;
+      }
+      return;
+    }
   }
 
   /// Pilots in the room that Realtime carries: the second player on this

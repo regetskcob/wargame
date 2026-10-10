@@ -36,6 +36,29 @@ void main() {
       'phase': 'lobby',
     });
     expect(ok?.id, 'x');
+    expect(ok?.mode, isNull);
+    // A wrongly typed mode only loses the mode, not the member.
+    final odd = LobbyPresence.tryParse({
+      'id': 'x',
+      'name': 'Eve',
+      'color': 1,
+      'phase': 'lobby',
+      'mode': 7,
+    });
+    expect(odd?.id, 'x');
+    expect(odd?.mode, isNull);
+  });
+
+  test('the host mode travels with the presence', () {
+    const host = LobbyPresence(
+      id: 'h',
+      name: 'H',
+      colorIndex: 0,
+      phase: 'lobby',
+      host: true,
+      mode: 'flag',
+    );
+    expect(LobbyPresence.fromJson(host.toJson()).mode, 'flag');
   });
 
   test('overlong call signs are cut', () {

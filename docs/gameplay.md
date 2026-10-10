@@ -61,7 +61,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   base, and all of them chase whoever has their own flag. The round is
   rated like a team round.
 - **Two on one screen:** on the Apple TV, in the browser and on an iPad,
-  with two controllers or phones; on a computer also the keyboard and one
+  with two controllers or phones (a phone keeps one player and offers
+  neither the split screen nor the duel); on a computer also the keyboard and one
   controller or phone. Single player, multiplayer, defense and
   capture the flag play on a split screen, each half from its own tank;
   single player puts both against the CPU tanks, and capture the flag
@@ -151,7 +152,8 @@ Everything the game does, with the numbers behind it. The short version is in th
 - On iOS a widget with the pilots online, a Live Activity for the running
   round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
-  and markers for enemies off screen. The mini map of the battle modes
+  and markers for enemies off screen, which slide along the edge past the
+  gauges, the mini map and the panels. The mini map of the battle modes
   leaves out woods, mud and barriers, fades the buildings and shows crates
   and gems only within 450 of the own tank; tanks, soldiers, drones,
   depots, flags and the zone stay.

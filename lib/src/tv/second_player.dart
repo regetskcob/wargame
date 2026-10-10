@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/widgets.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
@@ -14,7 +14,6 @@ import '../l10n/l10n.dart';
 import '../app/env.dart';
 import '../net/net_service.dart';
 import '../net/room_directory.dart';
-import '../ui/widgets/tablet_scale.dart';
 import 'tv_input.dart';
 import '../net/pad_link.dart';
 import 'seats.dart';
@@ -59,17 +58,41 @@ class SecondPlayer extends ChangeNotifier {
     super.dispose();
   }
 
+  /// Set while [update] runs. Handing a phone to the second game changes
+  /// its presence, which on this device reaches the first game's roster at
+  /// once, and the roster calls [update] again: with two phones on an iPad
+  /// that ran in circles until the stack overflowed, claiming the phones'
+  /// slot with every turn.
+  var _updating = false;
+
+  /// What [_hand] gave out last, so the same seats are not handed again.
+  List<DuelSeat>? _handed;
+  TankGame? _handedHost;
+  TankGame? _handedGuest;
+
   /// Brings the second game in or out as players come and go, and hands
   /// each player their controller. Only between rounds: a round in play
   /// keeps who it has.
   void update() {
+    if (_updating) {
+      return;
+    }
+    _updating = true;
+    try {
+      _update();
+    } finally {
+      _updating = false;
+    }
+  }
+
+  void _update() {
     final host = _host();
     final between =
         host.phase.value == GamePhase.lobby ||
         host.phase.value == GamePhase.closed;
     final seats = duelSeats();
     // Two halves need a big screen: the television, a computer or a tablet.
-    final two = seats.length >= 2 && _bigScreen;
+    final two = seats.length >= 2 && splitScreenFits();
     if (!between && guest != null) {
       return;
     }
@@ -104,15 +127,6 @@ class SecondPlayer extends ChangeNotifier {
     }
     host.localGuest = true;
     _hand(host, guest!);
-  }
-
-  static bool get _bigScreen {
-    if (onTv) {
-      return true;
-    }
-    final view = WidgetsBinding.instance.platformDispatcher.views.first;
-    final size = view.physicalSize / view.devicePixelRatio;
-    return size.shortestSide >= tabletShortSide;
   }
 
   /// The room changed, as after a new one was opened: follow it.
@@ -174,6 +188,14 @@ class SecondPlayer extends ChangeNotifier {
   /// Each seat steers its game: a controller by its number, a phone by the
   /// route the pairing gives it.
   void _hand(TankGame host, TankGame guest) {
+    if (listEquals(_handed, _seats) &&
+        identical(_handedHost, host) &&
+        identical(_handedGuest, guest)) {
+      return;
+    }
+    _handed = _seats;
+    _handedHost = host;
+    _handedGuest = guest;
     PadScreen.instance.clearRoutes();
     for (final (seat, game) in [(_seats[0], host), (_seats[1], guest)]) {
       game.tvPlayer = seat.pad;
@@ -191,6 +213,7 @@ class SecondPlayer extends ChangeNotifier {
     }
     guest = null;
     _local = null;
+    _handed = null;
     _host().partner = null;
     PadScreen.instance.clearRoutes();
     final connection = _connection;
