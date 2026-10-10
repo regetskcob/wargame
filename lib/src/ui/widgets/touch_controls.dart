@@ -8,6 +8,7 @@ import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../theme.dart';
 import '../../l10n/l10n.dart';
+import '../../vision/vision_support.dart';
 
 /// Twin stick controls for holding the phone with both hands.
 ///
@@ -19,11 +20,17 @@ import '../../l10n/l10n.dart';
 /// stick) turns the turret onto the nearest enemy in range and fires. The
 /// sticks appear wherever the thumb lands, so nobody has to find a button.
 /// A special weapon from a gem gets a button of its own, next to the assist.
+///
+/// On an Apple Vision Pro there is no right stick: a pinch lands where the
+/// player looks, so looking at a spot and pinching aims there and fires for
+/// as long as the fingers stay together. The left hand still drives with a
+/// pinch and drag in the lower left.
 class TouchControls extends StatelessWidget {
   const TouchControls({
     required this.input,
     required this.special,
     this.assist = true,
+    this.onLook,
     super.key,
   });
 
@@ -32,6 +39,11 @@ class TouchControls extends StatelessWidget {
 
   /// Whether the aim assist and its button are offered. Not on hard.
   final bool assist;
+
+  /// On a Vision Pro: the spot looked at when pinching, in global pixels,
+  /// for a game that turns screen points into the world. Without it the
+  /// turret points from the middle of the screen to the spot.
+  final ValueChanged<Offset>? onLook;
 
   /// Share of the stick radius past which the aim stick fires.
   static const fireRing = 0.62;
@@ -63,6 +75,11 @@ class TouchControls extends StatelessWidget {
           final zoneWidth = width * 0.44;
           return Stack(
             children: [
+              // Under the drive stick, so a pinch in its corner drives.
+              if (onVision)
+                Positioned.fill(
+                  child: _LookToFire(input: input, onLook: onLook),
+                ),
               Positioned(
                 left: 0,
                 top: zoneTop,
@@ -77,28 +94,29 @@ class TouchControls extends StatelessWidget {
                   onReleased: () => input.drive = null,
                 ),
               ),
-              Positioned(
-                right: 0,
-                top: aimTop,
-                bottom: 0,
-                width: zoneWidth,
-                child: _FloatingStick(
-                  size: stick,
-                  label: tr('ZIELEN · FEUER', 'AIM · FIRE'),
-                  homeOnRight: true,
-                  ring: fireRing,
-                  onChanged: (v) {
-                    input.aimHeld = true;
-                    if (v.distance > 0.18) {
-                      input.aim = atan2(v.dx, -v.dy);
-                    }
-                    input.aimFire = v.distance > fireRing;
-                  },
-                  onReleased: () => input
-                    ..aimFire = false
-                    ..aimHeld = false,
+              if (!onVision)
+                Positioned(
+                  right: 0,
+                  top: aimTop,
+                  bottom: 0,
+                  width: zoneWidth,
+                  child: _FloatingStick(
+                    size: stick,
+                    label: tr('ZIELEN · FEUER', 'AIM · FIRE'),
+                    homeOnRight: true,
+                    ring: fireRing,
+                    onChanged: (v) {
+                      input.aimHeld = true;
+                      if (v.distance > 0.18) {
+                        input.aim = atan2(v.dx, -v.dy);
+                      }
+                      input.aimFire = v.distance > fireRing;
+                    },
+                    onReleased: () => input
+                      ..aimFire = false
+                      ..aimHeld = false,
+                  ),
                 ),
-              ),
               // Flush over the aim stick, moving aside for a special weapon
               // and bottom-aligned with its button.
               if (assist)
@@ -128,6 +146,82 @@ class TouchControls extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Vision Pro: aims at the spot the player looks at when pinching and fires
+/// while the pinch is held. Moving the pinched hand does not move the aim:
+/// visionOS reports the hand, not the eyes, after the first touch.
+class _LookToFire extends StatefulWidget {
+  const _LookToFire({required this.input, this.onLook});
+
+  final TouchInput input;
+  final ValueChanged<Offset>? onLook;
+
+  @override
+  State<_LookToFire> createState() => _LookToFireState();
+}
+
+class _LookToFireState extends State<_LookToFire> {
+  /// Pinches held right now; both hands may pinch at once.
+  final _held = <int>{};
+
+  void _down(PointerDownEvent e, Size zone) {
+    _held.add(e.pointer);
+    final input = widget.input;
+    final look = widget.onLook;
+    if (look != null) {
+      // The game aims at the point itself, which keeps up when the camera
+      // stops at the edge of the map and the tank is off centre.
+      input.aim = null;
+      look(e.position);
+    } else {
+      final from = e.localPosition - zone.center(Offset.zero);
+      input.aim = atan2(from.dx, -from.dy);
+    }
+    input
+      ..aimHeld = true
+      ..aimFire = true;
+  }
+
+  void _up(PointerEvent e) {
+    if (_held.remove(e.pointer) && _held.isEmpty) {
+      widget.input
+        ..aimFire = false
+        ..aimHeld = false;
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_held.isNotEmpty) {
+      widget.input
+        ..aimFire = false
+        ..aimHeld = false;
+    }
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) => Listener(
+        behavior: HitTestBehavior.opaque,
+        onPointerDown: (e) => _down(e, constraints.biggest),
+        onPointerUp: _up,
+        onPointerCancel: _up,
+        // Where the right stick rests elsewhere, a quiet note of how to fire.
+        child: Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.all(6),
+            child: IgnorePointer(
+              child: _StickLabel(tr('HINSEHEN · PINCH', 'LOOK · PINCH')),
+            ),
+          ),
+        ),
       ),
     );
   }

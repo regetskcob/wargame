@@ -17,6 +17,7 @@ import 'src/net/room.dart';
 import 'src/tv/tv_input.dart';
 import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
+import 'src/vision/vision_support.dart';
 import 'src/watch/wear_crown.dart';
 
 Future<void> main() async {
@@ -27,6 +28,8 @@ Future<void> main() async {
   runApp(const LoadingApp());
   // A Wear OS watch runs the Android app with the watch screens.
   await detectWear();
+  // An Apple Vision Pro runs the iPad app, aiming where the player looks.
+  await detectVision();
   await Env.loadShots();
   if (!kIsWeb &&
       !onTv &&

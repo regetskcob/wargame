@@ -171,6 +171,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   screen of a computer, tablet or television.
 - An Apple TV app, played with the Siri Remote or a controller, with menus
   that fit the television without scrolling, see [Apple TV](platforms.md#apple-tv).
+- The Apple Vision Pro, running the iPad app: look at a spot and pinch to
+  aim and fire there, pinch and drag in the lower left to drive, without
+  screen shake, see [Apple Vision Pro](platforms.md#apple-vision-pro).
 
 ## Weapons and damage
 
