@@ -340,6 +340,14 @@ still a win.
   player picks.
 - Ranks from experience, an Elo rating, ten badges and one leaderboard of all
   pilots by points.
+- Holding out counts, in a lost round too. Experience per round: 10, plus
+  20 per kill, 1 per 10 damage (up to 200), 50 for the win and 10 for every
+  opponent outlasted, people and CPU tanks alike (in a team round the whole
+  beaten team). The Elo rating compares the pilot pairwise with every
+  opponent: won against those who went down earlier, lost against those who
+  outlasted them, so the second to last loses far less than the first one
+  out. A lost battle with more than two tanks shows the place on the end
+  screen ("PLACE 3 OF 5").
 - Leaderboard points weigh every total a pilot has, so more rounds, wins and
   kills always count (`lib/src/db/score_points.dart`): 10 per round, 50 per
   win, 20 per kill, 1 per 20 damage, up to 20 per round for accuracy (hits

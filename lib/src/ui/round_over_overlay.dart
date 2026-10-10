@@ -100,6 +100,13 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
     );
   }
 
+  /// The place of a lost last tank standing round with more than two tanks,
+  /// where it says more than the defeat.
+  ({int place, int of})? _placeOf(TankGame game, {required bool lost}) {
+    final placing = lost ? game.round?.placeOf(game.myId) : null;
+    return placing != null && placing.of > 2 ? placing : null;
+  }
+
   Widget _panel(
     BuildContext context, {
     required double t,
@@ -179,6 +186,19 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                 textAlign: TextAlign.center,
               ),
             ),
+            // A lost round still tells how long the pilot held out: the
+            // experience and the rating grow with every tank outlasted.
+            if (_placeOf(game, lost: lost) case (:final place, :final of)) ...[
+              const SizedBox(height: 6),
+              Text(
+                tr('PLATZ $place VON $of', 'PLACE $place OF $of'),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                  color: GameColors.textDim,
+                ),
+              ),
+            ],
             if (game.round?.participants.contains(game.myId) ?? false) ...[
               const SizedBox(height: 20),
               _StatsRow(stats: game.roundStats),

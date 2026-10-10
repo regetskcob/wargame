@@ -68,8 +68,9 @@
   The bigger CPU crew of three a side costs more than a battle's, so a
   flag room claims 19 instead of 13 a second for its CPU tanks.
 - Every player records their round through the `record_round` database
-  function. It clamps the numbers, grants experience and moves the Elo rating
-  against the human opponents the player outlasted, and keeps the round in
+  function. It clamps the numbers, grants experience (10 more per opponent
+  outlasted since migration 0017) and moves the Elo rating against the
+  opponents the player outlasted or fell before, and keeps the round in
   `round_results` for the wins per vehicle behind a badge. The
   all time leaderboard is a typed Postgres Changes stream on `scores`.
 - Replays need no extra traffic: the client keeps every message of the round

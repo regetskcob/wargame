@@ -212,6 +212,29 @@ class RoundState {
     return true;
   }
 
+  /// Where [me] finished a last tank standing round among every tank in it,
+  /// people and CPU tanks: 1 for the last one left, then by the order they
+  /// went down. The end screen shows it, so a loser sees that holding out
+  /// counted. Null for team rounds and rounds where tanks come back, which
+  /// have no order of the fall.
+  ({int place, int of})? placeOf(String me) {
+    if (teamMode || respawns || !participants.contains(me)) {
+      return null;
+    }
+    final myFall = fallen.indexOf(me);
+    if (myFall < 0) {
+      return (place: 1, of: participants.length);
+    }
+    final ahead = participants.where((id) {
+      if (id == me) {
+        return false;
+      }
+      final theirFall = fallen.indexOf(id);
+      return theirFall < 0 || theirFall > myFall;
+    }).length;
+    return (place: ahead + 1, of: participants.length);
+  }
+
   /// CPU tanks [me] outlasted and those that outlasted [me], counted the
   /// same way as [placementsOf] counts people. They move the rating with a
   /// fixed rating for their level.
