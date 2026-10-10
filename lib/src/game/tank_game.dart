@@ -98,6 +98,7 @@ import 'touch_input.dart';
 import 'upgrades.dart';
 import 'round_state.dart';
 import '../l10n/l10n.dart';
+import '../vision/vision_support.dart';
 
 part 'tank_game/lobby.dart';
 part 'tank_game/round.dart';

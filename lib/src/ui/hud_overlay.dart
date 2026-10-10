@@ -228,6 +228,7 @@ class _HudOverlayState extends State<HudOverlay> {
                       input: game.touch,
                       special: game.specialNotifier,
                       assist: game.difficulty != BotLevel.hard,
+                      onLook: game.lookAt,
                     ),
             ),
           SafeArea(

@@ -9,6 +9,7 @@ import '../../game/map_theme.dart';
 import '../../game/game_config.dart';
 import '../../l10n/l10n.dart';
 import '../../tv/tv_input.dart';
+import '../../vision/vision_support.dart';
 import '../theme.dart';
 
 /// What the stage behind a tutorial card acts out.
@@ -73,7 +74,7 @@ List<TutorialStep> tutorialSteps({required bool touch}) => [
 int controlSteps({required bool touch}) => _controls(touch).length;
 
 List<TutorialStep> _controls(bool touch) => !onTv
-    ? (touch ? _touch : _desktop)
+    ? (touch ? (onVision ? _vision : _touch) : _desktop)
     : tvPadForTutorial == TvPadKind.gamepad
     ? _gamepad
     : _remote;
@@ -320,6 +321,75 @@ List<TutorialStep> get _touch => [
           'one.',
     ),
   ),
+];
+
+/// Apple Vision Pro: the left hand drives with a pinch and drag, the eyes aim
+/// and a pinch fires. Inventory and defense work as on a tablet.
+List<TutorialStep> get _vision => [
+  TutorialStep(
+    title: tr('FAHREN', 'DRIVE'),
+    icon: Icons.open_with,
+    scene: DemoScene.drive,
+    text: tr(
+      'Schau unten links ins Fenster, führ Daumen und Zeigefinger zusammen '
+          'und zieh die Hand dorthin, wohin der Panzer soll: Er dreht sich '
+          'von selbst und fährt los.',
+      'Look at the lower left of the window, pinch and move your hand where '
+          'the tank should go: it turns by itself and drives off.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELEN', 'AIM'),
+    icon: Icons.visibility,
+    scene: DemoScene.aim,
+    text: tr(
+      'Der Turm zielt dorthin, wo du hinsiehst, sobald du die Finger '
+          'zusammenführst, ganz gleich, wohin der Panzer fährt.',
+      'The turret aims where you look as soon as you pinch, no matter '
+          'where the tank is driving.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('FEUERN', 'FIRE'),
+    icon: Icons.local_fire_department,
+    scene: DemoScene.fire,
+    text: tr(
+      'Solange die Finger zusammenbleiben, feuert der Panzer. Fahren und '
+          'Feuern gehen zugleich, mit jeder Hand eins. Die Munition ist '
+          'begrenzt, blaue Gems füllen sie auf.',
+      'The tank fires as long as you keep the pinch. Driving and firing go '
+          'together, one hand each. Ammunition is limited, blue gems refill '
+          'it.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELHILFE', 'AIM ASSIST'),
+    icon: Icons.gps_fixed,
+    scene: DemoScene.assist,
+    text: tr(
+      'Ohne Pinch dreht die Zielhilfe den Turm auf den nächsten Gegner in '
+          'Reichweite und feuert. Der Knopf ZIELHILFE unten rechts schaltet '
+          'sie aus und wieder an. Auf Schwer gibt es keine Zielhilfe.',
+      'Without a pinch the aim assist turns the turret to the nearest enemy '
+          'in range and fires. The AIM ASSIST button at the lower right '
+          'switches it off and on again. On Hard there is no aim assist.',
+    ),
+  ),
+  ..._touch.skip(4).take(1),
+  TutorialStep(
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
+    icon: Icons.sports_baseball,
+    scene: DemoScene.special,
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems bekommen einen runden Knopf '
+          'unten rechts. Granaten landen dort, wo du zuletzt hingesehen hast, '
+          'die Zahl zeigt, wie oft noch.',
+      'Grenade launcher, mortar and drone from gems get a round button at '
+          'the lower right. Grenades land where you last looked, the number '
+          'shows how many shots are left.',
+    ),
+  ),
+  ..._touch.skip(6),
 ];
 
 List<TutorialStep> get _desktop => [

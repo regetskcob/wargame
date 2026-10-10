@@ -143,6 +143,8 @@ flutter run -d chrome \
   OS bundle are ready; next the form factor in the Play Console and a real
   watch.
 - The iMessage app on real phones and in a group chat.
+- The Apple Vision Pro (iPad app, look and pinch to fire) in its simulator
+  and on a real headset.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime
