@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../db/room_slots.dart';
 import '../db/server_status.dart';
+import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../net/room.dart';
@@ -151,6 +152,9 @@ class LaunchView extends StatelessWidget {
       ),
       PilotCard(progress: game.progress),
       const SizedBox(height: 20),
+      // The television walks its menu with the remote, one more stop
+      // there costs more than it saves.
+      if (!onTv) _QuickStart(game: game),
       const ServerNotice(),
       RoomsBusyNotice(slots: game.slots),
       ListenableBuilder(
@@ -234,6 +238,45 @@ class LaunchView extends StatelessWidget {
               ),
             ],
           ],
+        );
+      },
+    );
+  }
+}
+
+/// Straight into a solo round with the tank and difficulty used last.
+class _QuickStart extends StatelessWidget {
+  const _QuickStart({required this.game});
+
+  final TankGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        game.isHost,
+        game.pilotVersion,
+        game.botLevel,
+      ]),
+      builder: (context, _) {
+        if (!game.isHost.value) {
+          return const SizedBox.shrink();
+        }
+        final tank = GameConfig.typeOf(game.myColorIndex).label;
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: FilledButton.icon(
+            onPressed: game.quickStart,
+            icon: const Icon(Icons.play_arrow),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                '${tr('SOFORT LOS', 'PLAY NOW')}  ·  $tank  ·  '
+                '${game.botLevel.value.label}',
+                maxLines: 1,
+              ),
+            ),
+          ),
         );
       },
     );

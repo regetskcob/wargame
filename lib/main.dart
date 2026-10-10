@@ -56,28 +56,43 @@ Future<void> main() async {
   );
   final auth = Supabase.instance.client.auth;
   // Without a server (offline, or the project over its quota) the game
-  // still starts: solo rounds need none, the heartbeat tries again.
-  ServerStatus.available.value = await ServerStatus.ensureSession(auth);
+  // still starts: solo rounds need none, the heartbeat tries again. A first
+  // visit signs in as a guest on the way: the start page does not wait for
+  // it, the game takes the pilot on when the session arrives (see
+  // `AccountService.user`). Waiting cost half a second on 4G and up to ten
+  // when the server was slow.
+  final session = ServerStatus.ensureSession(auth)
+      .then((ok) => ServerStatus.available.value = ok);
   if (auth.currentUser?.newEmail != null) {
     // The stored account still waits for its address. It may have been
     // confirmed in another tab since, which only shows after a refresh.
-    try {
-      await auth.refreshSession();
-    } on Object {
-      // Offline: the lobby still offers the code from the mail.
-    }
+    unawaited(
+      auth.refreshSession().then<void>(
+        (_) {},
+        onError: (Object _) {
+          // Offline: the lobby still offers the code from the mail.
+        },
+      ),
+    );
   }
   if (fromMail) {
     AccountService.mailLinkFailed = auth.currentUser?.isAnonymous ?? true;
     leaveMailLink();
   }
   // A phone browser that opened a pairing link steers the game elsewhere.
+  // Its channel claims a share of the server, which takes a session.
   final pad = padCodeFrom(padCodeOfPage() ?? '');
   if (pad != null) {
+    await session;
     runApp(ControllerApp(code: pad));
     return;
   }
-  unawaited(AudioService.init());
+  unawaited(session);
   TvInput.instance.start();
   runApp(const GameApp());
+  // The sounds load once the start page stands, so they take no bandwidth
+  // from what it needs.
+  WidgetsBinding.instance.addPostFrameCallback(
+    (_) => unawaited(AudioService.init()),
+  );
 }

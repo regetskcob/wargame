@@ -59,10 +59,15 @@ extension TankGameRound on TankGame {
         : const <String>[];
     final payload = RoundStartPayload(
       seed: seed ?? _freshSeed(random),
+      // The countdown gives the others time to get the start. Alone there
+      // is nobody to wait for, only the moment to look at the field.
       startedAt:
           startedAt ??
           DateTime.now().millisecondsSinceEpoch +
-              GameConfig.countdownSeconds * 1000,
+              (humans.length > 1
+                      ? GameConfig.countdownSeconds
+                      : GameConfig.soloCountdownSeconds) *
+                  1000,
       participants: ids,
       teams: defending
           ? const {}

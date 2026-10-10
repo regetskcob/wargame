@@ -7,7 +7,8 @@ without the dirt lane. The native launch screen, the loading
 view that follows it (lib/src/ui/loading_view.dart) and the web page before
 Flutter starts all show these two images in the same place, so the change
 from one to the next is not seen. Writes the iOS image sets, the Android
-drawables, assets/images and web/. Needs Pillow.
+drawables and assets/images; web/index.html shows the latter from the built
+assets, so the loading view finds them in the browser cache. Needs Pillow.
 
 Android draws no picture behind its launch screen, only a colour
 (@color/launch_ground, the middle of the ground). Since Android 12 the
@@ -26,7 +27,6 @@ import app_icon
 ROOT = Path(__file__).resolve().parents[2]
 IOS = ROOT / "ios" / "Runner" / "Assets.xcassets"
 FLUTTER = ROOT / "assets" / "images"
-WEB = ROOT / "web"
 ANDROID = ROOT / "android" / "app" / "src" / "main" / "res"
 ANDROID_DENSITIES = {"mdpi": 1, "hdpi": 1.5, "xhdpi": 2, "xxhdpi": 3,
                      "xxxhdpi": 4}
@@ -98,9 +98,8 @@ def main():
     tank_3x = tank.resize((TANK_WIDTH * 3,
                            round(tank.height * TANK_WIDTH * 3 / tank.width)),
                           Image.LANCZOS)
-    for folder in (FLUTTER, WEB):
-        tank_3x.save(folder / "launch_tank.png", optimize=True)
-        back.save(folder / "launch_ground.jpg", quality=92)
+    tank_3x.save(FLUTTER / "launch_tank.png", optimize=True)
+    back.save(FLUTTER / "launch_ground.jpg", quality=92)
     for density, factor in ANDROID_DENSITIES.items():
         folder = ANDROID / f"drawable-{density}"
         folder.mkdir(exist_ok=True)

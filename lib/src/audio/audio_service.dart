@@ -29,14 +29,18 @@ class AudioService {
 
   static Future<void> init() async {
     try {
-      final files = <String, Uint8List>{};
-      for (final name in _files) {
-        final data = await rootBundle.load('assets/audio/$name.wav');
-        files[name] = data.buffer.asUint8List(
-          data.offsetInBytes,
-          data.lengthInBytes,
-        );
-      }
+      // All at once: one after the other they took more than a second in
+      // the browser.
+      final loads = await Future.wait([
+        for (final name in _files) rootBundle.load('assets/audio/$name.wav'),
+      ]);
+      final files = <String, Uint8List>{
+        for (var i = 0; i < _files.length; i++)
+          _files[i]: loads[i].buffer.asUint8List(
+            loads[i].offsetInBytes,
+            loads[i].lengthInBytes,
+          ),
+      };
       await _backend.load(files);
       _ready = true;
     } on Object catch (error) {

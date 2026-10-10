@@ -17,16 +17,21 @@ apps have no mute button: the sounds follow the silent switch and the volume
 keys, and mix with music from other apps. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
-While the app starts it reaches the server before the start page shows.
-The launch screen shows the tank of the app icon on a calm version of its
+The start page does not wait for the server: a first visit signs in as a
+guest in the background (`ServerStatus.ensureSession`, shared with the
+first heartbeat), the call sign and style kept on the device
+(`rememberPilot`) show at once, and the server's profile and progress
+follow side by side when they arrive. The sounds load after the first
+frame of the start page. The launch screen shows the tank of the app icon on a calm version of its
 ground, and `LoadingView` (`lib/src/ui/loading_view.dart`) keeps exactly
 that with a spinner below, from the first Flutter frame until the game has
 loaded; the web page shows the same from `web/index.html` before Flutter
-starts. Android draws only the ground colour behind the tank
+starts, from the built assets under `assets/assets/images/`, so the loading
+view finds them in the browser cache. Android draws only the ground colour behind the tank
 (`@color/launch_ground`); since Android 12 the system splash shows the tank
 as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
 does. `python3 store/tool/launch_screen.py` draws the images for all of
-them (iOS image sets, Android drawables, `assets/images/`, `web/`).
+them (iOS image sets, Android drawables, `assets/images/`).
 
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:

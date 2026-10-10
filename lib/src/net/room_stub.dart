@@ -13,6 +13,7 @@ import 'room_code.dart';
 
 const _tutorialKey = 'panzergefecht.tutorial';
 const _veteranKey = 'panzergefecht.veteran';
+const _pilotKey = 'panzergefecht.pilot';
 
 SharedPreferencesWithCache? _store;
 
@@ -23,7 +24,7 @@ Future<void> openLocalStore() async {
   try {
     _store = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: {_tutorialKey, _veteranKey},
+        allowList: {_tutorialKey, _veteranKey, _pilotKey},
       ),
     );
   } on Object {
@@ -116,6 +117,28 @@ void rememberRoundPlayed() {
   }
   _roundPlayed = true;
   unawaited(_store?.setBool(_veteranKey, true));
+}
+
+(String, int)? _pilot;
+
+/// Call sign and style last used on this device, at hand before the
+/// server answers and without one.
+(String, int)? storedPilot() =>
+    _pilot ?? _parsePilot(_store?.getString(_pilotKey));
+
+/// Keeps call sign and style on this device.
+void rememberPilot(String name, int style) {
+  _pilot = (name, style);
+  unawaited(_store?.setString(_pilotKey, '$style|$name'));
+}
+
+(String, int)? _parsePilot(String? text) {
+  final bar = text?.indexOf('|') ?? -1;
+  final style = bar > 0 ? int.tryParse(text!.substring(0, bar)) : null;
+  if (style == null || text!.length <= bar + 1) {
+    return null;
+  }
+  return (text.substring(bar + 1), style);
 }
 
 /// Back from a sign-in mail: drops its code and room from the address.

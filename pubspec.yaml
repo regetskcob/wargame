@@ -52,6 +52,9 @@ flutter:
   # Bundled so every platform draws the same letters. The browser build
   # cannot reach system fonts and fell back to Roboto, while iOS and macOS
   # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.
+  # Cut down to Latin with its extensions, a quarter of the size, as the
+  # browser loads them before the first frame; see docs/development.md
+  # "Fonts". Other letters come from the system or Noto.
   fonts:
     - family: Roboto
       fonts:

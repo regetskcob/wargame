@@ -31,6 +31,18 @@ extension TankGameLobby on TankGame {
     }
   }
 
+  /// One tap from the start page into a solo round, with the tank and the
+  /// settings used last. The play test needed two taps and the countdown.
+  void quickStart() {
+    if (!canStart) {
+      return;
+    }
+    // Saved like a start from the waiting room does.
+    setPilot(name: myName, colorIndex: myColorIndex);
+    chooseMode(GameMode.solo);
+    startRound();
+  }
+
   /// Back to the start page, to play another way.
   void changeMode() => choosingMode.value = true;
 
@@ -116,11 +128,14 @@ extension TankGameLobby on TankGame {
     }
     _accountId = id;
     _adoptLanguage();
-    unawaited(() async {
-      await _loadPilot();
-      pilotVersion.value++;
-      await pushPresence();
-    }());
+    unawaited(_refreshPilot());
+  }
+
+  /// Loads the pilot from the server and shows it wherever it appears.
+  Future<void> _refreshPilot() async {
+    await _loadPilot();
+    pilotVersion.value++;
+    await pushPresence();
   }
 
   /// Speaks the language kept with the account. An account without one
@@ -138,26 +153,55 @@ extension TankGameLobby on TankGame {
 
   /// Name, look and progress from the last visit. Gives up after a few
   /// seconds so a slow network never holds up the lobby.
+  /// The pilot from the server: call sign and style, and the progress that
+  /// decides which of them may be used. Both load side by side, and the
+  /// call sign counts even when the progress does not arrive: in the play
+  /// test a slow progress threw away a loaded call sign, and a guest came
+  /// back under another name. A call sign typed while this loads stays.
   Future<void> _loadPilot() async {
-    try {
-      final profile = await profiles.load().timeout(const Duration(seconds: 3));
-      await progress.load().timeout(const Duration(seconds: 3));
-      if (profile != null) {
-        myName = profile.name;
-        final color = profile.style % GameConfig.tankColors.length;
-        final type = GameConfig.typeOf(profile.style);
-        myColorIndex = GameConfig.styleOf(
-          progress.vehicleUnlocked(type) ? type.index : TankType.hermelin.index,
-          progress.unlocked(color) ? color : 0,
-        );
-      } else if (accounts.user.value?.userMetadata['call_sign']
-          case final String name when name.isNotEmpty) {
-        // Registered elsewhere, first time on this device.
-        myName = name;
-      }
-    } on Object {
+    final edits = _pilotEdits;
+    final profileLoad = Future<PlayersRow?>.sync(profiles.load)
+        .timeout(_pilotTimeout)
+        .then<PlayersRow?>((row) => row, onError: (Object _) => null);
+    final progressLoad = Future<void>.sync(progress.load)
+        .timeout(_pilotTimeout)
+        .then<void>((_) {}, onError: (Object _) {});
+    final profile = await profileLoad;
+    await progressLoad;
+    if (_pilotEdits != edits) {
       return;
     }
+    if (profile != null) {
+      _adoptPilot(profile.name, profile.style);
+    } else if (accounts.user.value?.userMetadata['call_sign']
+        case final String name when name.isNotEmpty) {
+      // Registered elsewhere, first time on this device.
+      myName = name;
+    } else {
+      // Nothing from the server, or no answer: what this device knows.
+      // Starting a round saves it there (see setPilot).
+      _adoptStoredPilot();
+    }
+    rememberPilot(myName, myColorIndex);
+  }
+
+  static const _pilotTimeout = Duration(seconds: 5);
+
+  /// Call sign and style kept on this device, before the server answers.
+  void _adoptStoredPilot() {
+    if (storedPilot() case (final name, final style)) {
+      _adoptPilot(name, style);
+    }
+  }
+
+  void _adoptPilot(String name, int style) {
+    myName = name;
+    final color = style % GameConfig.tankColors.length;
+    final type = GameConfig.typeOf(style);
+    myColorIndex = GameConfig.styleOf(
+      progress.vehicleUnlocked(type) ? type.index : TankType.hermelin.index,
+      progress.unlocked(color) ? color : 0,
+    );
   }
 
   LobbyPresence _presencePayload() {
@@ -233,12 +277,14 @@ extension TankGameLobby on TankGame {
   }
 
   void setPilot({required String name, required int colorIndex}) {
+    _pilotEdits++;
     myName = name.trim().isEmpty ? myName : name.trim();
     final color = colorIndex % GameConfig.tankColors.length;
     if (progress.unlocked(color) &&
         progress.vehicleUnlocked(GameConfig.typeOf(colorIndex))) {
       myColorIndex = colorIndex;
     }
+    rememberPilot(myName, myColorIndex);
     unawaited(pushPresence());
     // Typing a name calls this on every key, so save once it settles.
     _saveTimer?.cancel();

@@ -903,6 +903,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
             const SizedBox(width: 6),
             _deskTab('UPGRADES', _Shop.upgrades),
+            if (game.canCallWave) ...[const SizedBox(width: 6), _callWave()],
           ],
         ),
         const SizedBox(height: 6),
@@ -922,6 +923,21 @@ class _DefensePanelState extends State<_DefensePanel> {
       style: _buttonStyle,
       onPressed: () => setState(() => _desk = shop),
       child: Text(label, style: _small),
+    );
+  }
+
+  /// The host skips the rest of the break.
+  Widget _callWave() {
+    return FilledButton.icon(
+      style: _buttonStyle,
+      onPressed: game.callWaveNow,
+      icon: const Icon(Icons.fast_forward, size: 16),
+      label: Text(
+        touch || steeredByPad(game)
+            ? tr('WELLE JETZT', 'WAVE NOW')
+            : tr('WELLE JETZT (N)', 'WAVE NOW (N)'),
+        style: _small,
+      ),
     );
   }
 
@@ -959,6 +975,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             _tab('UPGRADES', _Shop.upgrades),
           ],
         ),
+        if (game.canCallWave) ...[const SizedBox(height: 6), _callWave()],
         if (near != null) ...[
           const SizedBox(height: 6),
           _nearTower(near, credits),

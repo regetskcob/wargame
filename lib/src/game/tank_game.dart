@@ -19,6 +19,7 @@ import '../db/profile_service.dart';
 import '../db/room_slots.dart';
 
 import '../db/score_service.dart';
+import '../db/supabase_schema.g.dart' show PlayersRow;
 import '../app/env.dart';
 import '../haptics.dart';
 import '../tv/tv_input.dart';
@@ -155,6 +156,10 @@ class TankGame extends FlameGame
     r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
   );
   async.Timer? _saveTimer;
+
+  /// Counts the player's own changes to call sign and style, so a profile
+  /// arriving late from the server does not undo them.
+  var _pilotEdits = 0;
 
   final phase = ValueNotifier<GamePhase>(GamePhase.lobby);
   final roster = ValueNotifier<List<LobbyPresence>>([]);
@@ -536,7 +541,9 @@ class TankGame extends FlameGame
       ..onPeerLeft = _onPeerLeft
       ..onClose = _onClose;
     _accountId = scoreService.myId;
-    await _loadPilot();
+    // The start page does not wait for the server: the call sign kept on
+    // this device shows at once, the server's copy follows below.
+    _adoptStoredPilot();
     accounts.user.addListener(_onAccountChanged);
     _adoptLanguage();
     L10n.lang.addListener(_saveLanguage);
@@ -559,6 +566,7 @@ class TankGame extends FlameGame
     overlays.add(OverlayIds.lobby);
     _refreshTutorialDone();
     touchMode.addListener(_refreshTutorialDone);
+    unawaited(_refreshPilot());
   }
 
   /// Whether the player went through the tutorial for the current

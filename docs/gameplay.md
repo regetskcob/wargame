@@ -37,7 +37,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   rooms in a room list, and late joiners can watch the running round.
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
   roll along the road to the base. CPU comrades fill the squad, and later the
-  base sends aircraft of its own. Kills bring money for guns (key B), the
+  base sends aircraft of its own. The host may call the next wave before
+  the break is over (WAVE NOW, key N). Kills bring money for guns (key B), the
   base hands out ammunition, and destroyed tanks return after a short time.
   A base that holds well grows from a watchtower to barracks to a fortress.
   After wave 8 the win is safe and the host may extend: endless waves with
@@ -107,7 +108,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   never finished a round starts on easy, and the first round a host starts
   in a session opens by day under a clear sky for at least a minute. The
   waiting room shows difficulty, terrain and mode in one line that opens
-  the settings.
+  the settings. PLAY NOW on the start page goes straight into a solo round
+  with the tank and difficulty used last, and alone the countdown takes
+  2 s instead of 3.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel

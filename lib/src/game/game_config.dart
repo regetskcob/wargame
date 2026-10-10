@@ -433,6 +433,10 @@ class GameConfig {
 
   static const countdownSeconds = 3;
 
+  /// The same when no other person is in the round: CPU tanks need no
+  /// time to hear of the start.
+  static const soloCountdownSeconds = 2;
+
   /// How many CPU tanks a single player round rolls, both ends included.
   static const minBots = 1;
   static const maxBots = 4;

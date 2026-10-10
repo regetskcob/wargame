@@ -93,6 +93,33 @@ void rememberRoundPlayed() {
   }
 }
 
+const _pilotKey = 'panzergefecht.pilot';
+
+/// Call sign and style last used in this browser, at hand before the
+/// server answers and without one.
+(String, int)? storedPilot() {
+  try {
+    final text = web.window.localStorage.getItem(_pilotKey);
+    final bar = text?.indexOf('|') ?? -1;
+    final style = bar > 0 ? int.tryParse(text!.substring(0, bar)) : null;
+    if (style == null || text!.length <= bar + 1) {
+      return null;
+    }
+    return (text.substring(bar + 1), style);
+  } on Object {
+    return null;
+  }
+}
+
+/// Keeps call sign and style in this browser.
+void rememberPilot(String name, int style) {
+  try {
+    web.window.localStorage.setItem(_pilotKey, '$style|$name');
+  } on Object {
+    // Without storage the server's copy still counts.
+  }
+}
+
 /// Back from a sign-in mail: drops its one time code and any room from the
 /// address, so a reload does not try the code again and the game opens a
 /// fresh room on the start page.
