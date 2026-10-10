@@ -399,7 +399,11 @@ class _ControllerViewState extends State<ControllerView> {
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Flexible(child: build),
+              // Building on the left, the round's calls on the right, each
+              // over the thumb that reaches it.
+              Expanded(
+                child: Align(alignment: Alignment.topLeft, child: build),
+              ),
               const SizedBox(width: 8),
               round,
             ],
