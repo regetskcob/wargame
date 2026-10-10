@@ -206,13 +206,24 @@ h3 { font-size: 18px; letter-spacing: 0.1em; }
 /* The ways to play: icon, name and one sentence each, no boxes. */
 .modes {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(5, 1fr);
   gap: 28px 32px;
 }
 
-@media (max-width: 900px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 1000px) { .modes { grid-template-columns: repeat(3, 1fr); } }
 
-@media (max-width: 520px) { .modes { grid-template-columns: 1fr; } }
+@media (max-width: 680px) { .modes { grid-template-columns: repeat(2, 1fr); } }
+
+@media (max-width: 420px) { .modes { grid-template-columns: 1fr; } }
+
+/* Six screens: two rows of three on wide pages instead of five and one. */
+@media (min-width: 681px) { #devices .modes { grid-template-columns: repeat(3, 1fr); } }
+
+.section-title {
+  margin-bottom: 24px;
+  font-size: clamp(20px, 2.6vw, 26px);
+  color: var(--sand);
+}
 
 .mode .icon { color: var(--amber); width: 30px; height: 30px; }
 
@@ -237,6 +248,12 @@ h3 { font-size: 18px; letter-spacing: 0.1em; }
   width: clamp(170px, 20vw, 220px);
   scroll-snap-align: start;
   border: 1.5px solid rgba(138, 154, 91, 0.5);
+}
+
+/* Wide enough for all of them: side by side across the page, no scrolling. */
+@media (min-width: 1100px) {
+  .shots { margin: 0; padding: 0; overflow: visible; }
+  .shots img { flex: 1 1 0; width: auto; min-width: 0; }
 }
 
 .pledge {

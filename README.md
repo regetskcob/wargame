@@ -6,7 +6,7 @@ mode, or red against blue in capture the flag. In German and English,
 without ads.
 
 **[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
-Android apps · Apple TV · Apple Watch (in progress)
+Android apps · Mac · Apple TV · Apple Watch (in progress)
 
 <p align="center">
   <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad: the road, a river with bridges, the grown base, guns and CPU comrades" width="720">
@@ -31,9 +31,10 @@ Android apps · Apple TV · Apple Watch (in progress)
   watchtower to a citadel, and extend into endless waves.
 - **Capture the flag:** red against blue, steal the other side's flag and
   bring it home, with CPU tanks filling both sides.
-- **Two on one screen:** split screen on the Apple TV, an iPad or in the
-  browser with two controllers or phones, and a **duel** of two bases
-  against each other.
+- **Two on one screen:** split screen on the Apple TV, a tablet (iPad or
+  Android), a Mac or in the browser with two controllers or phones (on a
+  computer the keyboard counts as one), and a **duel** of two bases against
+  each other.
 
 ## Highlights
 
@@ -43,12 +44,17 @@ Android apps · Apple TV · Apple Watch (in progress)
   and soldiers on foot that fight.
 - Crates and gems: repair, smoke, shield, mines, artillery, a mortar, a
   kamikaze drone, paratroopers, an air strike.
-- Ranks, an Elo rating, badges, a leaderboard, replays and
-  a rematch button.
+- Fuel stations and ammo depots to stop at, that blow up when shot; in
+  capture the flag each side guards its own.
+- Ranks, an Elo rating, badges, a leaderboard by points for rounds, wins,
+  kills, accuracy and rating, replays and a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
   Siri Remote, or a phone as a controller for the big screen.
 - An iOS widget with the pilots online and a Live Activity for the running
   round.
+- An iMessage app that invites the chat into a room: a group fights, two
+  can also hold the base together or duel, and the result of the round
+  takes the place of the invitation.
 - No game server: the netcode runs entirely on Supabase Realtime.
 
 All features with their numbers (damage tables, defense thresholds) are in
@@ -118,8 +124,8 @@ flutter run -d chrome \
 
 - [Gameplay in detail](docs/gameplay.md): every feature, damage tables,
   defense thresholds.
-- [Platforms](docs/platforms.md): iOS and Android apps, Apple Watch,
-  Apple TV and two players on one screen.
+- [Platforms](docs/platforms.md): iOS and Android apps, the Mac, Apple
+  Watch, Apple TV and two players on one screen.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
 - [Development](docs/development.md): tests, regenerating the typed models,
@@ -133,7 +139,7 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
-- Filling stations and ammunition depots on the map in the battle modes.
+- The iMessage app on real phones and in a group chat.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

@@ -129,7 +129,7 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
       }
     }
     if (bullet.antiAir) {
-      return bullet.damage * GameConfig.antiAirFactor;
+      return bullet.airDamage ?? bullet.damage * GameConfig.antiAirFactor;
     }
     return kind == AirKind.helicopter
         ? bullet.damage * GameConfig.groundGunVsHelicopter

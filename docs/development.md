@@ -167,10 +167,12 @@ sections whose first line is a heading in capitals (only the first is
 used, the ways to play as `• Name: text`, of which the page shows the first
 sentence), then loose paragraphs (the first becomes the pledge under the
 screenshots, the rest go into the footer). Only the page's own
-words live in `site/i18n/`. German sits at the root, English under `en/`;
+words live in `site/i18n/`, among them the section on every screen the
+game runs on (browser, iPhone and iPad, phone as controller, watch, TV),
+since the store description is the iOS app's. German sits at the root, English under `en/`;
 a first visit follows the browser language like the game does.
 
-The play button leads to `play/`, the game's start page with the three ways
+The play button leads to `play/`, the game's start page with the four ways
 to play. On the press the page lays the game's launch screen (ground and
 tank) over itself, the same picture `web/index.html` starts with, so the
 switch does not flash, and pointing at the button already prefetches the

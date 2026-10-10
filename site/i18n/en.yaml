@@ -9,18 +9,32 @@ launching: Loading the game …
 notFoundTitle: No tank here
 notFoundText: This page does not exist. Back to the start or straight into battle.
 home: Back to the start
-shot-01-gefecht: A battle against CPU tanks in the rain, with the closing zone
-shot-02-verteidigung: "Defense: a jet bombs the enemy at the bridge"
-shot-03-geschuetze: Building guns at the base
-shot-05-steuerung: Two sticks, aim assist and a briefing
-shot-06-modi: The start page with the three ways to play
+shot-01-gefecht: A battle against CPU tanks in town
+shot-02-verteidigung: "Defense: an enemy tank reaches the base"
+shot-03-geschuetze: Building guns at the base during an air raid
+shot-04-fahrzeuge: Choosing the vehicle and its camouflage
+shot-05-steuerung: Two sticks and aim assist in a town battle
+shot-06-modi: The start page with the four ways to play
+devicesTitle: On every screen, in one room
+device-web: In the browser
+device-web-text: Right away on any computer, nothing to install, no sign-up, with keyboard, controller or phone.
+device-phone: Phone and tablet
+device-phone-text: iPhone and iPad, Android phones and tablets soon on Google Play. Two thumb sticks that appear wherever your thumb lands, or a game controller, on a tablet also two players on a split screen.
+device-gamepad: Phone as controller
+device-gamepad-text: Scan a QR code and your phone steers your tank in the browser, on a tablet or soon on the Apple TV. With two phones you play two on one screen.
+device-watch: Apple Watch
+device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself.
+device-tv: Apple TV · soon
+device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
+device-mac: Mac · soon
+device-mac-text: Full screen with keyboard or a game controller, with two controllers also two players on a split screen. The same app as on iPhone and iPad, coming to the Mac App Store soon.
 support: Support
 supportTitle: Support
 supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
 supportTopic: What is it about?
 supportTopics: Report a bug|Question about the game|Account and data|Idea or wish|Something else
 supportDevice: Where do you play?
-supportDevices: Browser|iPhone|iPad|Android|Apple TV|Apple Watch
+supportDevices: Browser|iPhone|iPad|Android|Mac|Apple TV|Apple Watch
 supportCallSign: Your call sign in the game (optional)
 supportMessage: Your message
 supportMessageHint: For a bug, tell us what you were doing and what happened.

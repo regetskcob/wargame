@@ -72,13 +72,15 @@ class _GameAppState extends State<GameApp> {
     _online.start();
     onRoomSwitch = _switchRoom;
     onPadLink = _openPad;
+    onModeLink = (mode) => game.chooseInvitedMode(mode);
     listenForRoomLinks();
     PadScreen.instance.game = game;
     unawaited(PadScreen.instance.resume());
     _second?.attach();
   }
 
-  /// A second player on the Apple TV, with a game of their own.
+  /// A second player on a big screen (TV, browser, tablet), with a game of
+  /// their own.
   late final SecondPlayer? _second = padsSupported
       ? SecondPlayer(() => game)
       : null;
@@ -160,6 +162,7 @@ class _GameAppState extends State<GameApp> {
   void dispose() {
     onRoomSwitch = null;
     onPadLink = null;
+    onModeLink = null;
     _online.dispose();
     _liveActivity.detach();
     game.phase

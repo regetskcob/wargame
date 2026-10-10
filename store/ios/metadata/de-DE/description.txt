@@ -1,10 +1,11 @@
 Panzergefecht ist ein schnelles Panzerduell von oben. Du fährst mit dem linken Daumen, zielst mit dem rechten und feuerst, sobald du den Stick über den Ring schiebst. Der letzte Panzer im Feld gewinnt.
 
-VIER SPIELARTEN
+SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer auf drei Stufen. Leicht ist flach und ohne Nachschubsorgen, auf Normal und Schwer wird das Gelände hügelig, Treibstoff und Munition müssen gefunden werden.
 • Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. Offene Räume stehen in der Raumliste, CPU-Panzer füllen auf Wunsch auf, wer zu spät kommt, schaut zu. Browser und App spielen im selben Raum.
 • Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen aus Panzern, Infanterie, Kampfhubschraubern, Jets und Kamikaze-Drohnen. Baut Kanone, Flak, Mörser und Haubitze, hebt Gräben aus und rüstet euren Panzer auf. Hält der Stützpunkt, wächst er vom Wachturm bis zur Zitadelle, und nach Welle 8 geht es auf Wunsch endlos weiter.
-• Zu zweit auf einem Bildschirm: Geteilter Bildschirm auf dem iPad mit zwei Controllern oder Handys, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
+• Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen ins eigene Lager, solange eure eigene dort steht. Wer fällt, steigt nach wenigen Sekunden wieder ein, drei eroberte Fahnen gewinnen.
+• Zu zweit auf einem Bildschirm: Geteilter Bildschirm mit zwei Controllern oder Handys, auf dem Tablet, im Browser und bald auf dem Apple TV, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
 
 ACHT FAHRZEUGE
 Vom flinken Waffenträger über Schützenpanzer und Flugabwehr bis zum schweren Kampfpanzer. Jedes Fahrzeug hat eigene Werte für Panzerung, Tempo, Wendigkeit und Feuerkraft. Mit jedem Rang schaltest du ein neues frei, dazu Tarnmuster und zehn Abzeichen.
@@ -17,15 +18,18 @@ GEMACHT FÜR TOUCH UND CONTROLLER
 • Zielhilfe, die den Turm auf den nächsten Gegner dreht
 • Spielbar im Hoch- und im Querformat, auf iPhone und iPad
 • Game-Controller werden unterstützt
-• Das iPhone wird per QR-Code zum Controller für das Spiel im Browser oder auf dem iPad
+• Handy als Controller: Das iPhone wird per QR-Code zum Gamepad für das Spiel im Browser, auf dem iPad und bald auf dem Apple TV
 • Eine kurze Einweisung zeigt alles in einer Minute
 
 FORTSCHRITT UND BESTENLISTE
-Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Elo-Wertung und Abzeichen auf jedem Gerät weiter. Es gibt eine Bestenliste, eine Wiederholung der letzten Runde und Revanche per Knopfdruck. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
+Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Wertung und Abzeichen auf jedem Gerät weiter. In der Bestenliste zählt alles, was du tust: Runden, Siege, Abschüsse, Treffsicherheit und Wertung ergeben deine Punkte. Dazu gibt es eine Wiederholung der letzten Runde und Revanche per Knopfdruck. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
+
+AUF DER APPLE WATCH
+Die App bringt ein eigenes Spiel für die Uhr mit: Einzelspieler, Mehrspieler, Verteidigung und Fahnenraub am Handgelenk. Die Digital Crown lenkt, der Panzer fährt und feuert von selbst, und du spielst im selben Raum wie Browser und Handy.
 
 AUF EINEN BLICK
 Ein Widget zeigt, wer gerade online ist, eine Live-Aktivität die laufende Runde.
 
-Keine Werbung, keine Käufe in der App, kein Tracking.
+Keine Werbung, kein Tracking.
 
 Panzergefecht ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.

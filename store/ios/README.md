@@ -42,7 +42,8 @@ Herstellernamen.
 ## Icon neu erzeugen
 
 `store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
-Karte) und schreibt es nach `icon/`, ins iOS-Icon-Set und nach `web/`.
+Karte) und schreibt es nach `icon/`, in die Icon-Sets für iOS und macOS und
+nach `web/`.
 Danach `store/tool/android_icons.py` für Android und Google Play:
 
 ```sh
@@ -61,14 +62,30 @@ Handy ohne Controller:
 
 ```sh
 xcrun simctl launch <sim-id> de.regetskcob.wargame -ignoreGamepads YES
-xcrun simctl spawn <apple-tv-sim-id> defaults write de.regetskcob.wargame ignoreGamepads -bool YES
+xcrun simctl spawn <sim-id> defaults write de.regetskcob.wargame ignoreGamepads -bool YES
 ```
+
+Für die Aufnahmen gibt es einen Screenshot-Modus, nur für Debug-Builds
+(`tool/check_dart_defines.sh` lässt ihn in keinen Release-Build):
+
+```sh
+flutter build ios --simulator --debug --dart-define=ACCOUNTS=true --dart-define=SHOTS=true
+```
+
+Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne
+Nebel, die Schwierigkeit steht auf leicht (Munition ohne Ende), und eine
+Verteidigungsrunde beginnt bei Welle `SHOT_WAVE` (Standard 3) mit
+ausgebautem Stützpunkt und 2000 Kasse für Geschütze. `SHOT_STICKS=true`
+zeigt beide Touch-Sticks gedrückt, für das Bild der Steuerung. Ohne den
+Modus war der Panzer im Simulator oft nach Sekunden zerstört, und Licht und
+Wetter hingen am Zufall.
 
 Der Apple-TV-Simulator nimmt ohne Simulator.app keine Fernbedienung an; für
 die TV-Aufnahmen öffnet ein lokal geänderter Build die Kopplung selbst und
 startet die Runde, sobald das Handy gekoppelt ist.
 
-Daraus entstehen beide Sprachsätze für App Store und Google Play:
+Daraus entstehen beide Sprachsätze für App Store und Google Play, jede
+Aufnahme in einem gezeichneten iPhone bzw. iPad unter der Überschrift:
 
 ```sh
 pip3 install --user pillow

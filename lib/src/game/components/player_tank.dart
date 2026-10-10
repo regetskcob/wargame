@@ -5,8 +5,10 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/env.dart';
 import '../../audio/audio_service.dart';
 import '../game_config.dart';
+import '../../l10n/l10n.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/tank_state_payload.dart';
@@ -44,6 +46,11 @@ class PlayerTank extends TankBase
   final TouchInput? controls;
 
   bool get isBot => controls != null;
+
+  /// Whether a person has hit this tank. A CPU tank that holds its fire at
+  /// the start (`BotLevel.holdFire`) shoots back from then on; bumps,
+  /// the zone and other CPU tanks leave the hold alone.
+  bool provoked = false;
 
   TouchInput get input => controls ?? gameRef.touch;
 
@@ -85,6 +92,9 @@ class PlayerTank extends TankBase
 
   /// Rounds left in the magazine. Gems put more back.
   late int ammo = magazine;
+
+  /// Part of a round an ammunition depot has loaded so far.
+  double ammoCarry = 0;
 
   /// Crates and gems a CPU tank picked up and keeps for later. The player's
   /// own sit in the game's inventory.
@@ -351,10 +361,10 @@ class PlayerTank extends TankBase
       gameRef.fuelNotifier.value = fuel;
     }
     if (fuel <= 0 && before > 0) {
-      gameRef.showNotice('TANK LEER');
+      gameRef.showNotice(tr('TANK LEER', 'TANK EMPTY'));
     } else if (fuel <= GameConfig.fuelLowShare && !_warnedFuel) {
       _warnedFuel = true;
-      gameRef.showNotice('TREIBSTOFF KNAPP');
+      gameRef.showNotice(tr('TREIBSTOFF KNAPP', 'FUEL LOW'));
     }
   }
 
@@ -454,6 +464,7 @@ class PlayerTank extends TankBase
     if (!isBot) {
       input.assistFire =
           assisted &&
+          !gameRef.ceasefire &&
           target != null &&
           (target - turretAngle).toNormalizedAngle().abs() < 0.1;
     }
@@ -485,7 +496,7 @@ class PlayerTank extends TankBase
         _fireCooldown = 0.5;
         if (!isBot) {
           AudioService.play('tick', volume: 0.6);
-          gameRef.showNotice('MUNITION LEER');
+          gameRef.showNotice(tr('MUNITION LEER', 'AMMO EMPTY'));
         }
         return;
       }
@@ -580,7 +591,7 @@ class PlayerTank extends TankBase
   }
 
   void applyDamage(double amount, {required String? killerId}) {
-    if (hp <= 0) {
+    if (hp <= 0 || (Env.shots && controls == null)) {
       return;
     }
     // The shield holds off shells, mines and barrages, not the zone.
@@ -589,9 +600,12 @@ class PlayerTank extends TankBase
     }
     if (killerId != null) {
       amount *= armorFactor;
-      if (gameRef.inTrench(position)) {
+      if (gameRef.inTrench(position, of: playerId)) {
         amount *= GameConfig.trenchCover;
       }
+    }
+    if (killerId != null && !(gameRef.round?.isBot(killerId) ?? true)) {
+      provoked = true;
     }
     hp -= amount;
     takeHitEffects(amount);

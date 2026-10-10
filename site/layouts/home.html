@@ -16,7 +16,7 @@
   {{- end -}}
 {{- end -}}
 {{- $modes := index $sections 0 -}}
-{{- $modeIcons := slice "person" "groups" "shield" "split" -}}
+{{- $modeIcons := slice "person" "groups" "shield" "flag" "split" -}}
 
 {{ partial "bar.html" . }}
 
@@ -51,11 +51,25 @@
     </div>
   </section>
 
+  {{- /* Every screen the game runs on, in the page's own words: the store
+     description is the iOS app's and leaves out the browser, the TV and the
+     Mac. */}}
+  <section class="section" id="devices">
+    <h2 class="section-title">{{ i18n "devicesTitle" }}</h2>
+    <div class="modes">
+      {{- range slice "web" "phone" "gamepad" "watch" "tv" "mac" }}
+      <article class="mode">
+        {{ partial "icon.html" . }}
+        <h3>{{ upper (i18n (printf "device-%s" .)) }}</h3>
+        <p>{{ i18n (printf "device-%s-text" .) }}</p>
+      </article>
+      {{- end }}
+    </div>
+  </section>
+
   <section class="section" id="screens">
     <div class="shots" tabindex="0">
-      {{- /* Not 04-fahrzeuge: that store shot still shows four vehicles under
-         their old real names. Back in once the screenshots are redone. */}}
-      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-geschuetze" "05-steuerung" "06-modi" }}
+      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-geschuetze" "04-fahrzeuge" "05-steuerung" "06-modi" }}
       {{- $img := resources.Get (printf "store/screenshots/%s/iphone-%s.png" $store $f) }}
       {{- $a := $img.Resize "240x webp" }}{{ $b := $img.Resize "480x webp" }}
       <img src="{{ $a.RelPermalink }}" srcset="{{ $a.RelPermalink }} 1x, {{ $b.RelPermalink }} 2x"

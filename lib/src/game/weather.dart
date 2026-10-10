@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'map_theme.dart';
+import '../app/env.dart';
 import '../l10n/l10n.dart';
 
 /// What falls from the sky. Rain, snow or sand depends on the ground: snow
@@ -46,6 +47,10 @@ class Conditions {
 
   /// Whether it is night [seconds] into a round with [seed].
   static bool nightAt(int seed, double seconds) {
+    // Store pictures are taken by day, see Env.shots.
+    if (Env.shots) {
+      return false;
+    }
     final offset = Random(seed * 13 + 101).nextDouble() * _cycle;
     return (offset + max(0, seconds)) % _cycle >= dayLength;
   }
@@ -76,8 +81,9 @@ class Conditions {
   static const _mapFactor = 4;
   static const _skyFactor = 20;
 
-  /// 11 of 20 rounds are clear, 5 have rain, snow or sand, 4 fog.
-  static Sky _skyOf(int bucket) => bucket < 11
+  /// 11 of 20 rounds are clear, 5 have rain, snow or sand, 4 fog. Fog
+  /// washes out a store picture, so the screenshot mode clears it.
+  static Sky _skyOf(int bucket) => bucket < 11 || (Env.shots && bucket >= 16)
       ? Sky.clear
       : bucket < 16
       ? Sky.precipitation

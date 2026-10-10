@@ -16,38 +16,44 @@ class ClosedOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     return ColoredBox(
       color: const Color(0xAA000000),
-      child: SafeArea(
-        child: Center(
-          child: FitOrScroll(
-            padding: const EdgeInsets.all(16),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 440),
-              child: Panel(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tr('WARTERAUM GESCHLOSSEN', 'WAITING ROOM CLOSED'),
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 12),
-                    ValueListenableBuilder<String?>(
-                      valueListenable: game.closedReason,
-                      builder: (context, reason, _) => Text(
-                        reason ?? '',
-                        style: const TextStyle(color: GameColors.textDim),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FilledButton.icon(
-                      onPressed: game.backToStart,
-                      icon: const Icon(Icons.home),
-                      label: Text(tr('ZUR STARTSEITE', 'TO THE START PAGE')),
-                    ),
-                  ],
-                ),
+      // No reason while the host's own close moves on to the start page.
+      child: ValueListenableBuilder<String?>(
+        valueListenable: game.closedReason,
+        builder: (context, reason, _) =>
+            reason == null ? const SizedBox.expand() : _panel(context, reason),
+      ),
+    );
+  }
+
+  Widget _panel(BuildContext context, String reason) {
+    return SafeArea(
+      child: Center(
+        child: FitOrScroll(
+          padding: const EdgeInsets.all(16),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 440),
+            child: Panel(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr('WARTERAUM GESCHLOSSEN', 'WAITING ROOM CLOSED'),
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    reason,
+                    style: const TextStyle(color: GameColors.textDim),
+                  ),
+                  const SizedBox(height: 24),
+                  FilledButton.icon(
+                    onPressed: game.backToStart,
+                    icon: const Icon(Icons.home),
+                    label: Text(tr('ZUR STARTSEITE', 'TO THE START PAGE')),
+                  ),
+                ],
               ),
             ),
           ),

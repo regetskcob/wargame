@@ -15,6 +15,22 @@ extension TankGameLobby on TankGame {
     choosingMode.value = false;
   }
 
+  /// A chat invitation chose the mode already: skip the start page. The
+  /// names are those of the Messages extension, unknown ones change
+  /// nothing.
+  void chooseInvitedMode(String name) {
+    switch (name) {
+      case 'multi':
+        chooseMode(GameMode.multi);
+      case 'flag':
+        chooseMode(GameMode.flag);
+      case 'defense':
+        chooseMode(GameMode.defense);
+      case 'duel':
+        chooseMode(GameMode.defense, duel: true);
+    }
+  }
+
   /// Back to the start page, to play another way.
   void changeMode() => choosingMode.value = true;
 
@@ -189,6 +205,15 @@ extension TankGameLobby on TankGame {
         teams[id] = pick;
       }
     }
+    // The second player on this screen goes along with the first when they
+    // capture the flag together, else to the other side, whatever was
+    // picked.
+    final mate = partner?.myId;
+    if (force && mate != null && ids.contains(mate)) {
+      final mine = teams[myId] ?? 1;
+      teams[myId] = mine;
+      teams[mate] = duoTogether.value ? mine : FlagMatch.otherTeam(mine);
+    }
     for (final id in ids) {
       if (teams.containsKey(id)) {
         continue;
@@ -284,9 +309,31 @@ extension TankGameLobby on TankGame {
     }
   }
 
-  /// Colour of a player's tank as the lobby previews it: camouflage alone,
-  /// one colour per seat when playing with others.
+  /// Red against blue is coming up: every tank drives in its side's
+  /// colour, so choosing a camouflage makes no sense. The defense always
+  /// plays it, the defenders red and the attackers blue.
+  bool get teamsAhead =>
+      mode.value == GameMode.flag ||
+      mode.value == GameMode.defense ||
+      teamMode.value;
+
+  /// Colour of a player's tank as the lobby previews it: the side's colour
+  /// in red against blue (neutral while AUTO has not decided yet),
+  /// camouflage alone, one colour per seat when playing with others.
   Color lobbyColorOf(String id, int style) {
+    if (mode.value == GameMode.defense) {
+      // A duel takes exactly two players, the host on the left, red base.
+      final players = {myId, for (final member in roster.value) member.id};
+      if (!duelNext.value || players.length != 2) {
+        return GameConfig.teamColors[1];
+      }
+      final host = id == myId ? isHost.value : _rosterMember(id)?.host;
+      return GameConfig.teamColors[host ?? false ? 1 : 2];
+    }
+    if (teamsAhead) {
+      final team = id == myId ? teamPick : _rosterMember(id)?.team ?? 0;
+      return GameConfig.teamColors[team.clamp(0, 2)];
+    }
     if (!mode.value.withOthers) {
       return GameConfig.colorOf(style);
     }
@@ -297,6 +344,13 @@ extension TankGameLobby on TankGame {
 
   Color _colorFor(String id) {
     final activeRound = round;
+    // Red against blue, and every defense: the hull tells friend from foe.
+    if (activeRound != null && (activeRound.teamMode || activeRound.defense)) {
+      final team = activeRound.teamOf(id);
+      if (team > 0) {
+        return GameConfig.teamColors[team];
+      }
+    }
     if (activeRound != null && activeRound.distinctColors) {
       final seat = activeRound.participants.indexOf(id);
       if (seat >= 0) {
@@ -367,6 +421,8 @@ extension TankGameLobby on TankGame {
   }
 
   /// Closes the waiting room: as host for everybody, as guest just for you.
+  /// The host closed it on purpose, so a closed screen would only be in the
+  /// way: they go straight on to choosing the next mode.
   Future<void> closeRoom() async {
     if (phase.value == GamePhase.closed) {
       return;
@@ -374,16 +430,18 @@ extension TankGameLobby on TankGame {
     final host = isHost.value;
     _enterClosed(
       host
-          ? tr(
-              'Du hast den Warteraum geschlossen.',
-              'You closed the waiting room.',
-            )
+          ? null
           : tr(
               'Du hast den Warteraum verlassen.',
               'You left the waiting room.',
             ),
     );
-    await (host ? net.closeRoom() : net.dispose());
+    if (!host) {
+      await net.dispose();
+      return;
+    }
+    await net.closeRoom();
+    await backToStart();
   }
 
   void _onClose(String id) {
@@ -456,7 +514,7 @@ extension TankGameLobby on TankGame {
     fireAndForget(net.connect(_presencePayload()), 'Joining the room');
   }
 
-  void _enterClosed(String reason) {
+  void _enterClosed(String? reason) {
     _dropSlot();
     _clearWorld();
     round = null;

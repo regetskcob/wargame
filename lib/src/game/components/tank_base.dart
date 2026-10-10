@@ -39,6 +39,11 @@ abstract class TankBase extends PositionComponent {
   /// 0 plays alone, 1 is red, 2 is blue.
   int team = 0;
 
+  /// The tank this screen's player drives. It always wears its ring, so it
+  /// stands out among a side of tanks in the same red or blue.
+  bool own = false;
+  static const _ownRing = Color(0xFFFFC107);
+
   /// Seconds the tracks still print red after rolling over a soldier.
   double bloodTimer = 0;
   double _recoil = 0;
@@ -74,6 +79,23 @@ abstract class TankBase extends PositionComponent {
   Vector2 get direction => Vector2(sin(angle), -cos(angle));
 
   Vector2 get turretDirection => Vector2(sin(turretAngle), -cos(turretAngle));
+
+  /// Where shells leave the barrels, [reach] ahead of the centre along the
+  /// turret. Each start sits on its own barrel's line, because some guns are
+  /// set off to the side of the turret and some turret rings sit behind the
+  /// middle of the hull, so a shell would otherwise fly out beside the gun.
+  List<Vector2> barrelStarts(double reach) {
+    final pivot = turretPivotOf(tankType);
+    final scale = size.x / 48;
+    final behind = (pivot.dy - 24) * scale;
+    final aim = turretDirection;
+    final side = Vector2(-aim.y, aim.x);
+    final ring = position - direction * behind;
+    return [
+      for (final muzzle in muzzlesOf(tankType))
+        ring + aim * (reach + behind) + side * ((muzzle.dx - pivot.dx) * scale),
+    ];
+  }
 
   @override
   void onLoad() {
@@ -119,20 +141,19 @@ abstract class TankBase extends PositionComponent {
   void fireEffects() {
     _recoil = 1;
     _muzzleFlash = 1;
-    final tip =
-        position +
-        Vector2(sin(turretAngle), -cos(turretAngle)) * (size.x * 0.85);
-    parent?.add(
-      puff(
-        position: tip,
-        color: const Color(0xFFB8B8B0),
-        count: 5,
-        lifespan: 0.8,
-        speed: (10, 40),
-        size: (3, 7),
-        opacity: 0.55,
-      ),
-    );
+    for (final tip in barrelStarts(size.x * 0.85)) {
+      parent?.add(
+        puff(
+          position: tip,
+          color: const Color(0xFFB8B8B0),
+          count: 5,
+          lifespan: 0.8,
+          speed: (10, 40),
+          size: (3, 7),
+          opacity: 0.55,
+        ),
+      );
+    }
   }
 
   @override
@@ -268,7 +289,32 @@ abstract class TankBase extends PositionComponent {
     if (hidden) {
       return;
     }
-    if (team > 0) {
+    // A hull in its team's red or blue says enough, a ring would only
+    // repeat it. It shows while the hull flashes white on a hit, always on
+    // a hull in another colour, and always on the own tank, in amber when
+    // there are no sides, with a dark rim so it reads on any ground.
+    if (own) {
+      final centre = Offset(size.x / 2, size.y / 2);
+      final colour = team > 0 ? GameConfig.teamColors[team] : _ownRing;
+      canvas
+        ..drawCircle(
+          centre,
+          size.x * 0.68,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 6
+            ..color = const Color(0x99000000),
+        )
+        ..drawCircle(
+          centre,
+          size.x * 0.68,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.2
+            ..color = colour,
+        );
+    } else if (team > 0 &&
+        (_flashTime > 0 || tankColor != GameConfig.teamColors[team])) {
       canvas.drawCircle(
         Offset(size.x / 2, size.y / 2),
         size.x * 0.66,

@@ -73,6 +73,19 @@ class Env {
   /// is on Pro: 500 a second, planned with 400, which carries rooms of four
   /// (docs/netcode.md, "Rooms and room sizes"). Back on the free plan, build
   /// with `MAX_PILOTS=2` and `REALTIME_BUDGET=80`.
+  /// Screenshot mode for the store pictures (store/ios/README.md): the own
+  /// tank takes no damage, it stays day without fog, the difficulty starts
+  /// on easy (endless ammunition), and a defense round opens at
+  /// [shotWave] with a grown base and funds for guns. Playing a scene by
+  /// hand in the simulator lost the tank within seconds and the light to
+  /// chance. Never set it for a build that goes out.
+  static const shots = bool.fromEnvironment('SHOTS');
+  static const shotWave = int.fromEnvironment('SHOT_WAVE', defaultValue: 3);
+
+  /// Draws both touch sticks held over to one side while nobody touches
+  /// them, for the picture of the controls.
+  static const shotSticks = bool.fromEnvironment('SHOT_STICKS');
+
   static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 4);
   static const realtimeBudget = int.fromEnvironment(
     'REALTIME_BUDGET',

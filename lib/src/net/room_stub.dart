@@ -12,6 +12,7 @@ import '../tv/tv_input.dart';
 import 'room_code.dart';
 
 const _tutorialKey = 'panzergefecht.tutorial';
+const _veteranKey = 'panzergefecht.veteran';
 
 SharedPreferencesWithCache? _store;
 
@@ -22,7 +23,7 @@ Future<void> openLocalStore() async {
   try {
     _store = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: {_tutorialKey},
+        allowList: {_tutorialKey, _veteranKey},
       ),
     );
   } on Object {
@@ -70,8 +71,18 @@ void listenForRoomLinks() {
       return;
     }
     final code = uri == null ? null : roomCodeFrom(uri.toString());
-    if (code != null && code != _current) {
-      joinRoom(code);
+    if (code == null) {
+      return;
+    }
+    // An invitation sent from a Messages chat: its sender opens the room
+    // and starts it in the mode chosen there, everybody else joins.
+    final host = uri!.queryParameters['host'] == '1';
+    if (code != _current) {
+      host ? hostRoom(code) : joinRoom(code);
+    }
+    final mode = uri.queryParameters['mode'];
+    if (host && mode != null) {
+      onModeLink?.call(mode);
     }
   }
 
@@ -90,6 +101,21 @@ bool tutorialSeen() =>
 void rememberTutorialSeen() {
   _tutorialSeen = true;
   unawaited(_store?.setBool(_tutorialKey, true));
+}
+
+var _roundPlayed = false;
+
+/// Whether this device has played a round to its end. Until then the CPU
+/// tanks start on the easy level.
+bool roundPlayed() => _roundPlayed || (_store?.getBool(_veteranKey) ?? false);
+
+/// Remembers that a round was played to its end.
+void rememberRoundPlayed() {
+  if (roundPlayed()) {
+    return;
+  }
+  _roundPlayed = true;
+  unawaited(_store?.setBool(_veteranKey, true));
 }
 
 /// Back from a sign-in mail: drops its code and room from the address.
@@ -131,6 +157,23 @@ bool joinRoom(String room) {
   switcher(_current!, host: false);
   return true;
 }
+
+/// Opens [room] as its host, for a code this player made up elsewhere, as
+/// the Messages extension does for a chat invitation.
+bool hostRoom(String room) {
+  final switcher = onRoomSwitch;
+  if (switcher == null) {
+    return false;
+  }
+  _hosting = true;
+  _current = room.trim().toUpperCase();
+  switcher(_current!, host: true);
+  return true;
+}
+
+/// Set by the app shell: the mode a chat invitation asks its host to
+/// start, by the names `multi`, `flag`, `defense` and `duel`.
+void Function(String mode)? onModeLink;
 
 /// Opens a fresh room hosted by this player.
 bool openFreshRoom() {

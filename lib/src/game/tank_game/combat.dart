@@ -38,17 +38,12 @@ extension TankGameCombat on TankGame {
     final ownerId = tank.playerId;
     final stats = tank.stats;
     final bulletDirection = tank.turretDirection;
-    final side = Vector2(-bulletDirection.y, bulletDirection.x);
-    for (var barrel = 0; barrel < stats.barrels; barrel++) {
-      final offset = (barrel - (stats.barrels - 1) / 2) * 13;
+    // Out of the drawn barrels, which on some tanks sit beside the middle.
+    for (final start in tank.barrelStarts(GameConfig.tankRadius + 16)) {
       final bulletId = '$ownerId-${_bulletCounter++}';
       if (tank == myTank) {
         roundStats.shots++;
       }
-      final start =
-          tank.position +
-          bulletDirection * (GameConfig.tankRadius + 16) +
-          side * offset;
       final upgraded = tank.gunFactor != 1;
       final damage = stats.damage * tank.gunFactor;
       _spawnBullet(
@@ -303,10 +298,9 @@ extension TankGameCombat on TankGame {
       );
     }
 
-    // The player who runs the waves keeps the score of every gun.
-    if (round?.botHost == myId) {
-      _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
-    }
+    // The player who runs the waves keeps the score of every gun, every
+    // client notes whose blast caught the enemy's guns for the bounty.
+    _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
     if (!runsShooter(ownerId)) {
       return;
     }
@@ -328,6 +322,7 @@ extension TankGameCombat on TankGame {
       }
     }
     _blastSoldiers(ownerId, at, weapon.radius);
+    _blastDepots(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
   }
 
   void _onShoot(ShootPayload payload) {
@@ -355,7 +350,9 @@ extension TankGameCombat on TankGame {
         direction: direction,
         color: tower.color,
         speed: tower.kind.shotSpeed,
-        damage: tower.kind.damage * tower.kind.damageFactor(tower.level),
+        damage: tower.kind.groundDamageAt(tower.level),
+        airDamage: tower.kind.airDamageAt(tower.level),
+        burst: tower.kind.burst,
         antiAir: tower.kind.antiAir,
       );
       return;
@@ -434,6 +431,8 @@ extension TankGameCombat on TankGame {
     required Color color,
     double? speed,
     double? damage,
+    double? airDamage,
+    double burst = 0,
     bool antiAir = false,
     bool small = false,
   }) {
@@ -446,6 +445,8 @@ extension TankGameCombat on TankGame {
       color: color,
       damage: damage ?? stats.damage,
       antiAir: antiAir,
+      airDamage: airDamage,
+      burst: burst,
       small: small,
     );
     bullets[bulletId] = bullet;
@@ -567,6 +568,10 @@ extension TankGameCombat on TankGame {
   }
 
   void _onObstacle(ObstaclePayload payload) {
+    if (payload.depot) {
+      _onDepot(payload);
+      return;
+    }
     if (payload.tree) {
       final tree =
           _coverField?.treeAt(payload.index) ??

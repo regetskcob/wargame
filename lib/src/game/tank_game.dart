@@ -63,6 +63,7 @@ import 'components/flag_field.dart';
 import 'components/player_tank.dart';
 import 'components/power_up.dart';
 import 'components/smoke_cloud.dart';
+import 'components/supply_depot.dart';
 import 'components/remote_tank.dart';
 import 'components/ground.dart';
 import 'components/storm_zone.dart';
@@ -105,6 +106,7 @@ part 'tank_game/combat.dart';
 part 'tank_game/targeting.dart';
 part 'tank_game/view.dart';
 part 'tank_game/flag.dart';
+part 'tank_game/supply.dart';
 
 /// Whether the welcome page comes before the start page. Everybody else
 /// lands right on the three ways to play and signs in from the account
@@ -314,6 +316,11 @@ class TankGame extends FlameGame
   final towers = <String, Tower>{};
   int _towerCounter = 0;
 
+  /// The guns the enemy digs in belong to this id, an enemy's like the
+  /// waves' `td-…`, and are run by the player who runs the waves.
+  static const enemyGunOwner = 'td-g';
+  int _enemyGunCounter = 0;
+
   /// Seconds until the local tank is back after it was destroyed in a
   /// defense round, 0 while it is on the field.
   final respawnSeconds = ValueNotifier<int>(0);
@@ -356,8 +363,13 @@ class TankGame extends FlameGame
   int myTeam = 0;
 
   /// How well CPU tanks fight, and whether they fill up a room with few
-  /// people.
-  final botLevel = ValueNotifier<BotLevel>(BotLevel.normal);
+  /// people. The screenshot mode starts on easy, whose endless ammunition
+  /// and full tank keep empty gauges out of the store pictures. So does a
+  /// device that never played a round: the first one should teach, not
+  /// punish.
+  final botLevel = ValueNotifier<BotLevel>(
+    Env.shots || !roundPlayed() ? BotLevel.easy : BotLevel.normal,
+  );
   final fillWithBots = ValueNotifier<bool>(false);
 
   /// Whether a paired phone steers this game's tank. Set by `PadScreen`.
@@ -365,6 +377,10 @@ class TankGame extends FlameGame
 
   /// Whether the next round starts with red against blue.
   final teamMode = ValueNotifier<bool>(false);
+
+  /// Two players on this screen capturing the flag: on the same side
+  /// against the CPU tanks, or one red and one blue.
+  final duoTogether = ValueNotifier<bool>(true);
   final spectatingName = ValueNotifier<String?>(null);
 
   String myName = 'Panzer-${1000 + Random().nextInt(9000)}';
@@ -395,6 +411,13 @@ class TankGame extends FlameGame
   final bullets = <String, Bullet>{};
 
   CoverField? _coverField;
+
+  /// Fuel stations and ammunition depots of the round, none on the easy
+  /// level and in defense rounds.
+  SupplyField? supplyField;
+
+  /// Whether the local tank was told to stop on the depot it rolls over.
+  bool _depotHinted = false;
   SoldierField? soldierField;
 
   /// Soldiers this player has run over in the current round.
@@ -402,8 +425,22 @@ class TankGame extends FlameGame
   Ground? _ground;
   MudField? mudField;
 
+  /// When the end screen goes back to the waiting room by itself, in
+  /// milliseconds since the epoch; null while it waits for the player.
+  final lobbyAt = ValueNotifier<int?>(null);
+
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
+
+  /// Rounds this game started as host, to open the first one gently.
+  var _roundsStarted = 0;
+
+  /// Whether a round with [seed] starts under a clear sky and stays in
+  /// daylight for its first minute.
+  static bool _gentle(int seed) =>
+      Conditions.forSeed(seed).sky == Sky.clear &&
+      [for (var t = 0.0; t <= 60; t += 5) t]
+          .every((t) => !Conditions.nightAt(seed, t));
 
   /// Weather and time of day of the current round.
   Conditions? conditions;
@@ -616,6 +653,7 @@ class TankGame extends FlameGame
     _updateRespawn(dt);
     _updateFlag(dt);
     _resupply(dt);
+    _updateSupply(dt);
     _staleTimer += dt;
     if (_staleTimer >= 1) {
       _settleHost(_staleTimer);
@@ -646,6 +684,10 @@ class TankGame extends FlameGame
   double _resupplied = 0;
 
   static const _defenseMargin = 60.0;
+
+  /// Screen pixels the mini map and its padding take from the right edge,
+  /// see `HudOverlay`.
+  static const _hudReserve = 170.0;
 
   @override
   void onGameResize(Vector2 size) {

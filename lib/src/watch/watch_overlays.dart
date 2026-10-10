@@ -238,7 +238,8 @@ class _WatchHudState extends State<WatchHud> {
         final wave = game.defense.value?.wave ?? 0;
         final extended = game.defense.value?.extended ?? false;
         final ready =
-            credits >= kind.cost && kind.unlockedIn(wave, extended: extended);
+            credits >= game.buildCost(kind) &&
+            kind.unlockedIn(wave, extended: extended);
         return Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: SizedBox(
@@ -252,7 +253,7 @@ class _WatchHudState extends State<WatchHud> {
               ),
               child: FittedBox(
                 child: Text(
-                  '${kind.label} ${kind.cost} · $credits',
+                  '${kind.label} ${game.buildCost(kind)} · $credits',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),

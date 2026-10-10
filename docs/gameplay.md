@@ -21,7 +21,13 @@ Everything the game does, with the numbers behind it. The short version is in th
   it runs on, two touch sticks with an animated thumb on phones and
   tablets, keys and mouse on a desktop, each acted out on a small training
   ground, then plays a quick tour through modes, vehicles, crates, gems,
-  weather, levels, the defense mode and what comes after the round.
+  weather, levels, the defense mode and what comes after the round. Every
+  card moves on by itself after a while. On a controls card the player can
+  take over at any time: a thumb on the sticks, a game key or a click turns
+  the scene into a training ground with their own tank, the game's controls
+  and a few enemy tanks to hit (grenades on the special weapon card). The
+  card then folds its text away and waits for NEXT. The Apple TV keeps the
+  demonstration only.
 
 ## Ways to play
 
@@ -51,9 +57,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   base, and all of them chase whoever has their own flag. The round is
   rated like a team round.
 - **Two on one screen:** on the Apple TV, in the browser and on an iPad,
-  with two controllers or phones. Single player, multiplayer and defense
-  play on a split screen, each half from its own tank; single player puts
-  both against the CPU tanks. Free of Realtime messages, see
+  with two controllers or phones; on a computer also the keyboard and one
+  controller or phone. Single player, multiplayer, defense and
+  capture the flag play on a split screen, each half from its own tank;
+  single player puts both against the CPU tanks, and capture the flag
+  puts both on one side or, as picked in the settings, against each other.
+  Free of Realtime messages, see
   [Apple TV](platforms.md#apple-tv).
 - **Duel (two on one screen):** red against blue on a defense map, a base
   at either end of the road. Each side's waves roll against the other's
@@ -67,7 +76,16 @@ Everything the game does, with the numbers behind it. The short version is in th
   Wolf), each with its own armour, speed and gun. Hermelin, Fuchs and
   Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
   and 8, and every later one is stronger than the ones before. The lobby
-  lists the unlocked ones first. Four free paint schemes and four more that come with higher ranks.
+  lists the unlocked ones first. Four free paint schemes and four more that
+  come with higher ranks, for playing alone. With others every tank drives
+  in its own colour, and in red against blue (teams, capture the flag) in
+  its team's red or blue, so the lobby offers no camouflage then. The
+  defense paints its sides the same way: defenders red, attackers blue, and
+  in a duel the left base red, the right one blue. A ring in the team's
+  colour stays only around hulls of another colour and shows while a hit
+  flashes the hull white. The own tank always wears its ring, in the
+  team's colour or amber without sides, with a dark rim, so it stands out
+  among its side.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of
@@ -81,36 +99,69 @@ Everything the game does, with the numbers behind it. The short version is in th
 - Crates with repair, smoke, rapid fire, a shield, mines and artillery.
 - Crates and gems go into an inventory at the left edge and are set off
   later with the keys 1 to 6 or a tap. Every gem carries a symbol of what
-  it holds.
+  it holds. Only filled slots show, empty frames would cover the field.
+- A gentle start: for the first 10, 6 or 3 s of playing time (easy,
+  normal, hard) CPU tanks leave people alone and only fight each other,
+  unless a person hits them first, and the aim assist only aims without
+  firing (`TankGame.ceasefire`). A device that
+  never finished a round starts on easy, and the first round a host starts
+  in a session opens by day under a clear sky for at least a minute. The
+  waiting room shows difficulty, terrain and mode in one line that opens
+  the settings.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel
-  in canister gems. On hard the hills are steeper and an air strike gem
+  in canister gems or at the depots below. On hard the hills are steeper and an air strike gem
   sends a bomber over an enemy. A hunter drone gem launches a drone after a
   random enemy.
+- Fuel stations and ammunition depots from the normal level on, in single
+  player, multiplayer and capture the flag (defense has its base for that).
+  A tank that stands still on the pad fills up, a full tank or magazine in
+  6 s; rolling over it only shows the hint to stop. A free for all gets
+  four neutral ones from the seed, fuel and ammunition by turns on a ring
+  inside the start positions, so the closing zone swallows some of them.
+  In capture the flag each team has one of each behind its base that
+  serves only its own tanks; its own shells fly over them, the enemy can
+  shoot them. A depot takes 160 damage from shells, blasts and barrages,
+  then goes up and hurts tanks within 110 (45 damage, half at the edge;
+  the tank that brought it down gets the kill), and stands again after
+  45 s. CPU tanks drive there when they run low, top up at one close by
+  and leave when an enemy comes near. Over the net a depot rides on the
+  `obstacle` event (flag `d`, the shooter as `id`), no new event.
 - Defense on four maps with a river, bridges, woods and farm houses. The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
   Habicht that hits aircraft properly), mortars and later howitzers, three
   levels each, trenches that cover a tank, and armour, gun, engine and
-  magazine upgrades for the tank. The enemy shoots guns and trenches to
-  pieces.
+  magazine upgrades for the tank, one list at a time in the panel. The
+  enemy shoots guns and trenches to pieces and from wave 3 digs in cannons
+  and flak of its own beside the first stretch of the road. Money comes
+  with the player's own kills (rising from the wreck, less with every
+  wave) and every wave beaten off (+50). On a desktop the camera may run
+  past the field's edge by the width of the mini map, so the base at the
+  end of the road never hides under it.
 - On iOS a widget with the pilots online, a Live Activity for the running
   round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
-  and markers for enemies off screen.
+  and markers for enemies off screen. The mini map of the battle modes
+  leaves out woods, mud and barriers, fades the buildings and shows crates
+  and gems only within 450 of the own tank; tanks, soldiers, drones,
+  depots, flags and the zone stay.
 - Keyboard and mouse, or two touch sticks on phones and tablets. The left
   stick points where the tank should go, the right one aims and fires, and
-  an aim assist (on by default, switched with a button) turns the turret
-  onto the nearest enemy while the right thumb rests.
+  an aim assist (on by default, switched with a button that says it fires
+  by itself) turns the turret onto the nearest enemy and fires while the
+  right thumb rests. Upright phones look 20 % closer
+  (`GameConfig.uprightPhoneZoom`), outside defense rounds.
 - The phone as a controller for the game on a computer or tablet: the
   account sheet in the browser shows a pairing QR code, the app scans it
   (Account, Use as controller) or the phone camera opens it. The phone then
   shows the two sticks, the special weapon, the items and, in a defense
   round, the gun buttons, and feels hits as a buzz. Without the app the
   phone's browser does the same.
-- Game controllers: one steers the own tank in the browser, on an iPad and
-  on the Apple TV, as a paired phone does; two play two on one screen.
+- Game controllers: one steers the own tank in the browser, on iPhone, iPad,
+  Android and the Apple TV, as a paired phone does; two play two on one
+  screen of a computer, tablet or television.
 - An Apple TV app, played with the Siri Remote or a controller, with menus
   that fit the television without scrolling, see [Apple TV](platforms.md#apple-tv).
 
@@ -159,7 +210,7 @@ seconds up to 300.
 | Who | Damage | Notes |
 | --- | --- | --- |
 | Cannon | 18 per shot, 0.45 s, range 420 | +35 % per level |
-| Flak | 6 per shot, 0.16 s, range 480 | double against aircraft |
+| Flak | 6 per shot, 0.16 s, range 600 | 12 against aircraft (proximity fuse, bursts within 30), 1.8 on the ground |
 | Mortar emplacement | 50, radius 75, range 130–620 | +35 % per level |
 | Howitzer | 110, radius 75, range 240–1050 | +35 % per level |
 | Helicopter (both sides) | 10 per rocket, every 1.8 s, range 420 | |
@@ -171,7 +222,14 @@ seconds up to 300.
 **What softens a hit.** A shield lets 40 % through, every armour upgrade
 takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
 to the tank's shells. Against aircraft, flak and the Habicht do double, other
-shells a quarter to a helicopter and nothing to a jet.
+shells a quarter to a helicopter and nothing to a jet. On the ground flak
+does only 30 % of its damage, about a quarter of what a cannon fires in the
+same time, so a row of flak no longer holds the road. Against the sky it
+got sharper instead: its shells burst within 30 of an aircraft or drone,
+the mount swings 10 radians a second (the other guns 6) and every gun
+works out its lead a few times over. A jet at 420 a second used to slip
+through three flak guns around the base; now one stops it about one time
+in three before it bombs, two almost always.
 
 ## Defense thresholds
 
@@ -201,8 +259,12 @@ seconds.
 which stays 40 seconds. From wave 5 a jet follows 14 seconds into the wave
 and bombs the enemy closest to the base.
 
-**Money.** 150 at the start, 20 per tank, 40 per aircraft, 5 per soldier and
-50 for every wave beaten off.
+**Money.** 150 at the start and 50 for every wave beaten off. Bounties
+shrink with the waves: in wave *w* they are the first wave's divided by
+1 + 0.2 × (*w* − 1), rounded, at least 1. A tank brings 20 in wave 1, 14 in
+wave 3 and 8 in wave 8; an aircraft 40, 29 and 17; a soldier 5, 4 and 2; an
+enemy gun 60, 43 and 25. The waves grow, so a whole wave pays about the
+same, but the guns get dearer.
 
 **Guns and trenches.**
 
@@ -215,11 +277,33 @@ and bombs the enemy closest to the base.
 | Trench | 60 | 2 | 360 | a tank in it takes half damage |
 | Rockets | 260 | extension | 260 | tanks and aircraft, range 640 |
 
+The price is for the first of a kind; every further one of the same kind a
+player already has adds 30 % of it (flak 120, 156, 192, …), so a wall of one
+kind gets dear. The buttons show the current price.
+
 Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
-player, they do not count as guns.
+player, they do not count as guns. Guns keep off the road, trenches may
+cut across it (not over a bridge): tanks roll over a trench and soldiers
+march on through it, and only a tank of the side that dug it takes cover
+there, so an enemy rolling over a trench on the road gets none.
+
+On the easy level shells never run out, so the HUD leaves the ammunition
+gauge out. On a desktop the defense panel keeps clear of the mini map and
+wraps its buttons in a narrow window.
+
+**The enemy's guns.** From wave 3 the enemy digs in guns beside the first
+stretch of the road, one more every second wave up to 4 (wave 3: 1, wave 5:
+2, wave 7: 3, wave 9: 4), cannon and flak by turns, on fixed spots between
+14 % and 36 % of the road. They start at level 1, rise a level every third
+wave and fire at 1.8 times the players' interval, at tanks, guns, soldiers
+and, the flak, the base's aircraft. Every new wave rebuilds the ones that
+were destroyed. The players' shells and blasts, the comrades and the
+players' guns hit them; whoever hit one last on their own screen gets its
+bounty. The host fires them (`tower` and `shoot` events with the id
+`td-g`); not in a duel.
 
 **The extension.** After the last of the 8 regular waves the host has 25
 seconds to extend; without an answer the round ends as a win. Extended, the
@@ -244,7 +328,18 @@ still a win.
 
 ## After the round
 
-- A rematch button on the end screen and a replay of the last round.
+- A rematch button on the end screen and a replay of the last round. With
+  other people in the round the end screen goes back to the waiting room
+  after 15 s and counts down on its button; alone it stays until the
+  player picks.
 - Ranks from experience, an Elo rating, ten badges and one leaderboard of all
-  pilots by rating.
+  pilots by points.
+- Leaderboard points weigh every total a pilot has, so more rounds, wins and
+  kills always count (`lib/src/db/score_points.dart`): 10 per round, 50 per
+  win, 20 per kill, 1 per 20 damage, up to 20 per round for accuracy (hits
+  per shot), 1 per 30 s alive, and twice the rating's distance from the
+  start of 1000 once a rated round moved it. Never below zero. Ties go to
+  the rating, then wins, then kills. The rating alone ranked badly: it only
+  moves in rounds with a rated opponent, so one even round outranked a
+  dozen rounds with eleven wins.
 

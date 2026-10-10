@@ -177,8 +177,14 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// The wave out of the regular ones, or how far into the extension.
-  static String _wave(DefensePayload? state) {
+  /// [short] drops the word for windows too narrow for the whole line.
+  static String _wave(DefensePayload? state, {bool short = false}) {
     final wave = state?.wave ?? 0;
+    if (short) {
+      return state != null && state.extended
+          ? tr('$wave · VERL.', '$wave · EXT.')
+          : '$wave/${GameConfig.defenseWaves}';
+    }
     return state != null && state.extended
         ? tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION')
         : tr(
@@ -206,23 +212,6 @@ class _HudOverlayState extends State<HudOverlay> {
         children: [
           if (touch) _compact(game) else _status(game),
           _effects(game),
-          if (!touch)
-            Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _HudButtons(
-                  game: game,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const MuteButton(),
-                      LeaveRoundButton(game: game),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           EnemyIndicators(game: game),
           // A paired phone or a controller brings its own sticks.
           if (touch)
@@ -291,12 +280,38 @@ class _HudOverlayState extends State<HudOverlay> {
         if (round != null && round.defense) {
           final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
+          // The plate shares its row with the buttons; when the whole line
+          // does not fit, the wave goes without its word first and then the
+          // comrades are shortened as on the phone.
+          List<String> lines(DefensePayload? state) => [
+            for (final short in const [false, true])
+              '${_wave(state, short: short)}   '
+                  '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                  '${tr('KAMERADEN', 'COMRADES')} $allies',
+            '${_wave(state, short: true)}   '
+                '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                '${tr('KAM.', 'ALLIES')} $allies',
+          ];
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
-            builder: (context, state, _) => Text(
-              '${_wave(state)}   ${tr('FEINDE', 'ENEMIES')} $enemies   '
-              '${tr('KAMERADEN', 'COMRADES')} $allies',
-              style: style,
+            builder: (context, state, _) => LayoutBuilder(
+              builder: (context, constraints) {
+                final candidates = lines(state);
+                final painter = TextPainter(
+                  textDirection: TextDirection.ltr,
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                );
+                final merged = DefaultTextStyle.of(context).style.merge(style);
+                final text = candidates.firstWhere((line) {
+                  painter
+                    ..text = TextSpan(text: line, style: merged)
+                    ..layout();
+                  return painter.width <= constraints.maxWidth;
+                }, orElse: () => candidates.last);
+                painter.dispose();
+                return Text(text, style: style);
+              },
             ),
           );
         }
@@ -449,22 +464,21 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// Shells, and below them the fuel from the middle level on. The easy
-  /// level hides the fuel and never runs out of shells.
+  /// level hides the fuel and never runs out of shells, so it shows
+  /// neither: an endless gauge would only take room.
   Widget _ammo(TankGame game) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ValueListenableBuilder<int>(
-          valueListenable: game.ammoNotifier,
-          builder: (context, ammo, _) => AmmoGauge(
-            ammo: ammo,
-            maxAmmo: game.myMagazine,
-            endless: game.endlessAmmo,
+        if (!game.endlessAmmo)
+          ValueListenableBuilder<int>(
+            valueListenable: game.ammoNotifier,
+            builder: (context, ammo, _) =>
+                AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, endless: false),
           ),
-        ),
         if (game.usesFuel) ...[
-          const SizedBox(height: 6),
+          if (!game.endlessAmmo) const SizedBox(height: 6),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
             builder: (context, fuel, _) => FuelGauge(fuel: fuel),
@@ -475,9 +489,12 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   Widget _effects(TankGame game) {
+    // On a desktop the defense panel fills the lower left and hid the wave
+    // announcements, so there they show above the middle.
+    final high = (game.round?.defense ?? false) && !game.touchMode.value;
     return IgnorePointer(
       child: Align(
-        alignment: const Alignment(0, 0.55),
+        alignment: high ? const Alignment(0, -0.35) : const Alignment(0, 0.55),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -584,7 +601,7 @@ class _HudOverlayState extends State<HudOverlay> {
   /// Short windows such as a laptop browser bring it up under the gauges.
   bool _gaugesMeetInventory(TankGame game, double height) {
     final scale = MediaQuery.textScalerOf(context).scale(1);
-    final plates = game.usesFuel ? 3 : 2;
+    final plates = 1 + (game.endlessAmmo ? 0 : 1) + (game.usesFuel ? 1 : 0);
     final gaugesBottom = 16 + plates * _plateHeight * scale;
     // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
     final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
@@ -592,12 +609,10 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   Widget _status(TankGame game) {
-    return IgnorePointer(
-      child: LayoutBuilder(
-        builder: (context, constraints) => _statusColumn(
-          game,
-          _gaugesMeetInventory(game, constraints.maxHeight),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) => _statusColumn(
+        game,
+        _gaugesMeetInventory(game, constraints.maxHeight),
       ),
     );
   }
@@ -611,46 +626,74 @@ class _HudOverlayState extends State<HudOverlay> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: game.hpNotifier,
-                    builder: (context, hp, _) =>
-                        HealthBar(hp: hp, maxHp: game.myMaxHp),
-                  ),
-                  const SizedBox(height: 6),
-                  _ammo(game),
-                ],
-              ),
-              const Spacer(),
-              Panel(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+              IgnorePointer(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _alive(game, 16),
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.soldiersRunOver,
-                      builder: (context, n, _) => n == 0
-                          ? const SizedBox()
-                          : Text(
-                              tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                              style: const TextStyle(
-                                color: GameColors.danger,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
+                    ValueListenableBuilder<double>(
+                      valueListenable: game.hpNotifier,
+                      builder: (context, hp, _) =>
+                          HealthBar(hp: hp, maxHp: game.myMaxHp),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _zoneLabel(),
-                      style: const TextStyle(color: GameColors.amber),
+                    if (!game.endlessAmmo || game.usesFuel)
+                      const SizedBox(height: 6),
+                    _ammo(game),
+                  ],
+                ),
+              ),
+              // The buttons sit in the row beside the plate, so a long wave
+              // line pushes them aside instead of running underneath them,
+              // and a narrow window wraps the plate rather than overflowing.
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HudButtons(
+                      game: game,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MuteButton(),
+                          LeaveRoundButton(game: game),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: IgnorePointer(
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _alive(game, 16),
+                              ValueListenableBuilder<int>(
+                                valueListenable: game.soldiersRunOver,
+                                builder: (context, n, _) => n == 0
+                                    ? const SizedBox()
+                                    : Text(
+                                        tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
+                                        style: const TextStyle(
+                                          color: GameColors.danger,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _zoneLabel(),
+                                style: const TextStyle(color: GameColors.amber),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -668,13 +711,13 @@ class _HudOverlayState extends State<HudOverlay> {
                 constrainedAxis: Axis.horizontal,
                 alignment: Alignment.bottomLeft,
                 clipBehavior: Clip.hardEdge,
-                child: KillFeedView(feed: game.killFeed),
+                child: IgnorePointer(child: KillFeedView(feed: game.killFeed)),
               ),
             ),
           ),
           Align(
             alignment: Alignment.bottomRight,
-            child: MiniMap(game: game),
+            child: IgnorePointer(child: MiniMap(game: game)),
           ),
         ],
       ),
@@ -711,6 +754,9 @@ enum _Shop { closed, towers, upgrades }
 
 class _DefensePanelState extends State<_DefensePanel> {
   _Shop _shop = _Shop.closed;
+
+  /// The list the desktop panel shows, the guns to begin with.
+  _Shop _desk = _Shop.towers;
 
   TankGame get game => widget.game;
   bool get touch => widget.touch;
@@ -805,13 +851,13 @@ class _DefensePanelState extends State<_DefensePanel> {
                         ? _buttonStyle
                         : _buyStyle(GameColors.oliveLight),
                     onPressed:
-                        credits >= kind.cost &&
+                        credits >= game.buildCost(kind) &&
                             kind.unlockedIn(wave, extended: extended)
                         ? () => game.buildTower(kind)
                         : null,
                     child: Text(
                       kind.unlockedIn(wave, extended: extended)
-                          ? '${kind.label} ${kind.cost}'
+                          ? '${kind.label} ${game.buildCost(kind)}'
                           : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
                       style: _small,
                     ),
@@ -833,6 +879,10 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _shopDesktop(int credits) {
     final near = game.nearTower.value;
+    final bounty = GameConfig.bountyIn(
+      GameConfig.creditsPerKill,
+      max(1, game.defense.value?.wave ?? 1),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -845,11 +895,45 @@ class _DefensePanelState extends State<_DefensePanel> {
             fontWeight: FontWeight.w800,
           ),
         ),
+        Text(
+          tr(
+            'Geld gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
+                'jeder Welle weniger) und jede abgewehrte Welle '
+                '(+${GameConfig.waveBonus}).',
+            'Money comes with your own kills (a tank now +$bounty, less '
+                'with every wave) and every wave beaten off '
+                '(+${GameConfig.waveBonus}).',
+          ),
+          style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+        ),
         const SizedBox(height: 6),
-        if (near != null) _nearTower(near, credits) else _towers(credits),
+        // One list at a time, like on phones: with both the panel covered a
+        // quarter of a laptop screen and the road beneath it.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
+            const SizedBox(width: 6),
+            _deskTab('UPGRADES', _Shop.upgrades),
+          ],
+        ),
         const SizedBox(height: 6),
-        _upgrades(credits),
+        if (_desk == _Shop.upgrades)
+          _upgrades(credits)
+        else if (near != null)
+          _nearTower(near, credits)
+        else
+          _towers(credits),
       ],
+    );
+  }
+
+  Widget _deskTab(String label, _Shop shop) {
+    final open = _desk == shop;
+    return (open ? FilledButton.new : OutlinedButton.new)(
+      style: _buttonStyle,
+      onPressed: () => setState(() => _desk = shop),
+      child: Text(label, style: _small),
     );
   }
 
@@ -1182,7 +1266,9 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ? 0
                       : (kIsWeb ? 96 : 48),
                 )
-              : const EdgeInsets.all(8),
+              // Desktops: clear of the mini map in the lower right, so a
+              // narrow window wraps the buttons instead of covering it.
+              : const EdgeInsets.fromLTRB(8, 8, MiniMap.defaultSize + 24, 8),
           child: _HudButtons(game: game, child: panel),
         ),
       ),

@@ -136,8 +136,8 @@ class RoundState {
     return GameConfig.styleOf(DefenseMap.enemyType(wave, n).index, 1);
   }
 
-  /// Look of a comrade, which follows from its slot: in camouflage, so it
-  /// stands apart from the loud colours of the players and from the enemy.
+  /// Vehicle of a comrade, which follows from its slot. The colour is the
+  /// defenders' red like that of every tank on their side.
   int allyStyle(String id) {
     final slot = int.tryParse(id.split('-')[1]) ?? 0;
     return GameConfig.styleOf(DefenseMap.allyType(slot).index, 0);

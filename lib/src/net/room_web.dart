@@ -72,6 +72,27 @@ void rememberTutorialSeen() {
   }
 }
 
+const _veteranKey = 'panzergefecht.veteran';
+
+/// Whether this browser has played a round to its end. Until then the CPU
+/// tanks start on the easy level.
+bool roundPlayed() {
+  try {
+    return web.window.localStorage.getItem(_veteranKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that a round was played to its end.
+void rememberRoundPlayed() {
+  try {
+    web.window.localStorage.setItem(_veteranKey, '1');
+  } on Object {
+    // Without storage the next visit simply starts on easy again.
+  }
+}
+
 /// Back from a sign-in mail: drops its one time code and any room from the
 /// address, so a reload does not try the code again and the game opens a
 /// fresh room on the start page.
@@ -204,6 +225,10 @@ void rememberPadCode(String? code) {
 
 /// The browser reads a pairing link from its own address at the start.
 void Function(String code)? onPadLink;
+
+/// Chat invitations open the apps only: in the browser the guest's link
+/// simply joins the room, whose host picks the mode.
+void Function(String mode)? onModeLink;
 
 /// The pairing code this page was opened with, from `?pad=CODE`: the page
 /// is then a phone's controller instead of the game.

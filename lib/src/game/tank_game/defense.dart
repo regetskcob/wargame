@@ -17,8 +17,10 @@ extension TankGameDefense on TankGame {
     _weather = WeatherLayer(conditions!);
     world.add(field);
     _fitCamera();
-    credits.value = GameConfig.startCredits;
+    // The screenshot mode brings funds for a row of guns, see Env.shots.
+    credits.value = Env.shots ? 2000 : GameConfig.startCredits;
     _towerCounter = 0;
+    _enemyGunCounter = 0;
     guard.worldReach = DefenseMap.bounds.bottomRight.distance;
     _powerUpSlots = PowerUpSlot.scheduleDefense(
       activeRound.seed,
@@ -114,7 +116,7 @@ extension TankGameDefense on TankGame {
         PlayerTank(
             playerId: id,
             playerName: activeRound.botName(id),
-            tankColor: GameConfig.colorOf(style),
+            tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at.clone(),
             angle: TankGame._headingFrom(at, map.road[1]),
@@ -158,7 +160,7 @@ extension TankGameDefense on TankGame {
         PlayerTank(
             playerId: id,
             playerName: activeRound.botName(id),
-            tankColor: GameConfig.colorOf(style),
+            tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at,
             angle: TankGame._headingFrom(at, route.first),
@@ -304,15 +306,17 @@ extension TankGameDefense on TankGame {
     );
   }
 
-  /// Whether a shot of [ownerId] wears down a gun of [towerOwner]: the
-  /// enemy's in a common round, the other side's and the waves' in a duel.
+  /// Whether a shot of [ownerId] wears down a gun of [towerOwner]: in a
+  /// common round the enemy's shots the players' guns and the defenders'
+  /// shots the enemy's, the other side's and the waves' in a duel.
   bool hurtsTower(String ownerId, String towerOwner) {
     final activeRound = round;
     if (activeRound == null) {
       return false;
     }
     if (!activeRound.duel) {
-      return activeRound.isEnemy(ownerId);
+      return ownerId.isNotEmpty &&
+          activeRound.isEnemy(ownerId) != activeRound.isEnemy(towerOwner);
     }
     final team = activeRound.teamOf(ownerId);
     return team != 0 && team != activeRound.teamOf(towerOwner);
@@ -478,20 +482,25 @@ extension TankGameDefense on TankGame {
         .length;
     final limit = build.isGun ? towerLimit : GameConfig.maxTrenches;
     final locked = build.lockedIn(defense.value?.wave ?? 0, extended: extended);
+    final cost = buildCost(build);
     final reason = locked != null
         ? '${build.label} $locked'
-        : credits.value < build.cost
+        : credits.value < cost
         ? tr('Zu wenig Mittel', 'Not enough funds')
         : mine >= limit
         ? build.isGun
               ? tr('Höchstens $limit Geschütze', 'At most $limit turrets')
               : tr('Höchstens $limit Gräben', 'At most $limit trenches')
-        : map.whyNotBuild(tank.position, towers.values.map((t) => t.position));
+        : map.whyNotBuild(
+            tank.position,
+            towers.values.map((t) => t.position),
+            onRoad: !build.isGun,
+          );
     if (reason != null) {
       showNotice(reason.toUpperCase());
       return;
     }
-    credits.value -= build.cost;
+    credits.value -= cost;
     final payload = TowerPayload(
       id: myId,
       index: _towerCounter++,
@@ -571,7 +580,16 @@ extension TankGameDefense on TankGame {
       }
     }
     towerChoice.value = next;
-    showNotice('${next.label} ${next.cost}');
+    showNotice('${next.label} ${buildCost(next)}');
+  }
+
+  /// What the next gun or trench of [kind] costs the local player: every
+  /// one of the same kind they already have makes it dearer.
+  int buildCost(TowerKind kind) {
+    final owned = towers.values
+        .where((t) => t.ownerId == myId && !t.isHq && t.kind == kind)
+        .length;
+    return (kind.cost * (1 + GameConfig.towerCostStep * owned)).round();
   }
 
   /// How many guns a player may have: more as the base grows.
@@ -655,6 +673,24 @@ extension TankGameDefense on TankGame {
       showNotice(
         tr('${tower.kind.label} ZERSTÖRT', '${tower.kind.label} DESTROYED'),
       );
+    } else if ((round?.isEnemy(tower.ownerId) ?? false) &&
+        tower.lastHitBy == myId) {
+      final bounty = GameConfig.bountyIn(
+        GameConfig.creditsPerGun,
+        defense.value?.wave ?? 1,
+      );
+      credits.value += bounty;
+      if (!replaying.value) {
+        roundStats.kills++;
+      }
+      world.add(KillMarker(position: tower.position.clone()));
+      _showGain(tower.position, bounty);
+      showNotice(
+        tr(
+          'FEINDLICHE ${tower.kind.label} ZERSTÖRT  +$bounty',
+          'ENEMY ${tower.kind.label} DESTROYED  +$bounty',
+        ),
+      );
     }
     if (nearTower.value == tower) {
       nearTower.value = null;
@@ -662,8 +698,9 @@ extension TankGameDefense on TankGame {
     tower.removeFromParent();
   }
 
-  /// Host: a blast of the enemy at [at] wears down the guns and trenches
-  /// around it.
+  /// A blast of [ownerId] at [at] wears down the hostile guns and trenches
+  /// around it. Only the host keeps their score, every client notes who
+  /// hit them.
   void _blastTowers(String ownerId, Vector2 at, double radius, double damage) {
     for (final tower in towers.values.toList()) {
       if (!hurtsTower(ownerId, tower.ownerId)) {
@@ -671,33 +708,36 @@ extension TankGameDefense on TankGame {
       }
       final distance = tower.position.distanceTo(at);
       if (distance <= radius + 26) {
+        tower.lastHitBy = ownerId;
         damageTower(tower, damage * (1 - 0.5 * (distance / (radius + 26))));
       }
     }
   }
 
-  /// The closest gun or trench of the defenders within [range] of [from],
-  /// for the enemy to shoot at when no tank is near.
-  /// In a duel only the guns of the side other than that of [of], the
-  /// guns of a base included.
+  /// The closest gun or trench within [range] of [from] that does not
+  /// belong to the side of [of]: the defenders' for the enemy, the enemy's
+  /// for the defenders, in a duel the other side's.
   Tower? nearestTower(Vector2 from, double range, {String? of}) {
     final activeRound = round;
-    final duel = activeRound != null && activeRound.duel && of != null;
-    final own = duel ? activeRound.teamOf(of) : 0;
+    final own = activeRound == null || of == null
+        ? null
+        : activeRound.teamOf(of);
     return _nearestOf(from, range, [
       for (final tower in towers.values)
         // The guns of a base cannot be destroyed: no use shooting at them.
         if (tower.hp > 0 &&
             !tower.isHq &&
-            (!duel || activeRound.teamOf(tower.ownerId) != own))
+            (own == null || activeRound!.teamOf(tower.ownerId) != own))
           tower,
     ]);
   }
 
-  /// Whether a tank at [at] stands in a trench, any player's.
-  bool inTrench(Vector2 at) => towers.values.any(
+  /// Whether the tank of [of] at [at] stands in a trench of its own side.
+  /// A trench across the road gives the enemy rolling over it no cover.
+  bool inTrench(Vector2 at, {required String of}) => towers.values.any(
     (t) =>
         t.kind == TowerKind.trench &&
+        !hurtsTower(of, t.ownerId) &&
         t.position.distanceTo(at) < GameConfig.trenchReach,
   );
 
@@ -787,10 +827,11 @@ extension TankGameDefense on TankGame {
     if (hp != null && hp <= 0) {
       return;
     }
+    final enemy = round?.isEnemy(payload.id) ?? false;
     final tower = Tower(
       ownerId: payload.id,
       index: payload.index,
-      color: _colorFor(payload.id),
+      color: enemy ? GameConfig.teamColors[2] : _colorFor(payload.id),
       position: Vector2(payload.x, payload.y),
       kind:
           TowerKind.values[payload.kind.clamp(0, TowerKind.values.length - 1)],
@@ -798,28 +839,99 @@ extension TankGameDefense on TankGame {
     );
     towers[tower.id] = tower;
     world.add(tower);
+    if (enemy) {
+      showNotice(
+        tr(
+          'FEIND GRÄBT ${tower.kind.label} EIN',
+          'ENEMY DIGS IN ${tower.kind.label}',
+        ),
+      );
+    }
   }
 
-  /// A cannon or flak gun of the local player fires where it points.
+  /// Host, as a wave rolls in: the enemy digs in guns beside the first
+  /// stretch of the road, as many as [GameConfig.enemyGunsIn] the wave,
+  /// on the spots of [DefenseMap.enemyGunSpots] that are free. The ones
+  /// still standing come up to the wave's level.
+  void digInEnemyGuns(int wave) {
+    final activeRound = round;
+    final map = laneMap(0);
+    if (activeRound == null ||
+        activeRound.duel ||
+        activeRound.botHost != myId ||
+        map == null) {
+      return;
+    }
+    final level = GameConfig.enemyGunLevelIn(wave);
+    final standing = [
+      for (final tower in towers.values)
+        if (tower.ownerId == TankGame.enemyGunOwner) tower,
+    ];
+    for (final tower in standing) {
+      if (tower.level < level) {
+        tower.upgradeTo(level);
+        net.send(
+          NetEvent.tower,
+          TowerPayload(
+            id: tower.ownerId,
+            index: tower.index,
+            x: tower.position.x,
+            y: tower.position.y,
+            kind: tower.kind.index,
+            level: tower.level,
+          ).toJson(),
+        );
+      }
+    }
+    var missing = GameConfig.enemyGunsIn(wave) - standing.length;
+    for (var i = 0; i < map.enemyGunSpots.length && missing > 0; i++) {
+      final at = map.enemyGunSpots[i];
+      if (towers.values.any(
+        (t) => t.position.distanceTo(at) < GameConfig.towerSpacing,
+      )) {
+        continue;
+      }
+      // Cannon and flak by turns, so the players' aircraft get no free
+      // run over the enemy either.
+      final index = _enemyGunCounter++;
+      final payload = TowerPayload(
+        id: TankGame.enemyGunOwner,
+        index: index,
+        x: at.x,
+        y: at.y,
+        kind: (index.isEven ? TowerKind.cannon : TowerKind.flak).index,
+        level: level,
+      );
+      _addTower(payload);
+      net.send(NetEvent.tower, payload.toJson());
+      missing--;
+    }
+  }
+
+  /// A cannon or flak gun this client runs fires where it points: the
+  /// local player's, or the enemy's on the player who runs the waves.
   void fireTower(Tower tower) {
+    final owner = tower.ownerId;
     final direction = Vector2(sin(tower.turretAngle), -cos(tower.turretAngle));
-    final bulletId = '$myId-${_bulletCounter++}';
+    final bulletId = '$owner-${_bulletCounter++}';
     final start = tower.position + direction * 44;
     tower.fired(direction);
     _spawnBullet(
       bulletId: bulletId,
-      ownerId: myId,
+      ownerId: owner,
       position: start,
       direction: direction,
       color: tower.color,
       speed: tower.kind.shotSpeed,
-      damage: tower.kind.damage * tower.kind.damageFactor(tower.level),
+      damage: tower.kind.groundDamageAt(tower.level),
+      airDamage: tower.kind.airDamageAt(tower.level),
+      burst: tower.kind.burst,
       antiAir: tower.kind.antiAir,
     );
     net.send(
       NetEvent.shoot,
       ShootPayload(
-        id: myId,
+        id: owner,
         bulletId: bulletId,
         x: start.x,
         y: start.y,
@@ -873,29 +985,29 @@ extension TankGameDefense on TankGame {
   PositionComponent? towerTarget(Tower tower) {
     final at = tower.position;
     final range = tower.range;
-    // In a duel a gun fights everything not of its own side: the waves, the
-    // other player and their troops and guns.
+    // A gun fights everything not of its own side: the players' the waves
+    // and the enemy's guns, the enemy's the players, their comrades, guns
+    // and aircraft, in a duel the other player and their troops as well.
     final activeRound = round;
-    final duel = activeRound?.duel ?? false;
-    final own = duel ? activeRound!.teamOf(tower.ownerId) : 1;
-    TankBase? tanks() =>
-        duel ? nearestHostile(at, range, own) : nearestEnemy(at, range);
-    final soldiers = duel ? _hostileSoldiers(own) : _enemySoldiers;
+    if (activeRound == null) {
+      return null;
+    }
+    final own = activeRound.teamOf(tower.ownerId);
+    TankBase? tanks() => nearestHostile(at, range, own);
+    final soldiers = _hostileSoldiers(own);
     Soldier? soldier() => _nearestOf(at, range, soldiers);
-    Tower? guns() => duel ? nearestTower(at, range, of: tower.ownerId) : null;
-    bool hostile(String id) => duel
-        ? activeRound!.teamOf(id) != 0 && activeRound.teamOf(id) != own
-        : activeRound?.isEnemy(id) ?? false;
+    Tower? guns() => nearestTower(at, range, of: tower.ownerId);
+    bool hostile(String id) =>
+        activeRound.teamOf(id) != 0 && activeRound.teamOf(id) != own;
     PositionComponent? air() => _nearestOf(at, range, [
       for (final plane in aircraft.values)
-        if (plane.hp > 0 && (duel ? hostile(plane.unitId) : !plane.friendly))
-          plane,
+        if (plane.hp > 0 && hostile(plane.unitId)) plane,
       for (final drone in drones.values)
         if (hostile(drone.ownerId)) drone,
     ]);
     switch (tower.kind) {
       case TowerKind.flak:
-        return air() ?? tanks();
+        return air() ?? tanks() ?? guns();
       case TowerKind.cannon:
         return tanks() ?? soldier() ?? guns();
       case TowerKind.rockets:
@@ -907,7 +1019,8 @@ extension TankGameDefense on TankGame {
             c.position.distanceTo(at) >= tower.kind.minRange;
         final target = _nearestOf(at, range, [
           for (final tank in _allTanks)
-            if ((duel ? tank.team != 0 && tank.team != own : tank.team == 2) &&
+            if (tank.team != 0 &&
+                tank.team != own &&
                 tank.hp > 0 &&
                 outside(tank))
               tank,
@@ -980,13 +1093,6 @@ extension TankGameDefense on TankGame {
       }
     }
     _setPhase(GamePhase.roundOver);
-    Future<void>.delayed(
-      const Duration(seconds: GameConfig.roundOverSeconds),
-      () {
-        if (round == activeRound && phase.value == GamePhase.roundOver) {
-          backToLobby();
-        }
-      },
-    );
+    _leaveEndScreenLater(activeRound);
   }
 }

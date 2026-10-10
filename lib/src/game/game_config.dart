@@ -20,6 +20,11 @@ class GameConfig {
   /// the phone's distance are hard to make out.
   static const watchZoom = 1.12;
 
+  /// Upright phones look closer still, see `viewScale`. Below this short
+  /// side in logical pixels a screen counts as a phone.
+  static const uprightPhoneZoom = 1.2;
+  static const phoneShortSide = 500.0;
+
   /// Top speed of every tank in a solo round on the watch. Steering with the
   /// crown is slower than with a thumb, so the round runs a little calmer.
   /// Only solo: in a shared round all players drive alike.
@@ -234,6 +239,39 @@ class GameConfig {
   static const creditsPerKill = 20;
   static const waveBonus = 50;
 
+  /// Bounties shrink with every wave by this share of the first wave's, so
+  /// the larger waves later on do not flood the players with funds: every
+  /// further gun has to be earned harder, while the wave bonus stays.
+  static const bountyDecay = 0.2;
+
+  /// What a kill worth [base] in the first wave brings in [wave], never
+  /// less than one.
+  static int bountyIn(int base, int wave) =>
+      max(1, (base / (1 + bountyDecay * max(0, wave - 1))).round());
+
+  /// Every further gun of the same kind a player builds costs this share of
+  /// its price more, so a wall of one kind gets dear.
+  static const towerCostStep = 0.3;
+
+  /// From [enemyGunsFromWave] on the enemy digs in guns of its own beside
+  /// the first stretch of the road, one more every second wave up to
+  /// [maxEnemyGuns], and rebuilds the ones the players destroyed. They fire
+  /// slower than the players' guns by [enemyGunCooldown] and bring
+  /// [creditsPerGun] (shrinking like any bounty) to whoever destroys them.
+  static const enemyGunsFromWave = 3;
+  static const maxEnemyGuns = 4;
+  static const enemyGunCooldown = 1.8;
+  static const creditsPerGun = 60;
+
+  /// How many guns the enemy holds in [wave].
+  static int enemyGunsIn(int wave) => wave < enemyGunsFromWave
+      ? 0
+      : min(maxEnemyGuns, 1 + (wave - enemyGunsFromWave) ~/ 2);
+
+  /// Level of the enemy's guns in [wave]: one step every three waves.
+  static int enemyGunLevelIn(int wave) =>
+      (1 + max(0, wave - enemyGunsFromWave) ~/ 3).clamp(1, 5);
+
   /// What a tank sent against the other side of a defense duel costs.
   static const troopCost = 120;
   static const towerCost = 100;
@@ -363,6 +401,32 @@ class GameConfig {
   /// Share of the tank a canister puts back.
   static const canisterShare = 0.65;
 
+  /// Fuel stations and ammunition depots, from the middle difficulty on.
+  /// [depotRadius] is the pad a tank parks on, slower than [depotStandSpeed]
+  /// counts as standing. A full tank or magazine takes [depotFillSeconds].
+  /// The [depotCoreRadius] in the middle takes shells, after
+  /// [depotRebuildSeconds] a destroyed one stands again.
+  static const depotRadius = 62.0;
+  static const depotCoreRadius = 18.0;
+  static const depotStandSpeed = 14.0;
+  static const depotFillSeconds = 6.0;
+  static const depotHp = 160.0;
+  static const depotRebuildSeconds = 45.0;
+
+  /// A depot that goes up takes the tanks around it along.
+  static const depotBlastRadius = 110.0;
+  static const depotBlastDamage = 45.0;
+
+  /// Depots of a free for all, half fuel and half ammunition, on a ring
+  /// inside the start positions so the closing zone keeps some of them.
+  static const depotCount = 4;
+  static const depotRingMin = 260.0;
+  static const depotRingMax = 470.0;
+
+  /// In capture the flag each team has its own pair behind its base.
+  static const flagDepotBehind = 130.0;
+  static const flagDepotSide = 120.0;
+
   /// The bomber from a gem on the hard level.
   static const airstrikeBombs = 4;
   static const airstrikeReach = 700.0;
@@ -375,7 +439,10 @@ class GameConfig {
 
   /// With other people, CPU tanks fill the field up to this many tanks.
   static const fillTo = 4;
-  static const roundOverSeconds = 10;
+
+  /// How long the end screen of a round with other people stays before it
+  /// goes back to the waiting room. Alone it stays until the player picks.
+  static const roundOverSeconds = 15;
 
   /// Paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white and
   /// NATO grey for everybody, then four that come with higher ranks.

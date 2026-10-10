@@ -439,12 +439,16 @@ class PadScreen extends _PadChannel {
 
   /// Every phone back to the way without a duel: the first steers [game].
   void clearRoutes() {
-    for (final target in _routes.values) {
+    // Emptied before the games hear of it: a game told it lost its phone
+    // can hand the phones out again (the Apple TV's second player does), and
+    // that must not change the map this loop walks.
+    final released = _routes.values.toList();
+    _routes.clear();
+    _statusGates.clear();
+    for (final target in released) {
       _release(target);
       target.padSteered.value = false;
     }
-    _routes.clear();
-    _statusGates.clear();
     _updateSteered();
     unawaited(_claimSlot());
   }

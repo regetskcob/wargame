@@ -1,9 +1,10 @@
 Panzergefecht is a fast top-down tank duel. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
 
-THREE WAYS TO PLAY
+FOUR WAYS TO PLAY
 • Single player: you against up to four CPU tanks on three difficulty levels, rolled anew every round.
 • Multiplayer: meet other players in a shared room, free for all or red against blue. CPU tanks fill up on request.
 • Defense: hold the base together against eight waves, then carry on if you like until it falls. Enemies roll down the road, from the second wave they also come through the air. Every kill earns funds for cannon, flak, mortar, howitzer and trenches as well as upgrades for your tank.
+• Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Destroyed tanks are back in a few seconds, three captures win.
 
 EIGHT VEHICLES
 From the nimble weapon carrier to the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
@@ -11,15 +12,17 @@ From the nimble weapon carrier to the heavy main battle tank. Every vehicle has 
 TERRAIN AND WEATHER
 Training ground, desert, winter and city, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
 
-MADE FOR TOUCH
+MADE FOR TOUCH AND CONTROLLERS
 • Two sticks that appear wherever your thumb lands
 • Aim assist that turns the turret to the nearest enemy
 • Playable in portrait and landscape, on phone and tablet
+• Game controllers are supported, with two of them you play two on one screen on a tablet
+• Phone as controller: scan a QR code and your phone becomes the gamepad for the game in the browser or on a tablet
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. The leaderboard only shows the call sign you chose yourself.
+Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. On the leaderboard everything you do counts: rounds, wins, kills, accuracy and rating add up to your points. It only shows the call sign you chose yourself.
 
-No ads, no in-app purchases, no tracking.
+No ads, no tracking.
 
 Panzergefecht is a private, non-commercial game and has no connection to any armed forces or vehicle manufacturer.

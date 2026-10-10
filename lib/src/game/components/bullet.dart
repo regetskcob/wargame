@@ -13,6 +13,7 @@ import 'drone.dart';
 import 'effects.dart';
 import 'obstacle.dart';
 import 'soldier.dart';
+import 'supply_depot.dart';
 
 class Bullet extends PositionComponent
     with HasGameRef<TankGame>, CollisionCallbacks {
@@ -24,6 +25,8 @@ class Bullet extends PositionComponent
     required this.color,
     required this.damage,
     this.antiAir = false,
+    this.airDamage,
+    this.burst = 0,
     this.small = false,
   }) : super(size: Vector2.all(6), anchor: Anchor.center, priority: 5);
 
@@ -36,10 +39,22 @@ class Bullet extends PositionComponent
   /// Fired by flak or the Habicht: brings down aircraft and drones.
   final bool antiAir;
 
+  /// What it does to aircraft when that differs from [damage] times
+  /// [GameConfig.antiAirFactor]: a flak shell hits the sky far harder than
+  /// the ground.
+  final double? airDamage;
+
+  /// A flak shell's proximity fuse: it bursts this close to an aircraft or
+  /// drone it may hit, see [TowerKind.burst]. 0 for every other shell.
+  final double burst;
+
   /// A rifle bullet, drawn thinner than a shell.
   final bool small;
 
   double _ttl = GameConfig.bulletTtl;
+
+  /// Seconds of flight before a shell can hit a depot.
+  static const _armSeconds = 0.1;
 
   @override
   void onLoad() {
@@ -52,6 +67,38 @@ class Bullet extends PositionComponent
     _ttl -= dt;
     if (_ttl <= 0) {
       removeFromParent();
+      return;
+    }
+    if (burst > 0) {
+      _proximity();
+    }
+  }
+
+  /// Bursts next to an aircraft or drone in reach of the fuse. Only the
+  /// client that flies it takes the hit, as for a direct one.
+  void _proximity() {
+    // Gone from the field only at the next tick: it must not burst twice.
+    if (isRemoving) {
+      return;
+    }
+    for (final plane in gameRef.aircraft.values) {
+      if (plane.isMounted &&
+          plane.position.distanceTo(position) < burst &&
+          plane.damageFrom(this) > 0 &&
+          plane.takeHit(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+        return;
+      }
+    }
+    for (final drone in gameRef.drones.values) {
+      if (drone.isMounted &&
+          drone.position.distanceTo(position) < burst &&
+          drone.shootDown(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+        return;
+      }
     }
   }
 
@@ -86,6 +133,7 @@ class Bullet extends PositionComponent
       // Enemy shells wear the guns down, the defenders shoot over them.
       if (gameRef.hurtsTower(ownerId, other.ownerId)) {
         _impact(const Color(0xFF8A8A80));
+        other.lastHitBy = ownerId;
         // The player who runs the waves keeps the score of every gun, also
         // of the other player's shots in a duel.
         if (gameRef.round?.botHost == gameRef.myId) {
@@ -120,6 +168,20 @@ class Bullet extends PositionComponent
         gameRef.damageBase(damage, lane: other.lane);
         removeFromParent();
       }
+    } else if (other is SupplyDepot) {
+      // Leaving the pad, the own shell would start inside the depot: it
+      // only counts once it has flown a little. A team's shells fly over
+      // its own depots.
+      if (other.destroyed ||
+          GameConfig.bulletTtl - _ttl < _armSeconds ||
+          !gameRef.hurtsDepot(ownerId, other)) {
+        return;
+      }
+      _impact(const Color(0xFF8A7A5A));
+      if (gameRef.runsShooter(ownerId)) {
+        gameRef.damageDepot(other, damage, ownerId);
+      }
+      removeFromParent();
     } else if (other is Obstacle) {
       _impact(const Color(0xFFB8B0A0));
       // Only the shooter's client applies the damage and tells the others.
