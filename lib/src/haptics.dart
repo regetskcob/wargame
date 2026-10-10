@@ -1,7 +1,12 @@
 import 'package:flutter_watchos/flutter_watchos.dart';
 
-/// Taptic Engine feedback on the Apple Watch. Does nothing anywhere else:
-/// `WatchHaptics` is a no-op off the watch, and the Simulator has no engine.
+import 'watch/watch_support.dart';
+import 'watch/wear_crown.dart';
+import 'watch/wear_haptics.dart';
+
+/// Taps the wrist: the Taptic Engine on the Apple Watch, the vibration motor
+/// on Wear OS. Does nothing anywhere else, and the Apple Watch Simulator has
+/// no engine.
 class Haptics {
   /// Shakes come in bursts; one tap per burst is enough.
   static const _minGap = Duration(milliseconds: 150);
@@ -10,7 +15,7 @@ class Haptics {
   /// The screen shakes by [strength]: own tank hit, or a blast close by. A
   /// small shake is a click, a heavy one a notification.
   static void shake(double strength) {
-    if (!FlutterWatchosPlatform.isWatch || strength < 1) {
+    if (!onWatch || strength < 1) {
       return;
     }
     final now = DateTime.now();
@@ -18,9 +23,7 @@ class Haptics {
       return;
     }
     _last = now;
-    WatchHaptics.play(
-      strength >= 8 ? WatchHapticType.notification : WatchHapticType.click,
-    );
+    _play(strength >= 8 ? WatchHapticType.notification : WatchHapticType.click);
   }
 
   /// One second of the countdown.
@@ -39,6 +42,8 @@ class Haptics {
   static void _play(WatchHapticType type) {
     if (FlutterWatchosPlatform.isWatch) {
       WatchHaptics.play(type);
+    } else if (onWear) {
+      WearHaptics.play(type);
     }
   }
 }

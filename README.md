@@ -135,6 +135,9 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
+- Wear OS: the watch screens, crown steering, the round layout and the Wear
+  OS bundle are ready; next the form factor in the Play Console and a real
+  watch.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

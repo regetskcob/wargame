@@ -1,0 +1,15 @@
+<!-- Merged into the app only for the Wear OS build (`-P wear=true`, see
+     app/build.gradle.kts). The phone bundle must not carry it: Play would
+     then only offer the app to watches. -->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <uses-feature android:name="android.hardware.type.watch" />
+    <!-- Taps the wrist on hits, the countdown and the end of the round. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <application>
+        <!-- Plays without a paired phone: the watch reaches Supabase on its
+             own over Wi-Fi or LTE. -->
+        <meta-data
+            android:name="com.google.android.wearable.standalone"
+            android:value="true" />
+    </application>
+</manifest>

@@ -31,7 +31,10 @@ step "flutter build ios --release --no-codesign"
 flutter build ios --release --no-codesign
 step "flutter build macos --release"
 flutter build macos --release
+step "flutter build appbundle --release (Wear OS)"
+flutter build appbundle --release --android-project-arg=wear=true
+# The phone bundle last, so build/ holds it afterwards.
 step "flutter build appbundle --release"
 flutter build appbundle --release
 
-printf '\nAll green: format, analyze, test, web, landing page, iOS, macOS, Android.\n'
+printf '\nAll green: format, analyze, test, web, landing page, iOS, macOS, Android, Wear OS.\n'

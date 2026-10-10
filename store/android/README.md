@@ -16,6 +16,7 @@ in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
 | Smartphone-Screenshots (1080 × 1920) | `metadata/android/de-DE/images/phoneScreenshots/*.png` |
 | Tablet-Screenshots 7" (1920 × 1200) | `metadata/android/de-DE/images/sevenInchScreenshots/*.png` |
 | Tablet-Screenshots 10" (2560 × 1600) | `metadata/android/de-DE/images/tenInchScreenshots/*.png` |
+| Wear-OS-Screenshots (quadratisch, mindestens 384 × 384) | `metadata/android/de-DE/images/wearScreenshots/*.png` |
 
 Play erlaubt keine Seite, die mehr als doppelt so lang ist wie die andere, die
 6,9"-Bilder aus dem App Store passen deshalb nicht. `../tool/compose.py`
@@ -62,6 +63,7 @@ Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
 
 | Eingabe | Bedeutung |
 | --- | --- |
+| `form_factor` | `phone` (Handy und Tablet) oder `wear` (Wear-OS-Uhren, siehe [Wear OS](#wear-os)) |
 | `track` | `internal` (interner Test), `alpha` (geschlossen), `beta` (offen), `production` |
 | `release_status` | `draft`, solange Store-Eintrag und Fragebögen unvollständig sind, danach `completed` |
 | `metadata` | Texte, Icon, Vorstellungsgrafik und Screenshots mit hochladen |
@@ -111,6 +113,27 @@ Ohne `release_status:completed` landet das Release als Entwurf und muss in
 der Play Console freigegeben werden. Solange die App noch nie freigegeben
 wurde, nimmt die API ohnehin nur Entwürfe an.
 
+## Wear OS
+
+Dieselbe App mit demselben Paketnamen läuft auf Wear-OS-Uhren (Galaxy Watch 4
+und neuer, Pixel Watch), siehe `docs/platforms.md` „Wear OS“. Play führt sie
+als eigenen Formfaktor mit eigenen Tracks (`wear:internal`,
+`wear:production` …) und eigenem Bundle:
+
+- `flutter build appbundle --release --android-project-arg=wear=true` hängt
+  das Manifest aus `android/wear/` an (`android.hardware.type.watch`,
+  standalone, Vibration), setzt minSdk 30 (Wear OS 3) und schlägt 100000 auf den
+  versionCode, damit er sich nie mit dem Handy-Bundle überschneidet.
+- Workflow **play** mit `form_factor: wear`, lokal
+  `bundle exec fastlane deploy form_factor:wear track:internal`, genauso
+  `promote form_factor:wear from:internal to:production`.
+
+Einmalig in der Play Console: Test und Release > Einstellungen > Formfaktoren
+> Wear OS hinzufügen und den Wear-OS-Richtlinien zustimmen. Erst dann gibt es
+die `wear:`-Tracks. Wear OS braucht eigene Screenshots (quadratisch, nur die
+App ohne Rahmen und ohne runde Maske), die Prüfung schaut sich die App auf
+einer Uhr an.
+
 ## Angaben in der Play Console
 
 **Datensicherheit:** Keine Weitergabe an Dritte, kein Tracking, Übertragung
@@ -157,3 +180,5 @@ sie nennt die Löschung per E-Mail.
    iOS-Ordner taugt als Testhinweis.
 2. **Einrichtung oben:** App anlegen, erster Upload von Hand, Dienstkonto und
    Secrets.
+3. **Wear OS:** Formfaktor in der Play Console hinzufügen, Wear-Screenshots
+   unter `wearScreenshots/`, die App einmal auf einer echten Uhr spielen.

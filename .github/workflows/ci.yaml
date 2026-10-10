@@ -46,3 +46,5 @@ jobs:
           flutter-version: 3.47.0
       - run: dart pub get
       - run: flutter build appbundle --release
+      # The same app for Wear OS watches, with the watch manifest.
+      - run: flutter build appbundle --release --android-project-arg=wear=true

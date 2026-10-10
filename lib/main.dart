@@ -16,6 +16,7 @@ import 'src/net/room.dart';
 import 'src/tv/tv_input.dart';
 import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
+import 'src/watch/wear_crown.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,8 +24,11 @@ Future<void> main() async {
   // stays, with a spinner, instead of a dark screen.
   await LoadingView.loadImages();
   runApp(const LoadingApp());
+  // A Wear OS watch runs the Android app with the watch screens.
+  await detectWear();
   if (!kIsWeb &&
       !onTv &&
+      !onWear &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
     // Phones play upright or sideways, tablets any way up, without system
