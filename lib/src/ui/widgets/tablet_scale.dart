@@ -7,6 +7,16 @@ import '../../tv/tv_input.dart';
 /// Shortest side from which a screen counts as a tablet.
 const tabletShortSide = 600.0;
 
+/// Whether this device has a phone's screen. Only phones serve as the
+/// controller of a game elsewhere: a tablet shows the game itself and pairs
+/// a phone of its own. Read from the device, not the window, so it holds
+/// before the first frame and whichever way the device is held.
+bool get deviceIsPhone {
+  final view = WidgetsBinding.instance.platformDispatcher.views.first;
+  return view.physicalSize.shortestSide / view.devicePixelRatio <
+      tabletShortSide;
+}
+
 /// How much the in-game HUD grows on [size]. Phones keep 1, tablets scale
 /// with their shorter side up to 1.4, so plates, sticks and buttons stay as
 /// easy to read and hit as on a phone.

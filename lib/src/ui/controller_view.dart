@@ -17,6 +17,7 @@ import 'theme.dart';
 import '../game/inventory.dart';
 import 'widgets/inventory_bar.dart';
 import 'widgets/panel.dart';
+import 'widgets/tablet_scale.dart';
 import 'widgets/touch_controls.dart';
 import '../l10n/l10n.dart';
 
@@ -63,9 +64,17 @@ class _ControllerViewState extends State<ControllerView> {
   /// The list of the defense shop that is folded out, null for none.
   _Shop? _shop;
 
+  /// Only a phone becomes a controller. A tablet that opened a pairing
+  /// link (from its camera, a QR code or the browser) says so instead and
+  /// never takes a seat on the screen.
+  final _phone = deviceIsPhone;
+
   @override
   void initState() {
     super.initState();
+    if (!_phone) {
+      return;
+    }
     _remote.status.addListener(_onStatus);
     _remote.screenOnline.addListener(_onOnline);
     if (widget.remote == null) {
@@ -108,10 +117,12 @@ class _ControllerViewState extends State<ControllerView> {
 
   @override
   void dispose() {
-    _remote.status.removeListener(_onStatus);
-    _remote.screenOnline.removeListener(_onOnline);
-    if (widget.remote == null) {
-      unawaited(_remote.stop());
+    if (_phone) {
+      _remote.status.removeListener(_onStatus);
+      _remote.screenOnline.removeListener(_onOnline);
+      if (widget.remote == null) {
+        unawaited(_remote.stop());
+      }
     }
     _special.dispose();
     super.dispose();
@@ -119,6 +130,9 @@ class _ControllerViewState extends State<ControllerView> {
 
   @override
   Widget build(BuildContext context) {
+    if (!_phone) {
+      return _tabletNotice(context);
+    }
     return Scaffold(
       backgroundColor: GameColors.background,
       body: ValueListenableBuilder<PadStatus?>(
@@ -159,6 +173,49 @@ class _ControllerViewState extends State<ControllerView> {
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _tabletNotice(BuildContext context) {
+    return Scaffold(
+      backgroundColor: GameColors.background,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 460),
+            child: Panel(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    tr('NUR AUF DEM HANDY', 'ON PHONES ONLY'),
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    tr(
+                      'Als Controller dient nur ein Handy. Auf einem Tablet '
+                          'spielst du selbst und kannst unter Konto › Handy '
+                          'koppeln ein Handy als Controller dazunehmen.',
+                      'Only a phone serves as a controller. On a tablet you '
+                          'play yourself and can add a phone as a controller '
+                          'under Account › Pair phone.',
+                    ),
+                    style: const TextStyle(color: GameColors.textDim),
+                  ),
+                  const SizedBox(height: 16),
+                  FilledButton(
+                    onPressed: _close,
+                    child: Text(tr('ZUM SPIEL', 'TO THE GAME')),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ),
       ),
     );
