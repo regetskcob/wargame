@@ -20,7 +20,15 @@ class DefenseField extends Component {
   final int seed;
   final DefenseMap map;
   final MapTheme theme;
-  late final Headquarters headquarters;
+
+  /// The base of every side, the left one first. A common round has one.
+  late final List<Headquarters> bases;
+
+  /// The base of a common round, the left one of a duel.
+  Headquarters get headquarters => bases.first;
+
+  /// The base of [lane].
+  Headquarters baseOf(int lane) => bases[lane.clamp(0, bases.length - 1)];
 
   /// Woods along the road, numbered like those of the open field so shots
   /// that cut them down travel the same way.
@@ -39,7 +47,7 @@ class DefenseField extends Component {
       DefenseMap.bounds.deflate(50).contains(position.toOffset()) &&
       map.distanceToRoad(position) > DefenseMap.roadHalfWidth + radius + 40 &&
       map.distanceToRiver(position) > DefenseMap.riverHalfWidth + radius + 16 &&
-      position.distanceTo(map.base) > 260 &&
+      map.bases.every((base) => position.distanceTo(base) > 260) &&
       position.distanceTo(map.outpost) > 90 + radius &&
       !map.bridges.any(
         (b) => b.centre.distanceTo(position) < b.halfLength + radius + 30,
@@ -64,17 +72,24 @@ class DefenseField extends Component {
 
   @override
   void onLoad() {
-    headquarters = Headquarters(
-      position: map.base.clone(),
-      approach: (map.road[map.road.length - 2] - map.base).normalized(),
-    );
-    add(headquarters);
-    add(
-      EnemyOutpost(
-        position: map.outpost.clone(),
-        facing: (map.road[0] - map.outpost).normalized(),
-      ),
-    );
+    bases = [
+      for (final (lane, side) in map.lanes.indexed)
+        Headquarters(
+          position: side.base.clone(),
+          approach: (side.road[side.road.length - 2] - side.base).normalized(),
+          lane: lane,
+        ),
+    ];
+    bases.forEach(add);
+    // In a duel the other side's base stands where the enemy rolls in.
+    if (!map.duel) {
+      add(
+        EnemyOutpost(
+          position: map.outpost.clone(),
+          facing: (map.road[0] - map.outpost).normalized(),
+        ),
+      );
+    }
     final random = Random(seed);
     _plantWoods(random);
     _buildHouses(random);
@@ -300,9 +315,12 @@ class _Road extends PositionComponent {
         ..color = const Color(0x88FFFFFF),
     );
 
-    final line = Path()..moveTo(map.road.first.x, map.road.first.y);
-    for (final point in map.road.skip(1)) {
-      line.lineTo(point.x, point.y);
+    final line = Path();
+    for (final road in map.roads) {
+      line.moveTo(road.first.x, road.first.y);
+      for (final point in road.skip(1)) {
+        line.lineTo(point.x, point.y);
+      }
     }
     final paved = theme.roads;
     canvas.drawPath(
@@ -326,9 +344,12 @@ class _Road extends PositionComponent {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 4
       ..color = paved ? const Color(0x88D9C14A) : const Color(0x55302618);
-    for (var i = 0; i < map.road.length - 1; i++) {
-      final a = map.road[i];
-      final b = map.road[i + 1];
+    for (final (road, i) in [
+      for (final road in map.roads)
+        for (var i = 0; i < road.length - 1; i++) (road, i),
+    ]) {
+      final a = road[i];
+      final b = road[i + 1];
       final along = b - a;
       final length = along.length;
       if (length == 0) {
@@ -352,7 +373,7 @@ class _Road extends PositionComponent {
 /// The base the players defend. Enemy shells and enemies that reach it wear
 /// it down. Its hit points come from the player who runs the enemies.
 class Headquarters extends PositionComponent {
-  Headquarters({required super.position, Vector2? approach})
+  Headquarters({required super.position, Vector2? approach, this.lane = 0})
     : approach = approach ?? Vector2(-1, 0),
       super(
         size: Vector2.all(DefenseMap.baseRadius * 2),
@@ -363,6 +384,9 @@ class Headquarters extends PositionComponent {
   /// Direction from the base to where the road comes in, kept free for the
   /// gate.
   final Vector2 approach;
+
+  /// The side whose base it is in a duel, 0 in a common round.
+  final int lane;
 
   double hp = GameConfig.baseHp;
 

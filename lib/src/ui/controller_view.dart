@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 
+import '../app/routes.dart';
 import '../game/game_phase.dart';
 import '../game/special_weapon.dart';
 import '../net/pad_link.dart';
@@ -33,14 +35,8 @@ class ControllerView extends StatefulWidget {
   final VoidCallback? onClose;
 
   /// Opens the controller over the game for the screen of [code].
-  static Future<void> open(BuildContext context, String code, String name) {
-    return Navigator.of(context).push<void>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => ControllerView(code: code, name: name),
-      ),
-    );
-  }
+  static Future<void> open(BuildContext context, String code, String name) =>
+      context.push<void>(Routes.pad(code, name: name));
 
   @override
   State<ControllerView> createState() => _ControllerViewState();
@@ -105,7 +101,7 @@ class _ControllerViewState extends State<ControllerView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: BwColors.background,
+      backgroundColor: GameColors.background,
       body: ValueListenableBuilder<PadStatus?>(
         valueListenable: _remote.status,
         builder: (context, status, _) => Stack(
@@ -181,7 +177,7 @@ class _ControllerViewState extends State<ControllerView> {
             children: [
               Icon(
                 online ? Icons.sports_esports : Icons.sync,
-                color: online ? BwColors.amber : BwColors.textDim,
+                color: online ? GameColors.amber : GameColors.textDim,
               ),
               const SizedBox(width: 10),
               Expanded(
@@ -196,14 +192,14 @@ class _ControllerViewState extends State<ControllerView> {
                       style: const TextStyle(
                         fontWeight: FontWeight.w900,
                         letterSpacing: 1.5,
-                        color: BwColors.sand,
+                        color: GameColors.sand,
                       ),
                     ),
                     if (hint != null)
                       Text(
                         hint,
                         style: const TextStyle(
-                          color: BwColors.textDim,
+                          color: GameColors.textDim,
                           fontSize: 12,
                         ),
                       )
@@ -226,7 +222,9 @@ class _ControllerViewState extends State<ControllerView> {
 
   /// Armour and magazine as two thin bars.
   Widget _vitals(PadStatus status) {
-    final hpColor = status.hp > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger;
+    final hpColor = status.hp > 0.3
+        ? const Color(0xFF9CCC65)
+        : GameColors.danger;
     final ammo = status.magazine <= 0
         ? 1.0
         : (status.ammo / status.magazine).clamp(0.0, 1.0);
@@ -269,7 +267,7 @@ class _ControllerViewState extends State<ControllerView> {
             child: bar(
               Icons.circle,
               ammo,
-              ammo <= 0 ? BwColors.danger : const Color(0xFF4FC3F7),
+              ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
               '${status.ammo}',
             ),
           ),
@@ -299,7 +297,7 @@ class _ControllerViewState extends State<ControllerView> {
           if (status.defense) ...[
             _Chip(
               icon: Icons.add_location_alt,
-              color: BwColors.amber,
+              color: GameColors.amber,
               label:
                   '${tr('BAUEN', 'BUILD')} ${status.tower?.label ?? ''}'
                   ' · ${status.credits}',
@@ -307,7 +305,7 @@ class _ControllerViewState extends State<ControllerView> {
             ),
             _Chip(
               icon: Icons.swap_horiz,
-              color: BwColors.sand,
+              color: GameColors.sand,
               label: tr('GESCHÜTZ', 'TURRET'),
               onTap: () => _remote.act(PadActionKind.cycle),
             ),
@@ -334,8 +332,8 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: BwColors.panel,
-      shape: BwShapes.chip(edge: color, width: 1.8),
+      color: GameColors.panel,
+      shape: GameShapes.chip(edge: color, width: 1.8),
       child: InkWell(
         onTap: () {
           unawaited(HapticFeedback.selectionClick());

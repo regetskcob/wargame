@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../game/inventory.dart';
-import '../../game/game_config.dart';
 import '../theme.dart';
 import 'panel.dart';
 
@@ -13,12 +12,17 @@ class InventoryBar extends StatelessWidget {
     required this.inventory,
     required this.onUse,
     this.compact = false,
+    this.labels,
     super.key,
   });
 
   final Inventory inventory;
   final ValueChanged<int> onUse;
   final bool compact;
+
+  /// What sets off each slot, in place of the number keys: the buttons of a
+  /// controller on the Apple TV. An empty label shows nothing.
+  final List<String>? labels;
 
   @override
   Widget build(BuildContext context) {
@@ -27,22 +31,19 @@ class InventoryBar extends StatelessWidget {
       builder: (context, slots, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Phones only show what is there, the screen is short.
-          for (
-            var i = 0;
-            i < (compact ? slots.length : GameConfig.inventorySlots);
-            i++
-          )
+          // Only what is there: empty frames on the left edge covered the
+          // road the enemies come in on.
+          for (var i = 0; i < slots.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
-              child: i < slots.length
-                  ? _Slot(
-                      slot: slots[i],
-                      number: i + 1,
-                      compact: compact,
-                      onTap: () => onUse(i),
-                    )
-                  : _Empty(compact: compact),
+              child: _Slot(
+                slot: slots[i],
+                label: labels == null
+                    ? '${i + 1}'
+                    : (i < labels!.length ? labels![i] : ''),
+                compact: compact,
+                onTap: () => onUse(i),
+              ),
             ),
         ],
       ),
@@ -53,13 +54,13 @@ class InventoryBar extends StatelessWidget {
 class _Slot extends StatelessWidget {
   const _Slot({
     required this.slot,
-    required this.number,
+    required this.label,
     required this.compact,
     required this.onTap,
   });
 
   final InventorySlot slot;
-  final int number;
+  final String label;
   final bool compact;
   final VoidCallback onTap;
 
@@ -74,8 +75,8 @@ class _Slot extends StatelessWidget {
         width: size,
         height: size,
         decoration: ShapeDecoration(
-          color: BwColors.panel,
-          shape: BwShapes.chip(edge: type.color, width: 1.8),
+          color: GameColors.panel,
+          shape: GameShapes.chip(edge: type.color, width: 1.8),
         ),
         child: Stack(
           children: [
@@ -90,7 +91,7 @@ class _Slot extends StatelessWidget {
                     style: TextStyle(
                       fontSize: compact ? 6.5 : 7.5,
                       letterSpacing: 0,
-                      color: BwColors.text,
+                      color: GameColors.text,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.clip,
@@ -103,11 +104,11 @@ class _Slot extends StatelessWidget {
                 left: 3,
                 top: 1,
                 child: Text(
-                  '$number',
+                  label,
                   style: const TextStyle(
                     fontSize: 10,
                     fontWeight: FontWeight.w800,
-                    color: BwColors.sand,
+                    color: GameColors.sand,
                   ),
                 ),
               ),
@@ -125,27 +126,6 @@ class _Slot extends StatelessWidget {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = compact ? 44.0 : 56.0;
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: ShapeDecoration(
-          color: const Color(0x33000000),
-          shape: BwShapes.chip(edge: const Color(0x338A9A5B), width: 1),
         ),
       ),
     );

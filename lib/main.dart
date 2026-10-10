@@ -8,15 +8,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'src/app/game_app.dart';
 import 'src/audio/audio_service.dart';
 import 'src/db/account_service.dart';
+import 'src/db/server_status.dart';
 import 'src/app/env.dart';
 import 'src/l10n/l10n.dart';
 import 'src/net/pad_link.dart';
 import 'src/net/room.dart';
+import 'src/tv/tv_input.dart';
+import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // The setup below waits for the server; until then the launch screen
+  // stays, with a spinner, instead of a dark screen.
+  await LoadingView.loadImages();
+  runApp(const LoadingApp());
   if (!kIsWeb &&
+      !onTv &&
       (defaultTargetPlatform == TargetPlatform.android ||
           defaultTargetPlatform == TargetPlatform.iOS)) {
     // Phones play upright or sideways, tablets any way up, without system
@@ -43,11 +51,13 @@ Future<void> main() async {
   await Supabase.initialize(
     url: Env.supabaseUrl,
     publishableKey: Env.supabaseKey,
+    // Nothing opens links on the Apple TV, and app_links has no tvOS side.
+    authOptions: FlutterAuthClientOptions(detectSessionInUri: !onTv),
   );
   final auth = Supabase.instance.client.auth;
-  if (auth.currentSession == null) {
-    await auth.signInAnonymously();
-  }
+  // Without a server (offline, or the project over its quota) the game
+  // still starts: solo rounds need none, the heartbeat tries again.
+  ServerStatus.available.value = await ServerStatus.ensureSession(auth);
   if (auth.currentUser?.newEmail != null) {
     // The stored account still waits for its address. It may have been
     // confirmed in another tab since, which only shows after a refresh.
@@ -68,5 +78,6 @@ Future<void> main() async {
     return;
   }
   unawaited(AudioService.init());
+  TvInput.instance.start();
   runApp(const GameApp());
 }

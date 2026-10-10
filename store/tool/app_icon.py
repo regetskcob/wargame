@@ -2,8 +2,8 @@
 
     python3 store/tool/app_icon.py
 
-Writes store/ios/icon/AppIcon-1024.png, the iOS app icon set and the web
-icons. android_icons.py and compose.py take the layers from here. Needs
+Writes store/ios/icon/AppIcon-1024.png, the iOS and macOS app icon sets and
+the web icons. android_icons.py and compose.py take the layers from here. Needs
 Pillow.
 """
 
@@ -16,6 +16,7 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "store" / "ios" / "icon" / "AppIcon-1024.png"
 IOS_SET = ROOT / "ios" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
+MAC_SET = ROOT / "macos" / "Runner" / "Assets.xcassets" / "AppIcon.appiconset"
 WEB = ROOT / "web"
 
 SIZE = 1024
@@ -80,8 +81,9 @@ def terrain(seed=7):
     return img.resize((SIZE, SIZE), Image.LANCZOS)
 
 
-def tank():
-    """The tank with its shadow on a transparent SIZE x SIZE layer."""
+def tank(hull=HULL, turret=TURRET, barrel=BARREL, muzzle=MUZZLE):
+    """The tank with its shadow on a transparent SIZE x SIZE layer, in the
+    olive of the icon unless other colours are given."""
     s = SIZE * SS
     shadow = Image.new("L", (s, s), 0)
     sd = ImageDraw.Draw(shadow)
@@ -98,14 +100,14 @@ def tank():
                             fill=TRACK)
         for x in range(262, 780, 40):
             d.rectangle(_box(x, top + 8, x + 14, top + 92), fill=TRACK_MARK)
-    d.rounded_rectangle(_box(272, 400, 752, 624), radius=40 * SS, fill=HULL)
+    d.rounded_rectangle(_box(272, 400, 752, 624), radius=40 * SS, fill=hull)
     d.rectangle(_box(510, 476, 882, 548), fill=OUTLINE)
-    d.rectangle(_box(510, 480, 880, 544), fill=BARREL)
+    d.rectangle(_box(510, 480, 880, 544), fill=barrel)
     d.rounded_rectangle(_box(876, 458, 936, 566), radius=10 * SS, fill=OUTLINE)
-    d.rounded_rectangle(_box(880, 462, 932, 562), radius=8 * SS, fill=MUZZLE)
+    d.rounded_rectangle(_box(880, 462, 932, 562), radius=8 * SS, fill=muzzle)
     d.ellipse(_box(338, 410, 542, 614), fill=OUTLINE)
-    d.ellipse(_box(344, 416, 536, 608), fill=TURRET)
-    d.ellipse(_box(400, 472, 480, 552), fill=BARREL)
+    d.ellipse(_box(344, 416, 536, 608), fill=turret)
+    d.ellipse(_box(400, 472, 480, 552), fill=barrel)
     centred = Image.new("RGBA", (s, s), (0, 0, 0, 0))
     centred.paste(img, _box(*SHIFT))
     return centred.resize((SIZE, SIZE), Image.LANCZOS)
@@ -115,6 +117,30 @@ def icon():
     base = terrain().convert("RGBA")
     base.alpha_composite(tank())
     return base.convert("RGB")
+
+
+def mac_icon(img):
+    """The icon on Apple's macOS grid: macOS does not round the corners
+    itself, so the square sits as a rounded plate of 824 on 1024 with a
+    soft shadow below, like the other apps in the Dock."""
+    plate, radius, top = 824, 185, 88
+    s = SIZE * SS
+    mask = Image.new("L", (s, s), 0)
+    left = (SIZE - plate) // 2
+    ImageDraw.Draw(mask).rounded_rectangle(
+        _box(left, top, left + plate, top + plate), radius * SS, fill=255)
+    mask = mask.resize((SIZE, SIZE), Image.LANCZOS)
+
+    shadow = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    shadow.putalpha(mask.point(lambda a: a * 0.5).filter(
+        ImageFilter.GaussianBlur(10)).transform(
+            (SIZE, SIZE), Image.AFFINE, (1, 0, 0, 0, 1, -10)))
+
+    face = Image.new("RGBA", (SIZE, SIZE), (0, 0, 0, 0))
+    face.paste(img.resize((plate, plate), Image.LANCZOS), (left, top))
+    face.putalpha(mask)
+    shadow.alpha_composite(face)
+    return shadow
 
 
 def main():
@@ -130,6 +156,14 @@ def main():
                      * int(entry["scale"].rstrip("x")))
         img.resize((edge, edge), Image.LANCZOS).save(
             IOS_SET / entry["filename"], optimize=True)
+
+    mac = mac_icon(img)
+    contents = json.loads((MAC_SET / "Contents.json").read_text())
+    for entry in contents["images"]:
+        edge = round(float(entry["size"].split("x")[0])
+                     * int(entry["scale"].rstrip("x")))
+        mac.resize((edge, edge), Image.LANCZOS).save(
+            MAC_SET / entry["filename"], optimize=True)
 
     # Maskable icons get cut to a circle of 80 %, the tank fits inside.
     for name, edge in (("favicon.png", 16), ("favicon-32.png", 32),

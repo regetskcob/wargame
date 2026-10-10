@@ -1,7 +1,7 @@
 name: wargame
 description: "Last-tank-standing multiplayer Panzergefecht built with Flame and Supabase."
 publish_to: none
-version: 1.0.0+1
+version: 1.2.1+7
 
 environment:
   sdk: ^3.13.0
@@ -10,24 +10,32 @@ environment:
 dependencies:
   app_links: ^7.2.2
   audioplayers: ^6.8.1
+  audioplayers_tvos: ^0.0.2
   audioplayers_watchos: ^0.1.0
+  clock: ^1.1.2
   flame: ^2.0.0-dev.1
   flutter:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
+  flutter_tvos: ^1.1.3
   flutter_watchos: ^0.1.0
+  go_router: ^18.0.2
   http: ^1.6.0
   mobile_scanner: ^7.4.2
+  path_provider_tvos: ^0.0.3
   path_provider_watchos: ^0.1.0
   qr_flutter: ^4.1.0
   share_plus: ^13.3.1
   shared_preferences: ^2.5.5
+  shared_preferences_tvos: ^0.0.2
   shared_preferences_watchos: ^0.1.1
   supabase_flutter: ^3.0.0-dev.9
+  url_launcher_tvos: ^0.0.1
   web: ^1.1.1
 
 dev_dependencies:
+  fake_async: ^1.3.3
   flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
@@ -39,6 +47,8 @@ flutter:
   uses-material-design: true
   assets:
     - assets/audio/
+    # The launch screen again, for the loading view that follows it.
+    - assets/images/
   # Bundled so every platform draws the same letters. The browser build
   # cannot reach system fonts and fell back to Roboto, while iOS and macOS
   # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.

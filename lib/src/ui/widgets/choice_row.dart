@@ -10,6 +10,8 @@ class ChoiceRow<T> extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     this.allowNone = false,
+    this.expand = false,
+    this.minHeight = 40,
     super.key,
   });
 
@@ -21,8 +23,23 @@ class ChoiceRow<T> extends StatelessWidget {
   /// Tapping the selected option clears the choice.
   final bool allowNone;
 
+  /// Share the full width in equal parts on one row instead of wrapping.
+  final bool expand;
+
+  final double minHeight;
+
   @override
   Widget build(BuildContext context) {
+    if (expand) {
+      return Row(
+        children: [
+          for (final (i, (value, label, color)) in options.indexed) ...[
+            if (i > 0) const SizedBox(width: 8),
+            Expanded(child: _chip(value, label, color, value == selected)),
+          ],
+        ],
+      );
+    }
     return Wrap(
       spacing: 8,
       runSpacing: 8,
@@ -37,25 +54,27 @@ class ChoiceRow<T> extends StatelessWidget {
     return InkWell(
       onTap: () => onSelected(on && allowNone ? null : value),
       child: Container(
-        constraints: const BoxConstraints(minHeight: 40),
+        constraints: BoxConstraints(minHeight: minHeight),
+        alignment: expand ? Alignment.center : null,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: ShapeDecoration(
           color: on ? const Color(0x33FFB300) : const Color(0x44000000),
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
-              color: on ? BwColors.amber : BwColors.oliveLight,
+              color: on ? GameColors.amber : GameColors.oliveLight,
               width: on ? 2 : 1.5,
             ),
           ),
         ),
         child: Text(
           label,
+          textAlign: expand ? TextAlign.center : null,
           style: TextStyle(
             fontSize: 12,
             fontWeight: FontWeight.w800,
             letterSpacing: 1,
-            color: color ?? (on ? BwColors.amber : BwColors.text),
+            color: color ?? (on ? GameColors.amber : GameColors.text),
           ),
         ),
       ),

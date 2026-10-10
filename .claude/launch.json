@@ -1,0 +1,32 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "web",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "8080"
+      ],
+      "port": 8080
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "hugo",
+      "runtimeArgs": [
+        "server",
+        "-s",
+        "site",
+        "--port",
+        "1313",
+        "--baseURL",
+        "http://localhost:1313/wargame/",
+        "--appendPort=false"
+      ],
+      "port": 1313
+    }
+  ]
+}

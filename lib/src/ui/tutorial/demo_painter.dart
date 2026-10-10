@@ -1,12 +1,15 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../game/components/power_up.dart';
 import '../../game/components/tank_painter.dart';
 import '../../game/game_config.dart';
 import '../theme.dart';
 import '../widgets/touch_controls.dart';
+import '../../tv/tv_input.dart';
+import 'practice.dart';
 import 'tutorial_steps.dart';
 import '../../l10n/l10n.dart';
 
@@ -15,6 +18,9 @@ import '../../l10n/l10n.dart';
 /// mouse moves. [clock] runs from 0 to 1 and starts over, one pass of the
 /// little scene.
 ///
+/// Once the player takes over, [practice] is painted instead: their own
+/// tank on the training ground.
+///
 /// Angles are the game's: 0 points up, positive turns clockwise.
 class DemoPainter extends CustomPainter {
   DemoPainter({
@@ -22,14 +28,29 @@ class DemoPainter extends CustomPainter {
     required this.touch,
     required this.clock,
     required this.top,
-  }) : super(repaint: clock);
+    this.pad,
+    this.practice,
+    this.invite = false,
+  }) : super(repaint: Listenable.merge([clock, practice]));
 
   final DemoScene scene;
   final bool touch;
+
+  /// On the Apple TV: the controller or the remote whose buttons to show,
+  /// instead of keys or thumbs.
+  final TvPadKind? pad;
+
+  bool get _gamepad => pad == TvPadKind.gamepad;
   final Animation<double> clock;
 
   /// Where the card above the stage ends: the scene plays below it.
   final double top;
+
+  /// The player's own tank, once they took over.
+  final TutorialPractice? practice;
+
+  /// Whether to invite the player to take over.
+  final bool invite;
 
   static const _hull = Color(0xFF6B7F3A);
   static const _enemyHull = Color(0xFF8B3E2B);
@@ -49,10 +70,12 @@ class DemoPainter extends CustomPainter {
       Offset(_w - _stickRadius - 24, _h - _stickRadius - 20);
 
   /// Where the round buttons above the right stick sit.
+  /// Where the round button of the right stick sits: up and to the left of
+  /// it, beside its label and clear of the card on a short screen. Only one
+  /// of the two is shown at a time.
   Offset get _assistButton =>
-      _rightStick + Offset(-_stickRadius * 0.7, -_stickRadius - 44);
-  Offset get _specialButton =>
-      _rightStick + Offset(_stickRadius * 0.55, -_stickRadius - 44);
+      _rightStick + Offset(-_stickRadius - 44, -_stickRadius - 30);
+  Offset get _specialButton => _assistButton;
 
   /// Bottom left, where the keys are drawn on a desktop.
   Offset get _keys => Offset(24, _h - 120);
@@ -65,6 +88,10 @@ class DemoPainter extends CustomPainter {
     _size = size;
     _t = clock.value;
     _ground(canvas);
+    if (practice case final practice?) {
+      _practice(canvas, practice);
+      return;
+    }
     switch (scene) {
       case DemoScene.drive:
         _drive(canvas);
@@ -87,11 +114,143 @@ class DemoPainter extends CustomPainter {
       case DemoScene.tour:
         break;
     }
+    if (invite) {
+      _pill(
+        canvas,
+        Offset(_w / 2, _h - 22),
+        touch
+            ? tr(
+                'PROBIER ES SELBST: DAUMEN AUF DIE STICKS',
+                'TRY IT YOURSELF: THUMBS ON THE STICKS',
+              )
+            : tr(
+                'PROBIER ES SELBST: W A S D UND MAUS',
+                'TRY IT YOURSELF: W A S D AND MOUSE',
+              ),
+        color: GameColors.amber,
+      );
+    }
   }
 
   @override
   bool shouldRepaint(DemoPainter old) =>
-      old.scene != scene || old.touch != touch || old.top != top;
+      old.scene != scene ||
+      old.touch != touch ||
+      old.pad != pad ||
+      old.top != top ||
+      old.practice != practice ||
+      old.invite != invite;
+
+  // -------------------------------------------------------------- practice
+
+  /// The player's own tank among the targets, with the keys they hold lit.
+  void _practice(Canvas canvas, TutorialPractice p) {
+    final size = p.tankSize;
+    final mark = Paint();
+    final markRect = Rect.fromCenter(
+      center: Offset.zero,
+      width: size * 0.13,
+      height: size * 0.1,
+    );
+    for (final (i, (at, angle)) in p.trail.indexed) {
+      final side = Offset(cos(angle), sin(angle)) * (size * 0.27);
+      mark.color = Color.fromRGBO(30, 24, 14, 0.38 * (i + 1) / p.trail.length);
+      for (final c in [at - side, at + side]) {
+        canvas.save();
+        canvas.translate(c.dx, c.dy);
+        canvas.rotate(angle);
+        canvas.drawRect(markRect, mark);
+        canvas.restore();
+      }
+    }
+    for (final target in p.targets.where((t) => t.standing)) {
+      _tank(
+        canvas,
+        target.at,
+        pi / 2,
+        _angleOf(p.pos - target.at),
+        hull: _enemyHull,
+        type: TankType.keiler,
+      );
+    }
+    for (final lob in p.lobs) {
+      final ground = Offset.lerp(lob.from, lob.to, lob.t)!;
+      final lift = sin(pi * lob.t) * size * 1.6;
+      canvas.drawCircle(ground, 4, Paint()..color = const Color(0x55000000));
+      canvas.drawCircle(
+        ground - Offset(0, lift),
+        5 + 3 * sin(pi * lob.t),
+        Paint()..color = PowerUpType.grenades.color,
+      );
+    }
+    _tank(canvas, p.pos, p.heading, p.turret, flash: p.flash);
+    for (final shell in p.shells) {
+      canvas.drawLine(
+        shell.at - shell.dir * 18,
+        shell.at,
+        Paint()
+          ..color = const Color(0x88FFE082)
+          ..strokeWidth = 3
+          ..strokeCap = StrokeCap.round,
+      );
+      canvas.drawCircle(
+        shell.at,
+        3.5,
+        Paint()..color = const Color(0xFFFFF3C4),
+      );
+    }
+    for (final blast in p.blasts) {
+      _blast(canvas, blast.at, blast.t, big: blast.big);
+    }
+    if (p.mouse case final mouse?) {
+      _crosshair(canvas, mouse);
+    }
+    _pill(
+      canvas,
+      Offset(_w / 2, top + 10),
+      [
+        tr('TREFFER ${p.hits}', 'HITS ${p.hits}'),
+        if (p.grenades && !touch)
+          tr('GRANATEN ${p.charges} (F)', 'GRENADES ${p.charges} (F)'),
+      ].join('  ·  '),
+    );
+    if (!touch) {
+      bool held(LogicalKeyboardKey a, [LogicalKeyboardKey? b]) =>
+          p.keys.contains(a) || (b != null && p.keys.contains(b));
+      _key(
+        canvas,
+        _keys + const Offset(40, 0),
+        'W',
+        lit: held(LogicalKeyboardKey.keyW, LogicalKeyboardKey.arrowUp),
+      );
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        'A',
+        lit: held(LogicalKeyboardKey.keyA, LogicalKeyboardKey.arrowLeft),
+      );
+      _key(
+        canvas,
+        _keys + const Offset(40, 40),
+        'S',
+        lit: held(LogicalKeyboardKey.keyS, LogicalKeyboardKey.arrowDown),
+      );
+      _key(
+        canvas,
+        _keys + const Offset(80, 40),
+        'D',
+        lit: held(LogicalKeyboardKey.keyD, LogicalKeyboardKey.arrowRight),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr(
+          'MAUS ZIELT · KLICK ODER LEERTASTE FEUERT',
+          'MOUSE AIMS · CLICK OR SPACE FIRES',
+        ),
+      );
+    }
+  }
 
   // ---------------------------------------------------------------- scenes
 
@@ -108,16 +267,43 @@ class DemoPainter extends CustomPainter {
       );
     }
 
-    // Track marks behind the tank.
-    final mark = Paint()..color = const Color(0x33000000);
-    for (var i = 1; i < 60; i++) {
-      final (p, _) = at(_t - i * 0.006);
-      canvas.drawCircle(p, _tankSize * 0.08, mark);
+    // Two rows of track marks under the chains, placed and fading like the
+    // game's (TankBase._leaveTrail), not a single trail down the middle.
+    final mark = Paint();
+    final markRect = Rect.fromCenter(
+      center: Offset.zero,
+      width: _tankSize * 0.13,
+      height: _tankSize * 0.1,
+    );
+    const marks = 60;
+    for (var i = 1; i < marks; i++) {
+      final (p, v) = at(_t - i * 0.006);
+      final angle = _angleOf(v);
+      final side = Offset(cos(angle), sin(angle)) * (_tankSize * 0.27);
+      final back = Offset(sin(angle), -cos(angle)) * (_tankSize * 0.1);
+      mark.color = Color.fromRGBO(30, 24, 14, 0.38 * (1 - i / marks));
+      for (final c in [p - side - back, p + side - back]) {
+        canvas.save();
+        canvas.translate(c.dx, c.dy);
+        canvas.rotate(angle);
+        canvas.drawRect(markRect, mark);
+        canvas.restore();
+      }
     }
     final (pos, vel) = at(_t);
     final heading = _angleOf(vel);
     _tank(canvas, pos, heading, heading);
-    if (touch) {
+    if (pad != null) {
+      final dir = vel / vel.distance;
+      _stick(
+        canvas,
+        _leftStick,
+        _leftStick + dir * _stickRadius * 0.75,
+        _gamepad
+            ? tr('LINKER STICK · FAHREN', 'LEFT STICK · DRIVE')
+            : tr('TOUCHFLÄCHE · FAHREN', 'TOUCH SURFACE · DRIVE'),
+      );
+    } else if (touch) {
       final dir = vel / vel.distance;
       final knob = _leftStick + dir * _stickRadius * 0.75;
       _stick(canvas, _leftStick, knob, tr('FAHREN', 'DRIVE'));
@@ -147,7 +333,21 @@ class DemoPainter extends CustomPainter {
     final reach = min(_tankSize * 3.2, pos.dy - top - 24);
     _dashes(canvas, pos + dir * _tankSize * 0.7, pos + dir * reach);
     _tank(canvas, pos, 0, aim);
-    if (touch) {
+    if (_gamepad) {
+      _stick(
+        canvas,
+        _rightStick,
+        _rightStick + dir * _stickRadius * 0.45,
+        tr('RECHTER STICK · ZIELEN', 'RIGHT STICK · AIM'),
+      );
+    } else if (pad != null) {
+      _crosshair(canvas, pos + dir * reach);
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('DIE ZIELHILFE ZIELT', 'THE AIM ASSIST AIMS'),
+      );
+    } else if (touch) {
       final knob = _rightStick + dir * _stickRadius * 0.45;
       _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
       _stick(
@@ -179,7 +379,22 @@ class DemoPainter extends CustomPainter {
     final aim = target * settle;
     const shots = [0.35, 0.55];
     _duel(canvas, pos, enemy, aim, shots);
-    if (touch) {
+    if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'R2' : tr('KLICK', 'CLICK'),
+        width: _gamepad ? null : 76,
+        lit: _pulse(shots),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        _gamepad
+            ? tr('ODER A', 'OR A')
+            : tr('AUF DIE TOUCHFLÄCHE', 'ON THE TOUCH SURFACE'),
+      );
+    } else if (touch) {
       // Out to the ring to aim, past it to fire, back to rest.
       final reach = _t < 0.25
           ? 0.45 * settle
@@ -243,7 +458,7 @@ class DemoPainter extends CustomPainter {
       _assistButton,
       Icons.gps_fixed,
       tr('ZIELHILFE', 'AIM ASSIST'),
-      on ? BwColors.amber : BwColors.textDim,
+      on ? GameColors.amber : GameColors.textDim,
       lit: on,
     );
     if (_t < 0.2) {
@@ -286,7 +501,22 @@ class DemoPainter extends CustomPainter {
       _icon(canvas, Offset.lerp(crate, _slot, p)!, type.icon, 22, type.color);
     }
     _inventorySlot(canvas, _t >= 0.5 && !used ? type : null);
-    if (touch) {
+    if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'X' : 'PLAY/PAUSE',
+        width: _gamepad ? null : 120,
+        lit: _between(0.62, 0.7),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        _gamepad
+            ? tr('X, Y UND STEUERKREUZ', 'X, Y AND D-PAD')
+            : tr('OBERSTES FELD', 'TOP SLOT'),
+      );
+    } else if (touch) {
       if (_t > 0.5 && _t < 0.8) {
         final reach = _ease(_seg(0.5, 0.62));
         final finger = Offset.lerp(
@@ -327,7 +557,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2 - 0.3,
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.keiler,
     );
     canvas.drawRect(
       Rect.fromCenter(
@@ -364,7 +594,21 @@ class DemoPainter extends CustomPainter {
       _blast(canvas, enemy, _seg(shot + 0.25, shot + 0.45), big: true);
     }
     final left = 3 - shots.where((s) => _t > s).length;
-    if (touch) {
+    if (pad != null) {
+      _crosshair(canvas, enemy);
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        _gamepad ? 'L2' : 'PLAY/PAUSE',
+        width: _gamepad ? null : 120,
+        lit: _pulse(shots),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('GRANATWERFER  $left', 'GRENADE LAUNCHER  $left'),
+      );
+    } else if (touch) {
       _stick(canvas, _leftStick, null, tr('FAHREN', 'DRIVE'));
       _stick(
         canvas,
@@ -424,14 +668,15 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
-    _icon(canvas, base.center, Icons.fort, _tankSize * 0.6, BwColors.sand);
+    _icon(canvas, base.center, Icons.fort, _tankSize * 0.6, GameColors.sand);
 
     final pos = Offset(_w * 0.34, roadY + _tankSize * 1.1);
     final gun = Offset(_w * 0.5, roadY + _tankSize * 0.9);
     final built = _t > 0.22;
-    final flak = !touch && _t > 0.52;
+    // The remote builds, but has no button to switch the kind.
+    final flak = !touch && pad != TvPadKind.remote && _t > 0.52;
     // The enemy rolls in from the right and is stopped.
     final enemyX = _w + _tankSize - (_w * 0.38) * _ease(_seg(0.1, 0.55));
     final enemy = Offset(enemyX, roadY);
@@ -443,7 +688,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       -pi / 2,
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.keiler,
     );
     if (built) {
       final grow = _ease(_seg(0.22, 0.3));
@@ -456,7 +701,7 @@ class DemoPainter extends CustomPainter {
     final money = built ? 50 : 150;
     // The build bar: what can be built and what it costs.
     final kinds = [(tr('KANONE', 'CANNON'), 100), ('FLAK', 120)];
-    final barLeft = touch ? _w / 2 - 110 : _keys.dx + 140;
+    final barLeft = touch ? _w / 2 - 110 : _keys.dx + (pad == null ? 140 : 160);
     final barTop = _h - 64.0;
     _caption(
       canvas,
@@ -468,7 +713,34 @@ class DemoPainter extends CustomPainter {
       final rect = Rect.fromLTWH(barLeft + i * 112, barTop, 104, 34);
       _button(canvas, rect, '$label $cost', filled: chosen);
     }
-    if (touch) {
+    if (_gamepad) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        'R1',
+        lit: _between(0.16, 0.24),
+      );
+      _key(
+        canvas,
+        _keys + const Offset(40, 40),
+        'L1',
+        lit: _between(0.52, 0.6),
+      );
+      _caption(
+        canvas,
+        _keys + const Offset(0, 84),
+        tr('BAUEN · TYP', 'BUILD · TYPE'),
+      );
+    } else if (pad != null) {
+      _key(
+        canvas,
+        _keys + const Offset(0, 40),
+        'PLAY/PAUSE',
+        width: 120,
+        lit: _between(0.16, 0.24),
+      );
+      _caption(canvas, _keys + const Offset(0, 84), tr('BAUEN', 'BUILD'));
+    } else if (touch) {
       final button = Offset(barLeft + 52, barTop + 17);
       if (_t < 0.35) {
         final reach = _ease(_seg(0.02, 0.16));
@@ -520,7 +792,7 @@ class DemoPainter extends CustomPainter {
         at + Offset(0, size * 0.75),
         type.label,
         size: 10,
-        color: BwColors.sand,
+        color: GameColors.sand,
         center: true,
         maxWidth: cell - 4,
       );
@@ -531,7 +803,7 @@ class DemoPainter extends CustomPainter {
             ? tr('AB START', 'FROM START')
             : tr('AB RANG ${type.level}', 'FROM RANK ${type.level}'),
         size: 9,
-        color: type.level == 1 ? BwColors.textDim : BwColors.amber,
+        color: type.level == 1 ? GameColors.textDim : GameColors.amber,
         center: true,
         maxWidth: cell - 4,
       );
@@ -591,7 +863,7 @@ class DemoPainter extends CustomPainter {
     double heading,
     double turret, {
     Color hull = _hull,
-    TankType type = TankType.puma,
+    TankType type = TankType.hermelin,
     double flash = 0,
   }) {
     final size = _tankSize;
@@ -633,7 +905,7 @@ class DemoPainter extends CustomPainter {
       -pi / 2,
       _angleOf(pos - enemy),
       hull: _enemyHull,
-      type: TankType.leopard,
+      type: TankType.keiler,
     );
     _tank(canvas, pos, 0, aim, flash: _flash(shots));
     for (final shot in shots) {
@@ -702,14 +974,14 @@ class DemoPainter extends CustomPainter {
       );
     }
     canvas.restore();
-    canvas.drawCircle(at, r, Paint()..color = BwColors.olive);
+    canvas.drawCircle(at, r, Paint()..color = GameColors.olive);
     canvas.drawCircle(
       at,
       r,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
   }
 
@@ -739,18 +1011,18 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = held == null ? BwColors.oliveLight : held.color,
+        ..color = held == null ? GameColors.oliveLight : held.color,
     );
     if (held != null) {
       _icon(canvas, rect.center, held.icon, 26, held.color);
     }
-    if (!touch) {
+    if (!touch && pad != TvPadKind.remote) {
       _text(
         canvas,
         rect.topLeft + const Offset(4, 2),
-        '1',
+        _gamepad ? 'X' : '1',
         size: 10,
-        color: BwColors.textDim,
+        color: GameColors.textDim,
       );
     }
     _text(
@@ -758,7 +1030,7 @@ class DemoPainter extends CustomPainter {
       rect.bottomCenter + const Offset(0, 4),
       tr('INVENTAR', 'INVENTORY'),
       size: 9,
-      color: BwColors.textDim,
+      color: GameColors.textDim,
       center: true,
     );
   }
@@ -795,7 +1067,7 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = firing ? 3 : 1.5
-          ..color = (firing ? BwColors.danger : BwColors.amber).withValues(
+          ..color = (firing ? GameColors.danger : GameColors.amber).withValues(
             alpha: idle ? 0.3 : 0.8,
           ),
       );
@@ -811,17 +1083,47 @@ class DemoPainter extends CustomPainter {
       canvas.drawCircle(
         knob,
         r * 0.38,
-        Paint()..color = (firing ? BwColors.danger : BwColors.sand),
+        Paint()..color = (firing ? GameColors.danger : GameColors.sand),
       );
     }
-    _text(
-      canvas,
-      base + Offset(0, r + 4),
-      label,
-      size: 10,
-      color: Color(idle ? 0x88E6E2D3 : 0xFFE6E2D3),
-      center: true,
+    // Above the ring on a dark pill like the game's sticks, readable on any
+    // ground and kept on screen.
+    _pill(canvas, base - Offset(0, r + 16), label);
+  }
+
+  /// [text] on a dark pill centred on [at], shifted back inside the stage.
+  void _pill(
+    Canvas canvas,
+    Offset at,
+    String text, {
+    Color color = GameColors.sand,
+  }) {
+    final painter = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          fontSize: 11,
+          color: color,
+          fontFamily: 'Roboto',
+          fontWeight: FontWeight.w700,
+          letterSpacing: 1.2,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    final width = painter.width + 16;
+    final height = painter.height + 6;
+    final left = (at.dx - width / 2)
+        .clamp(8.0, max(8.0, _w - 8 - width))
+        .toDouble();
+    final rect = Rect.fromLTWH(left, at.dy - height / 2, width, height);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(rect, Radius.circular(height / 2)),
+      Paint()..color = const Color(0x99000000),
     );
+    painter.paint(canvas, rect.topLeft + const Offset(8, 3));
+    painter.dispose();
   }
 
   /// A thumb seen from above: the tip on [at], the rest reaching to the
@@ -856,7 +1158,7 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
-          ..color = BwColors.amber.withValues(alpha: 1 - press),
+          ..color = GameColors.amber.withValues(alpha: 1 - press),
       );
     }
   }
@@ -908,9 +1210,15 @@ class DemoPainter extends CustomPainter {
     );
   }
 
-  void _key(Canvas canvas, Offset at, String label, {bool lit = false}) {
+  void _key(
+    Canvas canvas,
+    Offset at,
+    String label, {
+    bool lit = false,
+    double? width,
+  }) {
     final rect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), 34, 34),
+      Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), width ?? 34, 34),
       const Radius.circular(5),
     );
     if (!lit) {
@@ -922,21 +1230,21 @@ class DemoPainter extends CustomPainter {
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? BwColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = lit ? BwColors.amber : BwColors.sand,
+        ..color = lit ? GameColors.amber : GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 8),
       label,
       size: 14,
-      color: lit ? Colors.black : BwColors.text,
+      color: lit ? Colors.black : GameColors.text,
       center: true,
       bold: true,
     );
@@ -955,21 +1263,21 @@ class DemoPainter extends CustomPainter {
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? BwColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = lit ? BwColors.amber : BwColors.sand,
+        ..color = lit ? GameColors.amber : GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       tr('LEERTASTE', 'SPACE'),
       size: 11,
-      color: lit ? Colors.black : BwColors.text,
+      color: lit ? Colors.black : GameColors.text,
       center: true,
       bold: true,
     );
@@ -978,7 +1286,7 @@ class DemoPainter extends CustomPainter {
   /// The game's precise cursor. A ring spreads at every time in [clicks].
   void _crosshair(Canvas canvas, Offset at, {List<double> clicks = const []}) {
     final line = Paint()
-      ..color = BwColors.text
+      ..color = GameColors.text
       ..strokeWidth = 2;
     canvas.drawCircle(
       at,
@@ -986,7 +1294,7 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.text,
+        ..color = GameColors.text,
     );
     for (final d in const [
       Offset(1, 0),
@@ -1005,7 +1313,7 @@ class DemoPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 3
-            ..color = BwColors.amber.withValues(alpha: 1 - p),
+            ..color = GameColors.amber.withValues(alpha: 1 - p),
         );
       }
     }
@@ -1018,7 +1326,7 @@ class DemoPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = BwColors.amber;
+      ..color = GameColors.amber;
     for (final (sx, sy) in const [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
       final corner = at + Offset(sx * r, sy * r);
       canvas.drawLine(corner, corner - Offset(sx * r * 0.35, 0), paint);
@@ -1040,28 +1348,28 @@ class DemoPainter extends CustomPainter {
   void _button(Canvas canvas, Rect rect, String label, {bool filled = false}) {
     canvas.drawRect(
       rect,
-      Paint()..color = filled ? BwColors.olive : const Color(0x88000000),
+      Paint()..color = filled ? GameColors.olive : const Color(0x88000000),
     );
     canvas.drawRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = BwColors.sand,
+        ..color = GameColors.sand,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       label,
       size: 11,
-      color: BwColors.text,
+      color: GameColors.text,
       center: true,
       bold: true,
     );
   }
 
   void _caption(Canvas canvas, Offset at, String text) =>
-      _text(canvas, at, text, size: 10, color: BwColors.textDim);
+      _text(canvas, at, text, size: 10, color: GameColors.textDim);
 
   void _text(
     Canvas canvas,

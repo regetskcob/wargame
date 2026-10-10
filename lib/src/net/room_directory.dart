@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'presence_throttle.dart';
+
 /// A room that shows up in the public list.
 class RoomListing {
   const RoomListing({
@@ -57,7 +59,11 @@ class RoomListing {
 /// of public rooms put their room on it, everybody can read it. A room
 /// vanishes from the list by itself when its host closes the window.
 class RoomDirectory {
-  RoomDirectory({required this.room});
+  RoomDirectory({required this.room, SupabaseClient? client})
+    : _ownClient = client;
+
+  /// A connection of its own, as [NetService] has for a second player.
+  final SupabaseClient? _ownClient;
 
   /// Own room, left out of [rooms].
   final String room;
@@ -65,11 +71,12 @@ class RoomDirectory {
   final rooms = ValueNotifier<List<RoomListing>>(const []);
 
   RealtimeChannel? _channel;
+  PresenceThrottle? _presence;
   RoomListing? _listing;
   var _subscribed = false;
   final _subscriptions = <StreamSubscription<void>>[];
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
 
   void connect() {
     final channel = _client.channel(
@@ -77,15 +84,17 @@ class RoomDirectory {
       options: const RealtimeChannelConfig(self: true),
     );
     _channel = channel;
+    final presence = PresenceThrottle(channel);
+    _presence = presence;
     _subscriptions
       ..add(channel.onPresenceSync.listen((_) => _emit()))
       ..add(channel.onPresenceJoin.listen((_) => _emit()))
       ..add(channel.onPresenceLeave.listen((_) => _emit()))
       ..add(
-        channel.onStatusChange.listen((change) async {
+        channel.onStatusChange.listen((change) {
           _subscribed = change.status == RealtimeSubscribeStatus.subscribed;
           if (_subscribed && _listing != null) {
-            await channel.track(_listing!.toJson());
+            presence.track(_listing!.toJson());
           }
         }),
       );
@@ -98,14 +107,14 @@ class RoomDirectory {
       return;
     }
     _listing = listing;
-    final channel = _channel;
-    if (channel == null || !_subscribed) {
+    final presence = _presence;
+    if (presence == null || !_subscribed) {
       return;
     }
     if (listing == null) {
-      await channel.untrack();
+      presence.untrack();
     } else {
-      await channel.track(listing.toJson());
+      presence.track(listing.toJson());
     }
   }
 
@@ -144,6 +153,8 @@ class RoomDirectory {
     for (final subscription in _subscriptions) {
       await subscription.cancel();
     }
+    _presence?.close();
+    _presence = null;
     final channel = _channel;
     _channel = null;
     if (channel != null) {

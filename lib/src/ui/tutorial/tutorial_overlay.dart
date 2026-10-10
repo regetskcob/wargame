@@ -1,14 +1,26 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../game/special_weapon.dart';
+import '../../game/touch_input.dart';
 import '../theme.dart';
+import '../widgets/touch_controls.dart';
 import 'demo_painter.dart';
+import 'practice.dart';
 import 'tutorial_steps.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// The tutorial: first the controls, one card each, acted out on a small
 /// training ground with a thumb on the sticks or with keys and mouse. Then
-/// a quick tour through everything the game has, which plays on by itself.
+/// a quick tour through everything the game has. Every card plays on by
+/// itself after a while.
+///
+/// On a controls card the player can take over at any time: a thumb on the
+/// sticks, a game key or a click turns the scene into a training ground with
+/// their own tank and the game's controls. From then on the card waits for
+/// WEITER instead of moving on by itself.
 ///
 /// A button opens it on the welcome page, the start page and in the
 /// waiting room, always with the controls of the device it runs on.
@@ -29,6 +41,13 @@ class TutorialOverlay extends StatefulWidget {
   /// How long a card of the quick tour stays.
   static const tourCard = Duration(milliseconds: 5000);
 
+  /// How long a controls card stays when nobody takes over: two passes of
+  /// its scene.
+  static const controlsCard = Duration(milliseconds: 7200);
+
+  /// Marks the card, for tests.
+  static const cardKey = ValueKey('tutorial-card');
+
   @override
   State<TutorialOverlay> createState() => _TutorialOverlayState();
 }
@@ -41,6 +60,14 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   final _cardKey = GlobalKey();
   final _focus = FocusNode(debugLabel: 'tutorial');
   double _cardBottom = 200;
+  Size _stageSize = Size.zero;
+
+  /// The player's own tank once they took over this card, else null.
+  TutorialPractice? _practice;
+  var _input = TouchInput();
+  final _special = ValueNotifier<(SpecialWeapon, int)?>(null);
+  late final _ticker = createTicker(_tick);
+  var _lastTick = Duration.zero;
 
   late final _scene = AnimationController(
     vsync: this,
@@ -58,6 +85,16 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   List<TutorialStep> get _steps => tutorialSteps(touch: _touch);
   TutorialStep get _step => _steps[_index];
   bool get _last => _index == _steps.length - 1;
+
+  /// Only the controls cards can be tried out, and not with a remote.
+  bool get _canPractice => !onTv && _index < controlSteps(touch: _touch);
+
+  /// How long this card stays by itself, null when it waits for WEITER.
+  Duration? get _autoTime => _practice != null || _step.scene == DemoScene.ready
+      ? null
+      : _step.quick
+      ? TutorialOverlay.tourCard
+      : TutorialOverlay.controlsCard;
 
   @override
   void initState() {
@@ -88,20 +125,80 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   @override
   void dispose() {
+    _ticker.dispose();
+    _practice?.dispose();
+    _special.dispose();
     _scene.dispose();
     _auto.dispose();
     _focus.dispose();
     super.dispose();
   }
 
-  /// Starts the scene of the current step over, and the timer of the tour.
+  /// Starts the scene of the current step over, and its timer. A new card
+  /// starts as a demonstration again.
   void _enter() {
+    _endPractice();
     _scene
       ..reset()
       ..repeat();
     _auto.reset();
-    if (_step.quick && _playing) {
-      _auto.forward();
+    final time = _autoTime;
+    if (time != null) {
+      _auto.duration = time;
+      if (_playing) {
+        _auto.forward();
+      }
+    }
+  }
+
+  /// The player takes over: their own tank on the stage, and the card no
+  /// longer moves on by itself.
+  void _takeOver() {
+    if (!_canPractice || _practice != null || _stageSize.isEmpty) {
+      return;
+    }
+    _auto
+      ..stop()
+      ..reset();
+    setState(() {
+      _practice = TutorialPractice(
+        touch: _touch,
+        bounds: _practiceBounds,
+        grenades: _step.scene == DemoScene.special,
+        input: _input,
+      );
+    });
+    _lastTick = Duration.zero;
+    _ticker.start();
+  }
+
+  void _endPractice() {
+    _ticker.stop();
+    _practice?.dispose();
+    _practice = null;
+    _special.value = null;
+    // Fresh sticks for the next card, nothing still held from this one.
+    _input = TouchInput();
+  }
+
+  Rect get _practiceBounds =>
+      Rect.fromLTRB(0, _cardBottom, _stageSize.width, _stageSize.height);
+
+  void _tick(Duration elapsed) {
+    final practice = _practice;
+    if (practice == null) {
+      return;
+    }
+    final dt = (elapsed - _lastTick).inMicroseconds / 1e6;
+    _lastTick = elapsed;
+    practice
+      ..bounds = _practiceBounds
+      ..tick(dt, pressed: HardwareKeyboard.instance.logicalKeysPressed);
+    if (practice.grenades) {
+      final loadout = (SpecialWeapon.grenades, practice.charges);
+      if (_special.value != loadout) {
+        _special.value = loadout;
+      }
     }
   }
 
@@ -137,7 +234,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   void _togglePlay() {
     setState(() => _playing = !_playing);
-    if (_playing && _step.quick) {
+    if (_playing && _autoTime != null) {
       _auto.forward();
     } else {
       _auto.stop();
@@ -149,6 +246,15 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       return KeyEventResult.ignored;
     }
     final key = event.logicalKey;
+    // The game's keys take over the card. While practising, the arrow keys
+    // and space drive and fire as in the game, ENTER moves on.
+    if (_canPractice && !_touch && _gameKeys.contains(key)) {
+      _takeOver();
+      return KeyEventResult.handled;
+    }
+    if (_practice != null && _practiceKeys.contains(key)) {
+      return KeyEventResult.handled;
+    }
     if (key == LogicalKeyboardKey.arrowRight ||
         key == LogicalKeyboardKey.enter ||
         key == LogicalKeyboardKey.space) {
@@ -163,17 +269,42 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return KeyEventResult.handled;
   }
 
+  static final _gameKeys = {
+    LogicalKeyboardKey.keyW,
+    LogicalKeyboardKey.keyA,
+    LogicalKeyboardKey.keyS,
+    LogicalKeyboardKey.keyD,
+    LogicalKeyboardKey.keyQ,
+    LogicalKeyboardKey.keyE,
+    LogicalKeyboardKey.keyF,
+  };
+
+  static final _practiceKeys = {
+    LogicalKeyboardKey.arrowUp,
+    LogicalKeyboardKey.arrowDown,
+    LogicalKeyboardKey.arrowLeft,
+    LogicalKeyboardKey.arrowRight,
+    LogicalKeyboardKey.space,
+  };
+
   @override
   Widget build(BuildContext context) {
     final step = _step;
+    // A scope of its own: a remote walks its buttons and never the page
+    // below it.
+    return FocusScope(child: _keys(step));
+  }
+
+  Widget _keys(TutorialStep step) {
     return Focus(
       focusNode: _focus,
       autofocus: true,
       onKeyEvent: _onKey,
       child: Material(
-        color: BwColors.background,
+        color: GameColors.background,
         child: LayoutBuilder(
-          builder: (context, _) {
+          builder: (context, constraints) {
+            _stageSize = constraints.biggest;
             // A new size can move the card's lower edge.
             WidgetsBinding.instance.addPostFrameCallback((_) => _measureCard());
             return _stage(step);
@@ -187,17 +318,39 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return Stack(
       children: [
         Positioned.fill(
-          child: RepaintBoundary(
-            child: CustomPaint(
-              painter: DemoPainter(
-                scene: step.scene,
-                touch: _touch,
-                clock: _scene,
-                top: _cardBottom,
+          child: _mouse(
+            RepaintBoundary(
+              child: CustomPaint(
+                painter: DemoPainter(
+                  scene: step.scene,
+                  touch: _touch,
+                  pad: onTv ? tvPadForTutorial : null,
+                  clock: _scene,
+                  top: _cardBottom,
+                  practice: _practice,
+                  invite: _canPractice && _practice == null,
+                ),
               ),
             ),
           ),
         ),
+        // The game's own sticks lie over the stage, unseen until a thumb
+        // lands on one: that touch already steers, and the scene turns into
+        // the training ground.
+        if (_touch && _canPractice)
+          Positioned.fill(
+            child: Listener(
+              onPointerDown: (_) => _takeOver(),
+              child: Opacity(
+                opacity: _practice == null ? 0 : 1,
+                child: TouchControls(
+                  key: ValueKey(_index),
+                  input: _input,
+                  special: _special,
+                ),
+              ),
+            ),
+          ),
         SafeArea(
           minimum: const EdgeInsets.all(8),
           child: Column(
@@ -231,19 +384,48 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     );
   }
 
+  /// The mouse on the stage: a click takes over, then it aims and fires.
+  Widget _mouse(Widget child) {
+    if (_touch || !_canPractice) {
+      return child;
+    }
+    return MouseRegion(
+      onHover: (e) => _practice?.mouse = e.localPosition,
+      child: Listener(
+        onPointerDown: (e) {
+          if (e.kind != PointerDeviceKind.mouse) {
+            return;
+          }
+          _takeOver();
+          _practice
+            ?..mouse = e.localPosition
+            ..mouseDown = true;
+        },
+        onPointerMove: (e) => _practice?.mouse = e.localPosition,
+        onPointerUp: (_) => _practice?.mouseDown = false,
+        onPointerCancel: (_) => _practice?.mouseDown = false,
+        child: child,
+      ),
+    );
+  }
+
   /// [child] when [shown], else an empty space of its size.
-  static Widget _keep(bool shown, Widget child) => Visibility(
-    visible: shown,
-    maintainSize: true,
-    maintainAnimation: true,
-    maintainState: true,
-    child: child,
+  /// Hidden it also takes no focus, or a remote would land on nothing.
+  static Widget _keep(bool shown, Widget child) => ExcludeFocus(
+    excluding: !shown,
+    child: Visibility(
+      visible: shown,
+      maintainSize: true,
+      maintainAnimation: true,
+      maintainState: true,
+      child: child,
+    ),
   );
 
   Widget _header() {
     return Row(
       children: [
-        const Icon(Icons.school, color: BwColors.amber, size: 20),
+        const Icon(Icons.school, color: GameColors.amber, size: 20),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -252,7 +434,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.sand,
+              color: GameColors.sand,
             ),
           ),
         ),
@@ -269,18 +451,26 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final controls = controlSteps(touch: _touch);
     final kicker = _index < controls
         ? '${tr('STEUERUNG', 'CONTROLS')} '
-              '${_touch ? 'TOUCH' : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '
+              '${onTv
+                  ? (tvPadForTutorial == TvPadKind.gamepad ? 'CONTROLLER' : 'SIRI REMOTE')
+                  : _touch
+                  ? 'TOUCH'
+                  : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '
               '${_index + 1}/$controls'
         : step.quick
         ? '${tr('SCHNELLDURCHLAUF', 'QUICK TOUR')} · '
               '${_index - controls + 1}/${_steps.length - controls - 1}'
         : tr('ABGESCHLOSSEN', 'COMPLETE');
+    final heading = _practice == null
+        ? kicker
+        : '$kicker · ${tr('DU STEUERST', 'YOUR TURN')}';
+    final auto = _autoTime != null;
     // Phones in landscape: title and buttons share a line, so the scene
     // keeps room below the card.
     final compact = MediaQuery.sizeOf(context).height < 500;
     final title = Row(
       children: [
-        Icon(step.icon, color: BwColors.amber, size: compact ? 18 : 22),
+        Icon(step.icon, color: GameColors.amber, size: compact ? 18 : 22),
         const SizedBox(width: 8),
         Expanded(
           child: Text(
@@ -290,7 +480,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               fontSize: compact ? 18 : null,
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.sand,
+              color: GameColors.sand,
             ),
           ),
         ),
@@ -301,7 +491,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       children: [
         // Hidden buttons keep their place, so WEITER never moves.
         _keep(
-          step.quick,
+          auto,
           IconButton(
             tooltip: _playing
                 ? tr('Anhalten', 'Pause')
@@ -336,96 +526,106 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         ),
       ],
     );
-    return DecoratedBox(
-      key: _cardKey,
-      decoration: ShapeDecoration(
-        color: BwColors.panel,
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: BwColors.amber, width: 1.5),
+    return KeyedSubtree(
+      key: TutorialOverlay.cardKey,
+      child: DecoratedBox(
+        key: _cardKey,
+        decoration: ShapeDecoration(
+          color: GameColors.panel,
+          shape: BeveledRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: GameColors.amber, width: 1.5),
+          ),
+          shadows: const [BoxShadow(color: Color(0x88000000), blurRadius: 16)],
         ),
-        shadows: const [BoxShadow(color: Color(0x88000000), blurRadius: 16)],
-      ),
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(14, compact ? 8 : 12, 14, 8),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    kicker,
-                    style: const TextStyle(
-                      color: BwColors.amber,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.5,
-                    ),
-                  ),
-                ),
-                if (compact) ...[
-                  const SizedBox(width: 12),
-                  _Dots(count: _steps.length, index: _index),
-                ],
-              ],
-            ),
-            const SizedBox(height: 4),
-            if (compact)
-              Row(
-                children: [
-                  Expanded(child: title),
-                  buttons,
-                ],
-              )
-            else
-              title,
-            SizedBox(height: compact ? 2 : 6),
-            // Every text of the tutorial is laid out, only this step's
-            // shows: the card is as tall as for the longest text and keeps
-            // its height from step to step.
-            Stack(
-              children: [
-                for (final (i, other) in _steps.indexed)
-                  _keep(
-                    i == _index,
-                    Text(
-                      other.text,
-                      style: TextStyle(
-                        color: BwColors.text,
-                        fontSize: compact ? 13 : 14,
-                        height: 1.35,
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-            SizedBox(height: compact ? 6 : 8),
-            _keep(
-              step.quick,
-              AnimatedBuilder(
-                animation: _auto,
-                builder: (context, _) =>
-                    LinearProgressIndicator(value: _auto.value, minHeight: 3),
-              ),
-            ),
-            if (!compact) ...[
-              const SizedBox(height: 8),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(14, compact ? 8 : 12, 14, 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               Row(
                 children: [
                   Expanded(
-                    child: Align(
-                      alignment: Alignment.centerLeft,
-                      child: _Dots(count: _steps.length, index: _index),
+                    child: Text(
+                      heading,
+                      style: const TextStyle(
+                        color: GameColors.amber,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.5,
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  buttons,
+                  if (compact) ...[
+                    const SizedBox(width: 12),
+                    _Dots(count: _steps.length, index: _index),
+                  ],
                 ],
               ),
+              const SizedBox(height: 4),
+              if (compact)
+                Row(
+                  children: [
+                    Expanded(child: title),
+                    buttons,
+                  ],
+                )
+              else
+                title,
+              // While the player drives, the text folds away and leaves them
+              // the stage; they have read it already.
+              if (_practice == null) ...[
+                SizedBox(height: compact ? 2 : 6),
+                // Every text of the tutorial is laid out, only this step's
+                // shows: the card is as tall as for the longest text and keeps
+                // its height from step to step.
+                Stack(
+                  children: [
+                    for (final (i, other) in _steps.indexed)
+                      _keep(
+                        i == _index,
+                        Text(
+                          other.text,
+                          style: TextStyle(
+                            color: GameColors.text,
+                            fontSize: compact ? 13 : 14,
+                            height: 1.35,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                SizedBox(height: compact ? 6 : 8),
+                _keep(
+                  auto,
+                  AnimatedBuilder(
+                    animation: _auto,
+                    builder: (context, _) => LinearProgressIndicator(
+                      value: _auto.value,
+                      minHeight: 3,
+                    ),
+                  ),
+                ),
+              ] else
+                SizedBox(height: compact ? 2 : 0),
+              if (!compact) ...[
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: _Dots(count: _steps.length, index: _index),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    buttons,
+                  ],
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -455,9 +655,9 @@ class _Dots extends StatelessWidget {
               width: i == index ? 14 : 6,
               height: 6,
               color: i == index
-                  ? BwColors.amber
+                  ? GameColors.amber
                   : i < index
-                  ? BwColors.oliveLight
+                  ? GameColors.oliveLight
                   : const Color(0x55BFC6AA),
             ),
         ],
@@ -541,7 +741,7 @@ class _Chip extends StatelessWidget {
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.2,
-                color: BwColors.text,
+                color: GameColors.text,
               ),
             ),
           ],

@@ -1,1 +1,1 @@
-Die erste Version für iPhone und iPad: Einzelspieler, Mehrspieler und Verteidigung, acht Fahrzeuge, Touch-Steuerung mit Zielhilfe, Hoch- und Querformat.
+Neu: Capture the Flag als vierter Modus, Rot gegen Blau mit CPU-Panzern auf beiden Seiten. Tankstellen und Munitionslager auf der Karte füllen nach und fliegen in die Luft, wenn man sie trifft. Laufende Runden lassen sich nach kurzer Nachfrage verlassen. Die Fahrzeuge tragen jetzt Tiernamen, die Bestenliste passt aufs Handy, und Start, Beitreten und Einweisung sind aufgeräumt.

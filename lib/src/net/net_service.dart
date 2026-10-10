@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'net_events.dart';
 import 'payloads/death_payload.dart';
+import 'payloads/flag_payload.dart';
 import 'payloads/defense_payload.dart';
 import 'payloads/hit_payload.dart';
 import 'payloads/lobby_presence.dart';
@@ -17,10 +18,21 @@ import 'payloads/round_start_payload.dart';
 import 'payloads/tank_state_payload.dart';
 import 'payloads/shoot_payload.dart';
 import 'payloads/strike_payload.dart';
+import 'presence_throttle.dart';
 import 'replay.dart';
+import 'retry_backoff.dart';
 
 class NetService {
-  NetService({required this.myId, required this.room, this.isHost = true});
+  NetService({
+    required this.myId,
+    required this.room,
+    this.isHost = true,
+    SupabaseClient? client,
+  }) : _ownClient = client;
+
+  /// A connection of its own, for a second player on the same device: one
+  /// connection joins a room's channel only once.
+  final SupabaseClient? _ownClient;
 
   final String myId;
 
@@ -32,6 +44,7 @@ class NetService {
   final bool isHost;
 
   void Function(TankStatePayload payload)? onTankState;
+  void Function(TankStatesPayload payload)? onTankStates;
   void Function(ShootPayload payload)? onShoot;
   void Function(HitPayload payload)? onHit;
   void Function(DeathPayload payload)? onDeath;
@@ -43,6 +56,8 @@ class NetService {
   void Function(ArtilleryPayload payload)? onArtillery;
   void Function(DefensePayload payload)? onDefense;
   void Function(TowerPayload payload)? onTower;
+  void Function(TroopsPayload payload)? onTroops;
+  void Function(FlagPayload payload)? onFlag;
   void Function(GrenadePayload payload)? onGrenade;
   void Function(DronePayload payload)? onDrone;
   void Function(BlastPayload payload)? onBlast;
@@ -68,24 +83,94 @@ class NetService {
   void Function(String id)? onClose;
 
   RealtimeChannel? _channel;
+  PresenceThrottle? _presence;
+  int? _joinedAt;
+
+  /// When this player came into the room. Stays through reconnects, and
+  /// starts afresh once the room was left.
+  int get joinedAt => _joinedAt ??= DateTime.now().millisecondsSinceEpoch;
   LobbyPresence? _me;
+
+  /// Whether anybody else is in the room. Alone, nothing is sent: nobody
+  /// would hear it, and every message counts against the project's limit
+  /// of messages per second, which closes all channels once it is hit.
+  @visibleForTesting
+  bool othersPresent = false;
   bool _disposed = false;
+  final _backoff = RetryBackoff();
+  Timer? _reconnect;
   final _subscriptions = <StreamSubscription<void>>[];
 
-  SupabaseClient get _client => Supabase.instance.client;
+  SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
 
   Future<void> connect(LobbyPresence me) async {
     _disposed = false;
     _me = me;
+    final link = this.link;
+    if (link != null && identical(link.guest, this)) {
+      // A second player on this device: no channel, the first player's
+      // game hands everything on.
+      _registerHandlers(null);
+      link._guestIn = true;
+      link.host._retrack();
+      link.host._emitRoster();
+      return;
+    }
     final channel = _client.channel(
       'game-arena-$room',
       options: const RealtimeChannelConfig(self: false),
     );
     _channel = channel;
+    _presence = PresenceThrottle(channel);
+    _registerHandlers(channel);
+    _subscriptions.add(channel.onPresenceSync.listen((_) => _emitRoster()));
+    _subscriptions.add(channel.onPresenceJoin.listen((_) => _emitRoster()));
+    _subscriptions.add(
+      channel.onPresenceLeave.listen((leave) {
+        final remainingIds = <String>{
+          for (final state in channel.presenceState())
+            for (final presence in state.presences)
+              if (presence.payload['id'] is String)
+                presence.payload['id'] as String,
+        };
+        for (final presence in leave.leftPresences) {
+          final id = presence.payload['id'] as String?;
+          if (id != null && id != myId && !remainingIds.contains(id)) {
+            onPeerLeft?.call(id);
+          }
+        }
+        _emitRoster();
+      }),
+    );
+    _subscriptions.add(
+      channel.onStatusChange.listen((change) {
+        if (change.status == RealtimeSubscribeStatus.subscribed) {
+          _backoff.reset();
+          final me = _me;
+          if (me != null) {
+            _presence?.track(_tracked(me));
+          }
+        } else if (change.status == RealtimeSubscribeStatus.channelError ||
+            change.status == RealtimeSubscribeStatus.closed) {
+          _scheduleReconnect();
+        }
+      }),
+    );
+    channel.subscribe();
+  }
+
+  /// What every event does when it comes in, from the channel or from the
+  /// other player's game on this device.
+  void _registerHandlers(RealtimeChannel? channel) {
     _listen(
       channel,
       NetEvent.state,
       (json) => onTankState?.call(TankStatePayload.fromJson(json)),
+    );
+    _listen(
+      channel,
+      NetEvent.states,
+      (json) => onTankStates?.call(TankStatesPayload.fromJson(json)),
     );
     _listen(
       channel,
@@ -172,85 +257,93 @@ class NetService {
       NetEvent.tower,
       (json) => onTower?.call(TowerPayload.fromJson(json)),
     );
+    _listen(channel, NetEvent.troops, (json) {
+      final payload = TroopsPayload.tryParse(json);
+      if (payload != null) {
+        onTroops?.call(payload);
+      }
+    });
+    _listen(channel, NetEvent.flag, (json) {
+      final payload = FlagPayload.tryParse(json);
+      if (payload != null) {
+        onFlag?.call(payload);
+      }
+    });
     _listen(
       channel,
       NetEvent.close,
       (json) => onClose?.call(json['id'] as String),
     );
-    _subscriptions.add(
-      channel
-          .onBroadcast(event: NetEvent.roundStart.name)
-          .listen(
-            (json) => onRoundStart?.call(RoundStartPayload.fromJson(json)),
-          ),
+    _listen(
+      channel,
+      NetEvent.roundStart,
+      (json) => onRoundStart?.call(RoundStartPayload.fromJson(json)),
     );
-    _subscriptions.add(channel.onPresenceSync.listen((_) => _emitRoster()));
-    _subscriptions.add(channel.onPresenceJoin.listen((_) => _emitRoster()));
-    _subscriptions.add(
-      channel.onPresenceLeave.listen((leave) {
-        final remainingIds = <String>{
-          for (final state in channel.presenceState())
-            for (final presence in state.presences)
-              if (presence.payload['id'] is String)
-                presence.payload['id'] as String,
-        };
-        for (final presence in leave.leftPresences) {
-          final id = presence.payload['id'] as String?;
-          if (id != null && id != myId && !remainingIds.contains(id)) {
-            onPeerLeft?.call(id);
-          }
-        }
-        _emitRoster();
-      }),
-    );
-    _subscriptions.add(
-      channel.onStatusChange.listen((change) async {
-        if (change.status == RealtimeSubscribeStatus.subscribed) {
-          final me = _me;
-          if (me != null) {
-            await channel.track(me.toJson());
-          }
-        } else if (change.status == RealtimeSubscribeStatus.channelError ||
-            change.status == RealtimeSubscribeStatus.closed) {
-          _scheduleReconnect();
-        }
-      }),
-    );
-    channel.subscribe();
   }
 
+  final _handlers = <NetEvent, void Function(Map<String, dynamic> json)>{};
+
   void _listen(
-    RealtimeChannel channel,
+    RealtimeChannel? channel,
     NetEvent event,
     void Function(Map<String, dynamic> json) handler,
   ) {
+    _handlers[event] = handler;
+    if (channel == null) {
+      return;
+    }
     _subscriptions.add(
       channel.onBroadcast(event: event.name).listen((json) {
-        if (json['id'] == myId || muted) {
-          return;
+        _deliver(event, json);
+        // The second player on this device hears what came in as well.
+        final link = this.link;
+        if (link != null && link._guestIn && identical(link.host, this)) {
+          link.guest._deliver(event, json);
         }
-        // Anybody can send anything on the channel: a message that does not
-        // parse is dropped instead of breaking off the game half way.
-        try {
-          handler(json);
-        } on Object catch (error) {
-          debugPrint('Dropped ${event.name} message: $error');
-          return;
-        }
-        recorder?.add(event, json);
       }),
     );
   }
 
+  /// One message that came in.
+  void _deliver(NetEvent event, Map<String, dynamic> json) {
+    final roundStart = event == NetEvent.roundStart;
+    // Round starts come through a replay as well, and are not part of it.
+    if (json['id'] == myId || (muted && !roundStart)) {
+      return;
+    }
+    final handler = _handlers[event];
+    if (handler == null) {
+      return;
+    }
+    // Anybody can send anything on the channel: a message that does not
+    // parse is dropped instead of breaking off the game half way.
+    try {
+      handler(json);
+    } on Object catch (error) {
+      debugPrint('Dropped ${event.name} message: $error');
+      return;
+    }
+    if (!roundStart) {
+      recorder?.add(event, json);
+    }
+  }
+
   void _scheduleReconnect() {
-    if (_disposed) {
+    // An error is often followed by a close: one attempt for both.
+    if (_disposed || _reconnect != null) {
       return;
     }
     final me = _me;
     if (me == null) {
       return;
     }
-    Timer(const Duration(seconds: 2), () async {
+    final wait = _backoff.next();
+    debugPrint(
+      'Room channel $room dropped, rejoining in ${wait.inSeconds} s '
+      '(attempt ${_backoff.failures})',
+    );
+    _reconnect = Timer(wait, () async {
+      _reconnect = null;
       if (_disposed) {
         return;
       }
@@ -264,18 +357,40 @@ class NetService {
       return;
     }
     recorder?.add(event, payload);
+    final link = this.link;
+    final peer = link?.peerOf(this);
+    if (peer != null && link!._guestIn) {
+      // The other player on this device, without a round trip.
+      final copy = Map<String, dynamic>.of(payload);
+      scheduleMicrotask(() => peer._deliver(event, copy));
+    }
+    if (!othersPresent) {
+      return;
+    }
+    transmit(event, payload);
+  }
+
+  /// Puts one message on the channel.
+  @protected
+  void transmit(NetEvent event, Map<String, dynamic> payload) {
     final channel = _channel;
     if (channel == null) {
       return;
     }
-    unawaited(
+    fireAndForget(
       channel.sendBroadcastMessage(event: event.name, payload: payload),
+      'Sending ${event.name}',
     );
   }
 
   Future<void> updatePresence(LobbyPresence me) async {
     _me = me;
-    await _channel?.track(me.toJson());
+    _presence?.track(_tracked(me));
+    final link = this.link;
+    if (link != null && identical(link.guest, this)) {
+      link.host._retrack();
+      link.host._emitRoster();
+    }
   }
 
   void _emitRoster() {
@@ -286,6 +401,7 @@ class NetService {
     final byId = <String, LobbyPresence>{};
     final seen = <String>{};
     final twice = <String>{};
+    final carried = <LobbyPresence>[];
     for (final state in channel.presenceState()) {
       for (final presence in state.presences) {
         final member = LobbyPresence.tryParse(presence.payload);
@@ -296,10 +412,67 @@ class NetService {
           twice.add(member.id);
         }
         byId[member.id] = member;
+        // A second player on that device, who has no presence of their own.
+        final local = presence.payload['local'];
+        final guest = local is Map<String, dynamic>
+            ? LobbyPresence.tryParse(local)
+            : null;
+        if (guest != null) {
+          carried.add(guest);
+        }
       }
     }
     duplicateIds = twice;
-    onRosterChanged?.call(byId.values.toList());
+    // Only people on other devices count: nothing goes over the channel
+    // for the second player on this one.
+    othersPresent = byId.keys.any((id) => id != myId);
+    for (final guest in carried) {
+      byId.putIfAbsent(guest.id, () => guest);
+    }
+    final link = this.link;
+    final guest = link?.guest;
+    final guestMe = guest?._me;
+    if (link != null && link._guestIn && guest != null && guestMe != null) {
+      byId[guest.myId] = guestMe;
+    }
+    final members = byId.values.toList();
+    onRosterChanged?.call(members);
+    if (link != null && link._guestIn) {
+      guest?.onRosterChanged?.call(members);
+    }
+  }
+
+  /// What this player's presence says: with a second player on this device
+  /// it carries theirs, so people on other devices count them as well and
+  /// a room of two is full for everybody.
+  Map<String, dynamic> _tracked(LobbyPresence me) {
+    final json = me.toJson();
+    final link = this.link;
+    final guestMe = link?.guest._me;
+    if (link != null &&
+        link._guestIn &&
+        identical(link.host, this) &&
+        guestMe != null) {
+      json['local'] = guestMe.toJson();
+    }
+    return json;
+  }
+
+  void _retrack() {
+    final me = _me;
+    if (me != null) {
+      _presence?.track(_tracked(me));
+    }
+  }
+
+  /// Joins up with the other player on this device, see [LocalLink].
+  LocalLink? link;
+
+  /// Whether [id] is the other player on this device, who costs the room
+  /// nothing.
+  bool isLocalPeer(String id) {
+    final link = this.link;
+    return link != null && link._guestIn && link.peerOf(this)?.myId == id;
   }
 
   Future<void> _teardownChannel() async {
@@ -307,6 +480,9 @@ class NetService {
       await subscription.cancel();
     }
     _subscriptions.clear();
+    _presence?.close();
+    _presence = null;
+    othersPresent = false;
     final channel = _channel;
     _channel = null;
     if (channel != null) {
@@ -316,6 +492,10 @@ class NetService {
 
   /// Tells everybody in the room that it is closed, then leaves it.
   Future<void> closeRoom() async {
+    final link = this.link;
+    if (link != null && link._guestIn) {
+      link.peerOf(this)?._deliver(NetEvent.close, {'id': myId});
+    }
     final channel = _channel;
     if (channel != null) {
       try {
@@ -332,6 +512,44 @@ class NetService {
 
   Future<void> dispose() async {
     _disposed = true;
+    _reconnect?.cancel();
+    _reconnect = null;
+    _backoff.reset();
+    _joinedAt = null;
+    final link = this.link;
+    if (link != null && identical(link.guest, this) && link._guestIn) {
+      link._guestIn = false;
+      link.host.onPeerLeft?.call(myId);
+      link.host._retrack();
+      link.host._emitRoster();
+    }
     await _teardownChannel();
   }
+}
+
+/// The two games of two players on one device, joined without the server:
+/// what one sends the other hears at once, and the second player shows in
+/// the room's roster through the first. Nothing of it goes over Realtime,
+/// and the room takes no slot for it. People on other devices do not see
+/// the second player this way; with any of them in the room the second
+/// player joins over a connection of their own instead.
+class LocalLink {
+  LocalLink(this.host, this.guest) {
+    host.link = this;
+    guest.link = this;
+  }
+
+  /// The first player's game, which holds the room's channel.
+  final NetService host;
+
+  /// The second player's game, which has no channel.
+  final NetService guest;
+
+  bool _guestIn = false;
+
+  NetService? peerOf(NetService of) => identical(of, host)
+      ? guest
+      : identical(of, guest)
+      ? host
+      : null;
 }

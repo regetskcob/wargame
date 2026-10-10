@@ -1,5 +1,8 @@
 enum NetEvent {
   state,
+
+  /// The CPU tanks of the host, all in one message.
+  states,
   shoot,
   hit,
   death,
@@ -19,4 +22,11 @@ enum NetEvent {
   squad,
   use,
   close,
+
+  /// A player of a defense duel sends troops against the other side.
+  troops,
+
+  /// The authority of a capture the flag round tells where both flags are
+  /// and how the score stands.
+  flag,
 }

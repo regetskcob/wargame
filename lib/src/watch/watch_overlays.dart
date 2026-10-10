@@ -84,7 +84,7 @@ class _WatchHudState extends State<WatchHud> {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w900,
-                    color: BwColors.text,
+                    color: GameColors.text,
                     shadows: [Shadow(blurRadius: 4)],
                   ),
                 ),
@@ -113,7 +113,7 @@ class _WatchHudState extends State<WatchHud> {
                           fontSize: 15,
                           fontWeight: FontWeight.w900,
                           letterSpacing: 1,
-                          color: BwColors.amber,
+                          color: GameColors.amber,
                           shadows: [Shadow(blurRadius: 4)],
                         ),
                       ),
@@ -142,7 +142,7 @@ class _WatchHudState extends State<WatchHud> {
                         margin: const EdgeInsets.symmetric(vertical: 2),
                         alignment: Alignment.center,
                         decoration: BoxDecoration(
-                          color: BwColors.panel,
+                          color: GameColors.panel,
                           shape: BoxShape.circle,
                           border: Border.all(color: slot.type.color, width: 2),
                         ),
@@ -181,7 +181,7 @@ class _WatchHudState extends State<WatchHud> {
                   tr('Zurück in $seconds s', 'Back in $seconds s'),
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
-                    color: BwColors.amber,
+                    color: GameColors.amber,
                   ),
                 )
               : const SizedBox(),
@@ -202,8 +202,8 @@ class _WatchHudState extends State<WatchHud> {
                         minHeight: 8,
                         backgroundColor: const Color(0x88000000),
                         color: share > 0.3
-                            ? BwColors.oliveLight
-                            : BwColors.danger,
+                            ? GameColors.oliveLight
+                            : GameColors.danger,
                       ),
                     );
                   },
@@ -217,7 +217,7 @@ class _WatchHudState extends State<WatchHud> {
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 14,
-                    color: BwColors.amber,
+                    color: GameColors.amber,
                     shadows: [Shadow(blurRadius: 4)],
                   ),
                 ),
@@ -238,7 +238,8 @@ class _WatchHudState extends State<WatchHud> {
         final wave = game.defense.value?.wave ?? 0;
         final extended = game.defense.value?.extended ?? false;
         final ready =
-            credits >= kind.cost && kind.unlockedIn(wave, extended: extended);
+            credits >= game.buildCost(kind) &&
+            kind.unlockedIn(wave, extended: extended);
         return Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: SizedBox(
@@ -248,11 +249,11 @@ class _WatchHudState extends State<WatchHud> {
               onPressed: ready ? () => game.buildTower(kind) : null,
               style: FilledButton.styleFrom(
                 padding: EdgeInsets.zero,
-                backgroundColor: BwColors.olive,
+                backgroundColor: GameColors.olive,
               ),
               child: FittedBox(
                 child: Text(
-                  '${kind.label} ${kind.cost} · $credits',
+                  '${kind.label} ${game.buildCost(kind)} · $credits',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
@@ -308,7 +309,7 @@ class _WatchCountdownState extends State<WatchCountdown> {
               style: const TextStyle(
                 fontSize: 72,
                 fontWeight: FontWeight.w900,
-                color: BwColors.amber,
+                color: GameColors.amber,
                 shadows: [Shadow(blurRadius: 8)],
               ),
             ),
@@ -318,7 +319,7 @@ class _WatchCountdownState extends State<WatchCountdown> {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w700,
-                color: BwColors.text,
+                color: GameColors.text,
                 shadows: [Shadow(blurRadius: 4)],
               ),
             ),
@@ -363,10 +364,10 @@ class WatchRoundOver extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                       letterSpacing: 2,
                       color: won
-                          ? BwColors.amber
+                          ? GameColors.amber
                           : lost
-                          ? BwColors.danger
-                          : BwColors.sand,
+                          ? GameColors.danger
+                          : GameColors.sand,
                     ),
                   ),
                 ),
@@ -377,7 +378,10 @@ class WatchRoundOver extends StatelessWidget {
                     '${stats.kills} kills · ${stats.damage.round()} damage',
                   ),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+                  style: const TextStyle(
+                    color: GameColors.textDim,
+                    fontSize: 13,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 ValueListenableBuilder<bool>(

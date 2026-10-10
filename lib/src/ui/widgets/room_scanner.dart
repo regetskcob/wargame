@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../../app/routes.dart';
 import '../../net/pad_link.dart';
 import '../../net/room_code.dart';
 import '../theme.dart';
@@ -16,19 +18,12 @@ class RoomScanner extends StatefulWidget {
   final bool pad;
 
   /// Opens the camera, resolves to the scanned room code or null.
-  static Future<String?> scan(BuildContext context) => _push(context, false);
+  static Future<String?> scan(BuildContext context) =>
+      context.push<String>(Routes.scanRoom);
 
   /// Opens the camera, resolves to the scanned pairing code or null.
-  static Future<String?> scanPad(BuildContext context) => _push(context, true);
-
-  static Future<String?> _push(BuildContext context, bool pad) {
-    return Navigator.of(context).push<String>(
-      MaterialPageRoute(
-        fullscreenDialog: true,
-        builder: (_) => RoomScanner(pad: pad),
-      ),
-    );
-  }
+  static Future<String?> scanPad(BuildContext context) =>
+      context.push<String>(Routes.scanPad);
 
   @override
   State<RoomScanner> createState() => _RoomScannerState();
@@ -59,7 +54,7 @@ class _RoomScannerState extends State<RoomScanner> {
       final code = widget.pad ? padCodeFrom(text) : roomCodeFrom(text);
       if (code != null) {
         _done = true;
-        Navigator.of(context).pop(code);
+        context.pop(code);
         return;
       }
       if (_rejected != text) {
@@ -73,7 +68,7 @@ class _RoomScannerState extends State<RoomScanner> {
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
-        backgroundColor: BwColors.background,
+        backgroundColor: GameColors.background,
         title: Text(
           widget.pad
               ? tr('BILDSCHIRM KOPPELN', 'PAIR SCREEN')
@@ -113,7 +108,7 @@ class _RoomScannerState extends State<RoomScanner> {
               width: 240,
               height: 240,
               decoration: BoxDecoration(
-                border: Border.all(color: BwColors.amber, width: 3),
+                border: Border.all(color: GameColors.amber, width: 3),
               ),
             ),
           ),

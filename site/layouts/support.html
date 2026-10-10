@@ -1,0 +1,64 @@
+{{ define "main" }}
+{{- $mail := site.Params.supportMail -}}
+{{ partial "bar.html" . }}
+
+<main class="section support">
+  <h1>{{ upper (i18n "supportTitle") }}</h1>
+  <p class="lead">{{ i18n "supportLead" }}</p>
+
+  {{- /* Hugo serves static pages only, so the form sends nothing itself: it
+     writes the request into a mail and opens it in the visitor's mail app.
+     No server and no form service sees what is typed here. */}}
+  <form class="card form" id="support" action="mailto:{{ $mail }}" method="get">
+    <label>{{ i18n "supportTopic" }}
+      <select name="topic">
+        {{- range split (i18n "supportTopics") "|" }}<option>{{ . }}</option>{{ end }}
+      </select>
+    </label>
+    <label>{{ i18n "supportDevice" }}
+      <select name="device">
+        {{- range split (i18n "supportDevices") "|" }}<option>{{ . }}</option>{{ end }}
+      </select>
+    </label>
+    <label>{{ i18n "supportCallSign" }}
+      <input name="callsign" maxlength="40" autocomplete="nickname">
+    </label>
+    <label>{{ i18n "supportMessage" }}
+      <textarea name="message" rows="7" required aria-describedby="message-hint"></textarea>
+      <small id="message-hint">{{ i18n "supportMessageHint" }}</small>
+    </label>
+    <button class="play" type="submit">{{ i18n "supportSend" }}</button>
+    <p class="sent" role="status" hidden>{{ i18n "supportSent" }}</p>
+  </form>
+
+  <p class="aside">{{ i18n "supportDirect" }} <a href="mailto:{{ $mail }}">{{ $mail }}</a>.</p>
+  <p class="aside">{{ i18n "supportAccount" }}</p>
+</main>
+
+{{ partial "foot.html" . }}
+
+<script>
+  (function () {
+    var form = document.getElementById('support');
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var f = form.elements;
+      var lines = [
+        f.message.value.trim(),
+        '',
+        '--',
+        {{ i18n "supportMailTopic" }} + ': ' + f.topic.value,
+        {{ i18n "supportMailDevice" }} + ': ' + f.device.value,
+      ];
+      if (f.callsign.value.trim()) {
+        lines.push({{ i18n "supportMailCallSign" }} + ': ' + f.callsign.value.trim());
+      }
+      lines.push('Browser: ' + navigator.userAgent);
+      var subject = {{ i18n "supportMailSubject" }} + ': ' + f.topic.value;
+      location.href = 'mailto:{{ $mail }}?subject=' + encodeURIComponent(subject) +
+        '&body=' + encodeURIComponent(lines.join('\n'));
+      form.querySelector('.sent').hidden = false;
+    });
+  })();
+</script>
+{{ end }}

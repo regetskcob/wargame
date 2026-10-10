@@ -15,12 +15,17 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'widgets/account_sheet.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/rooms_busy_notice.dart';
+import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
+import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
+import 'widgets/tablet_scale.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
+import '../tv/tv_input.dart';
 
 class LobbyOverlay extends StatefulWidget {
   const LobbyOverlay({required this.game, super.key});
@@ -117,11 +122,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Mehrspieler: Der letzte Panzer im Feld gewinnt.',
               'Multiplayer: The last tank in the field wins.',
             ),
+            GameMode.defense when game.duelNext.value => tr(
+              'Duell: Rot gegen Blau, ein Stützpunkt an jedem Ende der '
+                  'Straße. Eure Wellen rollen zum anderen, wessen Stützpunkt '
+                  'zuerst fällt, verliert.',
+              'Duel: red against blue, a base at either end of the road. '
+                  'Your waves roll to the other one, whose base falls first '
+                  'loses.',
+            ),
             GameMode.defense => tr(
               'Verteidigung: Haltet den Stützpunkt gegen alle Wellen.',
               'Defense: Hold the base against all waves.',
             ),
-          }, style: const TextStyle(color: BwColors.textDim)),
+            GameMode.flag => tr(
+              'Fahnenraub: Holt die Fahne der anderen und bringt sie zum '
+                  'eigenen Stützpunkt. ${GameConfig.flagCaptures} Eroberungen '
+                  'gewinnen.',
+              'Capture the flag: Steal the other side\'s flag and bring it '
+                  'to your base. ${GameConfig.flagCaptures} captures win.',
+            ),
+          }, style: const TextStyle(color: GameColors.textDim)),
         ),
       ],
     );
@@ -162,9 +182,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     ),
                     BotLevel.normal => tr(
                       'Hügel bremsen bergauf. Munition und Treibstoff gehen '
-                          'aus: Sammle Munitions-Gems und Kanister.',
+                          'aus: Sammle Gems und Kanister oder halte an '
+                          'Tankstelle und Munitionsdepot.',
                       'Hills slow you down uphill. Ammunition and fuel run '
-                          'out: collect ammo gems and fuel cans.',
+                          'out: collect gems and fuel cans or stop at a fuel '
+                          'station or ammo depot.',
                     ),
                     BotLevel.hard => tr(
                       'Steile Hügel, knapper Nachschub und treffsichere '
@@ -192,8 +214,60 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   onSelected: (v) => game.fillWithBots.value = v ?? false,
                 ),
               ),
+              ListenableBuilder(
+                listenable: Listenable.merge([game.roster, game.padSteered]),
+                builder: (context, _) => game.roomHasPhone
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Text(
+                          tr(
+                            'Mit Handy-Controller im Raum ohne CPU-Panzer, '
+                                'damit der Server beides trägt.',
+                            'With a phone controller in the room there are no '
+                                'CPU tanks, so the server carries both.',
+                          ),
+                          style: const TextStyle(
+                            color: GameColors.textDim,
+                            fontSize: 12,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
             ],
-            if (mode != GameMode.defense) ...[
+            if (mode == GameMode.flag) ...[
+              if (game.partner != null) ...[
+                const SizedBox(height: 14),
+                _label(context, tr('ZU ZWEIT', 'TWO PLAYERS')),
+                ValueListenableBuilder<bool>(
+                  valueListenable: game.duoTogether,
+                  builder: (context, together, _) => ChoiceRow<bool>(
+                    options: [
+                      (true, tr('ZUSAMMEN', 'TOGETHER'), null),
+                      (false, tr('GEGENEINANDER', 'AGAINST EACH OTHER'), null),
+                    ],
+                    selected: together,
+                    onSelected: (v) => game.duoTogether.value = v ?? together,
+                  ),
+                ),
+              ],
+              const SizedBox(height: 14),
+              _label(context, 'TEAM'),
+              _teamPickRow(),
+              const SizedBox(height: 6),
+              _hint(
+                tr(
+                  'CPU-Panzer füllen beide Seiten auf je '
+                      '${GameConfig.flagFillTo ~/ 2} auf. Zerstörte Panzer '
+                      'kehren nach ${GameConfig.respawnSeconds.round()} s am '
+                      'Stützpunkt zurück.',
+                  'CPU tanks fill both sides up to '
+                      '${GameConfig.flagFillTo ~/ 2} each. Destroyed tanks '
+                      'return to their base after '
+                      '${GameConfig.respawnSeconds.round()} s.',
+                ),
+              ),
+            ] else if (mode != GameMode.defense) ...[
               const SizedBox(height: 14),
               _label(context, tr('MODUS', 'MODE')),
               _teamChoice(),
@@ -222,18 +296,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ),
           if (teams) ...[
             const SizedBox(height: 10),
-            ChoiceRow<int>(
-              options: [
-                (0, 'AUTO', null),
-                (1, tr('ROT', 'RED'), GameConfig.teamColors[1]),
-                (2, tr('BLAU', 'BLUE'), GameConfig.teamColors[2]),
-              ],
-              selected: _teamPick,
-              onSelected: (v) {
-                setState(() => _teamPick = v ?? 0);
-                game.setTeamPick(_teamPick);
-              },
-            ),
+            _teamPickRow(),
             const SizedBox(height: 6),
             _hint(
               tr(
@@ -244,6 +307,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ],
       ),
+    );
+  }
+
+  /// The side the host wants to play on, AUTO for the smaller one.
+  Widget _teamPickRow() {
+    return ChoiceRow<int>(
+      options: [
+        (0, 'AUTO', null),
+        (1, tr('ROT', 'RED'), GameConfig.teamColors[1]),
+        (2, tr('BLAU', 'BLUE'), GameConfig.teamColors[2]),
+      ],
+      selected: _teamPick,
+      onSelected: (v) {
+        setState(() => _teamPick = v ?? 0);
+        widget.game.setTeamPick(_teamPick);
+      },
     );
   }
 
@@ -303,6 +382,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             listenable: Listenable.merge([
               game.roster,
               game.mode,
+              game.teamMode,
               game.progress.rank,
             ]),
             builder: (context, _) => LayoutBuilder(
@@ -333,10 +413,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 12),
           StatBars(type: GameConfig.typeOf(_colorIndex)),
           const SizedBox(height: 14),
-          ValueListenableBuilder<GameMode>(
-            valueListenable: game.mode,
-            // With others every tank drives in its own colour.
-            builder: (context, mode, _) => mode.withOthers
+          ListenableBuilder(
+            listenable: Listenable.merge([game.mode, game.teamMode]),
+            // With others every tank drives in its own colour, in red
+            // against blue in its team's.
+            builder: (context, _) =>
+                game.mode.value.withOthers || game.teamsAhead
                 ? const SizedBox.shrink()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,21 +497,23 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         } else {
           leave = OutlinedButton.icon(
             onPressed: _confirmClose,
-            style: _closeArmed
-                ? OutlinedButton.styleFrom(
-                    foregroundColor: BwColors.danger,
-                    side: const BorderSide(color: BwColors.danger),
-                  )
-                : null,
+            // Less side padding than the theme, so the label keeps its full
+            // size in half a phone width.
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              foregroundColor: _closeArmed ? GameColors.danger : null,
+              side: _closeArmed
+                  ? const BorderSide(color: GameColors.danger)
+                  : null,
+            ),
             icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+            // Short enough for half a phone width at full size; the red
+            // frame and the warning icon say that the second tap counts.
             label: _oneLine(switch ((_closeArmed, game.isHost.value)) {
-              (true, true) => tr(
-                'WIRKLICH FÜR ALLE SCHLIESSEN?',
-                'REALLY CLOSE FOR EVERYONE?',
-              ),
-              (true, false) => tr('WIRKLICH VERLASSEN?', 'REALLY LEAVE?'),
-              (false, true) => tr('WARTERAUM SCHLIESSEN', 'CLOSE WAITING ROOM'),
-              (false, false) => tr('WARTERAUM VERLASSEN', 'LEAVE WAITING ROOM'),
+              (true, true) => tr('SCHLIESSEN', 'CLOSE'),
+              (true, false) => tr('VERLASSEN', 'LEAVE'),
+              (false, true) => tr('RAUM SCHLIESSEN', 'CLOSE ROOM'),
+              (false, false) => tr('RAUM VERLASSEN', 'LEAVE ROOM'),
             }),
           );
         }
@@ -510,10 +594,29 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: BwColors.surface,
+        backgroundColor: GameColors.surface,
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
-          touch
+          onTv
+              ? tr(
+                  'Controller: Linker Stick fährt, rechter Stick zielt, R2 '
+                      'oder A feuert, L2 löst Waffen wie Granatwerfer, Mörser '
+                      'und Drohne aus. X, Y und das Steuerkreuz setzen das '
+                      'Inventar am linken Rand ein. In der Verteidigung baut '
+                      'R1 ein Geschütz, L1 wechselt den Typ. Siri Remote: Der '
+                      'Daumen auf der Touchfläche zeigt die Fahrtrichtung, '
+                      'die Zielhilfe zielt, ein Klick feuert, Play/Pause '
+                      'löst die Waffe oder das oberste Inventarfeld aus.',
+                  'Controller: the left stick drives, the right stick aims, '
+                      'R2 or A fires, L2 fires weapons such as grenade '
+                      'launcher, mortar and drone. X, Y and the d-pad use the '
+                      'inventory on the left edge. In defense, R1 builds a '
+                      'turret and L1 switches the type. Siri Remote: your '
+                      'thumb on the touch surface sets the direction, the '
+                      'aim assist aims, a click fires, play/pause fires the '
+                      'weapon or uses the top inventory slot.',
+                )
+              : touch
               ? tr(
                   'Linker Stick fährt: nach oben vorwärts, zur Seite lenken. '
                       'Rechter Stick richtet den Turm aus und feuert, sobald '
@@ -551,7 +654,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               game.showTutorial();
             },
             icon: const Icon(Icons.school, size: 18),
-            label: Text(tr('EINWEISUNG ANSEHEN', 'VIEW BRIEFING')),
+            label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
           FilledButton(
             onPressed: () => Navigator.of(dialog).pop(),
@@ -570,13 +673,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         fontSize: 12,
         fontWeight: FontWeight.w800,
         letterSpacing: 1.5,
-        color: BwColors.sand,
+        color: GameColors.sand,
       ),
     ),
   );
 
-  Widget _hint(String text) =>
-      Text(text, style: const TextStyle(color: BwColors.textDim, fontSize: 12));
+  Widget _hint(String text) => Text(
+    text,
+    style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+  );
 
   /// Closing takes two clicks: the first one asks, the second one closes.
   void _confirmClose() {
@@ -622,12 +727,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     if (narrow) {
       return _column([...left, ...right]);
     }
+    // Each column a group of its own: a remote walks down the left one
+    // before it moves on to the right.
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: _column(left)),
+        Expanded(child: FocusTraversalGroup(child: _column(left))),
         const SizedBox(width: 16),
-        Expanded(child: _column(right)),
+        Expanded(child: FocusTraversalGroup(child: _column(right))),
       ],
     );
   }
@@ -663,6 +770,54 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           ],
         ),
       ],
+    );
+  }
+
+  /// What the settings behind the gear hold, in one line that opens them.
+  /// In the play test difficulty and terrain went unnoticed behind the gear.
+  Widget _settingsSummary() {
+    final game = widget.game;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        game.botLevel,
+        game.mapChoice,
+        game.teamMode,
+        game.mode,
+      ]),
+      builder: (context, _) {
+        final map = game.mapChoice.value;
+        final mode = game.mode.value;
+        final parts = [
+          game.botLevel.value.label,
+          map == null
+              ? tr('GELÄNDE ZUFÄLLIG', 'RANDOM TERRAIN')
+              : MapTheme.all[map].name.toUpperCase(),
+          if (mode == GameMode.solo || mode == GameMode.multi)
+            game.teamMode.value
+                ? 'TEAMS'
+                : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
+        ];
+        return Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton.icon(
+            onPressed: game.editSettings,
+            style: TextButton.styleFrom(
+              foregroundColor: GameColors.amber,
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              visualDensity: VisualDensity.compact,
+            ),
+            icon: const Icon(Icons.tune, size: 16),
+            label: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                parts.join('  ·  '),
+                maxLines: 1,
+                style: const TextStyle(fontSize: 12, letterSpacing: 1),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -703,7 +858,17 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
               ],
             ),
+            if (host) ...[const SizedBox(height: 6), _settingsSummary()],
             const SizedBox(height: 18),
+            if (mode.withOthers) ...[
+              const ServerNotice(),
+              ValueListenableBuilder(
+                valueListenable: widget.game.roster,
+                builder: (context, roster, _) => roster.length < 2
+                    ? RoomsBusyNotice(slots: widget.game.slots, waiting: true)
+                    : const SizedBox.shrink(),
+              ),
+            ],
             if (room.isEmpty)
               _tankSection(context)
             else
@@ -728,10 +893,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 
   /// Phones and the apps on tablets show the menu without the outer plate:
-  /// the screen edge already frames it.
+  /// the screen edge already frames it. The television keeps it.
   bool _frameless(BuildContext context) =>
       MediaQuery.sizeOf(context).width < 600 ||
       (!kIsWeb &&
+          !onTv &&
           (defaultTargetPlatform == TargetPlatform.iOS ||
               defaultTargetPlatform == TargetPlatform.android));
 
@@ -744,7 +910,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ]),
       builder: (context, _) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
-        color: _frameless(context) ? BwColors.panel : const Color(0xAA000000),
+        color: _frameless(context) ? GameColors.panel : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         // Phones scroll the page up to the lower screen edge instead of
@@ -763,11 +929,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Starts at the top: short pages leave the room below them
-              // instead of floating in the middle of the screen.
+              // Only phones start at the top: short pages leave the room
+              // below them instead of floating in the middle of a screen
+              // held in the hand. Tablets, the browser and the television
+              // have the room to show every page in the middle.
+              final handheld =
+                  MediaQuery.sizeOf(context).shortestSide < tabletShortSide;
               return Align(
-                alignment: Alignment.topCenter,
-                child: SingleChildScrollView(
+                alignment: handheld ? Alignment.topCenter : Alignment.center,
+                child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
                   key: ValueKey(page),
@@ -780,7 +950,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         )
                       : EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 1040),
+                    // The television is wide: two columns where a browser
+                    // stacks, so the pages need no scrolling there.
+                    constraints: BoxConstraints(maxWidth: onTv ? 1320 : 1040),
                     child: _frame(
                       // Phones show the menu without the outer plate: the
                       // screen edge already frames it.
@@ -817,7 +989,7 @@ class _Section extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -827,7 +999,7 @@ class _Section extends StatelessWidget {
             if (title != null) ...[
               Row(
                 children: [
-                  Icon(icon, size: 18, color: BwColors.amber),
+                  Icon(icon, size: 18, color: GameColors.amber),
                   const SizedBox(width: 8),
                   Text(
                     title!,
@@ -875,7 +1047,7 @@ class ColorSwatchButton extends StatelessWidget {
           shape: BeveledRectangleBorder(
             borderRadius: BorderRadius.circular(6),
             side: BorderSide(
-              color: selected ? BwColors.amber : Colors.black45,
+              color: selected ? GameColors.amber : Colors.black45,
               width: 2.5,
             ),
           ),
@@ -897,13 +1069,13 @@ class _JoinedBanner extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.hourglass_top, color: BwColors.amber),
+            const Icon(Icons.hourglass_top, color: GameColors.amber),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

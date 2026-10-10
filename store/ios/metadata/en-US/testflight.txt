@@ -8,6 +8,7 @@ WHAT TO TEST
 • Day and night alternate during a battle
 • Account: play as a guest, quit and restart the app, secure the account with e-mail (enter the code from the mail)
 • Sound: follows the silent switch and the volume keys
+• Apple Watch (Series 9 or later, watchOS 26): install it from the Watch app on the iPhone, steer with the crown, play a round
 
 FEEDBACK
 By screenshot from TestFlight or to regetskcob@icloud.com.

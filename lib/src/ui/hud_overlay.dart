@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -18,12 +19,14 @@ import 'widgets/enemy_indicators.dart';
 import 'widgets/health_bar.dart';
 import 'widgets/inventory_bar.dart';
 import 'widgets/kill_feed_view.dart';
+import 'widgets/leave_round.dart';
 import 'widgets/mini_map.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
 import 'widgets/touch_controls.dart';
 import 'widgets/vitals_plate.dart';
 import '../l10n/l10n.dart';
+import '../tv/tv_input.dart';
 
 class HudOverlay extends StatefulWidget {
   const HudOverlay({required this.game, super.key});
@@ -37,6 +40,18 @@ class HudOverlay extends StatefulWidget {
 /// Narrower than this the phone is held upright and the HUD stacks down the
 /// left side instead of spreading along the top.
 const _uprightWidth = 560.0;
+
+/// Height of one gauge plate (armour, ammo, fuel) with the gap under it and a
+/// little to spare; about 60 px on screen.
+const _plateHeight = 62.0;
+
+/// The inventory column on a keyboard screen: six 56 px slots with 2 px above
+/// and below each.
+const _inventoryHeight = GameConfig.inventorySlots * 60.0;
+
+/// How far the gauges step in when they would reach down into the inventory:
+/// its 8 px margin, a 56 px slot and a gap.
+const _inventoryInset = 8 + 56 + 8.0;
 
 class _HudOverlayState extends State<HudOverlay> {
   Timer? _timer;
@@ -62,6 +77,9 @@ class _HudOverlayState extends State<HudOverlay> {
     }
     if (round.defense) {
       return _waveLabel(compact: compact);
+    }
+    if (round.flag) {
+      return _flagLabel(compact: compact);
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     final graceEndsAt =
@@ -95,6 +113,40 @@ class _HudOverlayState extends State<HudOverlay> {
           );
   }
 
+  /// The clock of a capture the flag round and what the player should do,
+  /// in place of the closing zone.
+  String _flagLabel({bool compact = false}) {
+    final game = widget.game;
+    final round = game.round;
+    final match = game.flagMatch;
+    if (round == null || match == null) {
+      return '';
+    }
+    final elapsed =
+        (DateTime.now().millisecondsSinceEpoch - round.startedAt) / 1000;
+    final clock = match.overtime(elapsed)
+        ? tr('VERLÄNGERUNG', 'OVERTIME')
+        : () {
+            final left = (GameConfig.flagRoundSeconds - max(0, elapsed))
+                .ceil()
+                .clamp(0, 9999);
+            return '${left ~/ 60}:${(left % 60).toString().padLeft(2, '0')}';
+          }();
+    if (compact) {
+      return clock;
+    }
+    final mine = match.flags[game.myTeam];
+    final String task;
+    if (match.carriedBy(game.myId) != null) {
+      task = tr('Bring die Fahne heim!', 'Bring the flag home!');
+    } else if (mine != null && !mine.home) {
+      task = tr('Holt eure Fahne zurück!', 'Get your flag back!');
+    } else {
+      task = tr('Hol die Fahne der anderen', 'Steal the other side\'s flag');
+    }
+    return '$clock · $task';
+  }
+
   /// What the waves are up to, in place of the closing zone.
   String _waveLabel({bool compact = false}) {
     final state = widget.game.defense.value;
@@ -125,8 +177,14 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// The wave out of the regular ones, or how far into the extension.
-  static String _wave(DefensePayload? state) {
+  /// [short] drops the word for windows too narrow for the whole line.
+  static String _wave(DefensePayload? state, {bool short = false}) {
     final wave = state?.wave ?? 0;
+    if (short) {
+      return state != null && state.extended
+          ? tr('$wave · VERL.', '$wave · EXT.')
+          : '$wave/${GameConfig.defenseWaves}';
+    }
     return state != null && state.extended
         ? tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION')
         : tr(
@@ -154,20 +212,16 @@ class _HudOverlayState extends State<HudOverlay> {
         children: [
           if (touch) _compact(game) else _status(game),
           _effects(game),
-          if (!touch)
-            const Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: EdgeInsets.only(top: 12),
-                child: MuteButton(),
-              ),
-            ),
           EnemyIndicators(game: game),
-          // A paired phone brings its own sticks.
+          // A paired phone or a controller brings its own sticks.
           if (touch)
-            ValueListenableBuilder<String?>(
-              valueListenable: PadScreen.instance.paired,
-              builder: (context, paired, _) => paired != null
+            ListenableBuilder(
+              listenable: Listenable.merge([
+                PadScreen.instance.paired,
+                TvInput.instance.count,
+              ]),
+              builder: (context, _) =>
+                  PadScreen.instance.paired.value != null || steeredByPad(game)
                   ? const SizedBox.shrink()
                   : TouchControls(
                       input: game.touch,
@@ -183,11 +237,24 @@ class _HudOverlayState extends State<HudOverlay> {
                   : const Alignment(-1, 0.1),
               child: _HudButtons(
                 game: game,
-                child: InventoryBar(
-                  inventory: game.inventory,
-                  onUse: game.useItem,
-                  compact: touch,
-                ),
+                child: steeredByPad(game)
+                    ? ValueListenableBuilder<TvPadKind>(
+                        valueListenable: TvInput.instance.kind,
+                        builder: (context, kind, _) => InventoryBar(
+                          inventory: game.inventory,
+                          onUse: game.useItem,
+                          labels: kind == TvPadKind.remote
+                              ? const ['⏯']
+                              : (game.round?.duel ?? false)
+                              ? tvDuelSlotLabels
+                              : tvGamepadSlotLabels,
+                        ),
+                      )
+                    : InventoryBar(
+                        inventory: game.inventory,
+                        onUse: game.useItem,
+                        compact: touch,
+                      ),
               ),
             ),
           ),
@@ -198,6 +265,7 @@ class _HudOverlayState extends State<HudOverlay> {
               counts: touch ? _waveCounts() : '',
               waveLabel: touch ? _waveLabel(compact: true) : '',
             ),
+          LeaveRoundPrompt(game: game),
         ],
       ),
     );
@@ -212,13 +280,62 @@ class _HudOverlayState extends State<HudOverlay> {
         if (round != null && round.defense) {
           final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
+          // The plate shares its row with the buttons; when the whole line
+          // does not fit, the wave goes without its word first and then the
+          // comrades are shortened as on the phone.
+          List<String> lines(DefensePayload? state) => [
+            for (final short in const [false, true])
+              '${_wave(state, short: short)}   '
+                  '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                  '${tr('KAMERADEN', 'COMRADES')} $allies',
+            '${_wave(state, short: true)}   '
+                '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                '${tr('KAM.', 'ALLIES')} $allies',
+          ];
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
-            builder: (context, state, _) => Text(
-              '${_wave(state)}   ${tr('FEINDE', 'ENEMIES')} $enemies   '
-              '${tr('KAMERADEN', 'COMRADES')} $allies',
-              style: style,
+            builder: (context, state, _) => LayoutBuilder(
+              builder: (context, constraints) {
+                final candidates = lines(state);
+                final painter = TextPainter(
+                  textDirection: TextDirection.ltr,
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                );
+                final merged = DefaultTextStyle.of(context).style.merge(style);
+                final text = candidates.firstWhere((line) {
+                  painter
+                    ..text = TextSpan(text: line, style: merged)
+                    ..layout();
+                  return painter.width <= constraints.maxWidth;
+                }, orElse: () => candidates.last);
+                painter.dispose();
+                return Text(text, style: style);
+              },
             ),
+          );
+        }
+        final match = game.flagMatch;
+        if (round != null && round.flag && match != null) {
+          return Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(
+                  text: '${tr('ROT', 'RED')} ${match.score[1]}',
+                  style: TextStyle(color: GameConfig.teamColors[1]),
+                ),
+                const TextSpan(text: ' : '),
+                TextSpan(
+                  text: '${match.score[2]} ${tr('BLAU', 'BLUE')}',
+                  style: TextStyle(color: GameConfig.teamColors[2]),
+                ),
+                TextSpan(
+                  text: '  ${tr('BIS', 'TO')} ${GameConfig.flagCaptures}',
+                  style: const TextStyle(color: GameColors.textDim),
+                ),
+              ],
+            ),
+            style: style,
           );
         }
         if (round != null && round.teamMode) {
@@ -286,7 +403,13 @@ class _HudOverlayState extends State<HudOverlay> {
                     if (upright) ...[
                       const SizedBox(height: 6),
                       IgnorePointer(child: map),
-                      const MuteButton(),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MuteButton(),
+                          LeaveRoundButton(game: game),
+                        ],
+                      ),
                     ],
                     IgnorePointer(
                       child: KillFeedView(feed: game.killFeed, compact: true),
@@ -319,14 +442,17 @@ class _HudOverlayState extends State<HudOverlay> {
                                 _zoneLabel(compact: true),
                                 style: const TextStyle(
                                   fontSize: 11,
-                                  color: BwColors.amber,
+                                  color: GameColors.amber,
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                    if (!upright) const MuteButton(),
+                    if (!upright) ...[
+                      const MuteButton(),
+                      LeaveRoundButton(game: game),
+                    ],
                   ],
                 ),
               ),
@@ -338,22 +464,21 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// Shells, and below them the fuel from the middle level on. The easy
-  /// level hides the fuel and never runs out of shells.
+  /// level hides the fuel and never runs out of shells, so it shows
+  /// neither: an endless gauge would only take room.
   Widget _ammo(TankGame game) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ValueListenableBuilder<int>(
-          valueListenable: game.ammoNotifier,
-          builder: (context, ammo, _) => AmmoGauge(
-            ammo: ammo,
-            maxAmmo: game.myMagazine,
-            endless: game.endlessAmmo,
+        if (!game.endlessAmmo)
+          ValueListenableBuilder<int>(
+            valueListenable: game.ammoNotifier,
+            builder: (context, ammo, _) =>
+                AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, endless: false),
           ),
-        ),
         if (game.usesFuel) ...[
-          const SizedBox(height: 6),
+          if (!game.endlessAmmo) const SizedBox(height: 6),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
             builder: (context, fuel, _) => FuelGauge(fuel: fuel),
@@ -364,9 +489,12 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   Widget _effects(TankGame game) {
+    // On a desktop the defense panel fills the lower left and hid the wave
+    // announcements, so there they show above the middle.
+    final high = (game.round?.defense ?? false) && !game.touchMode.value;
     return IgnorePointer(
       child: Align(
-        alignment: const Alignment(0, 0.55),
+        alignment: high ? const Alignment(0, -0.35) : const Alignment(0, 0.55),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -380,7 +508,7 @@ class _HudOverlayState extends State<HudOverlay> {
                         fontSize: 24,
                         fontWeight: FontWeight.w900,
                         letterSpacing: 3,
-                        color: BwColors.amber,
+                        color: GameColors.amber,
                       ),
                     ),
             ),
@@ -403,7 +531,7 @@ class _HudOverlayState extends State<HudOverlay> {
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
-                            color: BwColors.danger,
+                            color: GameColors.danger,
                           ),
                         ),
                       ),
@@ -468,17 +596,38 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
+  /// Whether the gauges in the top left corner would reach down into the
+  /// inventory, which sits vertically centred (a little low) on the left edge.
+  /// Short windows such as a laptop browser bring it up under the gauges.
+  bool _gaugesMeetInventory(TankGame game, double height) {
+    final scale = MediaQuery.textScalerOf(context).scale(1);
+    final plates = 1 + (game.endlessAmmo ? 0 : 1) + (game.usesFuel ? 1 : 0);
+    final gaugesBottom = 16 + plates * _plateHeight * scale;
+    // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
+    final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
+    return gaugesBottom + 8 > inventoryTop;
+  }
+
   Widget _status(TankGame game) {
-    return IgnorePointer(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Column(
+    return LayoutBuilder(
+      builder: (context, constraints) => _statusColumn(
+        game,
+        _gaugesMeetInventory(game, constraints.maxHeight),
+      ),
+    );
+  }
+
+  Widget _statusColumn(TankGame game, bool inset) {
+    return Padding(
+      padding: EdgeInsets.fromLTRB(inset ? _inventoryInset : 16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              IgnorePointer(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -487,52 +636,78 @@ class _HudOverlayState extends State<HudOverlay> {
                       builder: (context, hp, _) =>
                           HealthBar(hp: hp, maxHp: game.myMaxHp),
                     ),
-                    const SizedBox(height: 6),
+                    if (!game.endlessAmmo || game.usesFuel)
+                      const SizedBox(height: 6),
                     _ammo(game),
                   ],
                 ),
-                const Spacer(),
-                Panel(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 8,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _alive(game, 16),
-                      ValueListenableBuilder<int>(
-                        valueListenable: game.soldiersRunOver,
-                        builder: (context, n, _) => n == 0
-                            ? const SizedBox()
-                            : Text(
-                                tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                                style: const TextStyle(
-                                  color: BwColors.danger,
-                                  fontWeight: FontWeight.w800,
-                                ),
+              ),
+              // The buttons sit in the row beside the plate, so a long wave
+              // line pushes them aside instead of running underneath them,
+              // and a narrow window wraps the plate rather than overflowing.
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HudButtons(
+                      game: game,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MuteButton(),
+                          LeaveRoundButton(game: game),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: IgnorePointer(
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _alive(game, 16),
+                              ValueListenableBuilder<int>(
+                                valueListenable: game.soldiersRunOver,
+                                builder: (context, n, _) => n == 0
+                                    ? const SizedBox()
+                                    : Text(
+                                        tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
+                                        style: const TextStyle(
+                                          color: GameColors.danger,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
                               ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _zoneLabel(),
+                                style: const TextStyle(color: GameColors.amber),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _zoneLabel(),
-                        style: const TextStyle(color: BwColors.amber),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            KillFeedView(feed: game.killFeed),
-            const Spacer(),
-            Align(
-              alignment: Alignment.bottomRight,
-              child: MiniMap(game: game),
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          IgnorePointer(child: KillFeedView(feed: game.killFeed)),
+          const Spacer(),
+          Align(
+            alignment: Alignment.bottomRight,
+            child: IgnorePointer(child: MiniMap(game: game)),
+          ),
+        ],
       ),
     );
   }
@@ -568,6 +743,9 @@ enum _Shop { closed, towers, upgrades }
 class _DefensePanelState extends State<_DefensePanel> {
   _Shop _shop = _Shop.closed;
 
+  /// The list the desktop panel shows, the guns to begin with.
+  _Shop _desk = _Shop.towers;
+
   TankGame get game => widget.game;
   bool get touch => widget.touch;
 
@@ -594,8 +772,8 @@ class _DefensePanelState extends State<_DefensePanel> {
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
-          ? BwColors.textDim.withValues(alpha: 0.45)
-          : BwColors.text,
+          ? GameColors.textDim.withValues(alpha: 0.45)
+          : GameColors.text,
     ),
     side: WidgetStateProperty.resolveWith(
       (states) => BorderSide(
@@ -659,15 +837,15 @@ class _DefensePanelState extends State<_DefensePanel> {
                   : OutlinedButton.new)(
                     style: kind == game.towerChoice.value
                         ? _buttonStyle
-                        : _buyStyle(BwColors.oliveLight),
+                        : _buyStyle(GameColors.oliveLight),
                     onPressed:
-                        credits >= kind.cost &&
+                        credits >= game.buildCost(kind) &&
                             kind.unlockedIn(wave, extended: extended)
                         ? () => game.buildTower(kind)
                         : null,
                     child: Text(
                       kind.unlockedIn(wave, extended: extended)
-                          ? '${kind.label} ${kind.cost}'
+                          ? '${kind.label} ${game.buildCost(kind)}'
                           : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
                       style: _small,
                     ),
@@ -689,25 +867,61 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _shopDesktop(int credits) {
     final near = game.nearTower.value;
+    final bounty = GameConfig.bountyIn(
+      GameConfig.creditsPerKill,
+      max(1, game.defense.value?.wave ?? 1),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          tr(
-            'MITTEL $credits   ·   B baut/rüstet auf, V wechselt',
-            'FUNDS $credits   ·   B builds/upgrades, V switches',
-          ),
+          '${steeredByPad(game) ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
+          '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
-            color: BwColors.amber,
+            color: GameColors.amber,
             fontWeight: FontWeight.w800,
           ),
         ),
+        Text(
+          tr(
+            'Geld gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
+                'jeder Welle weniger) und jede abgewehrte Welle '
+                '(+${GameConfig.waveBonus}).',
+            'Money comes with your own kills (a tank now +$bounty, less '
+                'with every wave) and every wave beaten off '
+                '(+${GameConfig.waveBonus}).',
+          ),
+          style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+        ),
         const SizedBox(height: 6),
-        if (near != null) _nearTower(near, credits) else _towers(credits),
+        // One list at a time, like on phones: with both the panel covered a
+        // quarter of a laptop screen and the road beneath it.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
+            const SizedBox(width: 6),
+            _deskTab('UPGRADES', _Shop.upgrades),
+          ],
+        ),
         const SizedBox(height: 6),
-        _upgrades(credits),
+        if (_desk == _Shop.upgrades)
+          _upgrades(credits)
+        else if (near != null)
+          _nearTower(near, credits)
+        else
+          _towers(credits),
       ],
+    );
+  }
+
+  Widget _deskTab(String label, _Shop shop) {
+    final open = _desk == shop;
+    return (open ? FilledButton.new : OutlinedButton.new)(
+      style: _buttonStyle,
+      onPressed: () => setState(() => _desk = shop),
+      child: Text(label, style: _small),
     );
   }
 
@@ -734,7 +948,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               tr('MITTEL $credits', 'FUNDS $credits'),
               style: const TextStyle(
-                color: BwColors.amber,
+                color: GameColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
@@ -803,7 +1017,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         }
         final host = game.round?.botHost == game.myId;
         final withdraw = OutlinedButton.icon(
-          style: _buyStyle(BwColors.sand),
+          style: _buyStyle(GameColors.sand),
           onPressed: game.withdrawDefense,
           icon: const Icon(Icons.flag, size: 16),
           label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
@@ -818,7 +1032,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   'ALL ${GameConfig.defenseWaves} WAVES REPELLED · VICTORY SECURED',
                 ),
                 style: TextStyle(
-                  color: BwColors.amber,
+                  color: GameColors.amber,
                   fontSize: touch ? 11 : 13,
                   fontWeight: FontWeight.w900,
                 ),
@@ -867,7 +1081,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ),
                       style: TextStyle(
                         fontSize: touch ? 10 : 11,
-                        color: BwColors.textDim,
+                        color: GameColors.textDim,
                       ),
                     ),
             );
@@ -890,12 +1104,45 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
   }
 
+  /// The other side's base in a duel: how far it is from falling.
+  Widget _rivalBase(DefensePayload state, int lane) {
+    final hp = state.hpOf(lane);
+    final ratio = (hp / GameConfig.baseMaxHp(state.hqOf(lane))).clamp(0.0, 1.0);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          '${tr('GEGNER', 'RIVAL')} · ${GameConfig.hqName(state.hqOf(lane))}'
+          '  ${hp.ceil()}',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w800,
+            color: GameConfig.teamColors[lane + 1],
+          ),
+        ),
+        const SizedBox(height: 4),
+        SizedBox(
+          width: 200,
+          height: 8,
+          child: LinearProgressIndicator(
+            value: ratio,
+            backgroundColor: const Color(0x66000000),
+            color: GameConfig.teamColors[lane + 1],
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _base() {
     return ValueListenableBuilder<DefensePayload?>(
       valueListenable: game.defense,
       builder: (context, state, _) {
-        final hq = state?.hq ?? 1;
-        final hp = state?.hp ?? GameConfig.baseHp;
+        // In a duel the own base, and below it the other side's.
+        final lane = game.myLane;
+        final hq = state?.hqOf(lane) ?? 1;
+        final hp = state?.hpOf(lane) ?? GameConfig.baseHp;
         final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
         final bar = SizedBox(
           width: touch ? 70 : 200,
@@ -903,7 +1150,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           child: LinearProgressIndicator(
             value: ratio,
             backgroundColor: const Color(0x66000000),
-            color: ratio > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+            color: ratio > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
           ),
         );
         final label = Text(
@@ -922,7 +1169,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               Tooltip(
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
-                child: const Icon(Icons.flag, size: 12, color: BwColors.sand),
+                child: const Icon(Icons.flag, size: 12, color: GameColors.sand),
               ),
               const SizedBox(width: 4),
               bar,
@@ -931,15 +1178,24 @@ class _DefensePanelState extends State<_DefensePanel> {
               const SizedBox(width: 10),
               Text(
                 widget.waveLabel,
-                style: const TextStyle(fontSize: 11, color: BwColors.amber),
+                style: const TextStyle(fontSize: 11, color: GameColors.amber),
               ),
             ],
           );
         }
+        final rival = state != null && state.duel ? 1 - lane : null;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
-          children: [label, const SizedBox(height: 4), bar],
+          children: [
+            label,
+            const SizedBox(height: 4),
+            bar,
+            if (rival != null) ...[
+              const SizedBox(height: 6),
+              _rivalBase(state!, rival),
+            ],
+          ],
         );
       },
     );
@@ -988,17 +1244,19 @@ class _DefensePanelState extends State<_DefensePanel> {
         alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
         child: Padding(
           // Phones: in the top right corner.
-          // Room for the mute button, which only the browser shows and
-          // upright under the gauges.
+          // Room for the exit and the mute button, which only the browser
+          // shows. Upright both sit under the gauges.
           padding: touch
               ? EdgeInsets.only(
-                  right:
-                      kIsWeb &&
-                          MediaQuery.sizeOf(context).width >= _uprightWidth
-                      ? 44
-                      : 0,
+                  right: MediaQuery.sizeOf(context).width < _uprightWidth
+                      ? 0
+                      : onTv
+                      ? 0
+                      : (kIsWeb ? 96 : 48),
                 )
-              : const EdgeInsets.all(8),
+              // Desktops: clear of the mini map in the lower right, so a
+              // narrow window wraps the buttons instead of covering it.
+              : const EdgeInsets.fromLTRB(8, 8, MiniMap.defaultSize + 24, 8),
           child: _HudButtons(game: game, child: panel),
         ),
       ),

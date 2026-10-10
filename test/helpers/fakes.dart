@@ -1,11 +1,16 @@
-import 'package:flutter/foundation.dart';
+import 'package:flame/components.dart';
+import 'package:flutter/widgets.dart';
+import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/db/account_service.dart';
 import 'package:wargame/src/db/profile_service.dart';
+import 'package:wargame/src/db/room_slots.dart';
 import 'package:wargame/src/db/score_service.dart';
+import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/net_service.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
+import 'package:wargame/src/net/room_directory.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 User _user({required bool guest}) => User(
@@ -46,6 +51,15 @@ class FakeAccounts implements AccountService {
   Future<void> rememberLanguage(AppLang lang) async => language = lang;
 
   @override
+  bool get olderThanTutorial => false;
+
+  @override
+  bool tutorialSeen({required bool touch}) => true;
+
+  @override
+  Future<void> rememberTutorialSeen({required bool touch}) async {}
+
+  @override
   Future<void> signOut() async {
     signOuts++;
     if (fails) {
@@ -72,8 +86,26 @@ class FakeProfiles implements ProfileService {
 }
 
 class FakeScores implements ScoreService {
+  FakeScores({this.top = const []});
+
+  /// What the leaderboard shows.
+  final List<ScoresRow> top;
+
   @override
   String? get myId => null;
+
+  /// Without an account rounds are not recorded.
+  @override
+  bool get isGuest => true;
+
+  @override
+  Future<List<ScoresRow>> topScores({int limit = 20}) async => top;
+
+  @override
+  Future<List<TankScoresRow>> myTankScores() async => const [];
+
+  @override
+  Future<ScoresRow?> myScore() async => null;
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
@@ -93,15 +125,83 @@ class FakeNet extends NetService {
   Future<void> dispose() async => disposes++;
 }
 
+/// The Realtime budget without a server: every claim gets in unless told
+/// otherwise, and counting changes nothing.
+class FakeSlots implements RoomSlots {
+  FakeSlots({this.free = true});
+
+  bool free;
+
+  /// Every claim: its key and load.
+  final claimed = <(String, int)>[];
+
+  List<String> get claims => [for (final c in claimed) c.$1];
+
+  @override
+  Future<bool> claim(String key, int messages) async {
+    claimed.add((key, messages));
+    return free;
+  }
+
+  @override
+  Future<void> count() async {}
+}
+
+/// The public room list without a server behind it.
+class FakeDirectory extends RoomDirectory {
+  FakeDirectory() : super(room: 'TEST1');
+
+  final listings = <RoomListing?>[];
+
+  @override
+  void connect() {}
+
+  @override
+  Future<void> advertise(RoomListing? listing) async => listings.add(listing);
+
+  @override
+  Future<void> dispose() async {}
+}
+
 /// A game that never connects: enough for the pages around it.
 TankGame offlineGame({
   AccountService? accounts,
   ProfileService? profiles,
   NetService? net,
+  RoomSlots? slots,
+  ScoreService? scores,
 }) => TankGame(
   net: net ?? FakeNet(),
-  myId: 'me',
-  scoreService: FakeScores(),
+  // The game is the player its connection speaks for.
+  myId: net?.myId ?? 'me',
+  scoreService: scores ?? FakeScores(),
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),
+  directory: FakeDirectory(),
+  slots: slots ?? FakeSlots(),
 );
+
+/// A game loaded and mounted as the app would, with every overlay, so the
+/// net callbacks are wired and rounds can run.
+Future<TankGame> loadedGame({NetService? net, RoomSlots? slots}) async {
+  final game = offlineGame(net: net, slots: slots)
+    ..onGameResize(Vector2(1280, 720));
+  for (final id in [
+    OverlayIds.lobby,
+    OverlayIds.countdown,
+    OverlayIds.hud,
+    OverlayIds.spectator,
+    OverlayIds.roundOver,
+    OverlayIds.closed,
+    OverlayIds.tutorial,
+  ]) {
+    game.overlays.addEntry(id, (_, _) => const SizedBox());
+  }
+  // ignore: invalid_use_of_internal_member
+  await game.load();
+  // ignore: invalid_use_of_internal_member
+  game.mount();
+  await game.ready();
+  game.update(0);
+  return game;
+}

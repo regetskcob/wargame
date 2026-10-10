@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../game/bot_level.dart';
 import '../../game/components/power_up.dart';
+import '../../game/components/supply_depot.dart';
 import '../../game/components/tank_painter.dart';
 import '../../game/defense/tower.dart';
 import '../../game/map_theme.dart';
 import '../../game/game_config.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 import '../theme.dart';
 
 /// What the stage behind a tutorial card acts out.
@@ -31,7 +33,7 @@ enum DemoScene {
 
 /// A symbol with a word, shown in the quick tour.
 class TutorialChip {
-  const TutorialChip(this.icon, this.label, [this.color = BwColors.amber]);
+  const TutorialChip(this.icon, this.label, [this.color = GameColors.amber]);
 
   final IconData icon;
   final String label;
@@ -58,16 +60,176 @@ class TutorialStep {
   bool get quick => scene == DemoScene.tour || scene == DemoScene.vehicles;
 }
 
-/// The controls for [touch] or for keyboard and mouse, then the quick tour
-/// through everything the game has, and a last card to start.
+/// The controls for [touch] or for keyboard and mouse, on the Apple TV for
+/// controller and remote, then the quick tour through everything the game
+/// has, and a last card to start.
 List<TutorialStep> tutorialSteps({required bool touch}) => [
-  ...touch ? _touch : _desktop,
+  ..._controls(touch),
   ..._tour,
   _ready,
 ];
 
 /// How many of the steps for [touch] explain the controls.
-int controlSteps({required bool touch}) => (touch ? _touch : _desktop).length;
+int controlSteps({required bool touch}) => _controls(touch).length;
+
+List<TutorialStep> _controls(bool touch) => !onTv
+    ? (touch ? _touch : _desktop)
+    : tvPadForTutorial == TvPadKind.gamepad
+    ? _gamepad
+    : _remote;
+
+/// What the Apple TV explains: the controller in hand, else the remote.
+TvPadKind get tvPadForTutorial =>
+    TvInput.instance.kind.value == TvPadKind.gamepad
+    ? TvPadKind.gamepad
+    : TvPadKind.remote;
+
+List<TutorialStep> get _gamepad => [
+  TutorialStep(
+    title: tr('FAHREN', 'DRIVE'),
+    icon: Icons.sports_esports,
+    scene: DemoScene.drive,
+    text: tr(
+      'Der linke Stick zeigt, wohin der Panzer soll: Er dreht sich von selbst '
+          'und fährt los.',
+      'The left stick points where the tank should go: it turns by itself '
+          'and drives off.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELEN', 'AIM'),
+    icon: Icons.track_changes,
+    scene: DemoScene.aim,
+    text: tr(
+      'Der rechte Stick richtet den Turm aus, ganz gleich, wohin der Panzer '
+          'fährt. Lässt du ihn los, dreht die Zielhilfe den Turm auf den '
+          'nächsten Gegner. Auf Schwer gibt es keine.',
+      'The right stick aims the turret, no matter where the tank is driving. '
+          'Let go and the aim assist turns it to the nearest enemy. On Hard '
+          'there is none.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('FEUERN', 'FIRE'),
+    icon: Icons.local_fire_department,
+    scene: DemoScene.fire,
+    text: tr(
+      'R2 oder A feuert, gedrückt halten heißt Dauerfeuer. Die Munition ist '
+          'begrenzt, blaue Gems füllen sie auf.',
+      'R2 or A fires, holding it down means continuous fire. Ammunition is '
+          'limited, blue gems refill it.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('INVENTAR', 'INVENTORY'),
+    icon: Icons.inventory_2,
+    scene: DemoScene.inventory,
+    text: tr(
+      'Kisten und Gems landen im Inventar am linken Rand. X setzt das erste '
+          'Feld ein, Y das zweite, das Steuerkreuz die übrigen. Die Taste '
+          'steht am Feld.',
+      'Crates and gems land in the inventory on the left edge. X uses the '
+          'first slot, Y the second, the d-pad the others. The button is on '
+          'the slot.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
+    icon: Icons.sports_baseball,
+    scene: DemoScene.special,
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems feuert L2.',
+      'Grenade launcher, mortar and drone from gems fire with L2.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
+    icon: Icons.shield,
+    scene: DemoScene.defense,
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
+          'neben deinem Panzer oder rüstet das auf, an dem er steht, L1 '
+          'wechselt die Art.',
+      'In defense mode kills bring money. R1 builds a turret next to your '
+          'tank or upgrades the one it stands at, L1 switches the kind.',
+    ),
+  ),
+];
+
+List<TutorialStep> get _remote => [
+  TutorialStep(
+    title: tr('FAHREN', 'DRIVE'),
+    icon: Icons.settings_remote,
+    scene: DemoScene.drive,
+    text: tr(
+      'Leg den Daumen auf die Touchfläche der Siri Remote, dorthin, wohin der '
+          'Panzer soll: oben fährt er nach oben, rechts nach rechts. Hebst du '
+          'ihn ab, hält er an.',
+      'Rest your thumb on the touch surface of the Siri Remote where the tank '
+          'should go: at the top it drives up, at the right to the right. '
+          'Lift it and the tank stops.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('ZIELEN', 'AIM'),
+    icon: Icons.track_changes,
+    scene: DemoScene.aim,
+    text: tr(
+      'Mit der Remote zielt die Zielhilfe: Sie dreht den Turm auf den '
+          'nächsten Gegner in Reichweite und feuert. Auf Schwer gibt es keine, '
+          'dann schaut der Turm nach vorn.',
+      'With the remote the aim assist aims: it turns the turret to the '
+          'nearest enemy in range and fires. On Hard there is none, then the '
+          'turret looks ahead.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('FEUERN', 'FIRE'),
+    icon: Icons.local_fire_department,
+    scene: DemoScene.fire,
+    text: tr(
+      'Ein Klick auf die Touchfläche feuert, gedrückt halten heißt '
+          'Dauerfeuer. Die Munition ist begrenzt, blaue Gems füllen sie auf.',
+      'A click on the touch surface fires, holding it down means continuous '
+          'fire. Ammunition is limited, blue gems refill it.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('INVENTAR', 'INVENTORY'),
+    icon: Icons.inventory_2,
+    scene: DemoScene.inventory,
+    text: tr(
+      'Kisten und Gems landen im Inventar am linken Rand. Play/Pause setzt '
+          'das oberste Feld ein.',
+      'Crates and gems land in the inventory on the left edge. Play/pause '
+          'uses the top slot.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
+    icon: Icons.sports_baseball,
+    scene: DemoScene.special,
+    text: tr(
+      'Granatwerfer, Mörser und Drohne aus Gems feuert Play/Pause. Solange '
+          'eine davon geladen ist, geht sie dem Inventar vor.',
+      'Grenade launcher, mortar and drone from gems fire with play/pause. '
+          'While one is loaded it comes before the inventory.',
+    ),
+  ),
+  TutorialStep(
+    title: tr('VERTEIDIGUNG', 'DEFENSE'),
+    icon: Icons.shield,
+    scene: DemoScene.defense,
+    text: tr(
+      'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
+          'baut Play/Pause ein Geschütz neben deinem Panzer oder rüstet das '
+          'auf, an dem er steht. Mehr Auswahl gibt ein Controller.',
+      'In defense mode kills bring money. With an empty inventory, '
+          'play/pause builds a turret next to your tank or upgrades the one it '
+          'stands at. A controller gives more choice.',
+    ),
+  ),
+];
 
 List<TutorialStep> get _touch => [
   TutorialStep(
@@ -289,6 +451,30 @@ List<TutorialStep> get _tour => [
     ],
   ),
   TutorialStep(
+    title: tr('NACHSCHUB', 'SUPPLIES'),
+    icon: Icons.local_gas_station,
+    text: tr(
+      'Ab Stufe Normal stehen Tankstellen und Munitionsdepots auf der Karte. '
+          'Halte darauf an, um aufzufüllen. Beschuss lässt sie in die Luft '
+          'fliegen und reißt Panzer in der Nähe mit, nach einer Weile stehen '
+          'sie wieder. Bei Capture the Flag hat jedes Team eigene hinter '
+          'seiner Basis, die nur der Gegner zerstören kann.',
+      'From the normal level on, fuel stations and ammo depots stand on the '
+          'map. Stop on one to fill up. Shells blow them up, taking nearby '
+          'tanks along, and after a while they stand again. In capture the '
+          'flag each team has its own behind its base that only the enemy '
+          'can destroy.',
+    ),
+    chips: [
+      for (final kind in DepotKind.values)
+        TutorialChip(
+          kind == DepotKind.fuel ? Icons.local_gas_station : Icons.inventory_2,
+          kind.label,
+          kind.color,
+        ),
+    ],
+  ),
+  TutorialStep(
     title: tr('GELÄNDE UND WETTER', 'TERRAIN AND WEATHER'),
     icon: Icons.terrain,
     text: tr(
@@ -326,7 +512,7 @@ List<TutorialStep> get _tour => [
       TutorialChip(
         Icons.signal_cellular_alt,
         BotLevel.hard.label,
-        BwColors.danger,
+        GameColors.danger,
       ),
     ],
   ),

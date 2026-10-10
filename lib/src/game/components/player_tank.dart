@@ -5,8 +5,10 @@ import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 import 'package:flutter/services.dart';
 
+import '../../app/env.dart';
 import '../../audio/audio_service.dart';
 import '../game_config.dart';
+import '../../l10n/l10n.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
 import '../../net/payloads/tank_state_payload.dart';
@@ -17,6 +19,7 @@ import '../inventory.dart';
 import '../special_weapon.dart';
 import '../tank_damage.dart';
 import '../touch_input.dart';
+import '../../tv/tv_input.dart';
 import '../tank_game.dart';
 import 'tree.dart';
 import 'mine.dart';
@@ -25,7 +28,6 @@ import 'soldier.dart';
 import 'bullet.dart';
 import 'power_up.dart';
 import 'tank_base.dart';
-import 'storm_zone.dart';
 
 class PlayerTank extends TankBase
     with HasGameRef<TankGame>, KeyboardHandler, CollisionCallbacks {
@@ -45,6 +47,11 @@ class PlayerTank extends TankBase
 
   bool get isBot => controls != null;
 
+  /// Whether a person has hit this tank. A CPU tank that holds its fire at
+  /// the start (`BotLevel.holdFire`) shoots back from then on; bumps,
+  /// the zone and other CPU tanks leave the hold alone.
+  bool provoked = false;
+
   TouchInput get input => controls ?? gameRef.touch;
 
   final velocity = Vector2.zero();
@@ -54,6 +61,10 @@ class PlayerTank extends TankBase
   /// their state less often than a player's tank.
   double speedFactor = 1;
   double fireFactor = 1;
+
+  /// Carries the enemy flag in a capture the flag round: slower, and no
+  /// special weapon, so the others can catch it.
+  bool carriesFlag = false;
   double syncInterval = GameConfig.stateSyncInterval;
 
   /// Enemies of a defense round never run dry, there are no gems for them.
@@ -81,6 +92,9 @@ class PlayerTank extends TankBase
 
   /// Rounds left in the magazine. Gems put more back.
   late int ammo = magazine;
+
+  /// Part of a round an ammunition depot has loaded so far.
+  double ammoCarry = 0;
 
   /// Crates and gems a CPU tank picked up and keeps for later. The player's
   /// own sit in the game's inventory.
@@ -142,7 +156,9 @@ class PlayerTank extends TankBase
 
   @override
   bool onKeyEvent(KeyEvent event, Set<LogicalKeyboardKey> keysPressed) {
-    if (isBot) {
+    // The Apple TV turns swipes and the controller's pad into arrow keys
+    // for the menus. In the round the raw sticks steer, see TvSteering.
+    if (isBot || onTv) {
       return true;
     }
     _thrust =
@@ -167,6 +183,8 @@ class PlayerTank extends TankBase
         gameRef.buildTower();
       } else if (key == LogicalKeyboardKey.keyV) {
         gameRef.cycleTowerKind();
+      } else if (key == LogicalKeyboardKey.keyT) {
+        gameRef.sendTroops();
       } else {
         final slot = _itemKeys.indexOf(key);
         if (slot >= 0) {
@@ -243,6 +261,8 @@ class PlayerTank extends TankBase
         GameConfig.tankMaxSpeed *
         stats.speed *
         speedFactor *
+        (carriesFlag ? GameConfig.flagCarrierSpeed : 1) *
+        gameRef.tankSpeedScale *
         engineFactor *
         damage.speedFactor *
         slope *
@@ -341,10 +361,10 @@ class PlayerTank extends TankBase
       gameRef.fuelNotifier.value = fuel;
     }
     if (fuel <= 0 && before > 0) {
-      gameRef.showNotice('TANK LEER');
+      gameRef.showNotice(tr('TANK LEER', 'TANK EMPTY'));
     } else if (fuel <= GameConfig.fuelLowShare && !_warnedFuel) {
       _warnedFuel = true;
-      gameRef.showNotice('TREIBSTOFF KNAPP');
+      gameRef.showNotice(tr('TREIBSTOFF KNAPP', 'FUEL LOW'));
     }
   }
 
@@ -444,6 +464,7 @@ class PlayerTank extends TankBase
     if (!isBot) {
       input.assistFire =
           assisted &&
+          !gameRef.ceasefire &&
           target != null &&
           (target - turretAngle).toNormalizedAngle().abs() < 0.1;
     }
@@ -454,10 +475,7 @@ class PlayerTank extends TankBase
     if (round == null || round.defense) {
       return;
     }
-    final radius = StormZone.radiusAt(
-      round.startedAt,
-      DateTime.now().millisecondsSinceEpoch,
-    );
+    final radius = round.safeRadiusAt(DateTime.now().millisecondsSinceEpoch);
     if (position.length > radius) {
       applyDamage(GameConfig.zoneDamagePerSecond * dt, killerId: null);
     }
@@ -478,7 +496,7 @@ class PlayerTank extends TankBase
         _fireCooldown = 0.5;
         if (!isBot) {
           AudioService.play('tick', volume: 0.6);
-          gameRef.showNotice('MUNITION LEER');
+          gameRef.showNotice(tr('MUNITION LEER', 'AMMO EMPTY'));
         }
         return;
       }
@@ -520,6 +538,7 @@ class PlayerTank extends TankBase
     _specialCooldown -= dt;
     final weapon = special;
     if (weapon == null ||
+        carriesFlag ||
         _specialCooldown > 0 ||
         !(_special || input.special)) {
       return;
@@ -552,24 +571,27 @@ class PlayerTank extends TankBase
     _lastSentPosition.setFrom(position);
     _lastSentAngle = angle;
     _lastSentTurret = turretAngle;
-    gameRef.net.send(
-      NetEvent.state,
-      TankStatePayload(
-        id: playerId,
-        x: position.x,
-        y: position.y,
-        vx: velocity.x,
-        vy: velocity.y,
-        rotation: angle,
-        hp: hp,
-        turret: turretAngle,
-        shielded: shielded,
-      ).toJson(),
+    final state = TankStatePayload(
+      id: playerId,
+      x: position.x,
+      y: position.y,
+      vx: velocity.x,
+      vy: velocity.y,
+      rotation: angle,
+      hp: hp,
+      turret: turretAngle,
+      shielded: shielded,
     );
+    // CPU tanks go out together, one message for all of them.
+    if (isBot) {
+      gameRef.queueBotState(state);
+    } else {
+      gameRef.net.send(NetEvent.state, state.toJson());
+    }
   }
 
   void applyDamage(double amount, {required String? killerId}) {
-    if (hp <= 0) {
+    if (hp <= 0 || (Env.shots && controls == null)) {
       return;
     }
     // The shield holds off shells, mines and barrages, not the zone.
@@ -578,9 +600,12 @@ class PlayerTank extends TankBase
     }
     if (killerId != null) {
       amount *= armorFactor;
-      if (gameRef.inTrench(position)) {
+      if (gameRef.inTrench(position, of: playerId)) {
         amount *= GameConfig.trenchCover;
       }
+    }
+    if (killerId != null && !(gameRef.round?.isBot(killerId) ?? true)) {
+      provoked = true;
     }
     hp -= amount;
     takeHitEffects(amount);

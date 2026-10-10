@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../db/room_slots.dart';
+import '../../game/game_config.dart';
 import '../../game/tank_game.dart';
 import '../../net/room.dart';
 import '../../net/room_code.dart';
@@ -8,6 +10,7 @@ import '../../net/room_directory.dart';
 import '../theme.dart';
 import 'room_scanner.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
 /// Public rooms to join, and a field for the code of a private one.
 class RoomList extends StatefulWidget {
@@ -55,16 +58,20 @@ class _RoomListState extends State<RoomList> {
           style: Theme.of(context).textTheme.titleMedium,
         ),
         const SizedBox(height: 8),
-        ValueListenableBuilder<List<RoomListing>>(
-          valueListenable: widget.game.directory.rooms,
-          builder: (context, rooms, _) {
+        ListenableBuilder(
+          listenable: Listenable.merge([
+            widget.game.directory.rooms,
+            RoomSlots.load,
+          ]),
+          builder: (context, _) {
+            final rooms = widget.game.directory.rooms.value;
             if (rooms.isEmpty) {
               return Text(
                 tr(
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 12),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 12),
               );
             }
             return Column(
@@ -74,10 +81,25 @@ class _RoomListState extends State<RoomList> {
           },
         ),
         const SizedBox(height: 10),
+        // Scan, code and join without frames, so only the field stands out.
         Row(
           children: [
-            SizedBox(
-              width: 140,
+            // The apps read the QR code of a waiting room with the camera. In
+            // the browser the phone camera opens the room link by itself, and
+            // the Apple TV has no camera.
+            if (!kIsWeb && !onTv) ...[
+              IconButton(
+                onPressed: _scan,
+                tooltip: tr('QR-Code scannen', 'Scan QR code'),
+                color: GameColors.sand,
+                icon: Icon(
+                  Icons.qr_code_scanner,
+                  semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
+                ),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Expanded(
               child: TextField(
                 controller: _code,
                 textCapitalization: TextCapitalization.characters,
@@ -89,28 +111,22 @@ class _RoomListState extends State<RoomList> {
                 onSubmitted: _join,
               ),
             ),
-            const SizedBox(width: 8),
-            OutlinedButton(
+            const SizedBox(width: 4),
+            TextButton(
               onPressed: () => _join(_code.text),
+              style: TextButton.styleFrom(foregroundColor: GameColors.sand),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
           ],
         ),
-        // The apps read the QR code of a waiting room with the camera. In
-        // the browser the phone camera opens the room link by itself.
-        if (!kIsWeb) ...[
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: _scan,
-            icon: const Icon(Icons.qr_code_scanner),
-            label: Text(tr('QR-CODE SCANNEN', 'SCAN QR CODE')),
-          ),
-        ],
       ],
     );
   }
 
   Widget _tile(RoomListing room) {
+    final full = room.players >= GameConfig.maxPilots;
+    // A room of one holds no slot yet: joining needs a free one.
+    final taken = RoomSlots.allTaken && room.players < 2;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
@@ -120,7 +136,7 @@ class _RoomListState extends State<RoomList> {
             style: const TextStyle(
               fontWeight: FontWeight.w900,
               letterSpacing: 2,
-              color: BwColors.amber,
+              color: GameColors.amber,
             ),
           ),
           const SizedBox(width: 10),
@@ -135,9 +151,15 @@ class _RoomListState extends State<RoomList> {
             ),
           ),
           TextButton(
-            onPressed: () => _join(room.room),
+            onPressed: full || taken ? null : () => _join(room.room),
             child: Text(
-              room.inMatch ? tr('ZUSEHEN', 'WATCH') : tr('BEITRETEN', 'JOIN'),
+              full
+                  ? tr('VOLL', 'FULL')
+                  : taken
+                  ? tr('BELEGT', 'TAKEN')
+                  : room.inMatch
+                  ? tr('ZUSEHEN', 'WATCH')
+                  : tr('BEITRETEN', 'JOIN'),
             ),
           ),
         ],

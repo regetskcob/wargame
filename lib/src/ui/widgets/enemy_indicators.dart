@@ -73,6 +73,35 @@ class _IndicatorPainter extends CustomPainter {
                 .compareTo(b.position.distanceTo(me.position)),
           );
 
+    // Capture the flag: where both flags are, beyond the edge.
+    final flags = game.flagMatch;
+    if (flags != null) {
+      for (final flag in flags.flags.values) {
+        final carrier = flag.carrier;
+        final at = carrier == null
+            ? flag.position
+            : game.tankById(carrier)?.position ?? flag.position;
+        if (carrier == me.playerId) {
+          continue;
+        }
+        final screen =
+            centre +
+            Offset((at.x - camera.x) * scale, (at.y - camera.y) * scale);
+        if (inner.contains(screen)) {
+          continue;
+        }
+        final direction = screen - centre;
+        final tx = direction.dx == 0
+            ? double.infinity
+            : (inner.width / 2) / direction.dx.abs();
+        final ty = direction.dy == 0
+            ? double.infinity
+            : (inner.height / 2) / direction.dy.abs();
+        final edge = centre + direction * min(tx, ty) * 0.9;
+        _flagMarker(canvas, edge, GameConfig.teamColors[flag.team]);
+      }
+    }
+
     for (final tank in enemies.take(6)) {
       final screen =
           centre +
@@ -96,7 +125,7 @@ class _IndicatorPainter extends CustomPainter {
       final near = distance < 450;
       final color = tank.team > 0
           ? GameConfig.teamColors[tank.team]
-          : BwColors.danger;
+          : GameColors.danger;
 
       canvas.save();
       canvas.translate(at.dx, at.dy);
@@ -133,6 +162,26 @@ class _IndicatorPainter extends CustomPainter {
         at + inward - Offset(label.width / 2, label.height / 2),
       );
     }
+  }
+
+  /// A small flag on the edge of the view, where a flag lies beyond it.
+  void _flagMarker(Canvas canvas, Offset at, Color color) {
+    canvas.drawCircle(at, 13, Paint()..color = const Color(0x99000000));
+    canvas.drawLine(
+      at + const Offset(-4, 8),
+      at + const Offset(-4, -8),
+      Paint()
+        ..strokeWidth = 2
+        ..color = Colors.white,
+    );
+    canvas.drawPath(
+      Path()
+        ..moveTo(at.dx - 4, at.dy - 8)
+        ..lineTo(at.dx + 8, at.dy - 4)
+        ..lineTo(at.dx - 4, at.dy)
+        ..close(),
+      Paint()..color = color,
+    );
   }
 
   @override

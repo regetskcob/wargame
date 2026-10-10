@@ -10,19 +10,79 @@ import '../../l10n/l10n.dart';
 /// The fixed battlefield of a defense round: a rectangle, one road the enemy
 /// follows and the base at its end. Which of the layouts is used follows from
 /// the round seed, so every client draws the same one.
+///
+/// A duel has two roads, one to each player's base. Each is a [lanes] map of
+/// its own, with its [road] and [base], sharing the river, the bridges and
+/// [roads], so the enemies, the soldiers and the aircraft of a lane follow
+/// it as they follow the one road of a common round.
 class DefenseMap {
-  DefenseMap._(this.road, this.river, List<Vector2> extraBridges) {
-    bridges = [
-      ..._crossings(),
-      for (final at in extraBridges)
-        Bridge(centre: at, along: _riverNormalAt(at), halfLength: _bridgeHalf),
-    ];
+  DefenseMap._(
+    this.road,
+    this.river,
+    List<Vector2> extraBridges, {
+    List<List<Vector2>>? roads,
+    List<Bridge>? bridges,
+  }) : roads = roads ?? [road] {
+    this.bridges =
+        bridges ??
+        [
+          ..._crossings(),
+          for (final at in extraBridges)
+            Bridge(
+              centre: at,
+              along: _riverNormalAt(at),
+              halfLength: _bridgeHalf,
+            ),
+        ];
   }
 
   factory DefenseMap.forSeed(int seed) {
     final layout = _layouts[layoutFor(seed)];
     return DefenseMap._(layout.road, layout.river, layout.bridges);
   }
+
+  /// The duel's field: a layout of a common round, with a base at either
+  /// end of its road. Every road runs from the left to the right of the
+  /// field: the left player's base stands where the enemy used to roll in,
+  /// the right player's where the base always stands. Each side's waves
+  /// roll along the road to the other's base, so they meet on the way.
+  factory DefenseMap.duelForSeed(int seed) {
+    final layout = _layouts[layoutFor(seed)];
+    final whole = DefenseMap._(layout.road, layout.river, layout.bridges);
+    // The far end comes in off the edge, so the base stands on the field.
+    final (start, _) = whole.alongRoad(_duelInset);
+    final (_, segment) = whole.pointAlong(_duelInset);
+    final toRight = [start, ...layout.road.skip(segment + 1)];
+    final toLeft = toRight.reversed.toList();
+    DefenseMap side(List<Vector2> road) => DefenseMap._(
+      road,
+      layout.river,
+      const [],
+      roads: [toRight],
+      bridges: whole.bridges,
+    );
+    // Lane 0 is the road to the left base, the red player's.
+    final left = side(toLeft);
+    final right = side(toRight);
+    left.lanes = [left, right];
+    right.lanes = left.lanes;
+    return left;
+  }
+
+  /// How far in from the edge the left player's base stands in a duel.
+  static const _duelInset = 230.0;
+
+  /// Every road on the field: one, or one per side in a duel.
+  final List<List<Vector2>> roads;
+
+  /// The map of each side's road and base, in the order of the players the
+  /// round start names. Just this one outside a duel.
+  late List<DefenseMap> lanes = [this];
+
+  bool get duel => lanes.length > 1;
+
+  /// Every base on the field, one per lane.
+  List<Vector2> get bases => [for (final lane in lanes) lane.base];
 
   /// Which of the layouts a round seed picks.
   static int layoutFor(int seed) => (seed ~/ 4).abs() % _layouts.length;
@@ -143,11 +203,13 @@ class DefenseMap {
   Vector2 get entry => road.first;
   Vector2 get base => road.last;
 
-  /// Shortest distance from [point] to the road's centre line.
+  /// Shortest distance from [point] to the centre line of any road.
   double distanceToRoad(Vector2 point) {
     var best = double.infinity;
-    for (var i = 0; i < road.length - 1; i++) {
-      best = min(best, _distanceToSegment(point, road[i], road[i + 1]));
+    for (final road in roads) {
+      for (var i = 0; i < road.length - 1; i++) {
+        best = min(best, _distanceToSegment(point, road[i], road[i + 1]));
+      }
     }
     return best;
   }
@@ -179,9 +241,16 @@ class DefenseMap {
     return null;
   }
 
-  /// The road's crossings of the river, each with a bridge along the road.
+  /// The roads' crossings of the river, each with a bridge along the road.
   List<Bridge> _crossings() {
     final found = <Bridge>[];
+    for (final road in roads) {
+      _crossingsOf(road, found);
+    }
+    return found;
+  }
+
+  void _crossingsOf(List<Vector2> road, List<Bridge> found) {
     for (var i = 0; i < road.length - 1; i++) {
       for (var j = 0; j < river.length - 1; j++) {
         final at = _intersect(road[i], road[i + 1], river[j], river[j + 1]);
@@ -196,7 +265,6 @@ class DefenseMap {
         }
       }
     }
-    return found;
   }
 
   /// Direction across the river at [at], for a bridge that is not on the road.
@@ -264,19 +332,25 @@ class DefenseMap {
     return p.distanceTo(a + ab * t);
   }
 
-  /// Why a gun can not go to [point], or null when it can.
-  String? whyNotBuild(Vector2 point, Iterable<Vector2> towers) {
+  /// Why a gun can not go to [point], or null when it can. A trench
+  /// ([onRoad]) may cut across the road: tanks roll over it and soldiers
+  /// march on through it, as they would in a real war.
+  String? whyNotBuild(
+    Vector2 point,
+    Iterable<Vector2> towers, {
+    bool onRoad = false,
+  }) {
     if (!bounds.deflate(40).contains(point.toOffset())) {
       return tr('Zu nah am Rand', 'Too close to the edge');
     }
-    if (distanceToRoad(point) < roadHalfWidth + 30) {
+    if (!onRoad && distanceToRoad(point) < roadHalfWidth + 30) {
       return tr('Nicht auf der Straße', 'Not on the road');
     }
     if (inWater(point, margin: 26) ||
         bridges.any((b) => b.centre.distanceTo(point) < b.halfLength + 30)) {
       return tr('Nicht im Fluss', 'Not in the river');
     }
-    if (point.distanceTo(base) < baseRadius + 50) {
+    if (bases.any((base) => point.distanceTo(base) < baseRadius + 50)) {
       return tr('Zu nah am Stützpunkt', 'Too close to the base');
     }
     if (towers.any((t) => t.distanceTo(point) < GameConfig.towerSpacing)) {
@@ -369,6 +443,44 @@ class DefenseMap {
     ];
   }
 
+  /// Where along the first stretch of the road the enemy digs in its guns,
+  /// in the order it builds them: well short of the comrades' posts, so the
+  /// players have to push out to take them, or reach them with a howitzer.
+  static const _enemyGunShares = [0.2, 0.32, 0.26, 0.14, 0.36, 0.22];
+
+  /// The spots for the enemy's guns, beside the road and on dry ground,
+  /// alternating sides.
+  late final List<Vector2> enemyGunSpots = () {
+    final spots = <Vector2>[];
+    for (var i = 0; i < _enemyGunShares.length; i++) {
+      final at = _placeEnemyGun(_enemyGunShares[i], i.isEven ? 1.0 : -1.0);
+      if (at != null) {
+        spots.add(at);
+      }
+    }
+    return spots;
+  }();
+
+  Vector2? _placeEnemyGun(double share, double side) {
+    const offset = roadHalfWidth + 70;
+    for (final nudge in const [0.0, 0.03, -0.03, 0.06, -0.06]) {
+      final (point, segment) = pointAlong(roadLength * (share + nudge));
+      final along = (road[segment + 1] - road[segment]).normalized();
+      final normal = Vector2(-along.y, along.x);
+      for (final sign in [side, -side]) {
+        final at = point + normal * (offset * sign);
+        if (bounds.deflate(60).contains(at.toOffset()) &&
+            distanceToRoad(at) > roadHalfWidth + 40 &&
+            !inWater(at, margin: 40) &&
+            bridges.every((b) => b.centre.distanceTo(at) > b.halfLength + 40) &&
+            at.distanceTo(outpost) > 130) {
+          return at;
+        }
+      }
+    }
+    return null;
+  }
+
   /// The enemy's outpost: beside the start of the road, where the waves
   /// roll out from. Only scenery, it cannot be attacked.
   late final Vector2 outpost = () {
@@ -387,29 +499,29 @@ class DefenseMap {
 
   /// The vehicle of the comrade in [slot].
   static TankType allyType(int slot) => const [
-    TankType.leopard,
-    TankType.puma,
-    TankType.gepard,
-    TankType.leopard,
-    TankType.boxer,
+    TankType.keiler,
+    TankType.hermelin,
+    TankType.habicht,
+    TankType.keiler,
+    TankType.fuchs,
   ][slot % 5];
 
   /// The enemy for slot [n] of wave [wave]: more and heavier tanks later on.
   static TankType enemyType(int wave, int n) {
     final roll = (wave * 7 + n * 13) % 10;
     if (wave >= 7 && roll < 2) {
-      return TankType.panther;
+      return TankType.wolf;
     }
     if (wave >= 4 && roll == 9) {
-      return TankType.lynx;
+      return TankType.dachs;
     }
     if (wave >= 5 && roll < 3) {
-      return TankType.leopard;
+      return TankType.keiler;
     }
     if (wave >= 3 && roll < 6) {
-      return TankType.gepard;
+      return TankType.habicht;
     }
-    return roll.isEven ? TankType.boxer : TankType.puma;
+    return roll.isEven ? TankType.fuchs : TankType.hermelin;
   }
 
   /// Number of enemy tanks in [wave].
@@ -418,7 +530,7 @@ class DefenseMap {
   /// Everything else a wave brings: squads on foot along the road, attack
   /// helicopters, jets that bomb the base and kamikaze drones. Only the
   /// tanks come in the first wave, the air shows up from the second on, so
-  /// flak and the Gepard earn their keep.
+  /// flak and the Habicht earn their keep.
   static WavePlan planFor(int wave) => WavePlan(
     tanks: waveSize(wave),
     squads: 1 + wave ~/ 3,

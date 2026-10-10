@@ -16,9 +16,26 @@ bool get onWatch => FlutterWatchosPlatform.isWatch;
 class WatchSteering {
   WatchSteering(this._input);
 
-  /// Radians of heading per unit of crown rotation. One full turn of the
-  /// crown is one full turn of the tank. Tune on a real watch.
-  static const radiansPerCrownUnit = 2 * pi;
+  /// The crown reports scroll distance with the system's acceleration on
+  /// top: about 0.75 for one detent, tens per frame for a calm turn and
+  /// thousands for a flick. Taken linearly, one detent swung the heading
+  /// round by most of a circle. A logarithm keeps a detent a small
+  /// correction of about two degrees and a flick no worse than a quick turn.
+  static const crownTurn = 0.06;
+
+  /// The heading runs at most this far ahead of the hull (radians). Past
+  /// about 0.4 the tank already turns at full speed, so more lead only
+  /// makes it overshoot once the crown stops, and a lead beyond half a
+  /// circle made it turn the wrong way round.
+  static const maxLead = 0.45;
+
+  /// The heading after one frame of [crown] rotation, for a tank facing
+  /// [tankAngle].
+  static double steer(double heading, double crown, double tankAngle) {
+    final turned = heading + crown.sign * crownTurn * log(1 + crown.abs());
+    final lead = atan2(sin(turned - tankAngle), cos(turned - tankAngle));
+    return tankAngle + lead.clamp(-maxLead, maxLead);
+  }
 
   final TouchInput _input;
   double _heading = 0;
@@ -58,7 +75,7 @@ class WatchSteering {
       _tank = tank;
       _heading = tankAngle;
     }
-    _heading += WatchCrown.instance.drain() * radiansPerCrownUnit;
+    _heading = steer(_heading, WatchCrown.instance.drain(), tankAngle);
     _input
       ..drive = (sin(_heading), -cos(_heading))
       ..assist = true

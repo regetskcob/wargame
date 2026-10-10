@@ -18,22 +18,32 @@ in App Store Connect einfügen.
 | Hinweise für die Prüfung | `metadata/review_information/notes.txt` |
 | TestFlight: Beschreibung, Testhinweise | `metadata/de-DE/testflight.txt` |
 | App-Icon 1024 × 1024, ohne Alpha | `icon/AppIcon-1024.png` |
-| iPhone 6,9" (1320 × 2868) | `screenshots/de-DE/iphone-*.png` |
-| iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/de-DE/iphone63-*.png` |
-| iPad 13" (2752 × 2064) | `screenshots/de-DE/ipad-*.png` |
+| iPhone 6,9" (1320 × 2868) | `screenshots/<sprache>/iphone-*.png` |
+| iPhone 6,3" (1206 × 2622), Pflichtfeld „iPhone mit Dynamic Island“ | `screenshots/<sprache>/iphone63-*.png` |
+| iPad 13" (2752 × 2064) | `screenshots/<sprache>/ipad-*.png` |
+| Apple Watch Ultra 4 (422 × 514), von Hand hochladen | `watch/<sprache>/watch-*.png` |
+| Kopfzeile, Tab „Kopfzeile“ (5244 × 2950 und 3840 × 1646), von Hand hochladen | `header/<sprache>/header-*.png`: iPhone vor dem iPad, Apple TV mit Handy als Controller davor, Watch |
+| Kopfzeile, Tab „Suchergebnisse“ (dieselben Größen), von Hand hochladen | `header/<sprache>/search-*.png`: iPhone, iPad und Watch nebeneinander |
+
+`<sprache>` ist `de-DE` oder `en-US`. Watch-Bilder und Kopfzeile liegen
+außerhalb von `screenshots/`, weil `fastlane deliver` diesen Ordner hochlädt
+und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
 schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert
 Apple selbst. Ist der Name „Panzergefecht“ im App Store
 schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
 „Panzergefecht – Panzerduell“ nehmen. Die
-Schlüsselwörter enthalten bewusst keine geschützten Namen wie Bundeswehr oder
-Leopard, das verbietet Apple (Richtlinie 2.3.7).
+Schlüsselwörter enthalten bewusst keine geschützten Namen von Streitkräften, das
+verbietet Apple (Richtlinie 2.3.7). Die Fahrzeuge tragen Tiernamen (Hermelin,
+Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs, Wolf) statt Modell- oder
+Herstellernamen.
 
 ## Icon neu erzeugen
 
 `store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
-Karte) und schreibt es nach `icon/`, ins iOS-Icon-Set und nach `web/`.
+Karte) und schreibt es nach `icon/`, in die Icon-Sets für iOS und macOS und
+nach `web/`.
 Danach `store/tool/android_icons.py` für Android und Google Play:
 
 ```sh
@@ -43,8 +53,39 @@ python3 store/tool/android_icons.py
 
 ## Screenshots neu erzeugen
 
-Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) in
-einen Ordner legen, die Namen stehen in `SHOTS` in `../tool/compose.py`:
+Rohaufnahmen aus dem Simulator (iPhone 17 Pro Max, iPad Pro 13" quer) je
+Sprache in `<ordner>/de-DE` und `<ordner>/en-US` legen, die Namen stehen in
+`SHOTS` in `../tool/compose.py`. Die Sprache stellt man im Spiel im Konto um.
+Der Simulator meldet einen eigenen Gamecontroller, der die Touch-Sticks
+ausblendet; mit `-ignoreGamepads YES` gestartet spielt die App wie auf einem
+Handy ohne Controller:
+
+```sh
+xcrun simctl launch <sim-id> de.regetskcob.wargame -ignoreGamepads YES
+xcrun simctl spawn <sim-id> defaults write de.regetskcob.wargame ignoreGamepads -bool YES
+```
+
+Für die Aufnahmen gibt es einen Screenshot-Modus, nur für Debug-Builds
+(`tool/check_dart_defines.sh` lässt ihn in keinen Release-Build):
+
+```sh
+flutter build ios --simulator --debug --dart-define=ACCOUNTS=true --dart-define=SHOTS=true
+```
+
+Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne
+Nebel, die Schwierigkeit steht auf leicht (Munition ohne Ende), und eine
+Verteidigungsrunde beginnt bei Welle `SHOT_WAVE` (Standard 3) mit
+ausgebautem Stützpunkt und 2000 Kasse für Geschütze. `SHOT_STICKS=true`
+zeigt beide Touch-Sticks gedrückt, für das Bild der Steuerung. Ohne den
+Modus war der Panzer im Simulator oft nach Sekunden zerstört, und Licht und
+Wetter hingen am Zufall.
+
+Der Apple-TV-Simulator nimmt ohne Simulator.app keine Fernbedienung an; für
+die TV-Aufnahmen öffnet ein lokal geänderter Build die Kopplung selbst und
+startet die Runde, sobald das Handy gekoppelt ist.
+
+Daraus entstehen beide Sprachsätze für App Store und Google Play, jede
+Aufnahme in einem gezeichneten iPhone bzw. iPad unter der Überschrift:
 
 ```sh
 pip3 install --user pillow
@@ -119,7 +160,7 @@ einmal, die Texte dafür stehen in `metadata/de-DE/testflight.txt`.
 
 ## Universal Links
 
-Room links (`https://www.regetskcob.de/wargame/?room=CODE`) open the app when
+Room links (`https://www.regetskcob.de/wargame/play/?room=CODE`) open the app when
 it is installed, also from the iPhone camera. The app asks for
 `applinks:www.regetskcob.de` (`ios/Runner/Runner.entitlements`, team
 86HB5U6788). Apple only reads the association file at the root of the

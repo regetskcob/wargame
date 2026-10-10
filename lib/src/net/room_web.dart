@@ -52,37 +52,6 @@ void _rememberHosted(String code) {
 /// The browser keeps its settings in `localStorage`, nothing to open.
 Future<void> openLocalStore() async {}
 
-const _guestKey = 'panzergefecht.guest';
-
-/// Whether this browser chose to play as a guest before.
-bool prefersGuest() {
-  try {
-    return web.window.localStorage.getItem(_guestKey) == '1';
-  } on Object {
-    return false;
-  }
-}
-
-/// Remembers that this browser plays as a guest, so the welcome page does
-/// not ask again.
-void rememberGuest() {
-  try {
-    web.window.localStorage.setItem(_guestKey, '1');
-  } on Object {
-    // Without storage the welcome page simply asks again next time.
-  }
-}
-
-/// Forgets the guest choice, so the welcome page asks again, as after
-/// signing out.
-void forgetGuest() {
-  try {
-    web.window.localStorage.removeItem(_guestKey);
-  } on Object {
-    // Without storage there is nothing remembered.
-  }
-}
-
 const _tutorialKey = 'panzergefecht.tutorial';
 
 /// Whether this browser has been through the tutorial, or skipped it.
@@ -100,6 +69,27 @@ void rememberTutorialSeen() {
     web.window.localStorage.setItem(_tutorialKey, '1');
   } on Object {
     // Without storage the tutorial simply opens again next time.
+  }
+}
+
+const _veteranKey = 'panzergefecht.veteran';
+
+/// Whether this browser has played a round to its end. Until then the CPU
+/// tanks start on the easy level.
+bool roundPlayed() {
+  try {
+    return web.window.localStorage.getItem(_veteranKey) == '1';
+  } on Object {
+    return false;
+  }
+}
+
+/// Remembers that a round was played to its end.
+void rememberRoundPlayed() {
+  try {
+    web.window.localStorage.setItem(_veteranKey, '1');
+  } on Object {
+    // Without storage the next visit simply starts on easy again.
   }
 }
 
@@ -235,6 +225,10 @@ void rememberPadCode(String? code) {
 
 /// The browser reads a pairing link from its own address at the start.
 void Function(String code)? onPadLink;
+
+/// Chat invitations open the apps only: in the browser the guest's link
+/// simply joins the room, whose host picks the mode.
+void Function(String mode)? onModeLink;
 
 /// The pairing code this page was opened with, from `?pad=CODE`: the page
 /// is then a phone's controller instead of the game.

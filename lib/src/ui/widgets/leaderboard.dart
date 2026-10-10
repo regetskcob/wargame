@@ -2,17 +2,15 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../db/score_points.dart';
 import '../../db/supabase_schema.g.dart';
-import '../../game/components/tank_painter.dart';
 import '../../game/tank_game.dart';
 import '../theme.dart';
-import 'choice_row.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/tv_input.dart';
 
-enum _View { total, week, vehicles }
-
-/// Ranking of all pilots by rating, with the totals behind it, the same for
-/// the current week, and the player's own numbers per vehicle. The own row
+/// Ranking of all pilots by points over all their totals, with the totals
+/// behind it. The own row
 /// is highlighted, and added below the list when it is further down.
 class Leaderboard extends StatefulWidget {
   const Leaderboard({required this.game, this.rows = 5, super.key});
@@ -29,9 +27,6 @@ class Leaderboard extends StatefulWidget {
 class _LeaderboardState extends State<Leaderboard> {
   late Future<List<ScoresRow>> _scores;
   Timer? _refresh;
-  var _view = _View.total;
-  late Future<List<WeeklyScoresRow>> _week;
-  late Future<List<TankScoresRow>> _vehicles;
 
   @override
   void initState() {
@@ -50,32 +45,23 @@ class _LeaderboardState extends State<Leaderboard> {
   }
 
   void _reload() {
-    _scores = widget.game.scoreService.topScores(limit: 50);
-    _week = widget.game.scoreService.weeklyScores(limit: 50);
-    _vehicles = widget.game.scoreService.myTankScores();
+    _scores = widget.game.scoreService.topScores(limit: 100);
   }
 
-  /// Pilots with a rated round first, then rating, then wins, kills and
-  /// damage break ties.
+  /// Points first, then rating, wins and kills break ties.
   static int _byRank(ScoresRow a, ScoresRow b) {
-    final byRated = _rated(b).compareTo(_rated(a));
-    if (byRated != 0) {
-      return byRated;
+    for (final (x, y) in [
+      (a.points, b.points),
+      (a.rating, b.rating),
+      (a.wins, b.wins),
+      (a.kills, b.kills),
+    ]) {
+      if (x != y) {
+        return y.compareTo(x);
+      }
     }
-    final byRating = b.rating.compareTo(a.rating);
-    if (byRating != 0) {
-      return byRating;
-    }
-    final byWins = b.wins.compareTo(a.wins);
-    if (byWins != 0) {
-      return byWins;
-    }
-    final byKills = b.kills.compareTo(a.kills);
-    return byKills != 0 ? byKills : b.damage.compareTo(a.damage);
+    return 0;
   }
-
-  /// Without a rated opponent yet the rating is only the starting value.
-  static int _rated(ScoresRow row) => row.ratedRounds > 0 ? 1 : 0;
 
   /// The first [widget.rows] places, and the own place below them when it
   /// is further down.
@@ -100,161 +86,55 @@ class _LeaderboardState extends State<Leaderboard> {
           tr('BESTENLISTE', 'LEADERBOARD'),
           style: Theme.of(context).textTheme.titleMedium,
         ),
-        const SizedBox(height: 8),
-        ChoiceRow<_View>(
-          options: [
-            (_View.total, tr('GESAMT', 'OVERALL'), null),
-            (_View.week, tr('DIESE WOCHE', 'THIS WEEK'), null),
-            (_View.vehicles, tr('MEINE FAHRZEUGE', 'MY VEHICLES'), null),
-          ],
-          selected: _view,
-          onSelected: (v) => setState(() {
-            _view = v ?? _view;
-            _reload();
-          }),
-        ),
         const SizedBox(height: 10),
-        switch (_view) {
-          _View.total => _total(context),
-          _View.week => _weekTable(),
-          _View.vehicles => _vehicleTable(),
-        },
+        _total(context),
       ],
     );
   }
 
   static Widget get _empty => Text(
     tr('Noch keine Gefechte gewertet.', 'No battles ranked yet.'),
-    style: const TextStyle(color: BwColors.textDim),
+    style: const TextStyle(color: GameColors.textDim),
   );
 
   Widget _table(List<String> labels, List<TableRow> rows) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minWidth: 740),
-        child: Table(
-          defaultVerticalAlignment: TableCellVerticalAlignment.middle,
-          columnWidths: const {
-            0: FixedColumnWidth(48),
-            1: FlexColumnWidth(2.4),
-          },
-          children: [_headerOf(labels), ...rows],
-        ),
-      ),
+    final table = Table(
+      defaultVerticalAlignment: TableCellVerticalAlignment.middle,
+      // Rank and numbers take what they need and the name gets the rest, so
+      // the whole table fits on a phone without scrolling sideways.
+      columnWidths: const {1: FlexColumnWidth()},
+      defaultColumnWidth: const IntrinsicColumnWidth(),
+      children: [_headerOf(labels), ...rows],
     );
-  }
-
-  TableRow _plainRow(List<String> cells, {bool mine = false, int? rank}) {
-    final base = TextStyle(
-      fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
-      color: mine ? BwColors.amber : BwColors.text,
-    );
-    final medal = rank != null && rank <= 3 ? _medals[rank - 1] : null;
-    return TableRow(
-      decoration: BoxDecoration(
-        color: mine ? const Color(0x33FFB300) : null,
-        border: const Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
-      ),
-      children: [
-        for (var i = 0; i < cells.length; i++)
-          _cell(
-            cells[i],
-            style: i == 0 && medal != null
-                ? base.copyWith(color: medal, fontWeight: FontWeight.w900)
-                : base,
-            align: i == 1 ? TextAlign.left : TextAlign.right,
-          ),
-      ],
-    );
-  }
-
-  Widget _weekTable() {
-    final me = widget.game.scoreService.myId;
-    return FutureBuilder<List<WeeklyScoresRow>>(
-      future: _week,
-      builder: (context, snapshot) {
-        final rows = snapshot.data ?? const <WeeklyScoresRow>[];
-        if (rows.isEmpty) {
-          return snapshot.connectionState == ConnectionState.done
-              ? Text(
-                  tr(
-                    'Diese Woche wurde noch nicht geübt.',
-                    'Nobody has played this week yet.',
-                  ),
-                  style: const TextStyle(color: BwColors.textDim),
-                )
-              : const SizedBox(height: 24);
-        }
-        return _table(
-          [
-            tr('RANG', 'RANK'),
-            'PILOT',
-            tr('EP', 'XP'),
-            tr('SIEGE', 'WINS'),
-            tr('± WERTUNG', '± RATING'),
-          ],
-          [
-            for (final (rank, row) in _shown(rows, (r) => r.id == me))
-              _plainRow(
-                [
-                  '$rank',
-                  row.name ?? '',
-                  '${row.xp ?? 0}',
-                  '${row.wins ?? 0}',
-                  _signed(row.ratingChange ?? 0),
-                ],
-                mine: row.id == me,
-                rank: rank,
+    // The Apple TV shows it in a column beside the menu and has no way to
+    // scroll sideways: there the table shrinks to the column instead.
+    if (onTv) {
+      return LayoutBuilder(
+        builder: (context, box) => box.maxWidth >= _tvTableWidth
+            ? table
+            : FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.topLeft,
+                child: SizedBox(width: _tvTableWidth, child: table),
               ),
-          ],
-        );
-      },
+      );
+    }
+    return LayoutBuilder(
+      builder: (context, box) => box.maxWidth >= _tableWidth
+          ? table
+          : SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: SizedBox(width: _tableWidth, child: table),
+            ),
     );
   }
 
-  static String _signed(int value) => value > 0 ? '+$value' : '$value';
+  /// Below this width the names get too tight to read; only then the table
+  /// scrolls sideways.
+  static const _tableWidth = 320.0;
 
-  Widget _vehicleTable() {
-    return FutureBuilder<List<TankScoresRow>>(
-      future: _vehicles,
-      builder: (context, snapshot) {
-        final byType = {
-          for (final row in snapshot.data ?? const <TankScoresRow>[])
-            if (row.tankType != null) row.tankType!: row,
-        };
-        if (byType.isEmpty) {
-          return snapshot.connectionState == ConnectionState.done
-              ? _empty
-              : const SizedBox(height: 24);
-        }
-        return _table(
-          [
-            '',
-            tr('FAHRZEUG', 'VEHICLE'),
-            tr('RUNDEN', 'ROUNDS'),
-            tr('SIEGE', 'WINS'),
-            tr('ABSCHÜSSE', 'KILLS'),
-            tr('TREFFER', 'HITS'),
-          ],
-          [
-            for (final type in TankType.values)
-              if (byType[type.index] case final row?)
-                _plainRow([
-                  '',
-                  type.label,
-                  '${row.rounds ?? 0}',
-                  '${row.wins ?? 0}',
-                  '${row.kills ?? 0}',
-                  (row.shots ?? 0) == 0
-                      ? '-'
-                      : '${((row.hits ?? 0) * 100 / row.shots!).round()} %',
-                ]),
-          ],
-        );
-      },
-    );
-  }
+  /// The television draws larger, its columns stay readable a bit tighter.
+  static const _tvTableWidth = 520.0;
 
   Widget _total(BuildContext context) {
     return FutureBuilder<List<ScoresRow>>(
@@ -268,7 +148,7 @@ class _LeaderboardState extends State<Leaderboard> {
                   'Bestenliste gerade nicht erreichbar.',
                   'Leaderboard currently unavailable.',
                 ),
-                style: const TextStyle(color: BwColors.textDim),
+                style: const TextStyle(color: GameColors.textDim),
               ),
               TextButton(
                 onPressed: () => setState(_reload),
@@ -280,7 +160,7 @@ class _LeaderboardState extends State<Leaderboard> {
         if (snapshot.connectionState != ConnectionState.done) {
           return Text(
             tr('Bestenliste wird geladen …', 'Loading leaderboard …'),
-            style: const TextStyle(color: BwColors.textDim),
+            style: const TextStyle(color: GameColors.textDim),
           );
         }
         final scores = (snapshot.data ?? const <ScoresRow>[]).toList()
@@ -300,7 +180,7 @@ class _LeaderboardState extends State<Leaderboard> {
   static const _head = TextStyle(
     fontSize: 11,
     letterSpacing: 1.4,
-    color: BwColors.textDim,
+    color: GameColors.textDim,
     fontWeight: FontWeight.w800,
   );
 
@@ -308,21 +188,23 @@ class _LeaderboardState extends State<Leaderboard> {
     String text, {
     TextStyle style = const TextStyle(),
     TextAlign align = TextAlign.right,
+    int lines = 1,
   }) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 5),
+    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
     child: Text(
       text,
       style: style,
       textAlign: align,
-      maxLines: 1,
+      maxLines: lines,
       overflow: TextOverflow.ellipsis,
     ),
   );
 
+  // The rank column has no heading, its numbers speak for themselves.
   static List<String> get _labels => [
-    tr('RANG', 'RANK'),
+    '',
     'PILOT',
-    tr('WERTUNG', 'RATING'),
+    tr('PUNKTE', 'POINTS'),
     tr('SIEGE', 'WINS'),
     tr('ABSCHÜSSE', 'KILLS'),
   ];
@@ -330,7 +212,7 @@ class _LeaderboardState extends State<Leaderboard> {
   TableRow _headerOf(List<String> labels) {
     return TableRow(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: BwColors.oliveLight)),
+        border: Border(bottom: BorderSide(color: GameColors.oliveLight)),
       ),
       children: [
         for (var i = 0; i < labels.length; i++)
@@ -353,7 +235,7 @@ class _LeaderboardState extends State<Leaderboard> {
     final medal = rank <= 3 ? _medals[rank - 1] : null;
     final base = TextStyle(
       fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
-      color: mine ? BwColors.amber : BwColors.text,
+      color: mine ? GameColors.amber : GameColors.text,
     );
     return TableRow(
       decoration: BoxDecoration(
@@ -368,8 +250,13 @@ class _LeaderboardState extends State<Leaderboard> {
             fontWeight: FontWeight.w900,
           ),
         ),
-        _cell(row.name, style: base, align: TextAlign.left),
-        _cell(row.ratedRounds > 0 ? '${row.rating}' : '–', style: base),
+        // A long name breaks onto a second line on a phone instead of
+        // losing its end.
+        _cell(row.name, style: base, align: TextAlign.left, lines: 2),
+        _cell(
+          '${row.points}',
+          style: base.copyWith(fontWeight: FontWeight.w900),
+        ),
         _cell('${row.wins}', style: base),
         _cell('${row.kills}', style: base),
       ],

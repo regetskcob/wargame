@@ -23,7 +23,8 @@ class VitalsPlate extends StatelessWidget {
   final int ammo;
   final int maxAmmo;
 
-  /// The easy level: shells never run out.
+  /// The easy level: shells never run out, and the line for them is left
+  /// out, it would only take room.
   final bool endless;
 
   /// Share of a full tank, null on the level without fuel.
@@ -32,11 +33,7 @@ class VitalsPlate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final armour = (hp / maxHp).clamp(0.0, 1.0);
-    final shells = endless
-        ? 1.0
-        : maxAmmo == 0
-        ? 0.0
-        : (ammo / maxAmmo).clamp(0.0, 1.0);
+    final shells = maxAmmo == 0 ? 0.0 : (ammo / maxAmmo).clamp(0.0, 1.0);
     final tank = fuel;
     return Panel(
       padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
@@ -48,29 +45,28 @@ class VitalsPlate extends StatelessWidget {
             _line(
               Icons.health_and_safety,
               armour,
-              armour > 0.3 ? const Color(0xFF9CCC65) : BwColors.danger,
+              armour > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
               '${hp.ceil().clamp(0, maxHp.ceil())}',
             ),
-            _line(
-              Icons.inventory_2,
-              shells,
-              endless
-                  ? const Color(0xFF4FC3F7)
-                  : ammo == 0
-                  ? BwColors.danger
-                  : shells <= GameConfig.ammoLowShare
-                  ? BwColors.amber
-                  : const Color(0xFF4FC3F7),
-              endless ? '∞' : '$ammo',
-            ),
+            if (!endless)
+              _line(
+                Icons.inventory_2,
+                shells,
+                ammo == 0
+                    ? GameColors.danger
+                    : shells <= GameConfig.ammoLowShare
+                    ? GameColors.amber
+                    : const Color(0xFF4FC3F7),
+                '$ammo',
+              ),
             if (tank != null)
               _line(
                 Icons.local_gas_station,
                 tank.clamp(0.0, 1.0),
                 tank <= 0
-                    ? BwColors.danger
+                    ? GameColors.danger
                     : tank <= GameConfig.fuelLowShare
-                    ? BwColors.amber
+                    ? GameColors.amber
                     : const Color(0xFFFF9100),
                 '${(tank * 100).ceil()}%',
               ),
@@ -103,7 +99,7 @@ class VitalsPlate extends StatelessWidget {
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w800,
-                color: value <= 0 ? BwColors.danger : null,
+                color: value <= 0 ? GameColors.danger : null,
               ),
             ),
           ),

@@ -33,7 +33,9 @@ class ScoreService {
   /// Guests play unranked: the database refuses their rounds.
   bool get isGuest => _client.auth.currentUser?.isAnonymous ?? true;
 
-  /// The pilots with at least one round, the highest rating first. A plain
+  /// The pilots with at least one round, the most experienced first. The
+  /// leaderboard ranks them by points (`score_points.dart`), which grow with
+  /// experience, so the top by experience holds the top by points. A plain
   /// query: the start page asks again every so often instead of holding a
   /// live channel open.
   Future<List<ScoresRow>> topScores({int limit = 20}) async {
@@ -41,22 +43,9 @@ class ScoreService {
         .table(Scores.table)
         .select()
         .where(Scores.rounds.gt(0))
-        .order(Scores.rating.desc())
+        .order(Scores.xp.desc())
         .order(Scores.wins.desc())
         .limit(limit);
-  }
-
-  /// Totals since Monday, the most experience first.
-  Future<List<WeeklyScoresRow>> weeklyScores({int limit = 20}) async {
-    try {
-      return await _client
-          .table(WeeklyScores.table)
-          .select()
-          .order(WeeklyScores.xp.desc())
-          .limit(limit);
-    } on Object {
-      return const [];
-    }
   }
 
   /// The pilot's totals per vehicle.

@@ -168,7 +168,9 @@ class PowerUpSlot {
         );
         if (map.distanceToRoad(position) > DefenseMap.roadHalfWidth + 40 &&
             !map.inWater(position, margin: 30) &&
-            position.distanceTo(map.base) > DefenseMap.baseRadius + 60) {
+            map.bases.every(
+              (base) => position.distanceTo(base) > DefenseMap.baseRadius + 60,
+            )) {
           break;
         }
       }

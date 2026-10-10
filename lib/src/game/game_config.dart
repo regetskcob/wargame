@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
+import '../app/env.dart';
 import 'components/tank_painter.dart';
 import '../l10n/l10n.dart';
 
@@ -14,6 +15,20 @@ class GameConfig {
   /// The same for a defense round, wide enough to see most of the field:
   /// the road, the guns and where the next wave comes from.
   static const defenseViewShortSide = 1150.0;
+
+  /// The watch looks a bit closer: on its small screen tanks and shells at
+  /// the phone's distance are hard to make out.
+  static const watchZoom = 1.12;
+
+  /// Upright phones look closer still, see `viewScale`. Below this short
+  /// side in logical pixels a screen counts as a phone.
+  static const uprightPhoneZoom = 1.2;
+  static const phoneShortSide = 500.0;
+
+  /// Top speed of every tank in a solo round on the watch. Steering with the
+  /// crown is slower than with a thumb, so the round runs a little calmer.
+  /// Only solo: in a shared round all players drive alike.
+  static const watchSoloSpeed = 0.85;
 
   /// How far the ground and the danger zone are drawn from the middle, far
   /// enough that a wide window never shows the void.
@@ -34,7 +49,34 @@ class GameConfig {
   static const bulletDamage = 15.0;
   static const treeBumpDamage = 5.0;
 
-  static const stateSyncInterval = 0.05;
+  /// Ten states a second: the other side moves the tank on with its speed
+  /// in between. Realtime's free plan allows 100 messages a second for the
+  /// whole project, and every state counts once per receiver.
+  static const stateSyncInterval = 0.1;
+
+  /// Pilots a room holds, spectators included. Every message counts once
+  /// per receiver, so the load of a room grows with the square of its
+  /// pilots: two with CPU tanks need about 70 a second, within the free
+  /// plan's 100, four about 230, within Pro's 500, the plan the project is
+  /// on. Whoever comes later is turned away. Set by the build, see
+  /// [Env.maxPilots].
+  static const maxPilots = Env.maxPilots;
+
+  /// Realtime messages a second for the whole project, kept by `RoomSlots`.
+  /// See [Env.realtimeBudget].
+  static const realtimeBudget = Env.realtimeBudget;
+
+  /// Messages a second Realtime counts for a room of [pilots], sent plus
+  /// delivered, as `message_budget_test.dart` measures them: about 11 per
+  /// pilot and receiver, and 13 more for the host's CPU tanks, 19 for the
+  /// bigger crew that fills the sides of a capture the flag round. A pilot
+  /// alone sends nothing.
+  static int roomLoad(int pilots, {required bool cpu, bool flag = false}) =>
+      pilots < 2 ? 0 : (11 * pilots + (cpu ? (flag ? 19 : 13) : 0)) * pilots;
+
+  /// The same for one phone controller and its screen, on a channel of
+  /// their own (`pad_budget_test.dart`).
+  static const padLoad = 32;
   static const silentTankTimeout = Duration(seconds: 8);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
@@ -146,6 +188,30 @@ class GameConfig {
   static const enemySyncInterval = 0.1;
   static const respawnSeconds = 6.0;
 
+  /// Capture the flag. The bases sit on the ring where the battle modes
+  /// start, which the woods, buildings and mud already leave free.
+  static const flagBaseX = spawnRadius;
+  static const flagBaseRadius = 70.0;
+
+  /// How close a tank has to come to pick up, return or bring home a flag.
+  static const flagReach = 45.0;
+  static const flagCaptures = 3;
+  static const flagRoundSeconds = 480.0;
+
+  /// A flag lying in the field goes home by itself after this long.
+  static const flagReturnSeconds = 20.0;
+
+  /// The carrier is slower and cannot use its special weapon, so the
+  /// others have a chance to catch it.
+  static const flagCarrierSpeed = 0.85;
+
+  /// The authority repeats the whole flag state this often, so a lost
+  /// message or a late spectator catches up.
+  static const flagSyncSeconds = 5.0;
+
+  /// CPU tanks fill a flag round up to three a side.
+  static const flagFillTo = 6;
+
   /// Nobody holds the base alone: CPU comrades fill the squad up to this
   /// size, at least one of them even with a full room. They come back from
   /// the base a while after they were destroyed.
@@ -172,6 +238,42 @@ class GameConfig {
   static const startCredits = 150;
   static const creditsPerKill = 20;
   static const waveBonus = 50;
+
+  /// Bounties shrink with every wave by this share of the first wave's, so
+  /// the larger waves later on do not flood the players with funds: every
+  /// further gun has to be earned harder, while the wave bonus stays.
+  static const bountyDecay = 0.2;
+
+  /// What a kill worth [base] in the first wave brings in [wave], never
+  /// less than one.
+  static int bountyIn(int base, int wave) =>
+      max(1, (base / (1 + bountyDecay * max(0, wave - 1))).round());
+
+  /// Every further gun of the same kind a player builds costs this share of
+  /// its price more, so a wall of one kind gets dear.
+  static const towerCostStep = 0.3;
+
+  /// From [enemyGunsFromWave] on the enemy digs in guns of its own beside
+  /// the first stretch of the road, one more every second wave up to
+  /// [maxEnemyGuns], and rebuilds the ones the players destroyed. They fire
+  /// slower than the players' guns by [enemyGunCooldown] and bring
+  /// [creditsPerGun] (shrinking like any bounty) to whoever destroys them.
+  static const enemyGunsFromWave = 3;
+  static const maxEnemyGuns = 4;
+  static const enemyGunCooldown = 1.8;
+  static const creditsPerGun = 60;
+
+  /// How many guns the enemy holds in [wave].
+  static int enemyGunsIn(int wave) => wave < enemyGunsFromWave
+      ? 0
+      : min(maxEnemyGuns, 1 + (wave - enemyGunsFromWave) ~/ 2);
+
+  /// Level of the enemy's guns in [wave]: one step every three waves.
+  static int enemyGunLevelIn(int wave) =>
+      (1 + max(0, wave - enemyGunsFromWave) ~/ 3).clamp(1, 5);
+
+  /// What a tank sent against the other side of a defense duel costs.
+  static const troopCost = 120;
   static const towerCost = 100;
   static const maxTowers = 6;
 
@@ -274,7 +376,7 @@ class GameConfig {
   static const creditsPerAircraft = 40;
 
   /// Shells that are not built to hit aircraft only scratch a helicopter
-  /// and never touch a jet. Flak and the Gepard hit them hard.
+  /// and never touch a jet. Flak and the Habicht hit them hard.
   static const groundGunVsHelicopter = 0.25;
   static const antiAirFactor = 2.0;
 
@@ -299,6 +401,32 @@ class GameConfig {
   /// Share of the tank a canister puts back.
   static const canisterShare = 0.65;
 
+  /// Fuel stations and ammunition depots, from the middle difficulty on.
+  /// [depotRadius] is the pad a tank parks on, slower than [depotStandSpeed]
+  /// counts as standing. A full tank or magazine takes [depotFillSeconds].
+  /// The [depotCoreRadius] in the middle takes shells, after
+  /// [depotRebuildSeconds] a destroyed one stands again.
+  static const depotRadius = 62.0;
+  static const depotCoreRadius = 18.0;
+  static const depotStandSpeed = 14.0;
+  static const depotFillSeconds = 6.0;
+  static const depotHp = 160.0;
+  static const depotRebuildSeconds = 45.0;
+
+  /// A depot that goes up takes the tanks around it along.
+  static const depotBlastRadius = 110.0;
+  static const depotBlastDamage = 45.0;
+
+  /// Depots of a free for all, half fuel and half ammunition, on a ring
+  /// inside the start positions so the closing zone keeps some of them.
+  static const depotCount = 4;
+  static const depotRingMin = 260.0;
+  static const depotRingMax = 470.0;
+
+  /// In capture the flag each team has its own pair behind its base.
+  static const flagDepotBehind = 130.0;
+  static const flagDepotSide = 120.0;
+
   /// The bomber from a gem on the hard level.
   static const airstrikeBombs = 4;
   static const airstrikeReach = 700.0;
@@ -311,7 +439,10 @@ class GameConfig {
 
   /// With other people, CPU tanks fill the field up to this many tanks.
   static const fillTo = 4;
-  static const roundOverSeconds = 10;
+
+  /// How long the end screen of a round with other people stays before it
+  /// goes back to the waiting room. Alone it stays until the player picks.
+  static const roundOverSeconds = 15;
 
   /// Paint schemes: Flecktarn green, Wüstentarn sand, Wintertarn white and
   /// NATO grey for everybody, then four that come with higher ranks.
@@ -360,7 +491,7 @@ class GameConfig {
 
   /// Multiplayer rounds paint every tank in its own colour instead of the
   /// camouflage, so players tell each other apart at a glance. The colours
-  /// come from the Bundeswehr's paints, the most different ones first. Red
+  /// are classic military paints, the most different ones first. Red
   /// and blue are left out, they belong to the teams.
   static const playerColors = [
     Color(0xFFCDB57E), // Sandgelb

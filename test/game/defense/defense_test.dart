@@ -138,6 +138,27 @@ void main() {
     expect(map.whyNotBuild(free, [free + Vector2(20, 0)]), isNotNull);
   });
 
+  test('a trench may cut across the road, but not a bridge', () {
+    for (final seed in [0, 4, 8, 12]) {
+      final map = DefenseMap.forSeed(seed);
+      final (onRoad, _) = map.alongRoad(map.roadLength * 0.5);
+      if (map.inWater(onRoad, margin: 26) ||
+          map.bridges.any(
+            (b) => b.centre.distanceTo(onRoad) < b.halfLength + 30,
+          )) {
+        continue;
+      }
+      expect(map.whyNotBuild(onRoad, const []), isNotNull);
+      expect(map.whyNotBuild(onRoad, const [], onRoad: true), isNull);
+      for (final bridge in map.bridges) {
+        expect(
+          map.whyNotBuild(bridge.centre, const [], onRoad: true),
+          isNotNull,
+        );
+      }
+    }
+  });
+
   test('CPU comrades fight on the side of the players', () {
     final round = RoundState(
       seed: 1,
@@ -345,5 +366,76 @@ void main() {
 
   test('later waves are bigger', () {
     expect(DefenseMap.waveSize(8), greaterThan(DefenseMap.waveSize(1)));
+  });
+
+  test('flak hits the sky hard and the ground only lightly', () {
+    final flak = TowerKind.flak;
+    final cannon = TowerKind.cannon;
+    double perSecond(TowerKind kind, double shell) =>
+        shell / kind.cooldownAt(1);
+    // On the ground a flak gun fires well under half of what a cannon does.
+    expect(
+      perSecond(flak, flak.groundDamageAt(1)),
+      lessThan(perSecond(cannon, cannon.groundDamageAt(1)) * 0.4),
+    );
+    expect(flak.airDamageAt(1), greaterThan(flak.groundDamageAt(1) * 5));
+    expect(cannon.groundDamageAt(2), cannon.damage * cannon.damageFactor(2));
+  });
+
+  test('bounties shrink with the waves, never to nothing', () {
+    expect(GameConfig.bountyIn(GameConfig.creditsPerKill, 1), 20);
+    var before = GameConfig.bountyIn(GameConfig.creditsPerKill, 1);
+    for (var wave = 2; wave <= 12; wave++) {
+      final now = GameConfig.bountyIn(GameConfig.creditsPerKill, wave);
+      expect(now, lessThanOrEqualTo(before));
+      expect(now, greaterThan(0));
+      before = now;
+    }
+    expect(GameConfig.bountyIn(GameConfig.creditsPerKill, 8), lessThan(10));
+    // The bigger waves still pay: the bounties of a whole wave hardly drop.
+    int wave(int n) =>
+        DefenseMap.waveSize(n) *
+        GameConfig.bountyIn(GameConfig.creditsPerKill, n);
+    expect(wave(8), greaterThan(wave(1) * 0.8));
+    expect(GameConfig.bountyIn(GameConfig.creditsPerSoldier, 20), 1);
+  });
+
+  test('the enemy digs in more and stronger guns as the waves go on', () {
+    expect(GameConfig.enemyGunsIn(GameConfig.enemyGunsFromWave - 1), 0);
+    expect(GameConfig.enemyGunsIn(GameConfig.enemyGunsFromWave), 1);
+    for (var wave = 1; wave < 20; wave++) {
+      expect(
+        GameConfig.enemyGunsIn(wave + 1),
+        greaterThanOrEqualTo(GameConfig.enemyGunsIn(wave)),
+      );
+      expect(
+        GameConfig.enemyGunsIn(wave),
+        lessThanOrEqualTo(GameConfig.maxEnemyGuns),
+      );
+      expect(GameConfig.enemyGunLevelIn(wave), inInclusiveRange(1, 5));
+    }
+    expect(GameConfig.enemyGunLevelIn(8), greaterThan(1));
+  });
+
+  test('the enemy guns stand beside the first stretch of the road', () {
+    for (final seed in [0, 4, 8, 12]) {
+      final map = DefenseMap.forSeed(seed);
+      expect(
+        map.enemyGunSpots.length,
+        greaterThanOrEqualTo(GameConfig.maxEnemyGuns),
+      );
+      for (final spot in map.enemyGunSpots) {
+        expect(map.whyNotBuild(spot, const []), isNull);
+        // Closer to where the enemy rolls in than to the base.
+        expect(spot.distanceTo(map.entry), lessThan(spot.distanceTo(map.base)));
+      }
+      for (final a in map.enemyGunSpots) {
+        for (final b in map.enemyGunSpots) {
+          if (a != b) {
+            expect(a.distanceTo(b), greaterThan(GameConfig.towerSpacing));
+          }
+        }
+      }
+    }
   });
 }

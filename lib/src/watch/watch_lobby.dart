@@ -98,6 +98,11 @@ class _WatchLobbyState extends State<WatchLobby> {
           onPressed: () => game.chooseMode(GameMode.defense),
         ),
         WatchButton(
+          label: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
+          icon: Icons.outlined_flag,
+          onPressed: () => game.chooseMode(GameMode.flag),
+        ),
+        WatchButton(
           label: tr('OFFENE RÄUME', 'OPEN ROOMS'),
           icon: Icons.meeting_room_outlined,
           onPressed: () => setState(() => _rooms = true),
@@ -124,7 +129,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: BwColors.textDim, fontSize: 13),
+                style: const TextStyle(color: GameColors.textDim, fontSize: 13),
               );
             }
             return Column(
@@ -165,6 +170,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   GameMode.solo => tr('EINZELSPIELER', 'SINGLE PLAYER'),
                   GameMode.multi => tr('MEHRSPIELER', 'MULTIPLAYER'),
                   GameMode.defense => tr('VERTEIDIGUNG', 'DEFENSE'),
+                  GameMode.flag => tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
                 },
                 maxLines: 1,
                 style: const TextStyle(
@@ -197,7 +203,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                 icon: Icons.visibility,
                 onPressed: game.spectateLiveMatch,
               ),
-            const WatchLabel('FAHRZEUG'),
+            WatchLabel(tr('FAHRZEUG', 'VEHICLE')),
             _TankPicker(game: game),
             if (host) ...[
               if (mode != GameMode.multi) ...[
@@ -259,7 +265,7 @@ class _CallSignButton extends StatelessWidget {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => Dialog.fullscreen(
-        backgroundColor: BwColors.background,
+        backgroundColor: GameColors.background,
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
           child: Column(
@@ -299,10 +305,10 @@ class _CallSignButton extends StatelessWidget {
       onPressed: () => _edit(context),
       style: OutlinedButton.styleFrom(
         minimumSize: const Size.fromHeight(40),
-        foregroundColor: BwColors.text,
-        side: const BorderSide(color: BwColors.oliveLight, width: 1.5),
+        foregroundColor: GameColors.text,
+        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
       ),
-      icon: const Icon(Icons.badge_outlined, size: 18, color: BwColors.amber),
+      icon: const Icon(Icons.badge_outlined, size: 18, color: GameColors.amber),
       label: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
@@ -343,7 +349,7 @@ class _TankPicker extends StatelessWidget {
     onPressed: onPressed,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints.tightFor(width: 30, height: 48),
-    icon: Icon(icon, color: BwColors.amber),
+    icon: Icon(icon, color: GameColors.amber),
   );
 
   @override

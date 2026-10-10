@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,8 +6,10 @@ import 'package:flutter/material.dart';
 import '../game/round_stats.dart';
 import '../game/game_config.dart';
 import '../net/payloads/defense_payload.dart';
+import '../game/flag_match.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
+import 'widgets/fit_or_scroll.dart';
 import 'widgets/panel.dart';
 import 'widgets/round_rewards.dart';
 import '../l10n/l10n.dart';
@@ -44,10 +47,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         final won = outcome == RoundOutcome.won;
         final lost = outcome == RoundOutcome.lost;
         final accent = won
-            ? BwColors.amber
+            ? GameColors.amber
             : lost
-            ? BwColors.danger
-            : BwColors.sand;
+            ? GameColors.danger
+            : GameColors.sand;
         final title = won
             ? tr('SIEG', 'VICTORY')
             : lost
@@ -70,7 +73,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                     builder: (context, box) {
                       final narrow = box.maxWidth < 480;
                       return Center(
-                        child: SingleChildScrollView(
+                        child: FitOrScroll(
                           padding: EdgeInsets.all(narrow ? 12 : 16),
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 560),
@@ -148,6 +151,8 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
               builder: (context, winner, _) => Text(
                 game.round?.defense ?? false
                     ? _defenseLine(game.defense.value, won)
+                    : game.flagMatch != null
+                    ? _flagLine(game.flagMatch!, won)
                     : winner == null
                     ? tr(
                         'Unentschieden. Das Sperrgebiet gewinnt.',
@@ -198,7 +203,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                   ),
                   OutlinedButton(
                     onPressed: game.backToLobby,
-                    child: Text(tr('ZURÜCK INS LAGER', 'BACK TO CAMP')),
+                    child: _LobbyLabel(lobbyAt: game.lobbyAt.value),
                   ),
                   OutlinedButton.icon(
                     onPressed: game.watchReplay,
@@ -212,6 +217,51 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         ),
       ),
     );
+  }
+}
+
+/// The way back to the waiting room, with the seconds left when the end
+/// screen goes there by itself, so it never vanishes unannounced.
+class _LobbyLabel extends StatefulWidget {
+  const _LobbyLabel({required this.lobbyAt});
+
+  final int? lobbyAt;
+
+  @override
+  State<_LobbyLabel> createState() => _LobbyLabelState();
+}
+
+class _LobbyLabelState extends State<_LobbyLabel> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.lobbyAt != null) {
+      _timer = Timer.periodic(
+        const Duration(milliseconds: 250),
+        (_) => setState(() {}),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = tr('ZURÜCK INS LAGER', 'BACK TO CAMP');
+    final at = widget.lobbyAt;
+    if (at == null) {
+      return Text(label);
+    }
+    final seconds = ((at - DateTime.now().millisecondsSinceEpoch) / 1000)
+        .ceil()
+        .clamp(0, 99);
+    return Text('$label ($seconds)');
   }
 }
 
@@ -298,6 +348,16 @@ class _DefeatPainter extends CustomPainter {
 }
 
 /// The player's own numbers for the round that just ended.
+/// How a capture the flag round ended, with the score.
+String _flagLine(FlagMatch match, bool won) {
+  final score =
+      '${GameConfig.teamNames[1]} ${match.score[1]} : '
+      '${match.score[2]} ${GameConfig.teamNames[2]}';
+  return won
+      ? tr('Fahnen erobert! $score', 'Flags captured! $score')
+      : tr('Die anderen waren schneller. $score', 'They were faster. $score');
+}
+
 class _StatsRow extends StatelessWidget {
   const _StatsRow({required this.stats});
 
@@ -330,7 +390,7 @@ class _StatsRow extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 10),
             decoration: ShapeDecoration(
               color: const Color(0x66000000),
-              shape: BwShapes.chip(),
+              shape: GameShapes.chip(),
             ),
             child: Column(
               children: [
@@ -339,7 +399,7 @@ class _StatsRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
-                    color: BwColors.amber,
+                    color: GameColors.amber,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -348,7 +408,7 @@ class _StatsRow extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 11,
                     letterSpacing: 1.2,
-                    color: BwColors.textDim,
+                    color: GameColors.textDim,
                   ),
                 ),
               ],

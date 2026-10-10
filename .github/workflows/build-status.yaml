@@ -1,0 +1,64 @@
+name: build-status
+
+# GitHub only mails when a workflow fails, never when the next run is green
+# again. An issue per broken workflow fills that gap: it opens on the first
+# failure on main and closes with a comment on the next success, and both
+# reach the inbox of everyone watching the repository.
+
+on:
+  workflow_run:
+    workflows: [ci, pages]
+    types: [completed]
+    branches: [main]
+
+permissions:
+  issues: write
+
+concurrency:
+  group: build-status-${{ github.event.workflow_run.name }}
+
+jobs:
+  track:
+    # Pull requests from other branches and cancelled runs (pages cancels an
+    # older deploy when a newer push arrives) say nothing about main.
+    if: >-
+      github.event.workflow_run.event != 'pull_request' &&
+      contains(fromJSON('["success", "failure", "timed_out"]'),
+      github.event.workflow_run.conclusion)
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      NAME: ${{ github.event.workflow_run.name }}
+      CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+      RUN_URL: ${{ github.event.workflow_run.html_url }}
+      SHA: ${{ github.event.workflow_run.head_sha }}
+      COMMIT: ${{ github.event.workflow_run.display_title }}
+    steps:
+      - name: Open or close the issue for this workflow
+        run: |
+          title="$NAME failed on main"
+          short="${SHA:0:7}"
+          open=$(gh issue list --state open --label build-failed \
+            --search "\"$title\" in:title" --json number,title \
+            --jq "map(select(.title == \"$title\")) | .[0].number // empty")
+
+          if [ "$CONCLUSION" = success ]; then
+            if [ -n "$open" ]; then
+              gh issue close "$open" --comment \
+                "Green again with $short ($COMMIT): $RUN_URL"
+            fi
+            exit 0
+          fi
+
+          if [ -n "$open" ]; then
+            gh issue comment "$open" --body \
+              "Still failing with $short ($COMMIT): $RUN_URL"
+          else
+            gh label create build-failed --color d73a4a --force \
+              --description "A workflow on main is red"
+            gh issue create --title "$title" --label build-failed --body \
+              "First failure with $short ($COMMIT): $RUN_URL
+
+          The issue closes by itself once \`$NAME\` is green again."
+          fi

@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/app/overlay_ids.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
+import 'package:wargame/src/game/tank_game.dart';
 
 import '../helpers/fakes.dart';
 
@@ -62,6 +63,23 @@ void main() {
     await game.backToStart();
     expect(game.phase.value, GamePhase.lobby);
     expect(game.isHost.value, isTrue);
+    expect(game.choosingMode.value, isTrue);
+    expect(game.closedReason.value, isNull);
+  });
+
+  test('a host closing the waiting room goes straight on to the start '
+      'page', () async {
+    final net = FakeNet();
+    final game = offlineGame(net: net)
+      ..onGameResize(Vector2(1280, 720))
+      ..chooseMode(GameMode.multi);
+    game.overlays
+      ..addEntry(OverlayIds.closed, (_, _) => const SizedBox())
+      ..addEntry(OverlayIds.lobby, (_, _) => const SizedBox());
+    expect(game.isHost.value, isTrue);
+
+    await game.closeRoom();
+    expect(game.phase.value, GamePhase.lobby, reason: 'no closed screen');
     expect(game.choosingMode.value, isTrue);
     expect(game.closedReason.value, isNull);
   });

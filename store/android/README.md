@@ -29,7 +29,9 @@ python3 store/tool/compose.py <ordner-mit-rohaufnahmen>
 python3 store/tool/android_icons.py
 ```
 
-Die Screenshots zeigen die iOS-Rohaufnahmen ohne Statusleiste, das Spiel
+Englische Screenshots und Vorstellungsgrafik liegen genauso unter
+`metadata/android/en-US/images/`. Die Screenshots zeigen die
+iOS-Rohaufnahmen ohne Statusleiste, das Spiel
 zeichnet auf Android dasselbe Bild.
 
 ## Build und Signieren

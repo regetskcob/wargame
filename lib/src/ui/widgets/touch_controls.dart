@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../app/env.dart';
 import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../theme.dart';
@@ -50,8 +51,9 @@ class TouchControls extends StatelessWidget {
           final zoneTop = height * (upright ? 0.4 : 0.3);
           // The buttons sit just above the aim stick, in reach of the right
           // thumb and clear of the plates along the top, which in a defense
-          // round fold out over the upper right corner.
-          final buttonTop = max(zoneTop, height - stick - 84);
+          // round fold out over the upper right corner. They keep enough
+          // room above the stick for its label.
+          final buttonTop = max(zoneTop, height - stick - 104);
           final zoneWidth = width * 0.44;
           return Stack(
             children: [
@@ -91,10 +93,12 @@ class TouchControls extends StatelessWidget {
                     ..aimHeld = false,
                 ),
               ),
+              // Upright, the switch sits just above the aim zone: inside it,
+              // a thumb landing for the stick toggled it now and then.
               if (assist)
                 Positioned(
-                  right: 84,
-                  top: buttonTop,
+                  right: upright ? 8 : 84,
+                  top: upright ? zoneTop - _AssistToggle.height - 8 : buttonTop,
                   child: _AssistToggle(input: input),
                 ),
               Positioned(
@@ -124,6 +128,8 @@ class TouchControls extends StatelessWidget {
 class _AssistToggle extends StatefulWidget {
   const _AssistToggle({required this.input});
 
+  static const height = 44.0;
+
   final TouchInput input;
 
   @override
@@ -148,7 +154,7 @@ class _AssistToggleState extends State<_AssistToggle> {
   @override
   Widget build(BuildContext context) {
     final on = widget.input.assist;
-    final color = on ? BwColors.amber : BwColors.textDim;
+    final color = on ? GameColors.amber : GameColors.textDim;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() {
@@ -157,24 +163,45 @@ class _AssistToggleState extends State<_AssistToggle> {
           ..assistFire = false;
       }),
       child: Container(
-        width: 68,
-        height: 68,
+        height: _AssistToggle.height,
+        padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: on ? const Color(0x55FFB300) : const Color(0x88000000),
-          border: Border.all(color: color, width: 2.5),
+          borderRadius: BorderRadius.circular(_AssistToggle.height / 2),
+          // Dark in both states, so the label reads on snow and sand too.
+          color: const Color(0xB3141A0E),
+          border: Border.all(color: color, width: 2),
         ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.gps_fixed, size: 18, color: color),
-            Text(
-              tr('ZIELHILFE', 'AIM ASSIST'),
-              style: const TextStyle(fontSize: 10, letterSpacing: 0.3),
-            ),
-            Text(
-              on ? tr('AN', 'ON') : tr('AUS', 'OFF'),
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+            const SizedBox(width: 6),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  on
+                      ? tr('ZIELHILFE AN', 'AIM ASSIST ON')
+                      : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+                // It also pulls the trigger, which spends the shells: say so.
+                Text(
+                  on
+                      ? tr('feuert selbst', 'fires by itself')
+                      : tr('du zielst selbst', 'you aim yourself'),
+                  style: const TextStyle(
+                    fontSize: 9,
+                    letterSpacing: 0.3,
+                    color: GameColors.text,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -342,8 +369,15 @@ class _FloatingStickState extends State<_FloatingStick> {
           widget.homeOnRight ? zone.width - half - 6 : half + 6,
           zone.height - half - 6,
         );
-        final active = _origin != null;
+        // The picture of the controls shows both thumbs at work, see
+        // Env.shotSticks: driving ahead to the right, aiming up left past
+        // the fire ring.
+        final posed = Env.shotSticks && _origin == null;
+        final active = _origin != null || posed;
         final centre = _origin ?? home;
+        final knob = posed
+            ? Offset(widget.homeOnRight ? -0.55 : 0.35, -0.75) * _radius
+            : _knob;
         return Listener(
           behavior: HitTestBehavior.opaque,
           onPointerDown: (e) => _down(e, zone),
@@ -363,7 +397,24 @@ class _FloatingStickState extends State<_FloatingStick> {
             }
           },
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
+              // The label sits above the ring rather than inside it: in there
+              // the circle narrows and cut through the text, and the faded
+              // idle stick made it hard to read on the bright ground. It is
+              // centred over the stick but kept inside the zone, since a long
+              // label is wider than the ring and the sticks rest at the edge.
+              Positioned(
+                left: 0,
+                right: 0,
+                top: centre.dy - half - 26,
+                child: IgnorePointer(
+                  child: CustomSingleChildLayout(
+                    delegate: _CentreInside(centre.dx),
+                    child: _StickLabel(widget.label),
+                  ),
+                ),
+              ),
               Positioned(
                 left: centre.dx - half,
                 top: centre.dy - half,
@@ -374,13 +425,12 @@ class _FloatingStickState extends State<_FloatingStick> {
                     opacity: active ? 1 : 0.55,
                     child: _StickFace(
                       size: widget.size,
-                      label: widget.label,
                       active: active,
-                      knob: _knob,
+                      knob: knob,
                       ring: widget.ring,
                       firing:
                           widget.ring != null &&
-                          _knob.distance / _radius > widget.ring!,
+                          knob.distance / _radius > widget.ring!,
                     ),
                   ),
                 ),
@@ -393,10 +443,63 @@ class _FloatingStickState extends State<_FloatingStick> {
   }
 }
 
+/// Centres its child on [x] but shifts it back inside the available width.
+class _CentreInside extends SingleChildLayoutDelegate {
+  const _CentreInside(this.x);
+
+  final double x;
+
+  @override
+  Size getSize(BoxConstraints constraints) => Size(constraints.maxWidth, 24);
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints.loose(Size(constraints.maxWidth, 24));
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) => Offset(
+    (x - childSize.width / 2).clamp(0, max(0, size.width - childSize.width)),
+    0,
+  );
+
+  @override
+  bool shouldRelayout(_CentreInside oldDelegate) => oldDelegate.x != x;
+}
+
+/// Name of a stick on a dark pill, readable on any ground.
+class _StickLabel extends StatelessWidget {
+  const _StickLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x99000000),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            color: GameColors.sand,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StickFace extends StatelessWidget {
   const _StickFace({
     required this.size,
-    required this.label,
     required this.active,
     required this.knob,
     required this.firing,
@@ -404,7 +507,6 @@ class _StickFace extends StatelessWidget {
   });
 
   final double size;
-  final String label;
   final bool active;
   final Offset knob;
   final bool firing;
@@ -422,7 +524,7 @@ class _StickFace extends StatelessWidget {
             shape: BoxShape.circle,
             color: Color(active ? 0x88000000 : 0x44000000),
             border: Border.all(
-              color: active ? BwColors.amber : BwColors.sand,
+              color: active ? GameColors.amber : GameColors.sand,
               width: 2,
             ),
           ),
@@ -434,24 +536,12 @@ class _StickFace extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: (firing ? BwColors.danger : BwColors.sand).withValues(
-                  alpha: firing ? 0.9 : 0.4,
-                ),
+                color: (firing ? GameColors.danger : GameColors.sand)
+                    .withValues(alpha: firing ? 0.9 : 0.4),
                 width: 1.5,
               ),
             ),
           ),
-        Positioned(
-          top: size * 0.07,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              letterSpacing: 1.5,
-              color: BwColors.textDim,
-            ),
-          ),
-        ),
         Transform.translate(
           offset: knob,
           child: Container(
@@ -460,11 +550,11 @@ class _StickFace extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: firing
-                  ? BwColors.danger
+                  ? GameColors.danger
                   : active
-                  ? BwColors.amber
-                  : BwColors.olive,
-              border: Border.all(color: BwColors.sand, width: 2),
+                  ? GameColors.amber
+                  : GameColors.olive,
+              border: Border.all(color: GameColors.sand, width: 2),
             ),
           ),
         ),

@@ -3,17 +3,19 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
-import '../../game/components/tree.dart';
 import '../../game/components/obstacle.dart';
-import '../../game/components/storm_zone.dart';
 import '../../game/defense/defense_map.dart';
+import '../../game/flag_match.dart';
 import '../../game/components/soldier.dart';
 import '../../game/tank_game.dart';
 import '../../game/game_config.dart';
 import '../theme.dart';
 
 class MiniMap extends StatefulWidget {
-  const MiniMap({required this.game, this.size = 150, super.key});
+  const MiniMap({required this.game, this.size = defaultSize, super.key});
+
+  /// Edge of the map in the lower right corner of a desktop.
+  static const defaultSize = 150.0;
 
   final TankGame game;
   final double size;
@@ -43,6 +45,9 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
 }
 
 class _MiniMapPainter extends CustomPainter {
+  /// How far from the own tank crates and gems still show.
+  static const _itemReach = 450.0;
+
   _MiniMapPainter(this.game);
 
   final TankGame game;
@@ -59,7 +64,11 @@ class _MiniMapPainter extends CustomPainter {
     final scale = size.width / 2 / GameConfig.worldRadius;
     Offset toMap(double x, double y) => center + Offset(x, y) * scale;
 
-    canvas.drawCircle(center, size.width / 2, Paint()..color = BwColors.panel);
+    canvas.drawCircle(
+      center,
+      size.width / 2,
+      Paint()..color = GameColors.panel,
+    );
     if (round == null) {
       return;
     }
@@ -69,8 +78,7 @@ class _MiniMapPainter extends CustomPainter {
       Path()..addOval(Rect.fromCircle(center: center, radius: size.width / 2)),
     );
 
-    final safeRadius = StormZone.radiusAt(
-      round.startedAt,
+    final safeRadius = round.safeRadiusAt(
       DateTime.now().millisecondsSinceEpoch,
     );
     canvas.drawPath(
@@ -89,30 +97,8 @@ class _MiniMapPainter extends CustomPainter {
         ..color = const Color(0xCCFFB300),
     );
 
-    final mud = game.mudField;
-    if (mud != null) {
-      final mudPaint = Paint()..color = mud.theme.mud.withValues(alpha: 0.7);
-      for (final patch in mud.patches) {
-        canvas.drawCircle(
-          toMap(patch.centre.x, patch.centre.y),
-          patch.radius * scale,
-          mudPaint,
-        );
-      }
-    }
-
-    final rockPaint = Paint()..color = BwColors.textDim;
-    for (final rock in game.world.descendants().whereType<Tree>()) {
-      if (rock.felled) {
-        continue;
-      }
-      canvas.drawCircle(
-        toMap(rock.position.x, rock.position.y),
-        (rock.radius * scale).clamp(1.0, 6.0),
-        rockPaint,
-      );
-    }
-
+    // Woods, mud and barriers are left out: there are so many that they
+    // buried what matters, the tanks, depots, gems and flags.
     final soldierPaint = Paint()..color = const Color(0xFFD9C97A);
     for (final soldier in game.soldierField?.all ?? const <Soldier>[]) {
       if (!soldier.dead && soldier.isMounted) {
@@ -124,8 +110,9 @@ class _MiniMapPainter extends CustomPainter {
       }
     }
 
-    final solidPaint = Paint()..color = BwColors.sand;
-    for (final solid in game.world.descendants().whereType<Obstacle>()) {
+    // Buildings faded, as a rough guide only.
+    final solidPaint = Paint()..color = GameColors.sand.withValues(alpha: 0.35);
+    for (final solid in game.world.descendants().whereType<Building>()) {
       final c = toMap(solid.position.x, solid.position.y);
       final w = (solid.size.x * scale).clamp(2.0, 9.0);
       final h = (solid.size.y * scale).clamp(2.0, 9.0);
@@ -142,7 +129,13 @@ class _MiniMapPainter extends CustomPainter {
         Paint()..color = const Color(0x88B0BEC5),
       );
     }
+    // Crates and gems only near the own tank, the far ones were mostly
+    // clutter. Watching, without a tank, all of them.
+    final near = game.myTank?.position;
     for (final crate in game.powerUps.values) {
+      if (near != null && crate.position.distanceTo(near) > _itemReach) {
+        continue;
+      }
       final c = toMap(crate.position.x, crate.position.y);
       final paint = Paint()..color = crate.type.color;
       if (crate.type.gem) {
@@ -159,12 +152,74 @@ class _MiniMapPainter extends CustomPainter {
         canvas.drawRect(Rect.fromCenter(center: c, width: 5, height: 5), paint);
       }
     }
+    // Depots as a square in their colour, a team's framed in the team
+    // colour, a destroyed one hollow.
+    for (final depot in game.depots) {
+      final at = Rect.fromCenter(
+        center: toMap(depot.position.x, depot.position.y),
+        width: 6,
+        height: 6,
+      );
+      canvas.drawRect(
+        at.inflate(1),
+        Paint()..color = GameConfig.teamColors[depot.team],
+      );
+      canvas.drawRect(
+        at,
+        depot.destroyed
+            ? (Paint()..color = Colors.black)
+            : (Paint()..color = depot.kind.color),
+      );
+    }
     for (final drone in game.drones.values) {
       canvas.drawCircle(
         toMap(drone.position.x, drone.position.y),
         2,
         Paint()..color = const Color(0xFFFF3D00),
       );
+    }
+
+    // Capture the flag: both bases, and the flags wherever they are, seen
+    // or not, since everybody hunts them.
+    final flags = game.flagMatch;
+    if (flags != null) {
+      for (final team in const [1, 2]) {
+        final base = FlagMatch.baseOf(team);
+        canvas.drawCircle(
+          toMap(base.x, base.y),
+          max(4.0, GameConfig.flagBaseRadius * scale),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..color = GameConfig.teamColors[team],
+        );
+      }
+      for (final flag in flags.flags.values) {
+        final carrier = flag.carrier;
+        final at = carrier == null
+            ? flag.position
+            : game.tankById(carrier)?.position ?? flag.position;
+        final p = toMap(at.x, at.y);
+        canvas.drawPath(
+          Path()
+            ..moveTo(p.dx, p.dy + 3)
+            ..lineTo(p.dx, p.dy - 6)
+            ..lineTo(p.dx + 6, p.dy - 3.5)
+            ..lineTo(p.dx, p.dy - 1),
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 1.5
+            ..color = Colors.white,
+        );
+        canvas.drawPath(
+          Path()
+            ..moveTo(p.dx, p.dy - 6)
+            ..lineTo(p.dx + 6, p.dy - 3.5)
+            ..lineTo(p.dx, p.dy - 1)
+            ..close(),
+          Paint()..color = GameConfig.teamColors[flag.team],
+        );
+      }
     }
 
     for (final tank in [...game.remoteTanks.values, ...game.botTanks.values]) {
@@ -202,7 +257,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.oliveLight,
+        ..color = GameColors.oliveLight,
     );
   }
 
@@ -217,7 +272,7 @@ class _MiniMapPainter extends CustomPainter {
     );
     Offset toMap(double x, double y) => frame.center + Offset(x, y) * scale;
 
-    canvas.drawRect(frame, Paint()..color = BwColors.panel);
+    canvas.drawRect(frame, Paint()..color = GameColors.panel);
     final river = Path()
       ..moveTo(
         toMap(map.river.first.x, map.river.first.y).dx,
@@ -237,36 +292,42 @@ class _MiniMapPainter extends CustomPainter {
         ..color = const Color(0xAA3B7194),
     );
     canvas.restore();
-    final road = Path()
-      ..moveTo(
-        toMap(map.road.first.x, map.road.first.y).dx,
-        toMap(map.road.first.x, map.road.first.y).dy,
-      );
-    for (final point in map.road.skip(1)) {
-      final p = toMap(point.x, point.y);
-      road.lineTo(p.dx, p.dy);
+    final road = Path();
+    for (final line in map.roads) {
+      final start = toMap(line.first.x, line.first.y);
+      road.moveTo(start.dx, start.dy);
+      for (final point in line.skip(1)) {
+        final p = toMap(point.x, point.y);
+        road.lineTo(p.dx, p.dy);
+      }
     }
     canvas.drawPath(
       road,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = max(2.0, DefenseMap.roadHalfWidth * 2 * scale)
-        ..color = BwColors.sand.withValues(alpha: 0.5),
+        ..color = GameColors.sand.withValues(alpha: 0.5),
     );
-    canvas.drawCircle(
-      toMap(map.base.x, map.base.y),
-      max(3.0, DefenseMap.baseRadius * scale),
-      Paint()..color = GameConfig.teamColors[1],
-    );
-    // The enemy's outpost at the start of the road.
-    canvas.drawRect(
-      Rect.fromCenter(
-        center: toMap(map.outpost.x, map.outpost.y),
-        width: 6,
-        height: 6,
-      ),
-      Paint()..color = GameConfig.teamColors[2],
-    );
+    // A duel's bases in the colour of their side.
+    for (final (lane, base) in map.bases.indexed) {
+      canvas.drawCircle(
+        toMap(base.x, base.y),
+        max(3.0, DefenseMap.baseRadius * scale),
+        Paint()..color = GameConfig.teamColors[lane + 1],
+      );
+    }
+    // The enemy's outpost at the start of the road, in a duel the other
+    // side's base.
+    if (!map.duel) {
+      canvas.drawRect(
+        Rect.fromCenter(
+          center: toMap(map.outpost.x, map.outpost.y),
+          width: 6,
+          height: 6,
+        ),
+        Paint()..color = GameConfig.teamColors[2],
+      );
+    }
     for (final bridge in map.bridges) {
       canvas.drawCircle(
         toMap(bridge.centre.x, bridge.centre.y),
@@ -342,7 +403,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = BwColors.oliveLight,
+        ..color = GameColors.oliveLight,
     );
   }
 

@@ -11,8 +11,9 @@ import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
 import 'widgets/language_button.dart';
 
-/// First page when accounts are switched on: sign in or create an account,
-/// or play on as a guest. Players who are signed in never see it.
+/// Only after a mail link failed to sign in here: explains why, takes the
+/// code from the mail, or lets the player go on as a guest. Everybody else
+/// starts on the start page and signs in from its account button.
 class WelcomeView extends StatelessWidget {
   const WelcomeView({required this.game, super.key});
 
@@ -52,7 +53,7 @@ class WelcomeView extends StatelessWidget {
                   'the waiting room at any time.',
             ),
             style: const TextStyle(
-              color: BwColors.text,
+              color: GameColors.text,
               fontSize: 14,
               height: 1.35,
             ),
@@ -94,7 +95,7 @@ class WelcomeView extends StatelessWidget {
           children: [
             Text(
               tr('Willkommen, Panzerkommandant.', 'Welcome, tank commander.'),
-              style: const TextStyle(color: BwColors.textDim),
+              style: const TextStyle(color: GameColors.textDim),
             ),
             TutorialButton(game: game),
           ],
@@ -152,14 +153,14 @@ class _Notice extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x33FFB300),
-        shape: BwShapes.card(edge: BwColors.amber),
+        shape: GameShapes.card(edge: GameColors.amber),
       ),
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.info_outline, color: BwColors.amber),
+            const Icon(Icons.info_outline, color: GameColors.amber),
             const SizedBox(width: 10),
             Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
           ],
@@ -191,28 +192,28 @@ class _Box extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: const Color(0x44000000),
-        shape: BwShapes.card(),
+        shape: GameShapes.card(),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: BwColors.amber, size: 32),
+            Icon(icon, color: GameColors.amber, size: 32),
             const SizedBox(height: 10),
             Text(
               title,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.w900,
                 letterSpacing: 2,
-                color: BwColors.sand,
+                color: GameColors.sand,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               kicker,
               style: const TextStyle(
-                color: BwColors.amber,
+                color: GameColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
                 letterSpacing: 1.5,

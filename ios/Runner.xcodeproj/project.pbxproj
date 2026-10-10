@@ -21,7 +21,13 @@
 		4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
 		4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
 		4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */; };
+		A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D000192F00000200C0FFEE /* GamepadPlugin.swift */; };
 		4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */; };
+		5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */; };
+		5B1E5A062F0A000100C0FFEE /* MessagesExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		5B1E5A072F0A000100C0FFEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B1E5A042F0A000100C0FFEE /* Assets.xcassets */; };
+		5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
+		5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +44,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = 4F0E1A0A2E9A000100A1B2C3;
 			remoteInfo = OnlineWidget;
+		};
+		5B1E5A112F0A000100C0FFEE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 97C146E61CF9000F007C117D /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5B1E5A092F0A000100C0FFEE;
+			remoteInfo = MessagesExtension;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -59,6 +72,7 @@
 			dstSubfolderSpec = 13;
 			files = (
 				4F0E1A052E9A000100A1B2C3 /* OnlineWidget.appex in Embed Foundation Extensions */,
+				5B1E5A062F0A000100C0FFEE /* MessagesExtension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -88,7 +102,14 @@
 		4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlineWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
 		4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPlugin.swift; sourceTree = "<group>"; };
+		A1D000192F00000200C0FFEE /* GamepadPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadPlugin.swift; sourceTree = "<group>"; };
 		4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLiveActivity.swift; sourceTree = "<group>"; };
+		5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewController.swift; sourceTree = "<group>"; };
+		5B1E5A022F0A000100C0FFEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MessagesExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		5B1E5A042F0A000100C0FFEE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5B1E5A202F0A000100C0FFEE /* ChatResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResult.swift; sourceTree = "<group>"; };
+		5B1E5A232F0A000100C0FFEE /* MessagesExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MessagesExtension.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,6 +122,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		4F0E1A082E9A000100A1B2C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5B1E5A0F2F0A000100C0FFEE /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -136,6 +164,7 @@
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				4F0E1A062E9A000100A1B2C3 /* OnlineWidget */,
+				5B1E5A082F0A000100C0FFEE /* MessagesExtension */,
 				4F0E1A272E9A000100A1B2C3 /* Shared */,
 				97C146EF1CF9000F007C117D /* Products */,
 				331C8082294A63A400263BE5 /* RunnerTests */,
@@ -148,6 +177,7 @@
 				97C146EE1CF9000F007C117D /* Panzergefecht.app */,
 				331C8081294A63A400263BE5 /* RunnerTests.xctest */,
 				4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */,
+				5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -164,6 +194,7 @@
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
 				4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */,
+				A1D000192F00000200C0FFEE /* GamepadPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 			);
 			path = Runner;
@@ -183,8 +214,20 @@
 			isa = PBXGroup;
 			children = (
 				4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */,
+				5B1E5A202F0A000100C0FFEE /* ChatResult.swift */,
 			);
 			path = Shared;
+			sourceTree = "<group>";
+		};
+		5B1E5A082F0A000100C0FFEE /* MessagesExtension */ = {
+			isa = PBXGroup;
+			children = (
+				5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */,
+				5B1E5A042F0A000100C0FFEE /* Assets.xcassets */,
+				5B1E5A022F0A000100C0FFEE /* Info.plist */,
+				5B1E5A232F0A000100C0FFEE /* MessagesExtension.entitlements */,
+			);
+			path = MessagesExtension;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -224,6 +267,7 @@
 			);
 			dependencies = (
 				4F0E1A102E9A000100A1B2C3 /* PBXTargetDependency */,
+				5B1E5A122F0A000100C0FFEE /* PBXTargetDependency */,
 			);
 			name = Runner;
 			packageProductDependencies = (
@@ -250,6 +294,23 @@
 			productReference = 4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
+		5B1E5A092F0A000100C0FFEE /* MessagesExtension */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5B1E5A0A2F0A000100C0FFEE /* Build configuration list for PBXNativeTarget "MessagesExtension" */;
+			buildPhases = (
+				5B1E5A0E2F0A000100C0FFEE /* Sources */,
+				5B1E5A0F2F0A000100C0FFEE /* Frameworks */,
+				5B1E5A102F0A000100C0FFEE /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MessagesExtension;
+			productName = MessagesExtension;
+			productReference = 5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */;
+			productType = "com.apple.product-type.app-extension.messages";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -265,6 +326,9 @@
 						TestTargetID = 97C146ED1CF9000F007C117D;
 					};
 					4F0E1A0A2E9A000100A1B2C3 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+					5B1E5A092F0A000100C0FFEE = {
 						CreatedOnToolsVersion = 27.0;
 					};
 					97C146ED1CF9000F007C117D = {
@@ -292,6 +356,7 @@
 				97C146ED1CF9000F007C117D /* Runner */,
 				331C8080294A63A400263BE5 /* RunnerTests */,
 				4F0E1A0A2E9A000100A1B2C3 /* OnlineWidget */,
+				5B1E5A092F0A000100C0FFEE /* MessagesExtension */,
 			);
 		};
 /* End PBXProject section */
@@ -319,6 +384,14 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5B1E5A102F0A000100C0FFEE /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B1E5A072F0A000100C0FFEE /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,7 +427,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
+			shellScript = "/bin/sh \"$SRCROOT/../tool/check_dart_defines.sh\" || exit 1\n/bin/sh \"$FLUTTER_ROOT/packages/flutter_tools/bin/xcode_backend.sh\" build";
 		};
 		FA0000000000000000000001 /* Embed Prebuilt watchOS App */ = {
 			isa = PBXShellScriptBuildPhase;
@@ -369,7 +442,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/bash;
-			shellScript = "if [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  WATCHOS_CONF=\"Debug-watchsimulator\"\nelse\n  WATCHOS_CONF=\"Release-watchos\"\nfi\n\nWATCHOS_APP_SRC=\"${SRCROOT}/../build/watchos/${WATCHOS_CONF}/Runner.app\"\nWATCHOS_APP_DST=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Watch\"\n\nif [ -d \"$WATCHOS_APP_SRC\" ]; then\n  mkdir -p \"$WATCHOS_APP_DST\"\n  cp -R \"$WATCHOS_APP_SRC\" \"$WATCHOS_APP_DST/\"\n  echo \"Embedded watchOS app from $WATCHOS_APP_SRC\"\nelse\n  echo \"warning: watchOS app not found at $WATCHOS_APP_SRC. Run flutter-watchos build watchos --release (device) or --simulator first.\"\nfi\n";
+			shellScript = "/bin/bash \"$SRCROOT/../tool/embed_watch_app.sh\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -390,7 +463,9 @@
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
 				4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */,
+				A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */,
 				4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
+				5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -401,6 +476,15 @@
 				4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */,
 				4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */,
 				4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5B1E5A0E2F0A000100C0FFEE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */,
+				5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -416,6 +500,11 @@
 			isa = PBXTargetDependency;
 			target = 4F0E1A0A2E9A000100A1B2C3 /* OnlineWidget */;
 			targetProxy = 4F0E1A0F2E9A000100A1B2C3 /* PBXContainerItemProxy */;
+		};
+		5B1E5A122F0A000100C0FFEE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5B1E5A092F0A000100C0FFEE /* MessagesExtension */;
+			targetProxy = 5B1E5A112F0A000100C0FFEE /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -808,6 +897,92 @@
 			};
 			name = Profile;
 		};
+		5B1E5A0B2F0A000100C0FFEE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 9740EEB21CF90195004384FC /* Debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 86HB5U6788;
+				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
+				INFOPLIST_FILE = MessagesExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.regetskcob.wargame.MessagesExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		5B1E5A0C2F0A000100C0FFEE /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 86HB5U6788;
+				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
+				INFOPLIST_FILE = MessagesExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.regetskcob.wargame.MessagesExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		5B1E5A0D2F0A000100C0FFEE /* Profile */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7AFA3C8E1D35360C0083082E /* Release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = "$(FLUTTER_BUILD_NUMBER)";
+				DEVELOPMENT_TEAM = 86HB5U6788;
+				GENERATE_INFOPLIST_FILE = YES;
+				CODE_SIGN_ENTITLEMENTS = MessagesExtension/MessagesExtension.entitlements;
+				INFOPLIST_FILE = MessagesExtension/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = Panzergefecht;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = "$(FLUTTER_BUILD_NAME)";
+				PRODUCT_BUNDLE_IDENTIFIER = de.regetskcob.wargame.MessagesExtension;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Profile;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -847,6 +1022,16 @@
 				4F0E1A0C2E9A000100A1B2C3 /* Debug */,
 				4F0E1A0D2E9A000100A1B2C3 /* Release */,
 				4F0E1A0E2E9A000100A1B2C3 /* Profile */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5B1E5A0A2F0A000100C0FFEE /* Build configuration list for PBXNativeTarget "MessagesExtension" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B1E5A0B2F0A000100C0FFEE /* Debug */,
+				5B1E5A0C2F0A000100C0FFEE /* Release */,
+				5B1E5A0D2F0A000100C0FFEE /* Profile */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -2,6 +2,8 @@ import 'dart:math';
 
 import 'package:flutter/widgets.dart';
 
+import '../../tv/tv_input.dart';
+
 /// Shortest side from which a screen counts as a tablet.
 const tabletShortSide = 600.0;
 
@@ -16,6 +18,10 @@ double hudScaleFor(Size size) {
   return (short / 430).clamp(1.0, 1.4);
 }
 
+/// How much larger the Apple TV draws everything than a desktop browser on
+/// a screen of the same size, as it is seen from across the room.
+const tvScale = 1.4;
+
 /// Lays [child] out on a screen smaller by [hudScaleFor] and draws it
 /// magnified, so the phone layouts and their breakpoints work unchanged.
 class TabletScale extends StatelessWidget {
@@ -25,12 +31,57 @@ class TabletScale extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final media = MediaQuery.of(context);
-    final scale = hudScaleFor(media.size);
+    if (onTv) {
+      // The Apple TV scales the whole app already. Half a screen, as on a
+      // split screen, takes the plates a bit smaller, so the field shows.
+      return LayoutBuilder(
+        builder: (context, box) =>
+            FixedScale(scale: box.maxWidth < 900 ? 0.8 : 1, child: child),
+      );
+    }
+    // Half the screen, when two play side by side: a bit smaller instead
+    // of the tablet's magnifying, so the field shows.
+    final screen = MediaQuery.sizeOf(context);
+    return LayoutBuilder(
+      builder: (context, box) => FixedScale(
+        scale:
+            box.maxWidth < screen.width - 1 || box.maxHeight < screen.height - 1
+            ? 0.85
+            : hudScaleFor(box.biggest),
+        child: child,
+      ),
+    );
+  }
+}
+
+/// Lays [child] out on a screen smaller by [scale] and draws it magnified.
+class FixedScale extends StatelessWidget {
+  const FixedScale({required this.scale, required this.child, super.key});
+
+  final double scale;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
     if (scale == 1) {
       return child;
     }
-    final inner = Size(media.size.width / scale, media.size.height / scale);
+    final media = MediaQuery.of(context);
+    // The room it is given, which is the screen unless it shares it, as
+    // the halves of a duel do.
+    return LayoutBuilder(
+      builder: (context, box) {
+        final outer = Size(
+          box.hasBoundedWidth ? box.maxWidth : media.size.width,
+          box.hasBoundedHeight ? box.maxHeight : media.size.height,
+        );
+        return _scaled(media, outer);
+      },
+    );
+  }
+
+  Widget _scaled(MediaQueryData media, Size outer) {
+    final inner = Size(outer.width / scale, outer.height / scale);
     return Transform.scale(
       scale: scale,
       alignment: Alignment.topLeft,

@@ -8,6 +8,7 @@ WAS TESTEN
 • Tag und Nacht wechseln sich im Gefecht ab
 • Konto: als Gast spielen, App beenden und neu starten, Konto mit E-Mail sichern (Code aus der Mail eingeben)
 • Ton: folgt dem Stummschalter und den Lautstärketasten
+• Apple Watch (ab Series 9, watchOS 26): in der Watch-App am iPhone installieren, mit der Krone lenken, eine Runde spielen
 
 FEEDBACK
 Per Screenshot aus TestFlight oder an regetskcob@icloud.com.

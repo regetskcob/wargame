@@ -33,7 +33,7 @@ class AccountPanel extends StatefulWidget {
   final String? callSign;
 
   /// Called after signing out, right before the game starts over on the
-  /// welcome page. A dialog closes itself here.
+  /// start page. A dialog closes itself here.
   final VoidCallback? onSignedOut;
 
   /// On the welcome page: always open, without the status line, and signing
@@ -141,14 +141,13 @@ class _AccountPanelState extends State<AccountPanel> {
     }
   }
 
-  /// Signs out and starts over on the welcome page, with nothing of the
+  /// Signs out and starts over on the start page, with nothing of the
   /// account left in the game: no name, no progress, no open dialog.
   Future<void> _signOut() async {
     await _run(widget.accounts.signOut, tr('Abgemeldet.', 'Signed out.'));
     if (_error) {
       return;
     }
-    forgetGuest();
     widget.onSignedOut?.call();
     openFreshRoom();
   }
@@ -289,7 +288,7 @@ class _AccountPanelState extends State<AccountPanel> {
         return DecoratedBox(
           decoration: ShapeDecoration(
             color: const Color(0x44000000),
-            shape: BwShapes.card(),
+            shape: GameShapes.card(),
           ),
           child: Padding(
             padding: const EdgeInsets.all(12),
@@ -313,7 +312,9 @@ class _AccountPanelState extends State<AccountPanel> {
                           Icon(
                             guest ? Icons.person_outline : Icons.verified_user,
                             size: 18,
-                            color: guest ? BwColors.textDim : BwColors.amber,
+                            color: guest
+                                ? GameColors.textDim
+                                : GameColors.amber,
                           ),
                           const SizedBox(width: 8),
                           Flexible(
@@ -364,7 +365,7 @@ class _AccountPanelState extends State<AccountPanel> {
         _message!,
         style: TextStyle(
           fontSize: 12,
-          color: _error ? BwColors.danger : BwColors.sand,
+          color: _error ? GameColors.danger : GameColors.sand,
         ),
       ),
     ],
@@ -372,8 +373,8 @@ class _AccountPanelState extends State<AccountPanel> {
 
   List<Widget> _guest(BuildContext context) {
     final dim = widget.embedded
-        ? const TextStyle(color: BwColors.text, fontSize: 14, height: 1.35)
-        : const TextStyle(color: BwColors.textDim, fontSize: 12);
+        ? const TextStyle(color: GameColors.text, fontSize: 14, height: 1.35)
+        : const TextStyle(color: GameColors.textDim, fontSize: 12);
     final fresh = widget.embedded;
     return [
       if (fresh) ...[
