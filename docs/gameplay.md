@@ -76,7 +76,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   lists the unlocked ones first. Four free paint schemes and four more that
   come with higher ranks, for playing alone. With others every tank drives
   in its own colour, and in red against blue (teams, capture the flag) in
-  its team's red or blue, so the lobby offers no camouflage then.
+  its team's red or blue, so the lobby offers no camouflage then. The
+  defense paints its sides the same way: defenders red, attackers blue, and
+  in a duel the left base red, the right one blue. A ring in the team's
+  colour stays only around hulls of another colour and shows while a hit
+  flashes the hull white.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of

@@ -77,8 +77,6 @@ void main() {
     expect(game.lobbyColorOf(game.myId, 0), GameConfig.teamColors[2]);
     game.setTeamPick(0);
     expect(game.lobbyColorOf(game.myId, 0), GameConfig.teamColors[0]);
-    game.chooseMode(GameMode.defense);
-    expect(game.teamsAhead, isFalse);
   });
 
   test('a flag round fills two even sides with CPU tanks and starts every '

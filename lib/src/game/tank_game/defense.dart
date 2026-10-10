@@ -116,7 +116,7 @@ extension TankGameDefense on TankGame {
         PlayerTank(
             playerId: id,
             playerName: activeRound.botName(id),
-            tankColor: GameConfig.colorOf(style),
+            tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at.clone(),
             angle: TankGame._headingFrom(at, map.road[1]),
@@ -160,7 +160,7 @@ extension TankGameDefense on TankGame {
         PlayerTank(
             playerId: id,
             playerName: activeRound.botName(id),
-            tankColor: GameConfig.colorOf(style),
+            tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at,
             angle: TankGame._headingFrom(at, route.first),

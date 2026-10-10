@@ -268,7 +268,11 @@ abstract class TankBase extends PositionComponent {
     if (hidden) {
       return;
     }
-    if (team > 0) {
+    // A hull in its team's red or blue says enough, a ring would only
+    // repeat it. It shows while the hull flashes white on a hit, and
+    // always on a hull in another colour.
+    if (team > 0 &&
+        (_flashTime > 0 || tankColor != GameConfig.teamColors[team])) {
       canvas.drawCircle(
         Offset(size.x / 2, size.y / 2),
         size.x * 0.66,
