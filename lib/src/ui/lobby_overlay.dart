@@ -236,6 +236,21 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
             ],
             if (mode == GameMode.flag) ...[
+              if (game.partner != null) ...[
+                const SizedBox(height: 14),
+                _label(context, tr('ZU ZWEIT', 'TWO PLAYERS')),
+                ValueListenableBuilder<bool>(
+                  valueListenable: game.duoTogether,
+                  builder: (context, together, _) => ChoiceRow<bool>(
+                    options: [
+                      (true, tr('ZUSAMMEN', 'TOGETHER'), null),
+                      (false, tr('GEGENEINANDER', 'AGAINST EACH OTHER'), null),
+                    ],
+                    selected: together,
+                    onSelected: (v) => game.duoTogether.value = v ?? together,
+                  ),
+                ),
+              ],
               const SizedBox(height: 14),
               _label(context, 'TEAM'),
               _teamPickRow(),
