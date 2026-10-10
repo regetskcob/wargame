@@ -38,10 +38,46 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    for (final text in ['ABSCHÜSSE', 'WERTUNG', '1234', '345']) {
+    for (final text in ['PUNKTE', 'ABSCHÜSSE', '345']) {
       final right = tester.getRect(find.text(text)).right;
       expect(right, lessThanOrEqualTo(390 - 16), reason: text);
     }
     expect(find.text('Peter Maffay'), findsOneWidget);
+  });
+
+  testWidgets('points rank above the rating', (tester) async {
+    final scores = FakeScores(
+      top: const [
+        ScoresRow({
+          'id': 'a',
+          'name': 'Neuling',
+          'wins': 1,
+          'rounds': 1,
+          'rating': 1016,
+          'rated_rounds': 1,
+        }),
+        ScoresRow({
+          'id': 'b',
+          'name': 'Veteran',
+          'wins': 11,
+          'rounds': 13,
+          'kills': 152,
+          'rating': 992,
+          'rated_rounds': 3,
+        }),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Leaderboard(game: offlineGame(scores: scores)),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      tester.getTopLeft(find.text('Veteran')).dy,
+      lessThan(tester.getTopLeft(find.text('Neuling')).dy),
+    );
   });
 }
