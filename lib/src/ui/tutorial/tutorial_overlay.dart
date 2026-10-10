@@ -452,7 +452,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final kicker = _index < controls
         ? '${tr('STEUERUNG', 'CONTROLS')} '
               '${onTv
-                  ? (tvPadForTutorial == TvPadKind.gamepad ? 'CONTROLLER' : 'SIRI REMOTE')
+                  ? (tvPadForTutorial == TvPadKind.gamepad ? 'CONTROLLER' : remoteName.toUpperCase())
                   : _touch
                   ? 'TOUCH'
                   : tr('TASTATUR & MAUS', 'KEYBOARD & MOUSE')} · '

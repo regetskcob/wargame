@@ -20,6 +20,9 @@ class MainActivity : FlutterActivity() {
   override fun dispatchKeyEvent(event: KeyEvent): Boolean {
     if (GamepadPlugin.isGamepad(event.device)) {
       gamepads?.onKey(event)
+    } else {
+      // Only counts on a television, the plugin knows.
+      gamepads?.onRemoteKey(event)
     }
     return super.dispatchKeyEvent(event)
   }

@@ -1,11 +1,13 @@
-"""Builds the Apple TV icon, top shelf and launch image from the app icon layers.
+"""Builds the TV icons, top shelf and launch image from the app icon layers.
 
     python3 store/tool/tv_icons.py
 
 The tvOS icon is a stack of layers that tilt against each other while it
 has the focus: the ground of the app icon at the back, its tank in front.
 The top shelf shows the tank and the name on the same ground, the launch
-screen the tank alone. Writes into tvos/Runner/Assets.xcassets. Needs Pillow.
+screen the tank alone. Writes into tvos/Runner/Assets.xcassets, and the
+banner of the Android TV home screen, a small top shelf, into
+android/app/src/main/res. Needs Pillow.
 """
 
 from pathlib import Path
@@ -17,6 +19,7 @@ import app_icon
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "tvos" / "Runner" / "Assets.xcassets"
 BRAND = ASSETS / "AppIcon.brandassets"
+ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
 FONT = ROOT / "assets" / "fonts" / "Roboto-Black.ttf"
 
 SAND = (232, 220, 180)
@@ -81,6 +84,34 @@ def top_shelf(ground, tank, folder, file, base):
         )
 
 
+def android_banner(ground, tank):
+    """The banner Android TV, Google TV and Fire TV show for the app: 320 by
+    180 dp. Too small for the top shelf's lettering, so the name is fitted
+    to the room beside the tank."""
+    for folder, factor in (("drawable-xhdpi", 1), ("drawable-xxxhdpi", 2)):
+        size = (320 * factor, 180 * factor)
+        image = cover(ground, size).convert("RGBA")
+        image.alpha_composite(placed(tank, size, 0.4, 0.21))
+        draw = ImageDraw.Draw(image)
+        text = "PANZERGEFECHT"
+        x = round(size[0] * 0.41)
+        room = size[0] - x - round(size[0] * 0.05)
+        height = round(size[1] * 0.2)
+        while True:
+            font = ImageFont.truetype(str(FONT), height)
+            box = draw.textbbox((0, 0), text, font=font)
+            if box[2] - box[0] <= room:
+                break
+            height -= 1
+        y = (size[1] - (box[3] - box[1])) // 2 - box[1]
+        offset = max(1, round(size[1] * 0.01))
+        draw.text((x + offset, y + offset), text, font=font, fill=SHADOW)
+        draw.text((x, y), text, font=font, fill=SAND)
+        out = ANDROID_RES / folder
+        out.mkdir(exist_ok=True)
+        image.convert("RGB").save(out / "tv_banner.png", optimize=True)
+
+
 def launch_image(tank):
     """The tank on the dark launch screen, as large as on a phone held at
     arm's length: 360 points wide."""
@@ -109,7 +140,8 @@ def main():
         ground, tank, "Top Shelf Image Wide.imageset", "top_shelf_wide", (2320, 720)
     )
     launch_image(tank)
-    print("tvOS icons written")
+    android_banner(ground, tank)
+    print("tvOS icons and Android TV banner written")
 
 
 if __name__ == "__main__":

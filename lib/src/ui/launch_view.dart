@@ -505,19 +505,34 @@ class _DuelCard extends StatelessWidget {
         backgroundColor: GameColors.surface,
         title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
         content: Text(
-          tr(
-            'Im Duell verteidigt jeder seinen eigenen Stützpunkt, auf einem '
-                'geteilten Bildschirm. Jeder braucht etwas zum Steuern: einen '
-                'Controller (in den Einstellungen des Apple TV unter '
-                'Fernbedienungen und Geräte > Bluetooth), ein Handy (rechts '
-                'über Handy koppeln, zwei Handys scannen denselben Code) oder '
-                'die Siri Remote.',
-            'In a duel each player defends a base of their own on a split '
-                'screen. Each needs something to steer with: a controller (in '
-                'the Apple TV settings under Remotes and Devices > Bluetooth), '
-                'a phone (with Pair phone on the right, two phones scan the '
-                'same code) or the Siri Remote.',
-          ),
+          onAppleTv
+              ? tr(
+                  'Im Duell verteidigt jeder seinen eigenen Stützpunkt, auf '
+                      'einem geteilten Bildschirm. Jeder braucht etwas zum '
+                      'Steuern: einen Controller (in den Einstellungen des '
+                      'Apple TV unter Fernbedienungen und Geräte > Bluetooth), '
+                      'ein Handy (rechts über Handy koppeln, zwei Handys '
+                      'scannen denselben Code) oder die Siri Remote.',
+                  'In a duel each player defends a base of their own on a '
+                      'split screen. Each needs something to steer with: a '
+                      'controller (in the Apple TV settings under Remotes and '
+                      'Devices > Bluetooth), a phone (with Pair phone on the '
+                      'right, two phones scan the same code) or the Siri '
+                      'Remote.',
+                )
+              : tr(
+                  'Im Duell verteidigt jeder seinen eigenen Stützpunkt, auf '
+                      'einem geteilten Bildschirm. Jeder braucht etwas zum '
+                      'Steuern: einen Controller (in den Einstellungen des '
+                      'Fernsehers per Bluetooth gekoppelt), ein Handy (rechts '
+                      'über Handy koppeln, zwei Handys scannen denselben Code) '
+                      'oder die Fernbedienung.',
+                  'In a duel each player defends a base of their own on a '
+                      'split screen. Each needs something to steer with: a '
+                      'controller (paired over Bluetooth in the settings of '
+                      'the TV), a phone (with Pair phone on the right, two '
+                      'phones scan the same code) or the remote.',
+                ),
         ),
         actions: [
           FilledButton(

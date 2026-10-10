@@ -288,6 +288,9 @@ adb shell input scroll --axis SCROLL,-1    # one click of the bezel, clockwise
 
 ## Apple TV
 
+All televisions, Android TV and Fire TV included, are summed up in
+[tv.md](tv.md).
+
 `tvos` is the tvOS runner of the same game, built with the
 [flutter-tvos](https://github.com/fluttertv/flutter-tvos) toolchain (Flutter
 3.47.6, no account needed). It runs the same `lib/main.dart` and the same
@@ -385,7 +388,8 @@ flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
 python3 store/tool/tv_icons.py               # icon layers, top shelf, launch image
 ```
 
-Use `onTv` from `lib/src/tv/tv_input.dart` to branch for the Apple TV, never
+Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the
+Apple TV and Android TV), `onAppleTv` for the Apple TV alone, never
 `Platform.isIOS` alone: it is true there as well. Plugins need a `*_tvos`
 package (`shared_preferences_tvos`, `path_provider_tvos`, `audioplayers_tvos`,
 `url_launcher_tvos` are in), `app_links`, `share_plus` and `mobile_scanner`

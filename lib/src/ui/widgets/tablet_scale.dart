@@ -22,6 +22,13 @@ double hudScaleFor(Size size) {
 /// a screen of the same size, as it is seen from across the room.
 const tvScale = 1.4;
 
+/// The scale for a television of [screen] logical pixels. The Apple TV is
+/// always 1920 wide, Android TV mostly 960 (1080p at twice the density), so
+/// the menus get the same 1371 points of width on both and keep the
+/// layouts tried on the Apple TV.
+double tvScaleFor(Size screen) =>
+    screen.width <= 0 ? tvScale : screen.width * tvScale / 1920;
+
 /// Lays [child] out on a screen smaller by [hudScaleFor] and draws it
 /// magnified, so the phone layouts and their breakpoints work unchanged.
 class TabletScale extends StatelessWidget {

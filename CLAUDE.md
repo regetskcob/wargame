@@ -5,7 +5,7 @@ Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/> (
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
 Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
-`platforms.md`, `netcode.md`, `development.md`); diese Datei ist der
+`platforms.md`, `tv.md`, `netcode.md`, `development.md`); diese Datei ist der
 Schnelleinstieg.
 
 Beim Sitzungsstart zeigt der Hook `tool/session_context.sh` Branch, Abstand zu
@@ -66,7 +66,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | UI / Overlays | `lib/src/ui/` (`hud_overlay.dart`, `lobby_overlay.dart`, `launch_view.dart`, `welcome_view.dart`), Overlay-IDs in `app/overlay_ids.dart` |
 | Navigation | go_router in `lib/src/app/routes.dart`: `/` = Spiel (alles in der Runde bleibt Flame-Overlay), darüber `/pad/:code` (Handy-Controller) und `/scan/room\|pad` (QR-Kamera). Raum bleibt im Web in `?room=` vor dem `#`, Dialoge weiter per `showDialog` |
 | Watch | `lib/src/watch/` für Apple Watch und Wear OS (Android-App mit Watch-Screens, Krone über `WearPlugin.kt` → `wear_crown.dart`, runde Uhren mit `watchRound`/`watchInsets`, Wear-Bundle mit `--android-project-arg=wear=true` und Manifest aus `android/wear/`), verzweigen mit `onWatch` (beide Uhren), `onWear` bzw. `FlutterWatchosPlatform.isWatch` nur für eine |
-| Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
+| Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv` (jeder Fernseher, auch Android TV/Fire TV) bzw. `onAppleTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift`, auf Android `GamepadPlugin.kt` (Fernbedienung als Pad); Stand aller TV-Plattformen in `docs/tv.md` |
 | iMessage | `ios/MessagesExtension` (Swift, lädt nur ein: Blase mit Raum-Link, öffnet die App per `panzergefecht://play?room=…&mode=…&host=1`), Dart-Seite `listenForRoomLinks` + `chooseInvitedMode`; Rundenergebnis über App Group `group.de.regetskcob.wargame` (`ios/Shared/ChatResult.swift`, geschrieben in `LiveActivityPlugin.swift`); Bilder aus `store/tool/imessage.py`; `docs/platforms.md` „iMessage“ |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |

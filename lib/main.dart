@@ -27,6 +27,8 @@ Future<void> main() async {
   runApp(const LoadingApp());
   // A Wear OS watch runs the Android app with the watch screens.
   await detectWear();
+  // So does a television, with the screens of the Apple TV.
+  await detectTv();
   await Env.loadShots();
   if (!kIsWeb &&
       !onTv &&

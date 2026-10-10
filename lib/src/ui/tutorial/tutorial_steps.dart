@@ -156,19 +156,33 @@ List<TutorialStep> get _gamepad => [
   ),
 ];
 
+/// The button of the remote for items and special weapons. Android TV
+/// remotes without play/pause, as the Google TV Streamer's, use the menu
+/// button (`GamepadPlugin.kt`).
+String get _playDe => onAppleTv ? 'Play/Pause' : 'Play/Pause (oder Menü)';
+String get _playEn => onAppleTv ? 'play/pause' : 'play/pause (or menu)';
+
 List<TutorialStep> get _remote => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
     icon: Icons.settings_remote,
     scene: DemoScene.drive,
-    text: tr(
-      'Leg den Daumen auf die Touchfläche der Siri Remote, dorthin, wohin der '
-          'Panzer soll: oben fährt er nach oben, rechts nach rechts. Hebst du '
-          'ihn ab, hält er an.',
-      'Rest your thumb on the touch surface of the Siri Remote where the tank '
-          'should go: at the top it drives up, at the right to the right. '
-          'Lift it and the tank stops.',
-    ),
+    text: onAppleTv
+        ? tr(
+            'Leg den Daumen auf die Touchfläche der Siri Remote, dorthin, wohin '
+                'der Panzer soll: oben fährt er nach oben, rechts nach rechts. '
+                'Hebst du ihn ab, hält er an.',
+            'Rest your thumb on the touch surface of the Siri Remote where the '
+                'tank should go: at the top it drives up, at the right to the '
+                'right. Lift it and the tank stops.',
+          )
+        : tr(
+            'Halt das Steuerkreuz der Fernbedienung in die Richtung, in die der '
+                'Panzer soll, zwei Tasten zusammen fahren schräg. Lässt du los, '
+                'hält er an.',
+            'Hold the d-pad of the remote the way the tank should go, two '
+                'buttons together drive diagonally. Let go and the tank stops.',
+          ),
   ),
   TutorialStep(
     title: tr('ZIELEN', 'AIM'),
@@ -187,21 +201,30 @@ List<TutorialStep> get _remote => [
     title: tr('FEUERN', 'FIRE'),
     icon: Icons.local_fire_department,
     scene: DemoScene.fire,
-    text: tr(
-      'Ein Klick auf die Touchfläche feuert, gedrückt halten heißt '
-          'Dauerfeuer. Die Munition ist begrenzt, blaue Gems füllen sie auf.',
-      'A click on the touch surface fires, holding it down means continuous '
-          'fire. Ammunition is limited, blue gems refill it.',
-    ),
+    text: onAppleTv
+        ? tr(
+            'Ein Klick auf die Touchfläche feuert, gedrückt halten heißt '
+                'Dauerfeuer. Die Munition ist begrenzt, blaue Gems füllen sie '
+                'auf.',
+            'A click on the touch surface fires, holding it down means '
+                'continuous fire. Ammunition is limited, blue gems refill it.',
+          )
+        : tr(
+            'OK in der Mitte des Steuerkreuzes feuert, gedrückt halten heißt '
+                'Dauerfeuer. Die Munition ist begrenzt, blaue Gems füllen sie '
+                'auf.',
+            'OK in the middle of the d-pad fires, holding it down means '
+                'continuous fire. Ammunition is limited, blue gems refill it.',
+          ),
   ),
   TutorialStep(
     title: tr('INVENTAR', 'INVENTORY'),
     icon: Icons.inventory_2,
     scene: DemoScene.inventory,
     text: tr(
-      'Kisten und Gems landen im Inventar am linken Rand. Play/Pause setzt '
+      'Kisten und Gems landen im Inventar am linken Rand. $_playDe setzt '
           'das oberste Feld ein.',
-      'Crates and gems land in the inventory on the left edge. Play/pause '
+      'Crates and gems land in the inventory on the left edge. $_playEn '
           'uses the top slot.',
     ),
   ),
@@ -210,9 +233,9 @@ List<TutorialStep> get _remote => [
     icon: Icons.sports_baseball,
     scene: DemoScene.special,
     text: tr(
-      'Granatwerfer, Mörser und Drohne aus Gems feuert Play/Pause. Solange '
+      'Granatwerfer, Mörser und Drohne aus Gems feuert $_playDe. Solange '
           'eine davon geladen ist, geht sie dem Inventar vor.',
-      'Grenade launcher, mortar and drone from gems fire with play/pause. '
+      'Grenade launcher, mortar and drone from gems fire with $_playEn. '
           'While one is loaded it comes before the inventory.',
     ),
   ),
@@ -222,10 +245,10 @@ List<TutorialStep> get _remote => [
     scene: DemoScene.defense,
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
-          'baut Play/Pause ein Geschütz neben deinem Panzer oder rüstet das '
+          'baut $_playDe ein Geschütz neben deinem Panzer oder rüstet das '
           'auf, an dem er steht. Mehr Auswahl gibt ein Controller.',
       'In defense mode kills bring money. With an empty inventory, '
-          'play/pause builds a turret next to your tank or upgrades the one it '
+          '$_playEn builds a turret next to your tank or upgrades the one it '
           'stands at. A controller gives more choice.',
     ),
   ),

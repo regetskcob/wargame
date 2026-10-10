@@ -603,18 +603,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       'oder A feuert, L2 löst Waffen wie Granatwerfer, Mörser '
                       'und Drohne aus. X, Y und das Steuerkreuz setzen das '
                       'Inventar am linken Rand ein. In der Verteidigung baut '
-                      'R1 ein Geschütz, L1 wechselt den Typ. Siri Remote: Der '
-                      'Daumen auf der Touchfläche zeigt die Fahrtrichtung, '
-                      'die Zielhilfe zielt, ein Klick feuert, Play/Pause '
-                      'löst die Waffe oder das oberste Inventarfeld aus.',
+                      'R1 ein Geschütz, L1 wechselt den Typ. '
+                      '${_remoteControls()}',
                   'Controller: the left stick drives, the right stick aims, '
                       'R2 or A fires, L2 fires weapons such as grenade '
                       'launcher, mortar and drone. X, Y and the d-pad use the '
                       'inventory on the left edge. In defense, R1 builds a '
-                      'turret and L1 switches the type. Siri Remote: your '
-                      'thumb on the touch surface sets the direction, the '
-                      'aim assist aims, a click fires, play/pause fires the '
-                      'weapon or uses the top inventory slot.',
+                      'turret and L1 switches the type. '
+                      '${_remoteControls()}',
                 )
               : touch
               ? tr(
@@ -1094,3 +1090,22 @@ class _JoinedBanner extends StatelessWidget {
     );
   }
 }
+
+/// The remote's part of the controls on a television.
+String _remoteControls() => onAppleTv
+    ? tr(
+        'Siri Remote: Der Daumen auf der Touchfläche zeigt die Fahrtrichtung, '
+            'die Zielhilfe zielt, ein Klick feuert, Play/Pause löst die Waffe '
+            'oder das oberste Inventarfeld aus.',
+        'Siri Remote: your thumb on the touch surface sets the direction, the '
+            'aim assist aims, a click fires, play/pause fires the weapon or '
+            'uses the top inventory slot.',
+      )
+    : tr(
+        'Fernbedienung: Das Steuerkreuz zeigt die Fahrtrichtung, die '
+            'Zielhilfe zielt, OK feuert, Play/Pause oder Menü löst die Waffe '
+            'oder das oberste Inventarfeld aus.',
+        'Remote: the d-pad sets the direction, the aim assist aims, OK fires, '
+            'play/pause or menu fires the weapon or uses the top inventory '
+            'slot.',
+      );

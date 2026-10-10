@@ -10,12 +10,43 @@ import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
+import '../l10n/l10n.dart';
 import '../net/pad_link.dart';
 import 'web_pads_stub.dart' if (dart.library.js_interop) 'web_pads.dart';
 
-/// Whether this is the Apple TV build. Always false elsewhere, also in the
-/// browser, where `dart:io` has no platform to ask.
-bool get onTv => !kIsWeb && FlutterTvosPlatform.isTvos;
+/// Whether this is a television: the Apple TV build, or the Android app on
+/// Android TV, Google TV or a Fire TV, as found by [detectTv]. Always false
+/// in the browser, where `dart:io` has no platform to ask.
+bool get onTv => onAppleTv || _onAndroidTv;
+
+/// Whether this is the Apple TV build, for what only it has: the Siri
+/// Remote and its settings.
+bool get onAppleTv => !kIsWeb && FlutterTvosPlatform.isTvos;
+
+bool _onAndroidTv = false;
+
+@visibleForTesting
+set onAndroidTvForTesting(bool value) => _onAndroidTv = value;
+
+/// Asks Android whether it runs on a television. Call once before the game
+/// starts: [onTv] picks the screens and the controls of the sofa.
+Future<void> detectTv() async {
+  if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) {
+    return;
+  }
+  try {
+    final info = await const MethodChannel('wargame/tv')
+        .invokeMapMethod<String, Object?>('info');
+    _onAndroidTv = info?['tv'] == true;
+  } on Object {
+    // An older native side without the question: a phone, as before.
+    _onAndroidTv = false;
+  }
+}
+
+/// What the remote of this television is called on screen.
+String get remoteName =>
+    onAppleTv ? 'Siri Remote' : tr('Fernbedienung', 'Remote');
 
 /// Where game controllers are read: the Apple TV, the iPhone, iPad and Mac
 /// through GameController, Android through its input events
@@ -32,7 +63,8 @@ enum TvPadKind {
   /// Nothing GameController knows of, the menus still take the remote.
   none,
 
-  /// The Siri Remote: its touch surface is the stick, the click fires.
+  /// The remote: the touch surface of the Siri Remote or the d-pad of an
+  /// Android TV remote is the stick, the click or OK fires.
   remote,
 
   /// A controller with two sticks, shoulders and triggers.

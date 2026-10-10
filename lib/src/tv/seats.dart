@@ -44,7 +44,7 @@ class DuelSeat {
       ? (phoneName.isEmpty ? tr('Handy', 'phone') : phoneName)
       : kind == TvPadKind.gamepad
       ? 'Controller'
-      : 'Siri Remote';
+      : remoteName;
 }
 
 /// Changes whenever a controller or a phone comes or goes, or the keyboard

@@ -43,7 +43,7 @@ class TvControllers extends StatelessWidget {
                           : Icons.sports_esports,
                       label:
                           '${i + 1} · '
-                          '${pad.kind == TvPadKind.remote ? 'Siri Remote' : 'Controller'}',
+                          '${pad.kind == TvPadKind.remote ? remoteName : 'Controller'}',
                     ),
                   for (final (_, name) in PadScreen.instance.phones.value)
                     _Chip(
@@ -53,12 +53,19 @@ class TvControllers extends StatelessWidget {
                   if (TvInput.instance.pads.isEmpty &&
                       PadScreen.instance.phones.value.isEmpty)
                     Text(
-                      tr(
-                        'Kein Controller verbunden. Die Siri Remote steuert '
-                            'die Menüs.',
-                        'No controller connected. The Siri Remote steers '
-                            'the menus.',
-                      ),
+                      onAppleTv
+                          ? tr(
+                              'Kein Controller verbunden. Die Siri Remote '
+                                  'steuert die Menüs.',
+                              'No controller connected. The Siri Remote '
+                                  'steers the menus.',
+                            )
+                          : tr(
+                              'Kein Controller verbunden. Die Fernbedienung '
+                                  'steuert die Menüs.',
+                              'No controller connected. The remote steers '
+                                  'the menus.',
+                            ),
                       style: const TextStyle(color: GameColors.textDim),
                     ),
                 ],
