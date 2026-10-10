@@ -51,7 +51,11 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
     return IgnorePointer(
       child: SizedBox.square(
         dimension: widget.size,
-        child: CustomPaint(painter: _MiniMapPainter(widget.game, _frame)),
+        // Its own layer: the map repaints 15 times a second, and without
+        // a boundary every repaint took the whole HUD with it.
+        child: RepaintBoundary(
+          child: CustomPaint(painter: _MiniMapPainter(widget.game, _frame)),
+        ),
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import 'bot_level.dart';
 import 'map_theme.dart';
+import 'components/static_picture.dart';
 
 /// One hill, or with a negative [height] a hollow, shaped like a bell.
 class Hill {
@@ -95,7 +96,7 @@ class Terrain {
 
 /// Draws the hills: lit from the upper left, shaded to the lower right, with
 /// faint contour lines, and some grass and stones on top for the eye.
-class TerrainLayer extends PositionComponent {
+class TerrainLayer extends PositionComponent with StaticPicture {
   TerrainLayer({required this.terrain, required this.theme, required int seed})
     : super(priority: -19) {
     final random = Random(seed ^ 0x6a55);
@@ -116,8 +117,24 @@ class TerrainLayer extends PositionComponent {
   final MapTheme theme;
   final _tufts = <(Offset, double, bool)>[];
 
+  /// Everything the hills cover, for the baked image of their light and
+  /// shade.
   @override
-  void render(Canvas canvas) {
+  late final Rect? bakeArea = terrain.hills.isEmpty
+      ? null
+      : terrain.hills
+            .map(
+              (hill) => Rect.fromCircle(
+                center: hill.centre.toOffset(),
+                radius: hill.radius * 1.3,
+              ),
+            )
+            .reduce((a, b) => a.expandToInclude(b));
+
+  /// The light, shade and contours of the hills, which never change in a
+  /// round: drawn once into an image (see [StaticPicture]).
+  @override
+  void paintStatic(Canvas canvas) {
     for (final hill in terrain.hills) {
       final c = hill.centre.toOffset();
       final r = hill.radius;
@@ -153,6 +170,27 @@ class TerrainLayer extends PositionComponent {
         canvas.drawCircle(c, r * sqrt(-log(level)), line);
       }
     }
+  }
+
+  /// Grass and stones stay sharp: few small shapes, recorded once.
+  Picture? _tuftPicture;
+
+  @override
+  void onRemove() {
+    _tuftPicture?.dispose();
+    _tuftPicture = null;
+    super.onRemove();
+  }
+
+  @override
+  void render(Canvas canvas) {
+    renderStatic(canvas);
+    canvas.drawPicture(_tuftPicture ??= _recordTufts());
+  }
+
+  Picture _recordTufts() {
+    final recorder = PictureRecorder();
+    final canvas = Canvas(recorder);
     final grass = Paint()
       ..strokeWidth = 1.3
       ..color = theme.treeInner.withValues(alpha: 0.55);
@@ -169,5 +207,6 @@ class TerrainLayer extends PositionComponent {
         canvas.drawLine(at, at.translate(size * 0.6, -size), grass);
       }
     }
+    return recorder.endRecording();
   }
 }

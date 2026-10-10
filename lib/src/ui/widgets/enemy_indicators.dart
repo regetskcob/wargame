@@ -225,10 +225,15 @@ class _EnemyIndicatorsState extends State<EnemyIndicators>
   @override
   Widget build(BuildContext context) {
     return IgnorePointer(
-      child: SizedBox.expand(
-        child: CustomPaint(
-          key: _self,
-          painter: _IndicatorPainter(_markers.values, _blocked()),
+      // The arrows repaint every frame; on a layer of their own they no
+      // longer drag the plates, texts and shadows of the HUD along. On the
+      // BoPad in a late defense wave the HUD cost 3 ms of the frame.
+      child: RepaintBoundary(
+        child: SizedBox.expand(
+          child: CustomPaint(
+            key: _self,
+            painter: _IndicatorPainter(_markers.values, _blocked()),
+          ),
         ),
       ),
     );

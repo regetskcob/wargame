@@ -16,6 +16,9 @@ extension TankGameDefense on TankGame {
     conditionsLabel.value = conditions!.label;
     _weather = WeatherLayer(conditions!);
     world.add(field);
+    final ranges = TowerRanges();
+    _extras.add(ranges);
+    world.add(ranges);
     _fitCamera();
     // The screenshot mode brings funds for a row of guns, see Env.shots.
     credits.value = Env.shots ? 2000 : GameConfig.startCredits;

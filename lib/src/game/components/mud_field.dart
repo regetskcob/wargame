@@ -5,6 +5,7 @@ import 'package:flame/components.dart';
 
 import '../game_config.dart';
 import '../map_theme.dart';
+import 'static_picture.dart';
 
 /// One patch of soft ground.
 class MudPatch {
@@ -18,7 +19,7 @@ class MudPatch {
 /// Swamp, quicksand, deep snow or puddles, depending on the map. Tanks inside
 /// a patch drive slower. The patches follow from the round seed, so every
 /// client agrees on them without network traffic.
-class MudField extends Component {
+class MudField extends Component with StaticPicture {
   MudField({required this.seed, required this.theme}) : super(priority: -18) {
     final random = Random(seed ^ 0x2f6b);
     var attempts = 0;
@@ -78,8 +79,12 @@ class MudField extends Component {
     return false;
   }
 
+  /// The patches never change in a round: recorded once.
   @override
-  void render(Canvas canvas) {
+  void render(Canvas canvas) => renderStatic(canvas);
+
+  @override
+  void paintStatic(Canvas canvas) {
     final rim = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5
