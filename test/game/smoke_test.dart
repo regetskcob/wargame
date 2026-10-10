@@ -1,3 +1,8 @@
+// Whole rounds take a few seconds each, many more on a busy machine:
+// they get more than the default 30 s before they count as hung.
+@Timeout(Duration(minutes: 3))
+library;
+
 import 'dart:ui';
 
 import 'package:flame/components.dart';
