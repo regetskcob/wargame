@@ -3,11 +3,11 @@ import 'package:flutter/material.dart';
 import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
 import '../theme.dart';
-import 'panel.dart';
 import '../../l10n/l10n.dart';
 
 /// Rank with the way to the next one and the rating in one line. The
-/// badges fold out on demand.
+/// badges fold out on demand. Drawn as a quiet dark box without a frame, so
+/// it reads as status and does not compete with the framed mode buttons.
 class PilotCard extends StatefulWidget {
   const PilotCard({required this.progress, super.key});
 
@@ -33,15 +33,19 @@ class _PilotCardState extends State<PilotCard> {
       builder: (context, _) {
         final rank = progress.rank.value;
         final rating = progress.rating.value;
-        return Plate(
-          padding: const EdgeInsets.all(12),
+        return Container(
+          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
+          decoration: BoxDecoration(
+            color: const Color(0x55000000),
+            borderRadius: BorderRadius.circular(10),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
                 children: [
-                  RankBadge(level: rank.level),
+                  RankBadge(level: rank.level, size: 28),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
@@ -50,8 +54,10 @@ class _PilotCardState extends State<PilotCard> {
                         Text(
                           '${rank.title.toUpperCase()} · ${tr('STUFE', 'LEVEL')} ${rank.level}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
                             letterSpacing: 1,
+                            color: GameColors.textDim,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -59,8 +65,8 @@ class _PilotCardState extends State<PilotCard> {
                           borderRadius: BorderRadius.circular(2),
                           child: LinearProgressIndicator(
                             value: rank.progress,
-                            minHeight: 6,
-                            backgroundColor: const Color(0x55000000),
+                            minHeight: 4,
+                            backgroundColor: const Color(0x33FFFFFF),
                             color: GameColors.amber,
                           ),
                         ),
@@ -91,15 +97,15 @@ class _PilotCardState extends State<PilotCard> {
                       Text(
                         rating == null ? '–' : '$rating',
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: GameColors.amber,
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: GameColors.sand,
                         ),
                       ),
                       Text(
                         tr('WERTUNG', 'RATING'),
                         style: const TextStyle(
-                          fontSize: 11,
+                          fontSize: 10,
                           letterSpacing: 1.4,
                           color: GameColors.textDim,
                         ),
