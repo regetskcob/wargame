@@ -30,6 +30,9 @@ class VitalsPlate extends StatelessWidget {
   /// Share of a full tank, null on the level without fuel.
   final double? fuel;
 
+  /// The plate with its padding, for the panels that must stay beside it.
+  static const outerWidth = 112.0 + 2 * 7;
+
   @override
   Widget build(BuildContext context) {
     final armour = (hp / maxHp).clamp(0.0, 1.0);
