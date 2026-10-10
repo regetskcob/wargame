@@ -5,7 +5,7 @@ WAYS TO PLAY
 • Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. Open rooms are listed in the room list, CPU tanks fill up on request, late joiners watch. Browser and app play in the same room.
 • Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Build cannon, flak, mortar and howitzer, dig trenches and upgrade your tank. A base that holds grows from a watchtower to a citadel, and after wave 8 you can carry on endlessly.
 • Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Destroyed tanks are back in a few seconds, three captures win.
-• Two on one screen: split screen with two controllers or phones, on the iPad, in the browser and soon on the Apple TV, plus the duel, where two bases fight each other.
+• Two on one screen: split screen with two controllers or phones, on a tablet, in the browser and soon on the Apple TV, plus the duel, where two bases fight each other.
 
 EIGHT VEHICLES
 From the nimble weapon carrier to infantry fighting vehicles, anti-aircraft and the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.

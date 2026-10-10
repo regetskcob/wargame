@@ -12,10 +12,12 @@ Vom flinken Waffenträger bis zum schweren Kampfpanzer. Jedes Fahrzeug hat eigen
 GELÄNDE UND WETTER
 Übungsplatz, Wüste, Winter und Stadt, bei Tag oder Nacht. Regen, Nebel und Sandsturm nehmen die Sicht, Flüsse und Brücken lenken das Gefecht, das Sperrgebiet zieht sich langsam zu.
 
-GEMACHT FÜR TOUCH
+GEMACHT FÜR TOUCH UND CONTROLLER
 • Zwei Sticks, die dort erscheinen, wo dein Daumen aufsetzt
 • Zielhilfe, die den Turm auf den nächsten Gegner dreht
 • Spielbar im Hoch- und im Querformat, auf Handy und Tablet
+• Game-Controller werden unterstützt, auf dem Tablet spielt ihr mit zweien zu zweit im geteilten Bildschirm
+• Handy als Controller: Das Handy wird per QR-Code zum Gamepad für das Spiel im Browser oder auf dem Tablet
 • Eine kurze Einweisung zeigt alles in einer Minute
 
 FORTSCHRITT UND BESTENLISTE

@@ -12,10 +12,12 @@ From the nimble weapon carrier to the heavy main battle tank. Every vehicle has 
 TERRAIN AND WEATHER
 Training ground, desert, winter and city, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
 
-MADE FOR TOUCH
+MADE FOR TOUCH AND CONTROLLERS
 • Two sticks that appear wherever your thumb lands
 • Aim assist that turns the turret to the nearest enemy
 • Playable in portrait and landscape, on phone and tablet
+• Game controllers are supported, with two of them you play two on one screen on a tablet
+• Phone as controller: scan a QR code and your phone becomes the gamepad for the game in the browser or on a tablet
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
