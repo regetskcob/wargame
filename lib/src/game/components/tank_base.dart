@@ -337,9 +337,12 @@ class TankTag extends PositionComponent {
   TankTag() : super(anchor: Anchor.center);
 
   static final _namePaints = [
-    for (final color in GameConfig.teamColors)
+    for (final color in GameConfig.sideColors)
       TextPaint(style: TextStyle(color: color, fontSize: 11)),
   ];
+
+  static TextPaint _namePaint(int team) =>
+      _namePaints[GameConfig.shownTeam(team)];
 
   TankBase get tank => parent! as TankBase;
 
@@ -373,7 +376,7 @@ class TankTag extends PositionComponent {
             ? const Color(0xFF9CCC65)
             : const Color(0xFFD1492E),
     );
-    _namePaints[tank.team].render(
+    _namePaint(tank.team).render(
       canvas,
       tank.playerName,
       Vector2(0, barTop + 6),

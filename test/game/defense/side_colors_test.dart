@@ -22,4 +22,15 @@ void main() {
     expect(game.botTanks['ally-0-0']!.tankColor, GameConfig.teamColors[1]);
     expect(game.botTanks['td-1-0']!.tankColor, GameConfig.teamColors[2]);
   });
+
+  test('the right player of a duel sees their own side red', () {
+    addTearDown(() => GameConfig.swapSides = false);
+    GameConfig.swapSides = true;
+    expect(GameConfig.teamColors[2], GameConfig.sideColors[1]);
+    expect(GameConfig.teamColors[1], GameConfig.sideColors[2]);
+    expect(GameConfig.shownTeam(2), 1);
+    expect(GameConfig.shownTeam(0), 0);
+    GameConfig.swapSides = false;
+    expect(GameConfig.teamColors[1], GameConfig.sideColors[1]);
+  });
 }

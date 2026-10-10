@@ -297,10 +297,14 @@ extension TankGameLobby on TankGame {
   /// camouflage alone, one colour per seat when playing with others.
   Color lobbyColorOf(String id, int style) {
     if (mode.value == GameMode.defense) {
-      // A duel takes exactly two players, the host on the left, red base.
+      // A duel takes exactly two players. Each sees their own side red,
+      // two on one screen the host's left base red.
       final players = {myId, for (final member in roster.value) member.id};
       if (!duelNext.value || players.length != 2) {
         return GameConfig.teamColors[1];
+      }
+      if (!localGuest && !sharesScreen) {
+        return GameConfig.teamColors[id == myId ? 1 : 2];
       }
       final host = id == myId ? isHost.value : _rosterMember(id)?.host;
       return GameConfig.teamColors[host ?? false ? 1 : 2];
@@ -493,6 +497,7 @@ extension TankGameLobby on TankGame {
     _dropSlot();
     _clearWorld();
     round = null;
+    GameConfig.swapSides = false;
     myTeam = 0;
     roster.value = const [];
     closedReason.value = reason;

@@ -194,6 +194,10 @@ class TankGame extends FlameGame
   /// their own: single player rounds take them along.
   bool localGuest = false;
 
+  /// This is the second player's game on an Apple TV, on the same screen
+  /// as the first one's.
+  bool sharesScreen = false;
+
   /// Which controller of the Apple TV steers here: the first, in a duel
   /// the one of the half, -1 for none when a phone steers the half.
   int tvPlayer = onTv ? 0 : -1;
