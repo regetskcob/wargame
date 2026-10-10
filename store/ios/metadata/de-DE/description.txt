@@ -30,6 +30,6 @@ Die App bringt ein eigenes Spiel für die Uhr mit: Einzelspieler, Mehrspieler, V
 AUF EINEN BLICK
 Ein Widget zeigt, wer gerade online ist, eine Live-Aktivität die laufende Runde.
 
-Keine Werbung, keine Käufe in der App, kein Tracking.
+Keine Werbung, kein Tracking.
 
 Panzergefecht ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.
