@@ -377,6 +377,17 @@ class TankGame extends FlameGame
   /// When each duel player last sent troops.
   final _lastTroops = <String, DateTime>{};
 
+  /// The shortest gap between two repairs or rapid fires of one remote
+  /// player that lift the plausibility limits.
+  static const minUseGap = Duration(seconds: 2);
+
+  /// How far from a crate a remote tank may be that took it: its reach
+  /// plus the drive between two states, with room to spare.
+  static const maxPickupReach = 260.0;
+
+  /// When each remote player last used a repair or rapid fire.
+  final _lastUse = <String, DateTime>{};
+
   /// When each remote player last launched a grenade.
   final _lastGrenade = <String, DateTime>{};
   int _enemyGunCounter = 0;

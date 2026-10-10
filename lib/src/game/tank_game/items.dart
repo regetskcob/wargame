@@ -316,6 +316,17 @@ extension TankGameItems on TankGame {
     if (type != null && bot != null && (round?.isBot(payload.id) ?? false)) {
       _calloutItem(bot.position, type);
     }
+    // A repair or rapid fire lifts the limits the plausibility check holds
+    // a tank to. Repeated without pause, a made up `use` would lift them
+    // for good: one a few seconds per player is more than items allow.
+    if (type == PowerUpType.repair || type == PowerUpType.rapidFire) {
+      final now = clock.now();
+      final last = _lastUse[payload.id];
+      if (last != null && now.difference(last) < TankGame.minUseGap) {
+        return;
+      }
+      _lastUse[payload.id] = now;
+    }
     switch (type) {
       case PowerUpType.repair:
         guard.allowRepair(payload.id);
@@ -389,7 +400,16 @@ extension TankGameItems on TankGame {
     if (_gone.contains(payload.powerUpId)) {
       return;
     }
-    switch (_slotOf(payload.powerUpId)?.type) {
+    // Only a tank near the crate takes it: anything else would clear the
+    // field of crates from afar.
+    final slot = _slotOf(payload.powerUpId);
+    final taker = remoteTanks[payload.id];
+    if (slot != null &&
+        taker != null &&
+        taker.position.distanceTo(slot.position) > TankGame.maxPickupReach) {
+      return;
+    }
+    switch (slot?.type) {
       case PowerUpType.mines ||
           PowerUpType.artillery ||
           PowerUpType.infantry ||
