@@ -80,7 +80,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   defense paints its sides the same way: defenders red, attackers blue, and
   in a duel the left base red, the right one blue. A ring in the team's
   colour stays only around hulls of another colour and shows while a hit
-  flashes the hull white.
+  flashes the hull white. The own tank always wears its ring, in the
+  team's colour or amber without sides, with a dark rim, so it stands out
+  among its side.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of
@@ -205,7 +207,7 @@ seconds up to 300.
 | Who | Damage | Notes |
 | --- | --- | --- |
 | Cannon | 18 per shot, 0.45 s, range 420 | +35 % per level |
-| Flak | 6 per shot, 0.16 s, range 480 | 12 against aircraft, 1.8 on the ground |
+| Flak | 6 per shot, 0.16 s, range 600 | 12 against aircraft (proximity fuse, bursts within 30), 1.8 on the ground |
 | Mortar emplacement | 50, radius 75, range 130–620 | +35 % per level |
 | Howitzer | 110, radius 75, range 240–1050 | +35 % per level |
 | Helicopter (both sides) | 10 per rocket, every 1.8 s, range 420 | |
@@ -219,7 +221,12 @@ takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
 to the tank's shells. Against aircraft, flak and the Habicht do double, other
 shells a quarter to a helicopter and nothing to a jet. On the ground flak
 does only 30 % of its damage, about a quarter of what a cannon fires in the
-same time, so a row of flak no longer holds the road.
+same time, so a row of flak no longer holds the road. Against the sky it
+got sharper instead: its shells burst within 30 of an aircraft or drone,
+the mount swings 10 radians a second (the other guns 6) and every gun
+works out its lead a few times over. A jet at 420 a second used to slip
+through three flak guns around the base; now one stops it about one time
+in three before it bombs, two almost always.
 
 ## Defense thresholds
 

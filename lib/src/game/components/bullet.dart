@@ -26,6 +26,7 @@ class Bullet extends PositionComponent
     required this.damage,
     this.antiAir = false,
     this.airDamage,
+    this.burst = 0,
     this.small = false,
   }) : super(size: Vector2.all(6), anchor: Anchor.center, priority: 5);
 
@@ -42,6 +43,10 @@ class Bullet extends PositionComponent
   /// [GameConfig.antiAirFactor]: a flak shell hits the sky far harder than
   /// the ground.
   final double? airDamage;
+
+  /// A flak shell's proximity fuse: it bursts this close to an aircraft or
+  /// drone it may hit, see [TowerKind.burst]. 0 for every other shell.
+  final double burst;
 
   /// A rifle bullet, drawn thinner than a shell.
   final bool small;
@@ -62,6 +67,38 @@ class Bullet extends PositionComponent
     _ttl -= dt;
     if (_ttl <= 0) {
       removeFromParent();
+      return;
+    }
+    if (burst > 0) {
+      _proximity();
+    }
+  }
+
+  /// Bursts next to an aircraft or drone in reach of the fuse. Only the
+  /// client that flies it takes the hit, as for a direct one.
+  void _proximity() {
+    // Gone from the field only at the next tick: it must not burst twice.
+    if (isRemoving) {
+      return;
+    }
+    for (final plane in gameRef.aircraft.values) {
+      if (plane.isMounted &&
+          plane.position.distanceTo(position) < burst &&
+          plane.damageFrom(this) > 0 &&
+          plane.takeHit(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+        return;
+      }
+    }
+    for (final drone in gameRef.drones.values) {
+      if (drone.isMounted &&
+          drone.position.distanceTo(position) < burst &&
+          drone.shootDown(this)) {
+        _impact(const Color(0xFF555555));
+        removeFromParent();
+        return;
+      }
     }
   }
 

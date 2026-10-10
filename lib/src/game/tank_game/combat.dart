@@ -357,6 +357,7 @@ extension TankGameCombat on TankGame {
         speed: tower.kind.shotSpeed,
         damage: tower.kind.groundDamageAt(tower.level),
         airDamage: tower.kind.airDamageAt(tower.level),
+        burst: tower.kind.burst,
         antiAir: tower.kind.antiAir,
       );
       return;
@@ -436,6 +437,7 @@ extension TankGameCombat on TankGame {
     double? speed,
     double? damage,
     double? airDamage,
+    double burst = 0,
     bool antiAir = false,
     bool small = false,
   }) {
@@ -449,6 +451,7 @@ extension TankGameCombat on TankGame {
       damage: damage ?? stats.damage,
       antiAir: antiAir,
       airDamage: airDamage,
+      burst: burst,
       small: small,
     );
     bullets[bulletId] = bullet;

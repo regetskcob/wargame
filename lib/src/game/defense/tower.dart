@@ -29,12 +29,14 @@ enum TowerKind {
     'FLAK',
     'FLAK',
     cost: 120,
-    range: 480,
+    range: 600,
     cooldown: 0.16,
     damage: 6,
     shotSpeed: 720,
     antiAir: true,
     groundFactor: 0.3,
+    burst: 30,
+    traverse: 10,
   ),
   mortar(
     'MÖRSER',
@@ -90,6 +92,8 @@ enum TowerKind {
     required this.shotSpeed,
     this.antiAir = false,
     this.groundFactor = 1,
+    this.burst = 0,
+    this.traverse = 6,
     this.minRange = 0,
     this.blast = 1,
     this.fromWave = 0,
@@ -114,6 +118,15 @@ enum TowerKind {
   /// for the sky: on the ground its light shells barely scratch, or a row
   /// of flak would hold the road as well as the cannon does.
   final double groundFactor;
+
+  /// Flak shells carry a proximity fuse: they burst this close to an
+  /// aircraft or drone instead of having to strike it. Without it a jet at
+  /// full speed slipped through even three flak guns around the base.
+  final double burst;
+
+  /// How fast the turret swings round, in radians a second. The light flak
+  /// mount follows a jet that races past, the heavy guns are slower.
+  final double traverse;
 
   /// What one shell of a gun at [level] does to aircraft and drones.
   double airDamageAt(int level) =>
@@ -310,14 +323,11 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     if (target == null || !target.isMounted) {
       return;
     }
-    final aim = kind.lobs
-        ? target.position.clone()
-        : target.position +
-              gameRef.velocityOfTarget(target) *
-                  (target.position.distanceTo(position) / kind.shotSpeed);
+    final aim = kind.lobs ? target.position.clone() : _lead(target);
     final wanted = atan2(aim.x - position.x, -(aim.y - position.y));
     final diff = (wanted - turretAngle).toNormalizedAngle();
-    turretAngle += diff.clamp(-6 * dt, 6 * dt);
+    final turn = kind.traverse * dt;
+    turretAngle += diff.clamp(-turn, turn);
     if (diff.abs() < 0.08 && _cooldown <= 0) {
       _cooldown =
           kind.cooldownAt(level) * (isEnemy ? GameConfig.enemyGunCooldown : 1);
@@ -327,6 +337,19 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
         gameRef.fireTower(this);
       }
     }
+  }
+
+  /// Where to aim so a shell meets [target]: the flight time to where it
+  /// will be, worked out a few times over, since a jet moves far in the
+  /// time a shell takes to reach where it was.
+  Vector2 _lead(PositionComponent target) {
+    final velocity = gameRef.velocityOfTarget(target);
+    var aim = target.position.clone();
+    for (var i = 0; i < 3; i++) {
+      final flight = aim.distanceTo(position) / kind.shotSpeed;
+      aim = target.position + velocity * flight;
+    }
+    return aim;
   }
 
   @override

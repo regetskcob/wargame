@@ -39,6 +39,11 @@ abstract class TankBase extends PositionComponent {
   /// 0 plays alone, 1 is red, 2 is blue.
   int team = 0;
 
+  /// The tank this screen's player drives. It always wears its ring, so it
+  /// stands out among a side of tanks in the same red or blue.
+  bool own = false;
+  static const _ownRing = Color(0xFFFFC107);
+
   /// Seconds the tracks still print red after rolling over a soldier.
   double bloodTimer = 0;
   double _recoil = 0;
@@ -269,9 +274,30 @@ abstract class TankBase extends PositionComponent {
       return;
     }
     // A hull in its team's red or blue says enough, a ring would only
-    // repeat it. It shows while the hull flashes white on a hit, and
-    // always on a hull in another colour.
-    if (team > 0 &&
+    // repeat it. It shows while the hull flashes white on a hit, always on
+    // a hull in another colour, and always on the own tank, in amber when
+    // there are no sides, with a dark rim so it reads on any ground.
+    if (own) {
+      final centre = Offset(size.x / 2, size.y / 2);
+      final colour = team > 0 ? GameConfig.teamColors[team] : _ownRing;
+      canvas
+        ..drawCircle(
+          centre,
+          size.x * 0.68,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 6
+            ..color = const Color(0x99000000),
+        )
+        ..drawCircle(
+          centre,
+          size.x * 0.68,
+          Paint()
+            ..style = PaintingStyle.stroke
+            ..strokeWidth = 3.2
+            ..color = colour,
+        );
+    } else if (team > 0 &&
         (_flashTime > 0 || tankColor != GameConfig.teamColors[team])) {
       canvas.drawCircle(
         Offset(size.x / 2, size.y / 2),

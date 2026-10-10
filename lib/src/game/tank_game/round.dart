@@ -354,6 +354,7 @@ extension TankGameRound on TankGame {
     );
     myTank = tank;
     tank
+      ..own = true
       ..team = round?.teamOf(myId) ?? 0
       ..usesFuel = usesFuel
       ..endlessAmmo = endlessAmmo;
