@@ -164,8 +164,10 @@ Everything the game does, with the numbers behind it. The short version is in th
 - The phone as a controller for the game on a computer or tablet: the
   account sheet in the browser shows a pairing QR code, the app scans it
   (Account, Use as controller) or the phone camera opens it. The phone then
-  shows the two sticks, the special weapon, the items and, in a defense
-  round, the whole shop: the guns to build where the tank stands, the
+  shows the two sticks, armour, shells and fuel, the items in the game's
+  slots (down the left edge upright, between the thumbs sideways) and, in a
+  defense round, the funds beside the name and the shop in two groups,
+  *Build* and *Round*: the guns to build where the tank stands, the
   upgrade of the gun next to it, the tank's upgrades, the host's *Wave now*
   and, after each stretch of waves, *+4 waves* or *End*. A dot on *Towers*
   and *Upgrades* (on the screen's buttons as well) says the funds reach for

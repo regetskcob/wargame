@@ -85,7 +85,7 @@
   sticks as `pad` at most twelve and a half times a second, rounded so a
   resting thumb's tremor is no change, and single presses as `act`; the
   screen plays them as its touch controls and answers with `status`
-  (health, ammunition, items, phase and, in defense, the shop with its
+  (health, ammunition, fuel, items, phase and, in defense, the shop with its
   prices and what the funds allow) at most about three times a second.
   The presses of the defense shop (`place`, `raise`, `upgrade`, `wave`,
   `extend`, `end`) are new kinds of `act`, which an older screen drops.

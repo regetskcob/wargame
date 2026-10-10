@@ -28,25 +28,59 @@ class InventoryBar extends StatelessWidget {
   Widget build(BuildContext context) {
     return ValueListenableBuilder<List<InventorySlot>>(
       valueListenable: inventory,
-      builder: (context, slots, _) => Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Only what is there: empty frames on the left edge covered the
-          // road the enemies come in on.
-          for (var i = 0; i < slots.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 2),
-              child: _Slot(
-                slot: slots[i],
-                label: labels == null
-                    ? '${i + 1}'
-                    : (i < labels!.length ? labels![i] : ''),
-                compact: compact,
-                onTap: () => onUse(i),
-              ),
-            ),
-        ],
+      builder: (context, slots, _) => InventoryStrip(
+        slots: slots,
+        onUse: onUse,
+        compact: compact,
+        labels: labels,
       ),
+    );
+  }
+}
+
+/// The slots of an inventory in a column, or in a row with [axis]: the
+/// phone controller held sideways puts them between its thumbs.
+class InventoryStrip extends StatelessWidget {
+  const InventoryStrip({
+    required this.slots,
+    required this.onUse,
+    this.compact = false,
+    this.labels,
+    this.axis = Axis.vertical,
+    super.key,
+  });
+
+  final List<InventorySlot> slots;
+  final ValueChanged<int> onUse;
+  final bool compact;
+
+  /// See [InventoryBar.labels].
+  final List<String>? labels;
+  final Axis axis;
+
+  @override
+  Widget build(BuildContext context) {
+    return Flex(
+      direction: axis,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Only what is there: empty frames on the left edge covered the
+        // road the enemies come in on.
+        for (var i = 0; i < slots.length; i++)
+          Padding(
+            padding: axis == Axis.vertical
+                ? const EdgeInsets.symmetric(vertical: 2)
+                : const EdgeInsets.symmetric(horizontal: 3),
+            child: _Slot(
+              slot: slots[i],
+              label: labels == null
+                  ? '${i + 1}'
+                  : (i < labels!.length ? labels![i] : ''),
+              compact: compact,
+              onTap: () => onUse(i),
+            ),
+          ),
+      ],
     );
   }
 }

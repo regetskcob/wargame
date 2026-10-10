@@ -137,6 +137,7 @@ class PadStatus {
     this.hp = 1,
     this.ammo = 0,
     this.magazine = 0,
+    this.fuel,
     this.special,
     this.charges = 0,
     this.items = const [],
@@ -160,6 +161,9 @@ class PadStatus {
   final double hp;
   final int ammo;
   final int magazine;
+
+  /// Share of a full tank of fuel, null where the level has no fuel.
+  final double? fuel;
   final SpecialWeapon? special;
   final int charges;
   final List<(PowerUpType, int)> items;
@@ -206,6 +210,7 @@ class PadStatus {
     'hp': hp,
     'am': ammo,
     'mg': magazine,
+    if (fuel != null) 'fu': fuel,
     if (special != null) 'sp': special!.name,
     'ch': charges,
     'it': [
@@ -258,6 +263,10 @@ class PadStatus {
       hp: hp.isFinite ? hp.toDouble().clamp(0, 1) : 0,
       ammo: whole('am'),
       magazine: whole('mg'),
+      fuel: switch (json['fu']) {
+        final num fuel when fuel.isFinite => fuel.toDouble().clamp(0, 1),
+        _ => null,
+      },
       special: SpecialWeapon.values.asNameMap()[json['sp']],
       charges: whole('ch'),
       items: parsed,

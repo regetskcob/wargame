@@ -14,6 +14,8 @@ import '../haptics.dart';
 import '../net/pad_link.dart';
 import '../net/payloads/pad_payload.dart';
 import 'theme.dart';
+import '../game/inventory.dart';
+import 'widgets/inventory_bar.dart';
 import 'widgets/panel.dart';
 import 'widgets/touch_controls.dart';
 import '../l10n/l10n.dart';
@@ -121,38 +123,75 @@ class _ControllerViewState extends State<ControllerView> {
       backgroundColor: GameColors.background,
       body: ValueListenableBuilder<PadStatus?>(
         valueListenable: _remote.status,
-        builder: (context, status, _) => Stack(
-          children: [
-            // Built anew when the round allows the aim assist or not, so
-            // its button comes and goes.
-            TouchControls(
-              key: ValueKey(status?.assist ?? true),
-              input: _remote.input,
-              special: _special,
-              assist: status?.assist ?? true,
-            ),
-            SafeArea(
-              minimum: const EdgeInsets.all(10),
-              child: Align(
-                alignment: Alignment.topCenter,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _header(status),
-                    if (status != null && status.phase == GamePhase.playing)
-                      _gear(status),
-                  ],
+        builder: (context, status, _) => LayoutBuilder(
+          builder: (context, box) {
+            final wide = box.maxWidth > box.maxHeight;
+            final playing = status != null && status.phase == GamePhase.playing;
+            return Stack(
+              children: [
+                // Built anew when the round allows the aim assist or not, so
+                // its button comes and goes.
+                TouchControls(
+                  key: ValueKey(status?.assist ?? true),
+                  input: _remote.input,
+                  special: _special,
+                  assist: status?.assist ?? true,
                 ),
-              ),
-            ),
-          ],
+                SafeArea(
+                  minimum: const EdgeInsets.all(10),
+                  child: Align(
+                    alignment: Alignment.topCenter,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _header(status, wide: wide),
+                        if (playing && status.defense) ...[
+                          const SizedBox(height: 8),
+                          _defense(status, wide: wide),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+                if (playing && status.items.isNotEmpty)
+                  _inventory(status, wide: wide),
+              ],
+            );
+          },
         ),
       ),
     );
   }
 
-  Widget _header(PadStatus? status) {
+  /// The items in the slots the game shows them in: down the left edge when
+  /// upright, as on the screen, and between the thumbs when held sideways,
+  /// where the top is taken by the status and the shop.
+  Widget _inventory(PadStatus status, {required bool wide}) {
+    return SafeArea(
+      minimum: const EdgeInsets.all(10),
+      child: Align(
+        alignment: wide ? Alignment.bottomCenter : const Alignment(-1, 0.15),
+        child: Padding(
+          padding: EdgeInsets.only(bottom: wide ? 12 : 0),
+          child: InventoryStrip(
+            slots: [
+              for (final (type, count) in status.items)
+                InventorySlot(type, count),
+            ],
+            axis: wide ? Axis.horizontal : Axis.vertical,
+            compact: true,
+            onUse: (i) {
+              Haptics.feel(HapticFeedback.selectionClick);
+              _remote.act(PadActionKind.item, i);
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _header(PadStatus? status, {required bool wide}) {
     return ValueListenableBuilder<bool>(
       valueListenable: _remote.screenOnline,
       builder: (context, paired, _) {
@@ -204,15 +243,33 @@ class _ControllerViewState extends State<ControllerView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(
-                      online && status != null && status.name.isNotEmpty
-                          ? status.name
-                          : tr('CONTROLLER', 'CONTROLLER'),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                        color: GameColors.sand,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            online && status != null && status.name.isNotEmpty
+                                ? status.name
+                                : tr('CONTROLLER', 'CONTROLLER'),
+                            maxLines: 1,
+                            overflow: TextOverflow.fade,
+                            softWrap: false,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1.5,
+                              color: GameColors.sand,
+                            ),
+                          ),
+                        ),
+                        // The funds beside the name: the wide line had the
+                        // room, the shop below it did not.
+                        if (online &&
+                            status != null &&
+                            status.defense &&
+                            status.phase == GamePhase.playing) ...[
+                          const SizedBox(width: 14),
+                          _Funds(credits: status.credits),
+                        ],
+                      ],
                     ),
                     if (hint != null)
                       Text(
@@ -223,15 +280,24 @@ class _ControllerViewState extends State<ControllerView> {
                         ),
                       )
                     else if (status != null)
-                      _vitals(status),
+                      _vitals(status, wide: wide),
                   ],
                 ),
               ),
-              TextButton.icon(
-                onPressed: _close,
-                icon: const Icon(Icons.link_off_outlined, size: 18),
-                label: Text(tr('TRENNEN', 'UNPAIR')),
-              ),
+              // Upright the word took the width the gauges need.
+              if (wide)
+                TextButton.icon(
+                  onPressed: _close,
+                  icon: const Icon(Icons.link_off_outlined, size: 18),
+                  label: Text(tr('TRENNEN', 'UNPAIR')),
+                )
+              else
+                IconButton(
+                  tooltip: tr('Trennen', 'Unpair'),
+                  onPressed: _close,
+                  color: GameColors.amber,
+                  icon: const Icon(Icons.link_off_outlined),
+                ),
             ],
           ),
         );
@@ -239,8 +305,8 @@ class _ControllerViewState extends State<ControllerView> {
     );
   }
 
-  /// Armour and magazine as two thin bars.
-  Widget _vitals(PadStatus status) {
+  /// Armour, magazine and, where the level has it, fuel as thin bars.
+  Widget _vitals(PadStatus status, {required bool wide}) {
     final hpColor = status.hp > 0.3
         ? const Color(0xFF9CCC65)
         : GameColors.danger;
@@ -269,160 +335,195 @@ class _ControllerViewState extends State<ControllerView> {
         ),
       ],
     );
+    final bars = [
+      bar(
+        Icons.health_and_safety_outlined,
+        status.hp,
+        hpColor,
+        '${(status.hp * 100).round()} %',
+      ),
+      bar(
+        Icons.circle_outlined,
+        ammo,
+        ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
+        '${status.ammo}',
+      ),
+      if (status.fuel case final fuel?)
+        bar(
+          Icons.local_gas_station_outlined,
+          fuel,
+          fuel <= GameConfig.fuelLowShare
+              ? GameColors.danger
+              : GameColors.amber,
+          '${(fuel * 100).round()} %',
+        ),
+    ];
+    // Side by side when held sideways, one under the other upright, where
+    // three in a row left no bar to see.
     return Padding(
       padding: const EdgeInsets.only(top: 4, right: 8),
-      child: Row(
+      child: wide
+          ? Row(
+              children: [
+                for (final (i, gauge) in bars.indexed) ...[
+                  if (i > 0) const SizedBox(width: 12),
+                  Expanded(child: gauge),
+                ],
+              ],
+            )
+          : Column(
+              children: [
+                for (final (i, gauge) in bars.indexed) ...[
+                  if (i > 0) const SizedBox(height: 3),
+                  gauge,
+                ],
+              ],
+            ),
+    );
+  }
+
+  /// The defense shop in two groups by purpose: building (guns, the gun
+  /// next to the tank, the tank's upgrades) and the round (the host's next
+  /// wave, the choice after a stretch, ending it). It all used to wait on
+  /// the screen, out of reach of a player with a phone in both hands, and
+  /// one long row of chips hid what was what.
+  Widget _defense(PadStatus status, {required bool wide}) {
+    final build = _buildGroup(status);
+    final round = status.callWave || status.canEnd || status.deciding
+        ? _roundGroup(status)
+        : null;
+    if (round == null) {
+      return Align(alignment: Alignment.topLeft, child: build);
+    }
+    return wide
+        ? Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Flexible(child: build),
+              const SizedBox(width: 8),
+              round,
+            ],
+          )
+        : Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [build, const SizedBox(height: 8), round],
+          );
+  }
+
+  Widget _group(IconData icon, String title, List<Widget> children) {
+    return Panel(
+      padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: bar(
-              Icons.health_and_safety_outlined,
-              status.hp,
-              hpColor,
-              '${(status.hp * 100).round()} %',
-            ),
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 14, color: GameColors.sand),
+              const SizedBox(width: 6),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.5,
+                  color: GameColors.sand,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: bar(
-              Icons.circle_outlined,
-              ammo,
-              ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
-              '${status.ammo}',
-            ),
-          ),
+          const SizedBox(height: 6),
+          ...children,
         ],
       ),
     );
   }
 
-  /// Items to set off and, in a defense round, the shop: the guns to build
-  /// where the tank stands, the upgrades for it, and the host's calls. All of
-  /// it used to wait on the screen, out of reach of a player with a phone in
-  /// both hands.
-  Widget _gear(PadStatus status) {
-    if (status.items.isEmpty && !status.defense) {
-      return const SizedBox.shrink();
-    }
+  /// Guns and upgrades: two toggles and the gun next to the tank, the open
+  /// list right under them.
+  Widget _buildGroup(PadStatus status) {
     final near = status.near;
     final open = _shop;
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+    return _group(Icons.construction_outlined, tr('AUSBAU', 'BUILD'), [
+      Wrap(
+        spacing: 6,
+        runSpacing: 6,
         children: [
-          if (status.deciding) ...[
-            _decision(status),
-            const SizedBox(height: 6),
-          ],
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              for (final (i, (type, count)) in status.items.indexed)
-                _Chip(
-                  icon: type.icon,
-                  color: type.color,
-                  label: count > 1 ? '${type.short} ×$count' : type.short,
-                  onTap: () => _remote.act(PadActionKind.item, i),
-                ),
-              if (status.defense) ...[
-                _Funds(credits: status.credits),
-                _Chip(
-                  icon: Icons.construction_outlined,
-                  color: GameColors.oliveLight,
-                  label: tr('TÜRME', 'TOWERS'),
-                  selected: open == _Shop.towers,
-                  dot: status.towerReady,
-                  onTap: () => _toggle(_Shop.towers),
-                ),
-                _Chip(
-                  icon: Icons.upgrade_outlined,
-                  color: GameColors.oliveLight,
-                  label: 'UPGRADES',
-                  selected: open == _Shop.upgrades,
-                  dot: status.upgradeReady,
-                  onTap: () => _toggle(_Shop.upgrades),
-                ),
-                if (near != null && near.$3 > 0)
-                  _Chip(
-                    icon: Icons.keyboard_double_arrow_up_outlined,
-                    color: GameColors.amber,
-                    label: '${near.$1.label} ${near.$3}',
-                    enabled: near.$4,
-                    onTap: () => _remote.act(PadActionKind.raise),
-                  ),
-                if (status.callWave)
-                  _Chip(
-                    icon: Icons.fast_forward_outlined,
-                    color: GameColors.amber,
-                    label: tr('WELLE JETZT', 'WAVE NOW'),
-                    onTap: () => _remote.act(PadActionKind.wave),
-                  ),
-                if (status.canEnd && !status.deciding)
-                  _Chip(
-                    icon: Icons.flag_outlined,
-                    color: GameColors.sand,
-                    label: tr('BEENDEN', 'END'),
-                    onTap: () => _remote.act(PadActionKind.end),
-                  ),
-              ],
-            ],
+          _Chip(
+            icon: Icons.fort_outlined,
+            color: GameColors.oliveLight,
+            label: tr('TÜRME', 'TOWERS'),
+            selected: open == _Shop.towers,
+            dot: status.towerReady,
+            onTap: () => _toggle(_Shop.towers),
           ),
-          if (status.defense && open != null) ...[
-            const SizedBox(height: 6),
-            Wrap(
-              spacing: 6,
-              runSpacing: 6,
-              children: open == _Shop.towers
-                  ? [
-                      for (final (kind, cost, ready) in status.shop)
-                        _Chip(
-                          icon: Icons.add_location_alt_outlined,
-                          color: GameColors.oliveLight,
-                          label: '${kind.label} $cost',
-                          enabled: ready,
-                          onTap: () =>
-                              _remote.act(PadActionKind.place, kind.index),
-                        ),
-                    ]
-                  : [
-                      for (final (kind, level, limit, cost) in status.upgrades)
-                        _Chip(
-                          icon: Icons.upgrade_outlined,
-                          color: kind.color,
-                          label:
-                              '${kind.label} '
-                              '${'●' * level}${'○' * max(0, limit - level)}'
-                              '${level < limit ? ' $cost' : ''}',
-                          enabled: level < limit && status.credits >= cost,
-                          onTap: () =>
-                              _remote.act(PadActionKind.upgrade, kind.index),
-                        ),
-                    ],
+          _Chip(
+            icon: Icons.upgrade_outlined,
+            color: GameColors.oliveLight,
+            label: 'UPGRADES',
+            selected: open == _Shop.upgrades,
+            dot: status.upgradeReady,
+            onTap: () => _toggle(_Shop.upgrades),
+          ),
+          if (near != null && near.$3 > 0)
+            _Chip(
+              icon: Icons.keyboard_double_arrow_up_outlined,
+              color: GameColors.amber,
+              label: '${near.$1.label} ${near.$3}',
+              enabled: near.$4,
+              onTap: () => _remote.act(PadActionKind.raise),
             ),
-          ],
         ],
       ),
-    );
+      if (open != null) ...[
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: open == _Shop.towers
+              ? [
+                  for (final (kind, cost, ready) in status.shop)
+                    _Chip(
+                      icon: Icons.add_location_alt_outlined,
+                      color: GameColors.oliveLight,
+                      label: '${kind.label} $cost',
+                      enabled: ready,
+                      onTap: () => _remote.act(PadActionKind.place, kind.index),
+                    ),
+                ]
+              : [
+                  for (final (kind, level, limit, cost) in status.upgrades)
+                    _Chip(
+                      icon: Icons.upgrade_outlined,
+                      color: kind.color,
+                      label:
+                          '${kind.label} '
+                          '${'●' * level}${'○' * max(0, limit - level)}'
+                          '${level < limit ? ' $cost' : ''}',
+                      enabled: level < limit && status.credits >= cost,
+                      onTap: () =>
+                          _remote.act(PadActionKind.upgrade, kind.index),
+                    ),
+                ],
+        ),
+      ],
+    ]);
   }
 
   void _toggle(_Shop shop) =>
       setState(() => _shop = _shop == shop ? null : shop);
 
-  /// After the last wave of a stretch: the host extends or ends, everybody
-  /// else waits for the host.
-  Widget _decision(PadStatus status) {
-    final host = status.canExtend || status.canEnd;
-    return Panel(
-      padding: const EdgeInsets.fromLTRB(12, 8, 8, 8),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 6,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          Text(
+  /// The waves: the host calls the next one, decides after a stretch and
+  /// ends a secured round; everybody else learns what is at stake.
+  Widget _roundGroup(PadStatus status) {
+    final host = status.canExtend || status.canEnd || status.callWave;
+    return _group(Icons.flag_outlined, tr('RUNDE', 'ROUND'), [
+      if (status.deciding)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
             tr('SIEG GESICHERT', 'VICTORY SECURED'),
             style: const TextStyle(
               color: GameColors.amber,
@@ -430,40 +531,56 @@ class _ControllerViewState extends State<ControllerView> {
               letterSpacing: 1,
             ),
           ),
-          if (status.canExtend)
-            _Chip(
-              icon: Icons.add_outlined,
-              color: GameColors.amber,
-              label: tr(
-                '${GameConfig.defenseExtension} WELLEN',
-                '${GameConfig.defenseExtension} WAVES',
+        ),
+      if (host)
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (status.callWave)
+              _Chip(
+                icon: Icons.fast_forward_outlined,
+                color: GameColors.amber,
+                label: tr('WELLE JETZT', 'WAVE NOW'),
+                onTap: () => _remote.act(PadActionKind.wave),
               ),
-              onTap: () => _remote.act(PadActionKind.extend),
-            ),
-          if (status.canEnd)
-            _Chip(
-              icon: Icons.flag_outlined,
-              color: GameColors.sand,
-              label: tr('BEENDEN', 'END'),
-              onTap: () => _remote.act(PadActionKind.end),
-            ),
-          if (!host)
-            Text(
-              tr(
-                'Der Host entscheidet, ob es weitergeht.',
-                'The host decides whether it goes on.',
+            if (status.canExtend) ...[
+              if (status.callWave) const SizedBox(width: 6),
+              _Chip(
+                icon: Icons.add_outlined,
+                color: GameColors.amber,
+                label: tr(
+                  '${GameConfig.defenseExtension} WELLEN',
+                  '${GameConfig.defenseExtension} WAVES',
+                ),
+                onTap: () => _remote.act(PadActionKind.extend),
               ),
-              style: const TextStyle(color: GameColors.textDim, fontSize: 12),
-            ),
-        ],
-      ),
-    );
+            ],
+            if (status.canEnd) ...[
+              if (status.callWave || status.canExtend) const SizedBox(width: 6),
+              _Chip(
+                icon: Icons.flag_outlined,
+                color: GameColors.sand,
+                label: tr('BEENDEN', 'END'),
+                onTap: () => _remote.act(PadActionKind.end),
+              ),
+            ],
+          ],
+        )
+      else
+        Text(
+          tr(
+            'Der Host entscheidet, ob es weitergeht.',
+            'The host decides whether it goes on.',
+          ),
+          style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+        ),
+    ]);
   }
 }
 
 enum _Shop { towers, upgrades }
 
-/// The funds of a defense round, beside the shop's buttons.
+/// The funds of a defense round, beside the pilot's name.
 class _Funds extends StatelessWidget {
   const _Funds({required this.credits});
 
@@ -545,8 +662,8 @@ class _Chip extends StatelessWidget {
                   : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
+                  horizontal: 10,
+                  vertical: 8,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

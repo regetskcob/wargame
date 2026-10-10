@@ -653,6 +653,7 @@ class PadScreen extends _PadChannel {
           : (game.hpNotifier.value / game.myMaxHp).clamp(0, 1),
       ammo: tank?.ammo ?? game.ammoNotifier.value,
       magazine: tank?.magazine ?? game.myMagazine,
+      fuel: game.usesFuel ? game.fuelNotifier.value : null,
       special: special?.$1,
       charges: special?.$2 ?? 0,
       items: [for (final slot in game.inventory.value) (slot.type, slot.count)],
