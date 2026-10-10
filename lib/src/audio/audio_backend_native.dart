@@ -120,10 +120,9 @@ class _NativeAudioBackend implements AudioBackend {
       await player.setVolume(volume);
       await player.play(_source(name));
     } on Object catch (error) {
+      // Also when a stop took the player while it was starting: that stop
+      // disposed it, and disposing it a second time threw unhandled.
       debugPrint('Engine sound failed: $error');
-    }
-    if (_loop != player) {
-      await player.dispose();
     }
   }
 
@@ -140,8 +139,13 @@ class _NativeAudioBackend implements AudioBackend {
   Future<void> stopLoop() async {
     final player = _loop;
     _loop = null;
-    await player?.stop();
-    await player?.dispose();
+    try {
+      await player?.stop();
+      await player?.dispose();
+    } on Object catch (error) {
+      // A player that never got going cannot be stopped; it is gone anyway.
+      debugPrint('Engine sound failed: $error');
+    }
   }
 }
 

@@ -120,10 +120,18 @@ const playerColors = [Color(0xFFE5533D), Color(0xFF4A90E2)];
 
 /// Which player a half of a split screen belongs to, and what steers it.
 class PlayerTag extends StatelessWidget {
-  const PlayerTag({required this.player, required this.seat, super.key});
+  const PlayerTag({
+    required this.player,
+    required this.seat,
+    this.color,
+    super.key,
+  });
 
   final int player;
   final DuelSeat? seat;
+
+  /// The half's colour, by default the player's own.
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -138,7 +146,7 @@ class PlayerTag extends StatelessWidget {
       decoration: ShapeDecoration(
         color: GameColors.panel,
         shape: GameShapes.chip(
-          edge: seat == null ? GameColors.danger : playerColors[player],
+          edge: seat == null ? GameColors.danger : _color,
           width: 2,
         ),
       ),
@@ -149,10 +157,12 @@ class PlayerTag extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.w800,
             letterSpacing: 1.5,
-            color: playerColors[player],
+            color: _color,
           ),
         ),
       ),
     );
   }
+
+  Color get _color => color ?? playerColors[player];
 }

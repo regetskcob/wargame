@@ -2,6 +2,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
 
 import '../app/overlay_ids.dart';
+import '../game/game_config.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
 import '../ui/countdown_overlay.dart';
@@ -95,7 +96,10 @@ class TvSplitView extends StatelessWidget {
                         child: DecoratedBox(
                           decoration: BoxDecoration(
                             border: Border.all(
-                              color: playerColors[player],
+                              color: halfColor(
+                                player == 0 ? host : guest,
+                                player,
+                              ),
                               width: 3,
                             ),
                           ),
@@ -105,6 +109,10 @@ class TvSplitView extends StatelessWidget {
                               padding: const EdgeInsets.only(bottom: 10),
                               child: PlayerTag(
                                 player: player,
+                                color: halfColor(
+                                  player == 0 ? host : guest,
+                                  player,
+                                ),
                                 seat: player < this.second.seats.length
                                     ? this.second.seats[player]
                                     : null,
@@ -120,6 +128,17 @@ class TvSplitView extends StatelessWidget {
         );
       },
     );
+  }
+
+  /// The colour of [player]'s half: their team's in a round with teams,
+  /// else their own. Fixed red and blue clashed with the teams: two
+  /// players together against CPU tanks are both red, and the second
+  /// half framed in blue drove a red tank.
+  @visibleForTesting
+  static Color halfColor(TankGame? game, int player) {
+    final round = game?.round;
+    final team = round == null || game == null ? 0 : round.teamOf(game.myId);
+    return team > 0 ? GameConfig.teamColors[team] : playerColors[player];
   }
 
   Widget _guest(TankGame guest) {

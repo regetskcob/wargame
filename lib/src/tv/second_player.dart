@@ -90,6 +90,10 @@ class SecondPlayer extends ChangeNotifier {
     final between =
         host.phase.value == GamePhase.lobby ||
         host.phase.value == GamePhase.closed;
+    // The second game plays the first one's rounds and names its end screen
+    // after their mode: left at its own, the second half offered the
+    // waiting room of a multiplayer game under a single player round.
+    guest?.mode.value = host.mode.value;
     final seats = duelSeats();
     // Two halves need a big screen: the television, a computer or a tablet.
     final two = seats.length >= 2 && splitScreenFits();
