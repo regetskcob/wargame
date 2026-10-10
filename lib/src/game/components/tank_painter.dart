@@ -64,6 +64,12 @@ const _pivots = {
   TankType.hirsch: Offset(24, 32),
 };
 
+/// Barrel tips of [type] on the 48 grid, forward is up, one per barrel.
+List<Offset> muzzlesOf(TankType type) => _muzzles[type]!;
+
+/// Where the turret of [type] turns on the 48 grid.
+Offset turretPivotOf(TankType type) => _pivots[type]!;
+
 typedef _TurretPass = void Function(void Function() draw);
 
 /// Paints [type] into a square of [size] pixels, forward is up. The barrel

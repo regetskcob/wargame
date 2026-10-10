@@ -15,6 +15,22 @@ extension TankGameLobby on TankGame {
     choosingMode.value = false;
   }
 
+  /// A chat invitation chose the mode already: skip the start page. The
+  /// names are those of the Messages extension, unknown ones change
+  /// nothing.
+  void chooseInvitedMode(String name) {
+    switch (name) {
+      case 'multi':
+        chooseMode(GameMode.multi);
+      case 'flag':
+        chooseMode(GameMode.flag);
+      case 'defense':
+        chooseMode(GameMode.defense);
+      case 'duel':
+        chooseMode(GameMode.defense, duel: true);
+    }
+  }
+
   /// Back to the start page, to play another way.
   void changeMode() => choosingMode.value = true;
 
@@ -188,6 +204,15 @@ extension TankGameLobby on TankGame {
       if (pick == 1 || pick == 2) {
         teams[id] = pick;
       }
+    }
+    // The second player on this screen goes along with the first when they
+    // capture the flag together, else to the other side, whatever was
+    // picked.
+    final mate = partner?.myId;
+    if (force && mate != null && ids.contains(mate)) {
+      final mine = teams[myId] ?? 1;
+      teams[myId] = mine;
+      teams[mate] = duoTogether.value ? mine : FlagMatch.otherTeam(mine);
     }
     for (final id in ids) {
       if (teams.containsKey(id)) {

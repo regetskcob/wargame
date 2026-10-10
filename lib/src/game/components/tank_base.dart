@@ -80,6 +80,23 @@ abstract class TankBase extends PositionComponent {
 
   Vector2 get turretDirection => Vector2(sin(turretAngle), -cos(turretAngle));
 
+  /// Where shells leave the barrels, [reach] ahead of the centre along the
+  /// turret. Each start sits on its own barrel's line, because some guns are
+  /// set off to the side of the turret and some turret rings sit behind the
+  /// middle of the hull, so a shell would otherwise fly out beside the gun.
+  List<Vector2> barrelStarts(double reach) {
+    final pivot = turretPivotOf(tankType);
+    final scale = size.x / 48;
+    final behind = (pivot.dy - 24) * scale;
+    final aim = turretDirection;
+    final side = Vector2(-aim.y, aim.x);
+    final ring = position - direction * behind;
+    return [
+      for (final muzzle in muzzlesOf(tankType))
+        ring + aim * (reach + behind) + side * ((muzzle.dx - pivot.dx) * scale),
+    ];
+  }
+
   @override
   void onLoad() {
     add(TankTag());
@@ -124,20 +141,19 @@ abstract class TankBase extends PositionComponent {
   void fireEffects() {
     _recoil = 1;
     _muzzleFlash = 1;
-    final tip =
-        position +
-        Vector2(sin(turretAngle), -cos(turretAngle)) * (size.x * 0.85);
-    parent?.add(
-      puff(
-        position: tip,
-        color: const Color(0xFFB8B8B0),
-        count: 5,
-        lifespan: 0.8,
-        speed: (10, 40),
-        size: (3, 7),
-        opacity: 0.55,
-      ),
-    );
+    for (final tip in barrelStarts(size.x * 0.85)) {
+      parent?.add(
+        puff(
+          position: tip,
+          color: const Color(0xFFB8B8B0),
+          count: 5,
+          lifespan: 0.8,
+          speed: (10, 40),
+          size: (3, 7),
+          opacity: 0.55,
+        ),
+      );
+    }
   }
 
   @override

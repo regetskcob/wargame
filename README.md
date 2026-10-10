@@ -32,8 +32,9 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
 - **Capture the flag:** red against blue, steal the other side's flag and
   bring it home, with CPU tanks filling both sides.
 - **Two on one screen:** split screen on the Apple TV, a tablet (iPad or
-  Android), a Mac or in the browser with two controllers or phones, and a **duel** of two bases
-  against each other.
+  Android), a Mac or in the browser with two controllers or phones (on a
+  computer the keyboard counts as one), and a **duel** of two bases against
+  each other.
 
 ## Highlights
 
@@ -51,6 +52,9 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
   Siri Remote, or a phone as a controller for the big screen.
 - An iOS widget with the pilots online and a Live Activity for the running
   round.
+- An iMessage app that invites the chat into a room: a group fights, two
+  can also hold the base together or duel, and the result of the round
+  takes the place of the invitation.
 - No game server: the netcode runs entirely on Supabase Realtime.
 
 All features with their numbers (damage tables, defense thresholds) are in
@@ -138,6 +142,7 @@ flutter run -d chrome \
 - Wear OS: the watch screens, crown steering, the round layout and the Wear
   OS bundle are ready; next the form factor in the Play Console and a real
   watch.
+- The iMessage app on real phones and in a group chat.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

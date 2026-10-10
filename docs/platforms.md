@@ -57,6 +57,65 @@ secrets. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
 
+## iMessage
+
+`ios/MessagesExtension` is a Messages extension in plain Swift and SwiftUI
+that ships inside the iOS app. It only invites, the game never runs in
+Messages: Flutter recommends at least 100 MB for an extension's UI, Apple
+names no limit for Messages extensions and ends one that takes too much
+without warning, and Messages starts an instance of the extension for every
+interactive bubble.
+
+1. In a chat the extension offers what fits who is in it, read from
+   `remoteParticipantIdentifiers` (Messages hides who they are). In a chat
+   for two: tower defense together, the base duel and Last Tank Standing. In
+   a group: Last Tank Standing and capture the flag, with a note when the
+   chat has more people than `MAX_PILOTS` (later ones watch).
+2. A choice puts a bubble with a fresh room code into the input field. The
+   link in it is the usual room link with the mode added,
+   `https://www.regetskcob.de/wargame/play/?room=CODE&mode=defense`, so it
+   also opens the browser game on a phone without the app.
+3. Once the player sends it, the extension opens the app at
+   `panzergefecht://play?room=CODE&mode=defense&host=1`. An extension may
+   only open its own app, and only while that sits on the home screen.
+   `listenForRoomLinks` (`room_stub.dart`) then opens the room as its host
+   (`hostRoom`) and `chooseInvitedMode` skips the start page in that mode:
+   `multi`, `flag`, `defense` or `duel`.
+4. Tapping the bubble opens the extension with the invitation and a button
+   into the room. Whoever sent it goes back in as the host: the extension
+   keeps the rooms it sent in its own `UserDefaults`, because the simulator
+   hands out a different participant id for the sender of a message than
+   for the local player. Everybody else joins as a guest, and the lobby
+   gives each their own tank as with any other room link.
+
+5. When a round ends, `LiveActivityPlugin.swift` (which hears of every
+   round anyway) leaves its result in the defaults of the app group
+   `group.de.regetskcob.wargame`, as `ChatResult` (`ios/Shared`). The app
+   writes every round, it knows nothing of chats. The extension keeps the
+   session of every bubble it sent or followed, archived with the chat it
+   came from, and offers the newest result of such a room the next time it
+   opens in that chat: "Ergebnis in den Chat" puts a bubble with the same
+   picture and the result line in the same session into the input field,
+   so once it is sent the chat shows it in place of the invitation, which
+   collapses to a line. The link still leads into the room for another
+   round. Results older than a day are not offered.
+
+Guests learn the mode when the round starts, as with every room, so their
+waiting room shows the default text until then. While the host's app sits
+in the background behind Messages, a guest who comes in first stands in as
+host and hands back once the owner returns.
+
+To try it, build for the simulator, install the app, open Messages, a chat
+with one of its fake numbers and the app list behind "+". After installing
+a new build, quit Messages once, or it keeps looking for the old extension.
+`python3 store/tool/imessage.py` draws the icons in
+`iMessage App Icon.stickersiconset` from the layers of the app icon and the
+two pictures of the bubble: tanks of three colours on the battle ground for
+Last Tank Standing and capture the flag, the red defence holding its base
+on a sandy road against blue tanks for the defense and the duel. Both app
+and extension carry the app group in their entitlements; signing in the
+`testflight` workflow registers it with `-allowProvisioningUpdates`.
+
 ## Mac
 
 `macos/` builds the game as a Mac app, `Panzergefecht.app`, with the same
@@ -259,7 +318,9 @@ joins the first player's room. Rounds then play on a split screen, side by side
 or, on a tablet held upright, one above the other, each half from its own tank
 (`lib/src/tv/split_view.dart`); the menus stay with the first player. Single
 player puts both against the CPU tanks, multiplayer and defense take both
-pilots along. The browser reads controllers through its Gamepad API
+pilots along, and capture the flag puts both on the same side against the
+CPU tanks or, as the host picks in the settings, one red and one blue, with
+CPU tanks evening out the sides. The browser reads controllers through its Gamepad API
 (`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
 pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
 the Mac the same way (`macos/Runner/GamepadPlugin.swift`), and Android from
@@ -268,7 +329,13 @@ the key and motion events of its gamepads, which `MainActivity` hands to
 tried with a real controller).
 Phones are too small for two halves. One controller alone, a phone or a
 game controller, steers the own tank in every mode, and the touch sticks of
-a tablet step aside for it.
+a tablet step aside for it. On a computer, in the browser or the Mac app,
+the keyboard and mouse can be the first player's seat: with one controller
+or phone in, the controllers panel on the start page offers "two with the
+keyboard" (`KeyboardSeat` in `lib/src/tv/seats.dart`), and the controller
+or phone steers the second half. It is off until switched on, so somebody
+alone with a controller keeps the whole screen. The keyboard only reaches
+the first player's game, which holds the focus.
 
 The two games talk on the device (`LocalLink` in `net_service.dart`): nothing
 goes over Realtime and the room takes no slot. The first player's presence
