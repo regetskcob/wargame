@@ -51,6 +51,8 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
   Siri Remote, or a phone as a controller for the big screen.
 - An iOS widget with the pilots online and a Live Activity for the running
   round.
+- An iMessage app that invites the chat into a room: a group fights, two
+  can also hold the base together or duel (prototype).
 - No game server: the netcode runs entirely on Supabase Realtime.
 
 All features with their numbers (damage tables, defense thresholds) are in
@@ -135,6 +137,8 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
+- The iMessage app on real phones and in a group chat, and the result of
+  the round written back into its bubble.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
   player can still pose as another. Fix with private channels and Realtime

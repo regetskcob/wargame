@@ -72,6 +72,7 @@ class _GameAppState extends State<GameApp> {
     _online.start();
     onRoomSwitch = _switchRoom;
     onPadLink = _openPad;
+    onModeLink = (mode) => game.chooseInvitedMode(mode);
     listenForRoomLinks();
     PadScreen.instance.game = game;
     unawaited(PadScreen.instance.resume());
@@ -161,6 +162,7 @@ class _GameAppState extends State<GameApp> {
   void dispose() {
     onRoomSwitch = null;
     onPadLink = null;
+    onModeLink = null;
     _online.dispose();
     _liveActivity.detach();
     game.phase

@@ -67,6 +67,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Navigation | go_router in `lib/src/app/routes.dart`: `/` = Spiel (alles in der Runde bleibt Flame-Overlay), darüber `/pad/:code` (Handy-Controller) und `/scan/room\|pad` (QR-Kamera). Raum bleibt im Web in `?room=` vor dem `#`, Dialoge weiter per `showDialog` |
 | Watch | `lib/src/watch/`, verzweigen nur mit `FlutterWatchosPlatform.isWatch` |
 | Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
+| iMessage | `ios/MessagesExtension` (Swift, lädt nur ein: Blase mit Raum-Link, öffnet die App per `panzergefecht://play?room=…&mode=…&host=1`), Dart-Seite `listenForRoomLinks` + `chooseInvitedMode`, `docs/platforms.md` „iMessage“ |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |

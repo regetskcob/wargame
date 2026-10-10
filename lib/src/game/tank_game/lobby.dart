@@ -15,6 +15,22 @@ extension TankGameLobby on TankGame {
     choosingMode.value = false;
   }
 
+  /// A chat invitation chose the mode already: skip the start page. The
+  /// names are those of the Messages extension, unknown ones change
+  /// nothing.
+  void chooseInvitedMode(String name) {
+    switch (name) {
+      case 'multi':
+        chooseMode(GameMode.multi);
+      case 'flag':
+        chooseMode(GameMode.flag);
+      case 'defense':
+        chooseMode(GameMode.defense);
+      case 'duel':
+        chooseMode(GameMode.defense, duel: true);
+    }
+  }
+
   /// Back to the start page, to play another way.
   void changeMode() => choosingMode.value = true;
 

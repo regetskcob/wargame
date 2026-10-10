@@ -57,6 +57,48 @@ secrets. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
 
+## iMessage
+
+`ios/MessagesExtension` is a Messages extension in plain Swift and SwiftUI
+that ships inside the iOS app. It only invites, the game never runs in
+Messages: Flutter recommends at least 100 MB for an extension's UI, Apple
+names no limit for Messages extensions and ends one that takes too much
+without warning, and Messages starts an instance of the extension for every
+interactive bubble.
+
+1. In a chat the extension offers what fits who is in it, read from
+   `remoteParticipantIdentifiers` (Messages hides who they are). In a chat
+   for two: tower defense together, the base duel and Last Tank Standing. In
+   a group: Last Tank Standing and capture the flag, with a note when the
+   chat has more people than `MAX_PILOTS` (later ones watch).
+2. A choice puts a bubble with a fresh room code into the input field. The
+   link in it is the usual room link with the mode added,
+   `https://www.regetskcob.de/wargame/play/?room=CODE&mode=defense`, so it
+   also opens the browser game on a phone without the app.
+3. Once the player sends it, the extension opens the app at
+   `panzergefecht://play?room=CODE&mode=defense&host=1`. An extension may
+   only open its own app, and only while that sits on the home screen.
+   `listenForRoomLinks` (`room_stub.dart`) then opens the room as its host
+   (`hostRoom`) and `chooseInvitedMode` skips the start page in that mode:
+   `multi`, `flag`, `defense` or `duel`.
+4. Tapping the bubble opens the extension with the invitation and a button
+   into the room. Whoever sent it goes back in as the host: the extension
+   keeps the rooms it sent in its own `UserDefaults`, because the simulator
+   hands out a different participant id for the sender of a message than
+   for the local player. Everybody else joins as a guest, and the lobby
+   gives each their own tank as with any other room link.
+
+Guests learn the mode when the round starts, as with every room, so their
+waiting room shows the default text until then. While the host's app sits
+in the background behind Messages, a guest who comes in first stands in as
+host and hands back once the owner returns.
+
+To try it, build for the simulator, install the app, open Messages, a chat
+with one of its fake numbers and the app list behind "+". After installing
+a new build, quit Messages once, or it keeps looking for the old extension.
+The icons in `iMessage App Icon.stickersiconset` are cut from the app icon,
+the pictures in the bubble from the iPad store screenshots.
+
 ## Mac
 
 `macos/` builds the game as a Mac app, `Panzergefecht.app`, with the same
