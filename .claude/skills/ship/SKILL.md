@@ -37,3 +37,12 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    is not lost in the text: **✅ Auf main: `<hash>`, CI und Pages grün**,
    or **❌ …** with what failed.
    Update the matching memory entry if a roadmap item moved.
+8. Free the disk. When the session's task is done with this ship (nothing
+   left the user asked for here), run `tool/finish_worktree.sh` as the very
+   last command, after the report is written. It removes this app-made
+   worktree with its builds, its Xcode DerivedData and its merged branch,
+   and refuses when anything is uncommitted or not on `origin/main`. Say
+   in the report that the worktree is gone and the session can be
+   archived; later work needs a new session. If the user still wants more
+   in this session, skip it and run it after the last ship. Worktrees grew
+   to 60 GB once because no session cleaned up after itself.

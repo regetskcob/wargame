@@ -102,6 +102,11 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
 - Kommentare erklären das *Warum*; `docs/` (Gameplay, Plattformen, Netcode)
   und README (Highlights, Roadmap) mitpflegen, wenn sich Verhalten ändert.
   Die README bleibt kurz: Details und Tabellen gehören nach `docs/`.
+- **Plattenplatz:** Ist die Aufgabe einer Sitzung mit `/ship` oder
+  `/release` abgeschlossen, räumt sie zuletzt ihren Worktree mit
+  `tool/finish_worktree.sh` weg (samt Builds, DerivedData und gemergtem
+  Branch; verweigert bei ungesicherter Arbeit). Liegengebliebene zeigt
+  `tool/finish_worktree.sh --all --dry-run`.
 - `dart format` ist in CI Pflicht.
 - Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
 - `TankGame` wächst nicht wieder zu: neue Felder in `tank_game.dart`, neue

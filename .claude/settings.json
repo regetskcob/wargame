@@ -18,6 +18,7 @@
     "allow": [
       "Bash(tool/verify.sh:*)",
       "Bash(tool/session_context.sh)",
+      "Bash(tool/finish_worktree.sh:*)",
       "Bash(flutter analyze:*)",
       "Bash(flutter test:*)",
       "Bash(flutter pub get)",

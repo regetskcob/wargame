@@ -28,4 +28,9 @@ latest=$(ls supabase/migrations 2>/dev/null | sort | tail -1)
 version=$(grep -m1 '^version:' pubspec.yaml 2>/dev/null | cut -d' ' -f2)
 [ -n "$version" ] && echo "App-Version: $version"
 
+# Finished sessions are meant to remove their worktree (/ship, step 8);
+# point out when too many are left over.
+count=$(find .claude/worktrees -mindepth 1 -maxdepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+[ "$count" -gt 8 ] && echo && echo "$count Worktrees liegen unter .claude/worktrees: tool/finish_worktree.sh --all --dry-run zeigt, welche weg können"
+
 exit 0
