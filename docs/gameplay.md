@@ -192,7 +192,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   and, after each stretch of waves, *+4 waves* or *End*. A dot on *Towers*
   and *Upgrades* (on the screen's buttons as well) says the funds reach for
   something behind them. Hits are felt as a buzz. Without the app the
-  phone's browser does the same.
+  phone's browser does the same. Only phones become controllers (shorter
+  side under 600 points): a tablet offers no *Use as controller*, and a
+  pairing link opened on one, in the app or the browser, says so instead
+  of taking a seat.
 - Game controllers: one steers the own tank in the browser, on iPhone, iPad,
   Android and the Apple TV, as a paired phone does; two play two on one
   screen of a computer, tablet or television. A touch on the screen of a

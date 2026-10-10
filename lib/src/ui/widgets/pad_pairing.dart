@@ -26,16 +26,14 @@ class ControllerSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The Apple TV is a screen like the browser.
-    final phoneApp =
+    // Only a phone in the app steers a game elsewhere. The browser, the
+    // tablets and the Apple TV show the game and pair a phone.
+    final phone =
         !kIsWeb &&
         !onTv &&
         (defaultTargetPlatform == TargetPlatform.iOS ||
-            defaultTargetPlatform == TargetPlatform.android);
-    // The browser and the tablets show the game, phones in the app steer
-    // it. A tablet in the app can do both.
-    final screen =
-        !phoneApp || MediaQuery.sizeOf(context).shortestSide >= tabletShortSide;
+            defaultTargetPlatform == TargetPlatform.android) &&
+        MediaQuery.sizeOf(context).shortestSide < tabletShortSide;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -46,9 +44,7 @@ class ControllerSection extends StatelessWidget {
           ),
           const SizedBox(height: 6),
         ],
-        if (screen) _ScreenPairing(game: game),
-        if (screen && phoneApp) const SizedBox(height: 14),
-        if (phoneApp) _BecomePad(game: game),
+        if (phone) _BecomePad(game: game) else _ScreenPairing(game: game),
       ],
     );
   }

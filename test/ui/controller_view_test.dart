@@ -8,6 +8,7 @@ import 'package:wargame/src/net/pad_link.dart';
 import 'package:wargame/src/net/payloads/pad_payload.dart';
 import 'package:wargame/src/ui/controller_view.dart';
 import 'package:wargame/src/ui/theme.dart';
+import 'package:wargame/src/ui/widgets/touch_controls.dart';
 
 void main() {
   // The play test paired a phone and still had to build at the screen: the
@@ -78,5 +79,29 @@ void main() {
     );
 
     await tester.pumpWidget(const SizedBox());
+  });
+
+  testWidgets('a tablet that opens a pairing link does not become a '
+      'controller and says why', (tester) async {
+    tester.view
+      ..physicalSize = const Size(1180, 820)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+    var closed = false;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildGameTheme(),
+        home: ControllerView(
+          code: 'ABCDEFGH',
+          name: 'iPad',
+          onClose: () => closed = true,
+        ),
+      ),
+    );
+    expect(find.text('NUR AUF DEM HANDY'), findsOneWidget);
+    expect(find.byType(TouchControls), findsNothing);
+
+    await tester.tap(find.text('ZUM SPIEL'));
+    expect(closed, isTrue);
   });
 }
