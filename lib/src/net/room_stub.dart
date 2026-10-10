@@ -12,6 +12,7 @@ import '../tv/tv_input.dart';
 import 'room_code.dart';
 
 const _tutorialKey = 'panzergefecht.tutorial';
+const _veteranKey = 'panzergefecht.veteran';
 
 SharedPreferencesWithCache? _store;
 
@@ -22,7 +23,7 @@ Future<void> openLocalStore() async {
   try {
     _store = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: {_tutorialKey},
+        allowList: {_tutorialKey, _veteranKey},
       ),
     );
   } on Object {
@@ -90,6 +91,21 @@ bool tutorialSeen() =>
 void rememberTutorialSeen() {
   _tutorialSeen = true;
   unawaited(_store?.setBool(_tutorialKey, true));
+}
+
+var _roundPlayed = false;
+
+/// Whether this device has played a round to its end. Until then the CPU
+/// tanks start on the easy level.
+bool roundPlayed() => _roundPlayed || (_store?.getBool(_veteranKey) ?? false);
+
+/// Remembers that a round was played to its end.
+void rememberRoundPlayed() {
+  if (roundPlayed()) {
+    return;
+  }
+  _roundPlayed = true;
+  unawaited(_store?.setBool(_veteranKey, true));
 }
 
 /// Back from a sign-in mail: drops its code and room from the address.

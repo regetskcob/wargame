@@ -47,6 +47,11 @@ class PlayerTank extends TankBase
 
   bool get isBot => controls != null;
 
+  /// Whether a person has hit this tank. A CPU tank that holds its fire at
+  /// the start (`BotLevel.holdFire`) shoots back from then on; bumps,
+  /// the zone and other CPU tanks leave the hold alone.
+  bool provoked = false;
+
   TouchInput get input => controls ?? gameRef.touch;
 
   final velocity = Vector2.zero();
@@ -459,6 +464,7 @@ class PlayerTank extends TankBase
     if (!isBot) {
       input.assistFire =
           assisted &&
+          !gameRef.ceasefire &&
           target != null &&
           (target - turretAngle).toNormalizedAngle().abs() < 0.1;
     }
@@ -597,6 +603,9 @@ class PlayerTank extends TankBase
       if (gameRef.inTrench(position)) {
         amount *= GameConfig.trenchCover;
       }
+    }
+    if (killerId != null && !(gameRef.round?.isBot(killerId) ?? true)) {
+      provoked = true;
     }
     hp -= amount;
     takeHitEffects(amount);

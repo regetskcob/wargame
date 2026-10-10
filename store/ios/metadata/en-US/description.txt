@@ -30,6 +30,6 @@ The app brings a game of its own for the watch: single player, multiplayer, defe
 AT A GLANCE
 A widget shows who is online, a Live Activity the running round.
 
-No ads, no in-app purchases, no tracking.
+No ads, no tracking.
 
 Panzergefecht is a private, non-commercial game and has no connection to any armed forces or vehicle manufacturer.

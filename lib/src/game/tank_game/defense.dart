@@ -981,13 +981,6 @@ extension TankGameDefense on TankGame {
       }
     }
     _setPhase(GamePhase.roundOver);
-    Future<void>.delayed(
-      const Duration(seconds: GameConfig.roundOverSeconds),
-      () {
-        if (round == activeRound && phase.value == GamePhase.roundOver) {
-          backToLobby();
-        }
-      },
-    );
+    _leaveEndScreenLater(activeRound);
   }
 }

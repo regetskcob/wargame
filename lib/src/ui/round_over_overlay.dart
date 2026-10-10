@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -202,7 +203,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                   ),
                   OutlinedButton(
                     onPressed: game.backToLobby,
-                    child: Text(tr('ZURÜCK INS LAGER', 'BACK TO CAMP')),
+                    child: _LobbyLabel(lobbyAt: game.lobbyAt.value),
                   ),
                   OutlinedButton.icon(
                     onPressed: game.watchReplay,
@@ -216,6 +217,51 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         ),
       ),
     );
+  }
+}
+
+/// The way back to the waiting room, with the seconds left when the end
+/// screen goes there by itself, so it never vanishes unannounced.
+class _LobbyLabel extends StatefulWidget {
+  const _LobbyLabel({required this.lobbyAt});
+
+  final int? lobbyAt;
+
+  @override
+  State<_LobbyLabel> createState() => _LobbyLabelState();
+}
+
+class _LobbyLabelState extends State<_LobbyLabel> {
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.lobbyAt != null) {
+      _timer = Timer.periodic(
+        const Duration(milliseconds: 250),
+        (_) => setState(() {}),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final label = tr('ZURÜCK INS LAGER', 'BACK TO CAMP');
+    final at = widget.lobbyAt;
+    if (at == null) {
+      return Text(label);
+    }
+    final seconds = ((at - DateTime.now().millisecondsSinceEpoch) / 1000)
+        .ceil()
+        .clamp(0, 99);
+    return Text('$label ($seconds)');
   }
 }
 

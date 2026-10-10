@@ -359,9 +359,11 @@ class TankGame extends FlameGame
 
   /// How well CPU tanks fight, and whether they fill up a room with few
   /// people. The screenshot mode starts on easy, whose endless ammunition
-  /// and full tank keep empty gauges out of the store pictures.
+  /// and full tank keep empty gauges out of the store pictures. So does a
+  /// device that never played a round: the first one should teach, not
+  /// punish.
   final botLevel = ValueNotifier<BotLevel>(
-    Env.shots ? BotLevel.easy : BotLevel.normal,
+    Env.shots || !roundPlayed() ? BotLevel.easy : BotLevel.normal,
   );
   final fillWithBots = ValueNotifier<bool>(false);
 
@@ -414,8 +416,22 @@ class TankGame extends FlameGame
   Ground? _ground;
   MudField? mudField;
 
+  /// When the end screen goes back to the waiting room by itself, in
+  /// milliseconds since the epoch; null while it waits for the player.
+  final lobbyAt = ValueNotifier<int?>(null);
+
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
+
+  /// Rounds this game started as host, to open the first one gently.
+  var _roundsStarted = 0;
+
+  /// Whether a round with [seed] starts under a clear sky and stays in
+  /// daylight for its first minute.
+  static bool _gentle(int seed) =>
+      Conditions.forSeed(seed).sky == Sky.clear &&
+      [for (var t = 0.0; t <= 60; t += 5) t]
+          .every((t) => !Conditions.nightAt(seed, t));
 
   /// Weather and time of day of the current round.
   Conditions? conditions;
@@ -659,6 +675,10 @@ class TankGame extends FlameGame
   double _resupplied = 0;
 
   static const _defenseMargin = 60.0;
+
+  /// Screen pixels the mini map and its padding take from the right edge,
+  /// see `HudOverlay`.
+  static const _hudReserve = 170.0;
 
   @override
   void onGameResize(Vector2 size) {

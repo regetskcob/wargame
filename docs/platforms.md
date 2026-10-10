@@ -1,6 +1,6 @@
 # Platforms
 
-The web game is the main target. The same code runs as apps on iOS, Android, the Apple Watch and the Apple TV.
+The web game is the main target. The same code runs as apps on iOS, Android, the Mac, the Apple Watch and the Apple TV.
 
 ## Mobile apps (iOS and Android)
 
@@ -56,6 +56,46 @@ Google Play track with fastlane, see `store/android/README.md` for the
 secrets. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
+
+## Mac
+
+`macos/` builds the game as a Mac app, `Panzergefecht.app`, with the same
+bundle id `de.regetskcob.wargame` as the iOS app, so both can share one App
+Store record as a universal purchase. It runs the same screens as the
+browser: keyboard and mouse, no touch controls (they appear after the first
+touch, as in the browser), the start page as on a large screen. It starts in
+full screen every time (state restoration is off, so macOS cannot reopen it
+as a window); View > Exit Full Screen or ⌃⌘F leaves it for a 1280 x 800
+window that keeps at least 720 x 480.
+
+Game controllers work as on the iPad: `macos/Runner/GamepadPlugin.swift`
+reads them through GameController and streams them to the same
+`lib/src/tv/tv_input.dart`, the first one steers the own tank, two of them
+play on a split screen (see **Two players** below), and the display stays
+awake during a round. Only pads with two sticks count. The menus stay with
+keyboard and mouse, as in the browser. Phones pair as controllers too, the
+Mac is the screen.
+
+The app is sandboxed and asks for two things in `Runner/*.entitlements`:
+outgoing connections (`network.client`, without it Supabase is out of reach
+and the app plays offline) and the camera, for the QR code button in the room
+list (`mobile_scanner`, text in `NSCameraUsageDescription`). Room links from
+the web do not open the app yet: associated domains need a signed build with
+a provisioning profile. `python3 store/tool/app_icon.py` also writes the Mac
+icon set, the square on Apple's rounded plate with a shadow, since macOS does
+not round icons itself.
+
+```sh
+flutter run -d macos
+flutter build macos --release \
+  --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_KEY=... --dart-define=ACCOUNTS=true
+```
+
+The build signs ad hoc, enough to run it on the Mac that built it. To hand it
+on, open `macos/Runner.xcworkspace`, pick the team under Signing &
+Capabilities and archive (Product > Archive): from the organizer either upload
+to App Store Connect or export with Developer ID, which Xcode notarizes. CI
+builds it unsigned next to the iOS app.
 
 ## Apple Watch
 
@@ -154,8 +194,8 @@ the controls of what is in hand, the controller or the Siri Remote, and
 switches when another one is picked up. The menus sit in the middle of the
 screen.
 
-**Two players** on the Apple TV, in the browser and on an iPad or Android
-tablet: with two
+**Two players** on the Apple TV, in the browser, on an iPad or Android
+tablet and on the Mac: with two
 controllers in (or phones, the Siri Remote counting as one, handed out
 controllers first, then phones, the remote last), the second player gets a game of their own (`lib/src/tv/second_player.dart`) that
 joins the first player's room. Rounds then play on a split screen, side by side
@@ -165,9 +205,10 @@ player puts both against the CPU tanks, multiplayer and defense take both
 pilots along. The browser reads controllers through its Gamepad API
 (`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
 pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
-Android from the key and motion events of its gamepads, which `MainActivity`
-hands to `android/.../GamepadPlugin.kt` (same channels and state as on iOS;
-not yet tried with a real controller).
+the Mac the same way (`macos/Runner/GamepadPlugin.swift`), and Android from
+the key and motion events of its gamepads, which `MainActivity` hands to
+`android/.../GamepadPlugin.kt` (same channels and state as on iOS; not yet
+tried with a real controller).
 Phones are too small for two halves. One controller alone, a phone or a
 game controller, steers the own tank in every mode, and the touch sticks of
 a tablet step aside for it.
