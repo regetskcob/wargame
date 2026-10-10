@@ -890,7 +890,7 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${steeredByPad(game) ? tr('MITTEL $credits   ·   R1 baut/rüstet auf, L1 wechselt', 'FUNDS $credits   ·   R1 builds/upgrades, L1 switches') : tr('MITTEL $credits   ·   B baut/rüstet auf, V wechselt', 'FUNDS $credits   ·   B builds/upgrades, V switches')}'
+          '${tr('MITTEL', 'FUNDS')} $credits   ·   ${_buildKeys(game)}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
             color: GameColors.amber,
@@ -1335,4 +1335,25 @@ class _HudButtons extends StatelessWidget {
       child: child,
     );
   }
+}
+
+/// Which buttons build and switch guns, for what steers [game]: the remote
+/// has only the one button, which builds the kind picked last.
+String _buildKeys(TankGame game) {
+  if (!steeredByPad(game)) {
+    return tr('B baut/rüstet auf, V wechselt', 'B builds/upgrades, V switches');
+  }
+  if (TvInput.instance.player(game.tvPlayer).kind == TvPadKind.remote ||
+      (onTv && TvInput.instance.player(game.tvPlayer).kind == TvPadKind.none)) {
+    return onAppleTv
+        ? tr('Play/Pause baut/rüstet auf', 'play/pause builds/upgrades')
+        : tr(
+            'Play/Pause oder Menü baut/rüstet auf',
+            'play/pause or menu builds/upgrades',
+          );
+  }
+  return tr(
+    'R1 baut/rüstet auf, L1 wechselt',
+    'R1 builds/upgrades, L1 switches',
+  );
 }

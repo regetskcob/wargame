@@ -558,18 +558,22 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 Expanded(child: leave),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: FilledButton.icon(
-                    onPressed: live == null && game.canStart
-                        ? () {
-                            _apply();
-                            game.startRound();
-                          }
-                        : null,
-                    icon: const Icon(Icons.flag),
-                    label: _oneLine(
-                      game.canStart
-                          ? tr('STARTEN', 'START')
-                          : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                  child: _TvFirstFocus(
+                    enabled: live == null && game.canStart,
+                    builder: (focus) => FilledButton.icon(
+                      focusNode: focus,
+                      onPressed: live == null && game.canStart
+                          ? () {
+                              _apply();
+                              game.startRound();
+                            }
+                          : null,
+                      icon: const Icon(Icons.flag),
+                      label: _oneLine(
+                        game.canStart
+                            ? tr('STARTEN', 'START')
+                            : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                      ),
                     ),
                   ),
                 ),
@@ -1109,3 +1113,42 @@ String _remoteControls() => onAppleTv
             'play/pause or menu fires the weapon or uses the top inventory '
             'slot.',
       );
+
+/// Takes the focus for the button it builds once it appears on a
+/// television, as Start in the waiting room: the way down past every tank
+/// and colour took a dozen presses of the remote, up reaches them from
+/// there. `autofocus` does not do it, the game keeps the focus of its scope.
+class _TvFirstFocus extends StatefulWidget {
+  const _TvFirstFocus({required this.enabled, required this.builder});
+
+  final bool enabled;
+  final Widget Function(FocusNode focus) builder;
+
+  @override
+  State<_TvFirstFocus> createState() => _TvFirstFocusState();
+}
+
+class _TvFirstFocusState extends State<_TvFirstFocus> {
+  final _focus = FocusNode(debugLabel: 'first on tv');
+
+  @override
+  void initState() {
+    super.initState();
+    if (onTv && widget.enabled) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _focus.requestFocus();
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _focus.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.builder(_focus);
+}

@@ -63,13 +63,17 @@ Open:
 - Tried in the Google TV emulator (4K, 960×540 logical): the app shows on
   the home screen, the start page has the television layout with the
   remote as controller 1, the d-pad walks the focus, OK opens, Back steps
-  back to the start page, and in a round the d-pad drives. Still to try:
-  every menu and dialog, firing and items with a real remote, a game
-  controller, the screen saver during a round (`keepAwake`), and a real
-  device.
-- Up from the first button does not wrap round to the last one, so
-  reaching Start in the waiting room takes many presses down past the
-  camouflage. Left and right could jump between the rows instead.
+  back to the start page. The waiting room hands the focus to Start
+  (`_TvFirstFocus` in `lobby_overlay.dart`), so OK starts right away and up
+  reaches the tanks and colours. In a round the d-pad drives, OK fires with
+  the aim assist, menu builds a gun in defense and play/pause tries to
+  (short of funds it says so), the defense HUD names those buttons, and the
+  window keeps the screen on (`FLAG_KEEP_SCREEN_ON`).
+- Still to try: a game controller (the emulator has none; it is the path
+  Android phones and tablets already use) and a real Fire TV or Google TV.
+- `adb shell input keyevent` presses and lets go within the same frame, so
+  the round can miss such a tap; hold it with `--duration 200` as a real
+  press does.
 - Remotes without play/pause or menu (some Chromecast remotes) have no
   button for items and special weapons yet; a long press on OK could take
   it.
