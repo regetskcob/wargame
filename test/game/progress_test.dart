@@ -88,6 +88,10 @@ void main() {
     final b = round.placementsOf('b');
     expect(b.beaten, unorderedEquals(['a', 'c']));
     expect(b.beatenBy, isEmpty);
+    // The CPU tank still stands, so it counts ahead of the fallen.
+    expect(round.placeOf('a'), (place: 3, of: 4));
+    expect(round.placeOf('c'), (place: 4, of: 4));
+    expect(round.placeOf('b'), (place: 1, of: 4));
     expect(round.markDead('a'), isFalse);
   });
 
@@ -104,5 +108,6 @@ void main() {
     expect(round.placementsOf('d').beaten, unorderedEquals(['a', 'b']));
     round.winnerTeam = null;
     expect(round.placementsOf('a').beatenBy, isEmpty);
+    expect(round.placeOf('a'), isNull);
   });
 }
