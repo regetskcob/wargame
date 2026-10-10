@@ -26,13 +26,15 @@ device-watch: Apple Watch
 device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself.
 device-tv: Apple TV · soon
 device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
+device-mac: Mac · soon
+device-mac-text: Full screen with keyboard or a game controller, with two controllers also two players on a split screen. The same app as on iPhone and iPad, coming to the Mac App Store soon.
 support: Support
 supportTitle: Support
 supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
 supportTopic: What is it about?
 supportTopics: Report a bug|Question about the game|Account and data|Idea or wish|Something else
 supportDevice: Where do you play?
-supportDevices: Browser|iPhone|iPad|Android|Apple TV|Apple Watch
+supportDevices: Browser|iPhone|iPad|Android|Mac|Apple TV|Apple Watch
 supportCallSign: Your call sign in the game (optional)
 supportMessage: Your message
 supportMessageHint: For a bug, tell us what you were doing and what happened.
