@@ -686,6 +686,14 @@ extension TankGameRound on TankGame {
       tankType: tank.tankType,
       hullSize: tank.size.x,
     );
+    // A long defense round leaves a hull for every enemy tank; the oldest
+    // go so the field does not fill up with them.
+    final wrecks = _extras.whereType<Wreck>().where(
+      (w) => !w.isRemoving && !w.isRemoved,
+    );
+    if (wrecks.length >= Wreck.maxOnField) {
+      wrecks.first.removeFromParent();
+    }
     _extras.add(wreck);
     world.add(wreck);
   }

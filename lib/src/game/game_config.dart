@@ -192,6 +192,11 @@ class GameConfig {
   static const waveBreakSeconds = 12;
   static const enemySpawnEvery = 1.6;
   static const maxEnemiesAlive = 6;
+
+  /// Helicopters, jets and drones of the waves in the air at once per road.
+  /// Late waves, above all the endless duel, would otherwise stack them up
+  /// faster than the guns bring them down.
+  static const maxEnemyAirAlive = 8;
   static const enemySpeed = 0.6;
   static const enemyFireFactor = 3.0;
   static const enemySyncInterval = 0.1;

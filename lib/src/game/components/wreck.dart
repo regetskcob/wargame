@@ -15,15 +15,26 @@ class Wreck extends PositionComponent {
     required double hullSize,
   }) : super(size: Vector2.all(hullSize), anchor: Anchor.center, priority: 6);
 
+  /// Hulls kept on the field at once, see `_addWreck`.
+  static const maxOnField = 20;
+
+  /// Seconds a hull keeps smoking. Each puff is a particle emitter, and a
+  /// field of old wrecks smoking for the whole round adds up.
+  static const smokeSeconds = 20.0;
+
   final TankType tankType;
   final _random = Random();
   double _puff = 0;
+  double _age = 0;
+
+  bool get smoking => _age < smokeSeconds;
 
   @override
   void update(double dt) {
     super.update(dt);
+    _age += dt;
     _puff -= dt;
-    if (_puff <= 0 && isMounted) {
+    if (_puff <= 0 && smoking && isMounted) {
       _puff = 0.35 + _random.nextDouble() * 0.2;
       parent?.add(
         ParticleEmitterComponent(
