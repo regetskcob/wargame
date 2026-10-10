@@ -45,8 +45,8 @@ Android apps · Mac · Apple TV · Apple Watch (in progress)
   kamikaze drone, paratroopers, an air strike.
 - Fuel stations and ammo depots to stop at, that blow up when shot; in
   capture the flag each side guards its own.
-- Ranks, an Elo rating, badges, a leaderboard, replays and
-  a rematch button.
+- Ranks, an Elo rating, badges, a leaderboard by points for rounds, wins,
+  kills, accuracy and rating, replays and a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
   Siri Remote, or a phone as a controller for the big screen.
 - An iOS widget with the pilots online and a Live Activity for the running

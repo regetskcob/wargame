@@ -22,7 +22,7 @@ MADE FOR TOUCH AND CONTROLLERS
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, Elo rating and badges on every device. There is a leaderboard, a replay of the last round and a rematch button. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
+Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. On the leaderboard everything you do counts: rounds, wins, kills, accuracy and rating add up to your points. There is also a replay of the last round and a rematch button. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
 
 ON THE APPLE WATCH
 The app brings a game of its own for the watch: single player, multiplayer, defense and capture the flag on your wrist. The Digital Crown steers, the tank drives and fires by itself, and you play in the same room as browser and phone.
