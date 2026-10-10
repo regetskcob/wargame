@@ -73,7 +73,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   Wolf), each with its own armour, speed and gun. Hermelin, Fuchs and
   Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
   and 8, and every later one is stronger than the ones before. The lobby
-  lists the unlocked ones first. Four free paint schemes and four more that come with higher ranks.
+  lists the unlocked ones first. Four free paint schemes and four more that
+  come with higher ranks, for playing alone. With others every tank drives
+  in its own colour, and in red against blue (teams, capture the flag) in
+  its team's red or blue, so the lobby offers no camouflage then.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of

@@ -284,9 +284,20 @@ extension TankGameLobby on TankGame {
     }
   }
 
-  /// Colour of a player's tank as the lobby previews it: camouflage alone,
-  /// one colour per seat when playing with others.
+  /// Red against blue is coming up: every tank drives in its team's colour,
+  /// so choosing a camouflage makes no sense.
+  bool get teamsAhead =>
+      mode.value == GameMode.flag ||
+      (teamMode.value && mode.value != GameMode.defense);
+
+  /// Colour of a player's tank as the lobby previews it: the team's colour
+  /// in red against blue (neutral while AUTO has not decided yet),
+  /// camouflage alone, one colour per seat when playing with others.
   Color lobbyColorOf(String id, int style) {
+    if (teamsAhead) {
+      final team = id == myId ? teamPick : _rosterMember(id)?.team ?? 0;
+      return GameConfig.teamColors[team.clamp(0, 2)];
+    }
     if (!mode.value.withOthers) {
       return GameConfig.colorOf(style);
     }
@@ -297,6 +308,13 @@ extension TankGameLobby on TankGame {
 
   Color _colorFor(String id) {
     final activeRound = round;
+    // Red against blue: the hull tells friend from foe.
+    if (activeRound != null && activeRound.teamMode) {
+      final team = activeRound.teamOf(id);
+      if (team > 0) {
+        return GameConfig.teamColors[team];
+      }
+    }
     if (activeRound != null && activeRound.distinctColors) {
       final seat = activeRound.participants.indexOf(id);
       if (seat >= 0) {

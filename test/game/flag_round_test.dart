@@ -54,6 +54,33 @@ void main() {
     );
   });
 
+  test('red against blue paints every tank in its team colour instead of '
+      'its camouflage', () async {
+    final (game, _) = await _flagRound();
+    final round = game.round!;
+    expect(
+      game.myTank!.tankColor,
+      GameConfig.teamColors[round.teamOf(game.myId)],
+    );
+    for (final MapEntry(:key, :value) in game.botTanks.entries) {
+      expect(value.tankColor, GameConfig.teamColors[round.teamOf(key)]);
+    }
+  });
+
+  test('the lobby shows the team colour and no camouflage when teams are '
+      'played', () {
+    final game = offlineGame()..chooseMode(GameMode.solo);
+    expect(game.teamsAhead, isFalse);
+    game.teamMode.value = true;
+    expect(game.teamsAhead, isTrue);
+    game.setTeamPick(2);
+    expect(game.lobbyColorOf(game.myId, 0), GameConfig.teamColors[2]);
+    game.setTeamPick(0);
+    expect(game.lobbyColorOf(game.myId, 0), GameConfig.teamColors[0]);
+    game.chooseMode(GameMode.defense);
+    expect(game.teamsAhead, isFalse);
+  });
+
   test('a flag round fills two even sides with CPU tanks and starts every '
       'tank at its base, without a closing zone', () async {
     final (game, _) = await _flagRound();

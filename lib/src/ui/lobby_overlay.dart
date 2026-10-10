@@ -367,6 +367,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             listenable: Listenable.merge([
               game.roster,
               game.mode,
+              game.teamMode,
               game.progress.rank,
             ]),
             builder: (context, _) => LayoutBuilder(
@@ -397,10 +398,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           const SizedBox(height: 12),
           StatBars(type: GameConfig.typeOf(_colorIndex)),
           const SizedBox(height: 14),
-          ValueListenableBuilder<GameMode>(
-            valueListenable: game.mode,
-            // With others every tank drives in its own colour.
-            builder: (context, mode, _) => mode.withOthers
+          ListenableBuilder(
+            listenable: Listenable.merge([game.mode, game.teamMode]),
+            // With others every tank drives in its own colour, in red
+            // against blue in its team's.
+            builder: (context, _) =>
+                game.mode.value.withOthers || game.teamsAhead
                 ? const SizedBox.shrink()
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
