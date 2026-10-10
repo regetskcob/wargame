@@ -51,8 +51,9 @@ class TouchControls extends StatelessWidget {
           final zoneTop = height * (upright ? 0.4 : 0.3);
           // The buttons sit just above the aim stick, in reach of the right
           // thumb and clear of the plates along the top, which in a defense
-          // round fold out over the upper right corner.
-          final buttonTop = max(zoneTop, height - stick - 84);
+          // round fold out over the upper right corner. They keep enough
+          // room above the stick for its label.
+          final buttonTop = max(zoneTop, height - stick - 104);
           final zoneWidth = width * 0.44;
           return Stack(
             children: [
@@ -371,7 +372,24 @@ class _FloatingStickState extends State<_FloatingStick> {
             }
           },
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
+              // The label sits above the ring rather than inside it: in there
+              // the circle narrows and cut through the text, and the faded
+              // idle stick made it hard to read on the bright ground. It is
+              // centred over the stick but kept inside the zone, since a long
+              // label is wider than the ring and the sticks rest at the edge.
+              Positioned(
+                left: 0,
+                right: 0,
+                top: centre.dy - half - 26,
+                child: IgnorePointer(
+                  child: CustomSingleChildLayout(
+                    delegate: _CentreInside(centre.dx),
+                    child: _StickLabel(widget.label),
+                  ),
+                ),
+              ),
               Positioned(
                 left: centre.dx - half,
                 top: centre.dy - half,
@@ -382,7 +400,6 @@ class _FloatingStickState extends State<_FloatingStick> {
                     opacity: active ? 1 : 0.55,
                     child: _StickFace(
                       size: widget.size,
-                      label: widget.label,
                       active: active,
                       knob: knob,
                       ring: widget.ring,
@@ -401,10 +418,63 @@ class _FloatingStickState extends State<_FloatingStick> {
   }
 }
 
+/// Centres its child on [x] but shifts it back inside the available width.
+class _CentreInside extends SingleChildLayoutDelegate {
+  const _CentreInside(this.x);
+
+  final double x;
+
+  @override
+  Size getSize(BoxConstraints constraints) => Size(constraints.maxWidth, 24);
+
+  @override
+  BoxConstraints getConstraintsForChild(BoxConstraints constraints) =>
+      BoxConstraints.loose(Size(constraints.maxWidth, 24));
+
+  @override
+  Offset getPositionForChild(Size size, Size childSize) => Offset(
+    (x - childSize.width / 2).clamp(0, max(0, size.width - childSize.width)),
+    0,
+  );
+
+  @override
+  bool shouldRelayout(_CentreInside oldDelegate) => oldDelegate.x != x;
+}
+
+/// Name of a stick on a dark pill, readable on any ground.
+class _StickLabel extends StatelessWidget {
+  const _StickLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: const Color(0x99000000),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        child: Text(
+          text,
+          maxLines: 1,
+          softWrap: false,
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 1.2,
+            color: GameColors.sand,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _StickFace extends StatelessWidget {
   const _StickFace({
     required this.size,
-    required this.label,
     required this.active,
     required this.knob,
     required this.firing,
@@ -412,7 +482,6 @@ class _StickFace extends StatelessWidget {
   });
 
   final double size;
-  final String label;
   final bool active;
   final Offset knob;
   final bool firing;
@@ -448,17 +517,6 @@ class _StickFace extends StatelessWidget {
               ),
             ),
           ),
-        Positioned(
-          top: size * 0.07,
-          child: Text(
-            label,
-            style: const TextStyle(
-              fontSize: 10,
-              letterSpacing: 1.5,
-              color: GameColors.textDim,
-            ),
-          ),
-        ),
         Transform.translate(
           offset: knob,
           child: Container(
