@@ -13,10 +13,12 @@ class ProfileService {
 
   final SupabaseClient _client;
 
-  String? get _uid => _client.auth.currentUser?.id;
+  /// The account the profile belongs to. The watch's service names the
+  /// phone's account here.
+  String? get uid => _client.auth.currentUser?.id;
 
   Future<PlayersRow?> load() async {
-    final uid = _uid;
+    final uid = this.uid;
     if (uid == null) {
       return null;
     }
@@ -32,7 +34,7 @@ class ProfileService {
   }
 
   Future<void> save({required String name, required int style}) async {
-    final uid = _uid;
+    final uid = this.uid;
     if (uid == null) {
       return;
     }
@@ -61,7 +63,7 @@ class ProfileService {
 
   /// Codes of the badges the pilot has earned.
   Future<Set<String>> achievements() async {
-    final uid = _uid;
+    final uid = this.uid;
     if (uid == null) {
       return {};
     }
@@ -77,7 +79,7 @@ class ProfileService {
   }
 
   Future<void> unlock(Iterable<String> codes) async {
-    final uid = _uid;
+    final uid = this.uid;
     if (uid == null || codes.isEmpty) {
       return;
     }

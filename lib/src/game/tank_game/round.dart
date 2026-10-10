@@ -36,8 +36,12 @@ extension TankGameRound on TankGame {
       solo: solo || together,
       humans: ids.length,
       // A phone in the room leaves no Realtime room for CPU tanks.
-      // Capturing the flag always fills the sides up with CPU tanks.
-      fill: (fillWithBots.value || flag) && !defending && !roomHasPhone,
+      // Capturing the flag and a game without a room channel, as on the
+      // watch, always fill the field up with CPU tanks.
+      fill:
+          (fillWithBots.value || flag || net.offline) &&
+          !defending &&
+          !roomHasPhone,
       teams: teamMode.value || flag,
       fillTo: flag ? GameConfig.flagFillTo : GameConfig.fillTo,
       random: random,

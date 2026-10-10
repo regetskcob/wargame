@@ -5,6 +5,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/gestures.dart'
     show PointerDeviceKind, kPrimaryMouseButton;
 import 'package:flutter/material.dart';
+import 'package:flutter_watchos/flutter_watchos.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -21,6 +22,8 @@ import '../l10n/l10n.dart';
 import '../net/net_service.dart';
 import '../net/pad_link.dart';
 import '../net/room.dart';
+import '../watch/account_link.dart';
+import '../watch/linked_services.dart';
 import '../ui/theme.dart';
 import '../ui/closed_overlay.dart';
 import '../ui/controller_view.dart';
@@ -118,24 +121,43 @@ class _GameAppState extends State<GameApp> {
     final myId = [
       for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
     ].join();
-    return TankGame(
-        net: NetService(myId: myId, room: room, isHost: host),
-        myId: myId,
-        scoreService: ScoreService(client),
-        profiles: ProfileService(client),
-        accounts: AccountService(client),
-      )
-      ..phase.addListener(_reclaimFocus)
-      ..phase.addListener(_phaseChanged)
-      // Somebody from another device came or went: the second player may
-      // need a connection of their own, or no longer.
-      ..roster.addListener(_phaseChanged);
+    // The watch speaks as the phone's account, when it lent one.
+    final watch = FlutterWatchosPlatform.isWatch;
+    final link = AccountLink.instance;
+    final linked = watch ? linkedClient(link, client) : null;
+    final game =
+        TankGame(
+            net: NetService(
+              myId: myId,
+              room: room,
+              isHost: host,
+              offline: watch,
+            ),
+            myId: myId,
+            scoreService: linked == null
+                ? ScoreService(client)
+                : LinkedScores(link, client, linked, pending: PendingRounds()),
+            profiles: linked == null
+                ? ProfileService(client)
+                : LinkedProfiles(link, client, linked),
+            accounts: AccountService(client),
+          )
+          ..phase.addListener(_reclaimFocus)
+          ..phase.addListener(_phaseChanged)
+          // Somebody from another device came or went: the second player may
+          // need a connection of their own, or no longer.
+          ..roster.addListener(_phaseChanged);
+    if (watch) {
+      link.account.addListener(game.reloadPilot);
+    }
+    return game;
   }
 
   /// The apps' stand-in for loading another room's address: the old game
   /// leaves its room and a fresh one joins the new room.
   void _switchRoom(String room, {required bool host}) {
     final old = game;
+    AccountLink.instance.account.removeListener(old.reloadPilot);
     old.phase
       ..removeListener(_reclaimFocus)
       ..removeListener(_phaseChanged);

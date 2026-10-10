@@ -131,6 +131,10 @@ extension TankGameLobby on TankGame {
     unawaited(_refreshPilot());
   }
 
+  /// The watch: the phone lent its account, or took it back. Name, look and
+  /// progress follow.
+  void reloadPilot() => unawaited(_refreshPilot());
+
   /// Loads the pilot from the server and shows it wherever it appears.
   Future<void> _refreshPilot() async {
     await _loadPilot();
@@ -309,6 +313,7 @@ extension TankGameLobby on TankGame {
       myColorIndex = colorIndex;
     }
     rememberPilot(myName, myColorIndex);
+    AccountLink.instance.nameChangedOnPhone();
     unawaited(pushPresence());
     // Typing a name calls this on every key, so save once it settles.
     _saveTimer?.cancel();

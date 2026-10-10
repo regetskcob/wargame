@@ -59,8 +59,15 @@ class RoomListing {
 /// of public rooms put their room on it, everybody can read it. A room
 /// vanishes from the list by itself when its host closes the window.
 class RoomDirectory {
-  RoomDirectory({required this.room, SupabaseClient? client})
-    : _ownClient = client;
+  RoomDirectory({
+    required this.room,
+    SupabaseClient? client,
+    this.offline = false,
+  }) : _ownClient = client;
+
+  /// No list of rooms, as for a game without a room channel
+  /// ([NetService.offline]).
+  final bool offline;
 
   /// A connection of its own, as [NetService] has for a second player.
   final SupabaseClient? _ownClient;
@@ -79,6 +86,9 @@ class RoomDirectory {
   SupabaseClient get _client => _ownClient ?? Supabase.instance.client;
 
   void connect() {
+    if (offline) {
+      return;
+    }
     final channel = _client.channel(
       'game-rooms',
       options: const RealtimeChannelConfig(self: true),
