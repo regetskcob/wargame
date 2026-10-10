@@ -38,17 +38,12 @@ extension TankGameCombat on TankGame {
     final ownerId = tank.playerId;
     final stats = tank.stats;
     final bulletDirection = tank.turretDirection;
-    final side = Vector2(-bulletDirection.y, bulletDirection.x);
-    for (var barrel = 0; barrel < stats.barrels; barrel++) {
-      final offset = (barrel - (stats.barrels - 1) / 2) * 13;
+    // Out of the drawn barrels, which on some tanks sit beside the middle.
+    for (final start in tank.barrelStarts(GameConfig.tankRadius + 16)) {
       final bulletId = '$ownerId-${_bulletCounter++}';
       if (tank == myTank) {
         roundStats.shots++;
       }
-      final start =
-          tank.position +
-          bulletDirection * (GameConfig.tankRadius + 16) +
-          side * offset;
       final upgraded = tank.gunFactor != 1;
       final damage = stats.damage * tank.gunFactor;
       _spawnBullet(

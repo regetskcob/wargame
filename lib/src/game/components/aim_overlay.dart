@@ -24,7 +24,9 @@ class AimOverlay extends Component with HasGameRef<TankGame> {
     }
     final range = tank.stats.bulletSpeed * GameConfig.bulletTtl;
     final direction = tank.turretDirection;
-    final muzzle = tank.position + direction * (GameConfig.tankRadius + 16);
+    // From the middle of the barrels, so the line runs out of an offset gun.
+    final starts = tank.barrelStarts(GameConfig.tankRadius + 16);
+    final muzzle = starts.reduce((a, b) => a + b) / starts.length.toDouble();
 
     // Barrel line, dotted, fading out towards the end of the range.
     const dots = 22;
