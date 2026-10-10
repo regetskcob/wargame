@@ -111,8 +111,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   never finished a round starts on easy, and the first round a host starts
   in a session opens by day under a clear sky for at least a minute. The
   waiting room shows difficulty, terrain and mode in one line that opens
-  the settings. PLAY NOW on the start page goes straight into a solo round
-  with the tank and difficulty used last, and alone the countdown takes
+  the settings. LAST PLAYED on the start page (from tablet width, next to
+  the briefing) goes straight into a solo round with the tank and
+  difficulty used last, and alone the countdown takes
   2 s instead of 3.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly

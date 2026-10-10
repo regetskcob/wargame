@@ -145,9 +145,18 @@ class LaunchView extends StatelessWidget {
             ? const SizedBox(height: 16)
             : Padding(
                 padding: const EdgeInsets.only(top: 4, bottom: 16),
-                child: Align(
-                  alignment: Alignment.centerLeft,
-                  child: TutorialButton(game: game),
+                child: Row(
+                  children: [
+                    TutorialButton(game: game),
+                    const Spacer(),
+                    // From tablets up the last round sits quietly at the
+                    // end of the briefing's line. Phones keep the space for
+                    // the ways to play, and the television walks its menu
+                    // with the remote, where one more stop costs more than
+                    // it saves.
+                    if (box.maxWidth >= 600 && !onTv)
+                      Flexible(child: _LastPlayed(game: game)),
+                  ],
                 ),
               ),
       ),
@@ -160,9 +169,6 @@ class LaunchView extends StatelessWidget {
             : PilotCard(progress: game.progress),
       ),
       const SizedBox(height: 20),
-      // The television walks its menu with the remote, one more stop
-      // there costs more than it saves.
-      if (!onTv) _QuickStart(game: game),
       const ServerNotice(),
       RoomsBusyNotice(slots: game.slots),
       ListenableBuilder(
@@ -253,8 +259,8 @@ class LaunchView extends StatelessWidget {
 }
 
 /// Straight into a solo round with the tank and difficulty used last.
-class _QuickStart extends StatelessWidget {
-  const _QuickStart({required this.game});
+class _LastPlayed extends StatelessWidget {
+  const _LastPlayed({required this.game});
 
   final TankGame game;
 
@@ -271,18 +277,15 @@ class _QuickStart extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final tank = GameConfig.typeOf(game.myColorIndex).label;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: FilledButton.icon(
-            onPressed: game.quickStart,
-            icon: const Icon(Icons.play_arrow),
-            label: FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                '${tr('SOFORT LOS', 'PLAY NOW')}  ·  $tank  ·  '
-                '${game.botLevel.value.label}',
-                maxLines: 1,
-              ),
+        return TextButton.icon(
+          onPressed: game.quickStart,
+          icon: const Icon(Icons.replay, size: 18),
+          label: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              '${tr('ZULETZT GESPIELT', 'LAST PLAYED')}  ·  $tank  ·  '
+              '${game.botLevel.value.label}',
+              maxLines: 1,
             ),
           ),
         );
