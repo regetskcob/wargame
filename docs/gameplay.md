@@ -21,7 +21,13 @@ Everything the game does, with the numbers behind it. The short version is in th
   it runs on, two touch sticks with an animated thumb on phones and
   tablets, keys and mouse on a desktop, each acted out on a small training
   ground, then plays a quick tour through modes, vehicles, crates, gems,
-  weather, levels, the defense mode and what comes after the round.
+  weather, levels, the defense mode and what comes after the round. Every
+  card moves on by itself after a while. On a controls card the player can
+  take over at any time: a thumb on the sticks, a game key or a click turns
+  the scene into a training ground with their own tank, the game's controls
+  and a few enemy tanks to hit (grenades on the special weapon card). The
+  card then folds its text away and waits for NEXT. The Apple TV keeps the
+  demonstration only.
 
 ## Ways to play
 
