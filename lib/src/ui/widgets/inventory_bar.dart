@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import '../../game/inventory.dart';
-import '../../game/game_config.dart';
 import '../theme.dart';
 import 'panel.dart';
 
@@ -32,24 +31,19 @@ class InventoryBar extends StatelessWidget {
       builder: (context, slots, _) => Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Phones only show what is there, the screen is short.
-          for (
-            var i = 0;
-            i < (compact ? slots.length : GameConfig.inventorySlots);
-            i++
-          )
+          // Only what is there: empty frames on the left edge covered the
+          // road the enemies come in on.
+          for (var i = 0; i < slots.length; i++)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 2),
-              child: i < slots.length
-                  ? _Slot(
-                      slot: slots[i],
-                      label: labels == null
-                          ? '${i + 1}'
-                          : (i < labels!.length ? labels![i] : ''),
-                      compact: compact,
-                      onTap: () => onUse(i),
-                    )
-                  : _Empty(compact: compact),
+              child: _Slot(
+                slot: slots[i],
+                label: labels == null
+                    ? '${i + 1}'
+                    : (i < labels!.length ? labels![i] : ''),
+                compact: compact,
+                onTap: () => onUse(i),
+              ),
             ),
         ],
       ),
@@ -132,27 +126,6 @@ class _Slot extends StatelessWidget {
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class _Empty extends StatelessWidget {
-  const _Empty({required this.compact});
-
-  final bool compact;
-
-  @override
-  Widget build(BuildContext context) {
-    final size = compact ? 44.0 : 56.0;
-    return IgnorePointer(
-      child: Container(
-        width: size,
-        height: size,
-        decoration: ShapeDecoration(
-          color: const Color(0x33000000),
-          shape: GameShapes.chip(edge: const Color(0x338A9A5B), width: 1),
         ),
       ),
     );

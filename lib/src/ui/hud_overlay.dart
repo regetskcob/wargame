@@ -475,9 +475,12 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   Widget _effects(TankGame game) {
+    // On a desktop the defense panel fills the lower left and hid the wave
+    // announcements, so there they show above the middle.
+    final high = (game.round?.defense ?? false) && !game.touchMode.value;
     return IgnorePointer(
       child: Align(
-        alignment: const Alignment(0, 0.55),
+        alignment: high ? const Alignment(0, -0.35) : const Alignment(0, 0.55),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -700,6 +703,9 @@ enum _Shop { closed, towers, upgrades }
 class _DefensePanelState extends State<_DefensePanel> {
   _Shop _shop = _Shop.closed;
 
+  /// The list the desktop panel shows, the guns to begin with.
+  _Shop _desk = _Shop.towers;
+
   TankGame get game => widget.game;
   bool get touch => widget.touch;
 
@@ -833,11 +839,43 @@ class _DefensePanelState extends State<_DefensePanel> {
             fontWeight: FontWeight.w800,
           ),
         ),
+        Text(
+          tr(
+            'Geld gibt es für eigene Abschüsse (+${GameConfig.creditsPerKill}) '
+                'und jede abgewehrte Welle (+${GameConfig.waveBonus}).',
+            'Money comes with your own kills (+${GameConfig.creditsPerKill}) '
+                'and every wave beaten off (+${GameConfig.waveBonus}).',
+          ),
+          style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+        ),
         const SizedBox(height: 6),
-        if (near != null) _nearTower(near, credits) else _towers(credits),
+        // One list at a time, like on phones: with both the panel covered a
+        // quarter of a laptop screen and the road beneath it.
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
+            const SizedBox(width: 6),
+            _deskTab('UPGRADES', _Shop.upgrades),
+          ],
+        ),
         const SizedBox(height: 6),
-        _upgrades(credits),
+        if (_desk == _Shop.upgrades)
+          _upgrades(credits)
+        else if (near != null)
+          _nearTower(near, credits)
+        else
+          _towers(credits),
       ],
+    );
+  }
+
+  Widget _deskTab(String label, _Shop shop) {
+    final open = _desk == shop;
+    return (open ? FilledButton.new : OutlinedButton.new)(
+      style: _buttonStyle,
+      onPressed: () => setState(() => _desk = shop),
+      child: Text(label, style: _small),
     );
   }
 

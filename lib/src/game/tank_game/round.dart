@@ -58,12 +58,7 @@ extension TankGameRound on TankGame {
         ? [myId, humans.firstWhere((id) => id != myId)]
         : const <String>[];
     final payload = RoundStartPayload(
-      seed:
-          seed ??
-          switch (mapChoice.value) {
-            final map? => MapTheme.seedFor(Random().nextInt(1 << 30), map),
-            null => Random().nextInt(1 << 30),
-          },
+      seed: seed ?? _freshSeed(random),
       startedAt:
           startedAt ??
           DateTime.now().millisecondsSinceEpoch +
@@ -85,7 +80,41 @@ extension TankGameRound on TankGame {
     if (!solo) {
       net.send(NetEvent.roundStart, payload.toJson());
     }
+    _roundsStarted++;
     _applyRoundStart(payload);
+  }
+
+  /// The money a kill brought, rising from where it happened: the play test
+  /// found the funds standing still with no clue what earns them.
+  void _showGain(Vector2? at, int gain) {
+    if (at == null || replaying.value) {
+      return;
+    }
+    world.add(
+      ItemCallout(
+        position: at + Vector2(0, -44),
+        text: '+$gain',
+        color: const Color(0xFFFFC107),
+      ),
+    );
+  }
+
+  /// A random seed on the map the host picked, if any. The first round of a
+  /// session opens by day under a clear sky: in the play test it began at
+  /// night twice, which hides the field from somebody still learning it.
+  int _freshSeed(Random random) {
+    for (var tries = 0; ; tries++) {
+      final raw = random.nextInt(1 << 30);
+      final seed = switch (mapChoice.value) {
+        final map? => MapTheme.seedFor(raw, map),
+        null => raw,
+      };
+      // About one seed in eleven qualifies, so 200 tries all but never
+      // run out.
+      if (_roundsStarted > 0 || tries >= 200 || TankGame._gentle(seed)) {
+        return seed;
+      }
+    }
   }
 
   void spectateLiveMatch() {
@@ -667,9 +696,11 @@ extension TankGameRound on TankGame {
       // In a duel the other player's tank pays as well.
       if (activeRound.isEnemy(victimId) ||
           (activeRound.duel && activeRound.lanes.contains(victimId))) {
-        credits.value += aircraft.containsKey(victimId)
+        final gain = aircraft.containsKey(victimId)
             ? GameConfig.creditsPerAircraft
             : GameConfig.creditsPerKill;
+        credits.value += gain;
+        _showGain(victim?.position, gain);
       }
     }
     final entry = KillEntry(
@@ -924,6 +955,39 @@ extension TankGameRound on TankGame {
       }
     }
     _setPhase(GamePhase.roundOver);
+    _leaveEndScreenLater(activeRound);
+  }
+
+  /// The first seconds of a round with CPU tanks, while they leave people
+  /// alone ([BotLevel.holdFire]). The aim assist only aims then: in the
+  /// play test it opened fire by itself, the CPU tanks shot back and the
+  /// round was lost before the player had moved. Firing by hand still
+  /// starts the fight.
+  bool get ceasefire {
+    final active = round;
+    if (active == null || active.defense || active.bots.isEmpty) {
+      return false;
+    }
+    final elapsed =
+        (DateTime.now().millisecondsSinceEpoch - active.startedAt) / 1000;
+    return elapsed < active.botLevel.holdFire;
+  }
+
+  /// Back to the waiting room after a while, but only with other people in
+  /// the round, who wait for the next one. Alone the end screen stays until
+  /// the player picks: in the play test the ten seconds ran out before the
+  /// numbers were read, and the screen vanished under the finger.
+  void _leaveEndScreenLater(RoundState activeRound) {
+    final others = activeRound.participants.any(
+      (id) => id != myId && !activeRound.isBot(id),
+    );
+    if (!others) {
+      lobbyAt.value = null;
+      return;
+    }
+    lobbyAt.value =
+        DateTime.now().millisecondsSinceEpoch +
+        GameConfig.roundOverSeconds * 1000;
     Future<void>.delayed(
       const Duration(seconds: GameConfig.roundOverSeconds),
       () {
@@ -1134,6 +1198,11 @@ extension TankGameRound on TankGame {
     touch.reset();
     pointerOnHud = false;
     leaveAsked.value = false;
+    if (next == GamePhase.roundOver &&
+        !replaying.value &&
+        (round?.participants.contains(myId) ?? false)) {
+      rememberRoundPlayed();
+    }
     phase.value = next;
     overlays
       ..removeAll(const [

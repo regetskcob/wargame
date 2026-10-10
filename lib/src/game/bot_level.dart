@@ -5,7 +5,15 @@ import '../l10n/l10n.dart';
 
 /// How well the CPU tanks fight.
 enum BotLevel {
-  easy('LEICHT', 'EASY', aimError: 0.24, reaction: 0.8, think: 0.28, lead: 0.4),
+  easy(
+    'LEICHT',
+    'EASY',
+    aimError: 0.24,
+    reaction: 0.8,
+    think: 0.28,
+    lead: 0.4,
+    holdFire: 10,
+  ),
   normal(
     'MITTEL',
     'NORMAL',
@@ -13,8 +21,17 @@ enum BotLevel {
     reaction: 0.4,
     think: 0.15,
     lead: 1,
+    holdFire: 6,
   ),
-  hard('SCHWER', 'HARD', aimError: 0.05, reaction: 0.18, think: 0.08, lead: 1);
+  hard(
+    'SCHWER',
+    'HARD',
+    aimError: 0.05,
+    reaction: 0.18,
+    think: 0.08,
+    lead: 1,
+    holdFire: 3,
+  );
 
   const BotLevel(
     this._labelDe,
@@ -23,6 +40,7 @@ enum BotLevel {
     required this.reaction,
     required this.think,
     required this.lead,
+    required this.holdFire,
   });
 
   final String _labelDe;
@@ -41,6 +59,12 @@ enum BotLevel {
 
   /// How much of the target's movement the aim leads, 0 to 1.
   final double lead;
+
+  /// Seconds into the round before a CPU tank goes for people, unless it
+  /// is hit first; other CPU tanks it fights from the start. A play test
+  /// found new players destroyed within ten seconds, before they had found
+  /// the sticks.
+  final double holdFire;
 
   /// Rating a CPU tank of this level counts with.
   int get rating => switch (this) {

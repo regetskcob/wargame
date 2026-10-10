@@ -94,7 +94,15 @@ extension TankGameView on TankGame {
   /// camera follows the tank sideways.
   double get viewScale {
     final short = min(canvasSize.x, canvasSize.y);
-    final zoom = onWatch ? GameConfig.watchZoom : 1.0;
+    // An upright phone shows the tank only about 25 points wide, too small
+    // to read at arm's length: it looks a bit closer, a tablet does not.
+    final uprightPhone =
+        canvasSize.y > canvasSize.x && short < GameConfig.phoneShortSide;
+    final zoom = onWatch
+        ? GameConfig.watchZoom
+        : uprightPhone
+        ? GameConfig.uprightPhoneZoom
+        : 1.0;
     if (defenseMap == null) {
       return zoom * short / GameConfig.viewShortSide;
     }
@@ -106,7 +114,8 @@ extension TankGameView on TankGame {
         canvasSize.y / (DefenseMap.halfHeight * 2 + margin * 2),
       );
     }
-    return zoom *
+    // The defense field already fills an upright phone from top to bottom.
+    return (onWatch ? GameConfig.watchZoom : 1.0) *
         max(
           short / GameConfig.defenseViewShortSide,
           canvasSize.y /
@@ -133,9 +142,13 @@ extension TankGameView on TankGame {
       return;
     }
     const margin = TankGame._defenseMargin;
+    // On a desktop the mini map fills the lower right corner, right where
+    // the base stands at the end of the road. The camera may go that far
+    // past the edge, so the base and the tank by it come out from under it.
+    final hud = touchMode.value ? 0.0 : TankGame._hudReserve / scale;
     final dx = max(
       1.0,
-      DefenseMap.halfWidth + margin - canvasSize.x / 2 / scale,
+      DefenseMap.halfWidth + margin + hud - canvasSize.x / 2 / scale,
     );
     final dy = max(
       1.0,

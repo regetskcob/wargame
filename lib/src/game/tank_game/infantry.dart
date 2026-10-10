@@ -245,6 +245,7 @@ extension TankGameInfantry on TankGame {
     soldier.dead = true;
     if (byId == myId && (round?.isEnemy(soldier.ownerId ?? '') ?? false)) {
       credits.value += GameConfig.creditsPerSoldier;
+      _showGain(soldier.position, GameConfig.creditsPerSoldier);
     }
     final at = soldier.position.clone();
     soldierField?.addSplat(at, stableHash(soldier.tag));
