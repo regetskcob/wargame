@@ -344,7 +344,10 @@ class _AccountPanelState extends State<AccountPanel> {
                           child: Text(
                             _open
                                 ? tr('SCHLIESSEN', 'CLOSE')
-                                : tr('SICHERN / ANMELDEN', 'SECURE / SIGN IN'),
+                                : tr(
+                                    'REGISTRIEREN / ANMELDEN',
+                                    'REGISTER / SIGN IN',
+                                  ),
                           ),
                         )
                       else
@@ -469,7 +472,7 @@ class _AccountPanelState extends State<AccountPanel> {
               child: Text(switch ((_signIn, fresh)) {
                 (true, _) => tr('ANMELDELINK SENDEN', 'SEND SIGN-IN LINK'),
                 (false, true) => tr('KONTO ANLEGEN', 'CREATE ACCOUNT'),
-                (false, false) => tr('KONTO SICHERN', 'SECURE ACCOUNT'),
+                (false, false) => tr('REGISTRIEREN', 'REGISTER'),
               }),
             ),
             for (final (provider, label) in widget.accounts.providers.value)
@@ -524,8 +527,8 @@ class _AccountPanelState extends State<AccountPanel> {
           child: Text(
             _signIn
                 ? tr(
-                    'Noch kein Konto? Gastkonto sichern',
-                    'No account yet? Secure your guest account',
+                    'Noch kein Konto? Registrieren',
+                    'No account yet? Register',
                   )
                 : tr(
                     'Schon ein Konto? Anmelden',
