@@ -925,6 +925,7 @@ extension TankGameDefense on TankGame {
       speed: tower.kind.shotSpeed,
       damage: tower.kind.groundDamageAt(tower.level),
       airDamage: tower.kind.airDamageAt(tower.level),
+      burst: tower.kind.burst,
       antiAir: tower.kind.antiAir,
     );
     net.send(

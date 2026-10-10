@@ -1,4 +1,9 @@
+import 'dart:ui';
+
+import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/components/bullet.dart';
+import 'package:wargame/src/game/defense/aircraft.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -104,4 +109,41 @@ void main() {
     expect(game.inTrench(trench.position, of: 'td-3-1'), isFalse);
     expect(tank.position.distanceTo(trench.position), lessThan(1));
   });
+
+  test(
+    'a flak shell bursts next to a jet, a cannon shell flies past',
+    () async {
+      final game = await defenseRound(playing: true);
+      game
+        ..spawnAircraft('td-j-3-0', AirKind.jet)
+        ..update(0);
+      final jet = game.aircraft.values.single;
+      Bullet shell(String id, TowerKind kind) => Bullet(
+        bulletId: id,
+        ownerId: game.myId,
+        position: jet.position + Vector2(0, -26),
+        velocity: Vector2.zero(),
+        color: const Color(0xFF000000),
+        damage: kind.groundDamageAt(1),
+        airDamage: kind.airDamageAt(1),
+        antiAir: kind.antiAir,
+        burst: kind.burst,
+      );
+      final cannon = shell('c', TowerKind.cannon);
+      game.world.add(cannon);
+      game.update(0);
+      expect(jet.hp, GameConfig.jetHp);
+      expect(cannon.isMounted, isTrue);
+      final flak = shell('f', TowerKind.flak)
+        ..position.setFrom(cannon.position);
+      game.world.add(flak);
+      game.update(0);
+      game.update(0.001);
+      expect(jet.hp, GameConfig.jetHp - TowerKind.flak.airDamageAt(1));
+      // It burst once and is gone the tick after.
+      game.update(0.001);
+      expect(jet.hp, GameConfig.jetHp - TowerKind.flak.airDamageAt(1));
+      expect(flak.isRemoving || !flak.isMounted, isTrue);
+    },
+  );
 }

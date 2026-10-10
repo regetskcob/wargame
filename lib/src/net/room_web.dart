@@ -226,6 +226,10 @@ void rememberPadCode(String? code) {
 /// The browser reads a pairing link from its own address at the start.
 void Function(String code)? onPadLink;
 
+/// Chat invitations open the apps only: in the browser the guest's link
+/// simply joins the room, whose host picks the mode.
+void Function(String mode)? onModeLink;
+
 /// The pairing code this page was opened with, from `?pad=CODE`: the page
 /// is then a phone's controller instead of the game.
 String? padCodeOfPage() => Uri.base.queryParameters['pad'];

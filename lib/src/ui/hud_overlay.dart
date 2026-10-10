@@ -177,8 +177,14 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// The wave out of the regular ones, or how far into the extension.
-  static String _wave(DefensePayload? state) {
+  /// [short] drops the word for windows too narrow for the whole line.
+  static String _wave(DefensePayload? state, {bool short = false}) {
     final wave = state?.wave ?? 0;
+    if (short) {
+      return state != null && state.extended
+          ? tr('$wave · VERL.', '$wave · EXT.')
+          : '$wave/${GameConfig.defenseWaves}';
+    }
     return state != null && state.extended
         ? tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION')
         : tr(
@@ -206,23 +212,6 @@ class _HudOverlayState extends State<HudOverlay> {
         children: [
           if (touch) _compact(game) else _status(game),
           _effects(game),
-          if (!touch)
-            Align(
-              alignment: Alignment.topCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(top: 12),
-                child: _HudButtons(
-                  game: game,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const MuteButton(),
-                      LeaveRoundButton(game: game),
-                    ],
-                  ),
-                ),
-              ),
-            ),
           EnemyIndicators(game: game),
           // A paired phone or a controller brings its own sticks.
           if (touch)
@@ -291,12 +280,38 @@ class _HudOverlayState extends State<HudOverlay> {
         if (round != null && round.defense) {
           final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
+          // The plate shares its row with the buttons; when the whole line
+          // does not fit, the wave goes without its word first and then the
+          // comrades are shortened as on the phone.
+          List<String> lines(DefensePayload? state) => [
+            for (final short in const [false, true])
+              '${_wave(state, short: short)}   '
+                  '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                  '${tr('KAMERADEN', 'COMRADES')} $allies',
+            '${_wave(state, short: true)}   '
+                '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                '${tr('KAM.', 'ALLIES')} $allies',
+          ];
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
-            builder: (context, state, _) => Text(
-              '${_wave(state)}   ${tr('FEINDE', 'ENEMIES')} $enemies   '
-              '${tr('KAMERADEN', 'COMRADES')} $allies',
-              style: style,
+            builder: (context, state, _) => LayoutBuilder(
+              builder: (context, constraints) {
+                final candidates = lines(state);
+                final painter = TextPainter(
+                  textDirection: TextDirection.ltr,
+                  textScaler: MediaQuery.textScalerOf(context),
+                  maxLines: 1,
+                );
+                final merged = DefaultTextStyle.of(context).style.merge(style);
+                final text = candidates.firstWhere((line) {
+                  painter
+                    ..text = TextSpan(text: line, style: merged)
+                    ..layout();
+                  return painter.width <= constraints.maxWidth;
+                }, orElse: () => candidates.last);
+                painter.dispose();
+                return Text(text, style: style);
+              },
             ),
           );
         }
@@ -594,12 +609,10 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   Widget _status(TankGame game) {
-    return IgnorePointer(
-      child: LayoutBuilder(
-        builder: (context, constraints) => _statusColumn(
-          game,
-          _gaugesMeetInventory(game, constraints.maxHeight),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) => _statusColumn(
+        game,
+        _gaugesMeetInventory(game, constraints.maxHeight),
       ),
     );
   }
@@ -613,47 +626,74 @@ class _HudOverlayState extends State<HudOverlay> {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ValueListenableBuilder<double>(
-                    valueListenable: game.hpNotifier,
-                    builder: (context, hp, _) =>
-                        HealthBar(hp: hp, maxHp: game.myMaxHp),
-                  ),
-                  if (!game.endlessAmmo || game.usesFuel)
-                    const SizedBox(height: 6),
-                  _ammo(game),
-                ],
-              ),
-              const Spacer(),
-              Panel(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
+              IgnorePointer(
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    _alive(game, 16),
-                    ValueListenableBuilder<int>(
-                      valueListenable: game.soldiersRunOver,
-                      builder: (context, n, _) => n == 0
-                          ? const SizedBox()
-                          : Text(
-                              tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                              style: const TextStyle(
-                                color: GameColors.danger,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
+                    ValueListenableBuilder<double>(
+                      valueListenable: game.hpNotifier,
+                      builder: (context, hp, _) =>
+                          HealthBar(hp: hp, maxHp: game.myMaxHp),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _zoneLabel(),
-                      style: const TextStyle(color: GameColors.amber),
+                    if (!game.endlessAmmo || game.usesFuel)
+                      const SizedBox(height: 6),
+                    _ammo(game),
+                  ],
+                ),
+              ),
+              // The buttons sit in the row beside the plate, so a long wave
+              // line pushes them aside instead of running underneath them,
+              // and a narrow window wraps the plate rather than overflowing.
+              Expanded(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _HudButtons(
+                      game: game,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const MuteButton(),
+                          LeaveRoundButton(game: game),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      child: IgnorePointer(
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _alive(game, 16),
+                              ValueListenableBuilder<int>(
+                                valueListenable: game.soldiersRunOver,
+                                builder: (context, n, _) => n == 0
+                                    ? const SizedBox()
+                                    : Text(
+                                        tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
+                                        style: const TextStyle(
+                                          color: GameColors.danger,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                _zoneLabel(),
+                                style: const TextStyle(color: GameColors.amber),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -661,11 +701,11 @@ class _HudOverlayState extends State<HudOverlay> {
             ],
           ),
           const SizedBox(height: 8),
-          KillFeedView(feed: game.killFeed),
+          IgnorePointer(child: KillFeedView(feed: game.killFeed)),
           const Spacer(),
           Align(
             alignment: Alignment.bottomRight,
-            child: MiniMap(game: game),
+            child: IgnorePointer(child: MiniMap(game: game)),
           ),
         ],
       ),

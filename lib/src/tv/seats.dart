@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/l10n.dart';
@@ -6,14 +7,27 @@ import '../ui/theme.dart';
 import '../ui/widgets/panel.dart';
 import 'tv_input.dart';
 
-/// Who steers a player's half of the split screen: a controller, or a phone
-/// paired with the screen.
+/// Who steers a player's half of the split screen: a controller, a phone
+/// paired with the screen, or on a computer the keyboard and mouse.
 @immutable
 class DuelSeat {
-  const DuelSeat.pad(this.pad, this.kind) : phone = null, phoneName = '';
+  const DuelSeat.pad(this.pad, this.kind)
+    : phone = null,
+      phoneName = '',
+      keyboard = false;
   const DuelSeat.phone(String this.phone, this.phoneName)
     : pad = -1,
-      kind = TvPadKind.none;
+      kind = TvPadKind.none,
+      keyboard = false;
+
+  /// The keyboard and mouse of a computer. They reach only the first
+  /// player's game, which holds the focus, so this seat is always the first.
+  const DuelSeat.keyboard()
+    : pad = -1,
+      kind = TvPadKind.none,
+      phone = null,
+      phoneName = '',
+      keyboard = true;
 
   /// Index into [TvInput.pads], -1 for a phone.
   final int pad;
@@ -22,28 +36,50 @@ class DuelSeat {
   /// Presence id of the phone, null for a controller.
   final String? phone;
   final String phoneName;
+  final bool keyboard;
 
-  String get label => phone != null
+  String get label => keyboard
+      ? tr('Tastatur', 'keyboard')
+      : phone != null
       ? (phoneName.isEmpty ? tr('Handy', 'phone') : phoneName)
       : kind == TvPadKind.gamepad
       ? 'Controller'
       : 'Siri Remote';
 }
 
-/// Changes whenever a controller or a phone comes or goes.
+/// Changes whenever a controller or a phone comes or goes, or the keyboard
+/// takes a seat.
 abstract final class TvInputSeats {
   static final Listenable listenable = Listenable.merge([
     TvInput.instance.count,
     PadScreen.instance.phones,
+    KeyboardSeat.enabled,
   ]);
 }
 
-/// Who can play a duel, in the order the halves are handed out: controllers
-/// with two sticks first, then phones, the Siri Remote last, as it is
-/// always there and the clumsiest to fight with.
+/// On a computer the keyboard can be the first player's seat, so one
+/// controller or phone is enough for two on the screen. The players switch
+/// it on: somebody alone with a controller should not get half a screen.
+abstract final class KeyboardSeat {
+  static final enabled = ValueNotifier<bool>(false);
+
+  /// A computer, in the browser or as the Mac app: a keyboard is at hand.
+  static bool get available =>
+      !onTv &&
+      defaultTargetPlatform != TargetPlatform.iOS &&
+      defaultTargetPlatform != TargetPlatform.android;
+
+  static bool get active => enabled.value && available;
+}
+
+/// Who can play a duel, in the order the halves are handed out: the
+/// keyboard when it takes a seat, controllers with two sticks, then phones,
+/// the Siri Remote last, as it is always there and the clumsiest to fight
+/// with.
 List<DuelSeat> duelSeats() {
   final pads = TvInput.instance.pads;
   return [
+    if (KeyboardSeat.active) const DuelSeat.keyboard(),
     for (final (i, pad) in pads.indexed)
       if (pad.kind == TvPadKind.gamepad) DuelSeat.pad(i, pad.kind),
     for (final (id, name) in PadScreen.instance.phones.value)

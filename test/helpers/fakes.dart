@@ -172,7 +172,8 @@ TankGame offlineGame({
   ScoreService? scores,
 }) => TankGame(
   net: net ?? FakeNet(),
-  myId: 'me',
+  // The game is the player its connection speaks for.
+  myId: net?.myId ?? 'me',
   scoreService: scores ?? FakeScores(),
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),
