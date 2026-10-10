@@ -3,6 +3,7 @@ import 'package:wargame/src/game/components/power_up.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/special_weapon.dart';
+import 'package:wargame/src/game/upgrades.dart';
 import 'package:wargame/src/net/pad_link.dart';
 import 'package:wargame/src/net/payloads/pad_payload.dart';
 
@@ -143,6 +144,67 @@ void main() {
       expect(back.credits, 300);
       expect(back.tower, TowerKind.cannon);
       expect(back.assist, false);
+    });
+
+    test('carries the defense shop and the host\'s calls', () {
+      const status = PadStatus(
+        phase: GamePhase.playing,
+        defense: true,
+        credits: 150,
+        shop: [(TowerKind.cannon, 100, true), (TowerKind.howitzer, 220, false)],
+        near: (TowerKind.flak, 2, 180, false),
+        upgrades: [
+          (UpgradeKind.armor, 1, 3, 100),
+          (UpgradeKind.gun, 3, 3, 400),
+        ],
+        callWave: true,
+        deciding: true,
+        canExtend: true,
+        canEnd: true,
+      );
+      final back = PadStatus.tryParse(status.toJson())!;
+      expect(back.shop, status.shop);
+      expect(back.near, status.near);
+      expect(back.upgrades, status.upgrades);
+      expect(back.callWave, isTrue);
+      expect(back.deciding, isTrue);
+      expect(back.canExtend, isTrue);
+      expect(back.canEnd, isTrue);
+      // A gun or an armour step within the funds, the maxed gun is not.
+      expect(back.towerReady, isTrue);
+      expect(back.upgradeReady, isTrue);
+      // An older screen sends none of it.
+      final plain = PadStatus.tryParse(
+        const PadStatus(phase: GamePhase.playing).toJson(),
+      )!;
+      expect(plain.shop, isEmpty);
+      expect(plain.near, isNull);
+      expect(plain.towerReady, isFalse);
+    });
+
+    test('a shop it does not know is dropped row by row', () {
+      final odd = PadStatus.tryParse({
+        'ph': 'playing',
+        'hp': 1,
+        'it': [],
+        'sh': [
+          ['laser', 10, true],
+          ['cannon', -5, true],
+          'x',
+        ],
+        'nr': ['flak', 'two', 3, true],
+        'up': [
+          ['armor', 1, 3],
+          ['gun', 1, 3, 200],
+        ],
+      })!;
+      expect(odd.shop, [(TowerKind.cannon, 0, true)]);
+      expect(odd.near, (TowerKind.flak, 0, 3, true));
+      expect(odd.upgrades, [(UpgradeKind.gun, 1, 3, 200)]);
+      expect(
+        PadStatus.tryParse({'ph': 'playing', 'hp': 1, 'it': [], 'nr': 4})?.near,
+        isNull,
+      );
     });
 
     test('odd values are tamed, broken ones dropped', () {

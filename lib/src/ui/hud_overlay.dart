@@ -978,12 +978,32 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _deskTab(String label, _Shop shop) {
     final open = _desk == shop;
-    return (open ? FilledButton.new : OutlinedButton.new)(
-      style: _buttonStyle,
-      onPressed: () => setState(() => _desk = shop),
-      child: Text(label, style: _small),
+    return _ready(
+      shop,
+      (open ? FilledButton.new : OutlinedButton.new)(
+        style: _buttonStyle,
+        onPressed: () => setState(() => _desk = shop),
+        child: Text(label, style: _small),
+      ),
     );
   }
+
+  /// Whether the funds reach for something behind the list [shop].
+  bool _affordable(_Shop shop) => switch (shop) {
+    _Shop.towers => game.anyTowerAffordable,
+    _Shop.upgrades => game.anyUpgradeAffordable,
+    _Shop.closed => false,
+  };
+
+  /// A dot on the corner of the button for [shop] while the funds reach for
+  /// something behind it, so a closed list still says when to look.
+  Widget _ready(_Shop shop, Widget button) => Badge(
+    isLabelVisible: _affordable(shop),
+    smallSize: 9,
+    backgroundColor: GameColors.amber,
+    offset: const Offset(-2, 2),
+    child: button,
+  );
 
   /// The host skips the rest of the break.
   Widget _callWave() {
@@ -1011,11 +1031,16 @@ class _DefensePanelState extends State<_DefensePanel> {
         button: true,
         selected: open,
         label: label,
+        value: _affordable(shop) ? tr('Mittel reichen', 'Funds suffice') : null,
         child: ExcludeSemantics(
-          child: (open ? FilledButton.new : OutlinedButton.new)(
-            style: _iconStyle,
-            onPressed: () => setState(() => _shop = open ? _Shop.closed : shop),
-            child: Icon(icon, size: 18),
+          child: _ready(
+            shop,
+            (open ? FilledButton.new : OutlinedButton.new)(
+              style: _iconStyle,
+              onPressed: () =>
+                  setState(() => _shop = open ? _Shop.closed : shop),
+              child: Icon(icon, size: 18),
+            ),
           ),
         ),
       ),
@@ -1179,32 +1204,37 @@ class _DefensePanelState extends State<_DefensePanel> {
                 ),
               ),
               const SizedBox(height: 4),
+              // One row, as asked in the play test: the two choices side by
+              // side, shrinking rather than wrapping on a narrow phone.
               if (host)
-                Wrap(
-                  alignment: touch ? WrapAlignment.end : WrapAlignment.start,
-                  spacing: 6,
-                  runSpacing: 4,
-                  children: [
-                    if (state.canExtend)
-                      FilledButton.icon(
-                        style: _buttonStyle,
-                        onPressed: game.extendDefense,
-                        icon: const Icon(Icons.add_outlined, size: 16),
-                        label: Text(
-                          tr('$more WELLEN', '$more WAVES'),
-                          style: _small,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: touch
+                      ? Alignment.centerRight
+                      : Alignment.centerLeft,
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (state.canExtend) ...[
+                        FilledButton.icon(
+                          style: _buttonStyle,
+                          onPressed: game.extendDefense,
+                          icon: const Icon(Icons.add_outlined, size: 16),
+                          label: Text(
+                            tr('$more WELLEN', '$more WAVES'),
+                            style: _small,
+                          ),
                         ),
+                        const SizedBox(width: 6),
+                      ],
+                      OutlinedButton.icon(
+                        style: _buyStyle(GameColors.sand),
+                        onPressed: game.withdrawDefense,
+                        icon: const Icon(Icons.flag_outlined, size: 16),
+                        label: Text(tr('BEENDEN', 'END'), style: _small),
                       ),
-                    OutlinedButton.icon(
-                      style: _buyStyle(GameColors.sand),
-                      onPressed: game.withdrawDefense,
-                      icon: const Icon(Icons.flag_outlined, size: 16),
-                      label: Text(
-                        tr('SIEG · BEENDEN', 'WIN · END'),
-                        style: _small,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 )
               else
                 Text(

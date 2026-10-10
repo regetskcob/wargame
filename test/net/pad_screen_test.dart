@@ -1,5 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/game_mode.dart';
+import 'package:wargame/src/game/upgrades.dart';
+import 'package:wargame/src/game/defense/tower.dart';
+import 'package:wargame/src/game/game_config.dart';
+import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/pad_link.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
@@ -8,6 +12,7 @@ import 'package:wargame/src/net/payloads/pad_payload.dart';
 import '../helpers/fakes.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
   late PadScreen screen;
   late TankGame main;
   late FakeSlots slots;
@@ -211,5 +216,49 @@ void main() {
       remote.act(PadActionKind.item);
       expect(lanes.last, isNull);
     });
+  });
+
+  test('the phone runs the defense shop and the host\'s calls', () async {
+    final game = await loadedGame();
+    screen.game = game;
+    game
+      ..update(0)
+      ..chooseMode(GameMode.defense)
+      ..startRound();
+    await Future<void>.delayed(const Duration(seconds: 3, milliseconds: 100));
+    game.update(0);
+    expect(game.phase.value, GamePhase.playing);
+    screen.debugPeers(const [('a', 'Anna')]);
+    void press(PadActionKind kind, [int slot = 0]) => screen.debugPadAction(
+      PadAction(id: '', kind: kind, slot: slot).toJson()..['id'] = 'a',
+    );
+
+    game.credits.value = 1000;
+    final status = PadScreen.statusOf(game);
+    expect(status.shop.map((t) => t.$1), contains(TowerKind.cannon));
+    expect(status.towerReady, isTrue);
+    expect(status.upgradeReady, isTrue);
+
+    press(PadActionKind.upgrade, UpgradeKind.armor.index);
+    expect(game.upgrades.value[UpgradeKind.armor], 1);
+    press(PadActionKind.upgrade, 99);
+    press(PadActionKind.place, TowerKind.flak.index);
+    expect(game.towerChoice.value, TowerKind.flak);
+
+    // The last regular wave held: the phone of the host extends.
+    game.publishDefense(
+      game.defense.value!.copyWith(
+        wave: GameConfig.defenseWaves,
+        nextWaveAt: DateTime.now().millisecondsSinceEpoch + 20000,
+      ),
+    );
+    final deciding = PadScreen.statusOf(game);
+    expect(deciding.deciding, isTrue);
+    expect(deciding.canExtend, isTrue);
+    expect(deciding.canEnd, isTrue);
+    press(PadActionKind.extend);
+    expect(game.defense.value!.extended, isTrue);
+    press(PadActionKind.end);
+    expect(game.phase.value, GamePhase.roundOver);
   });
 }

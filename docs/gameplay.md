@@ -165,7 +165,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   account sheet in the browser shows a pairing QR code, the app scans it
   (Account, Use as controller) or the phone camera opens it. The phone then
   shows the two sticks, the special weapon, the items and, in a defense
-  round, the gun buttons, and feels hits as a buzz. Without the app the
+  round, the whole shop: the guns to build where the tank stands, the
+  upgrade of the gun next to it, the tank's upgrades, the host's *Wave now*
+  and, after each stretch of waves, *+4 waves* or *End*. A dot on *Towers*
+  and *Upgrades* (on the screen's buttons as well) says the funds reach for
+  something behind them. Hits are felt as a buzz. Without the app the
   phone's browser does the same.
 - Game controllers: one steers the own tank in the browser, on iPhone, iPad,
   Android and the Apple TV, as a paired phone does; two play two on one

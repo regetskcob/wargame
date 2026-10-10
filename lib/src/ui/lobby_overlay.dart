@@ -339,6 +339,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             valueListenable: game.mapChoice,
             builder: (context, choice, _) => ChoiceRow<int>(
               allowNone: true,
+              balance: true,
               options: [
                 for (var i = 0; i < MapTheme.all.length; i++)
                   (i, MapTheme.all[i].name.toUpperCase(), null),
@@ -392,7 +393,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   TankType.values.length,
                 );
                 final width = (box.maxWidth - 8 * (columns - 1)) / columns;
+                // A last card alone on its row sits in the middle, not at
+                // the left edge under the others.
                 return Wrap(
+                  alignment: WrapAlignment.center,
                   spacing: 8,
                   runSpacing: 8,
                   children: [

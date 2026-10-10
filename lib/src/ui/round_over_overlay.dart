@@ -201,7 +201,12 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
             ],
             if (game.round?.participants.contains(game.myId) ?? false) ...[
               const SizedBox(height: 20),
-              _StatsRow(stats: game.roundStats),
+              _StatsRow(
+                stats: game.roundStats,
+                respawns:
+                    (game.round?.defense ?? false) ||
+                    (game.round?.flag ?? false),
+              ),
               RoundRewards(progress: game.progress),
             ],
             const SizedBox(height: 24),
@@ -379,9 +384,13 @@ String _flagLine(FlagMatch match, bool won) {
 }
 
 class _StatsRow extends StatelessWidget {
-  const _StatsRow({required this.stats});
+  const _StatsRow({required this.stats, this.respawns = false});
 
   final RoundStats stats;
+
+  /// A defense or flag round brings the tank back, so the time is how long
+  /// the round ran, not how long the tank lasted.
+  final bool respawns;
 
   static String _time(double? seconds) {
     final total = (seconds ?? 0).round();
@@ -397,7 +406,10 @@ class _StatsRow extends StatelessWidget {
       (tr('ABSCHÜSSE', 'KILLS'), '${stats.kills}'),
       (tr('SCHADEN', 'DAMAGE'), '${stats.damage.round()}'),
       (tr('TREFFERQUOTE', 'ACCURACY'), accuracy),
-      (tr('ÜBERLEBT', 'SURVIVED'), _time(stats.survived)),
+      (
+        respawns ? tr('DAUER', 'DURATION') : tr('ÜBERLEBT', 'SURVIVED'),
+        _time(stats.survived),
+      ),
     ];
     return Wrap(
       alignment: WrapAlignment.center,

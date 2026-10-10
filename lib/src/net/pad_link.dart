@@ -10,6 +10,8 @@ import '../game/game_config.dart';
 import '../game/game_mode.dart';
 import '../game/tank_game.dart';
 import '../game/touch_input.dart';
+import '../game/defense/tower.dart';
+import '../game/upgrades.dart';
 import 'payloads/pad_payload.dart';
 import 'retry_backoff.dart';
 import 'room.dart';
@@ -428,6 +430,10 @@ class PadScreen extends _PadChannel {
   @visibleForTesting
   void debugPadInput(Map<String, dynamic> json) => _receive(_Event.pad, json);
 
+  /// Lets a test play the presses of phones.
+  @visibleForTesting
+  void debugPadAction(Map<String, dynamic> json) => _receive(_Event.act, json);
+
   /// Hands the phone [padId] to [target], as a duel does for its halves.
   void route(String padId, TankGame target) {
     _release(gameOf(padId));
@@ -572,6 +578,25 @@ class PadScreen extends _PadChannel {
             target.buildTower();
           case PadActionKind.cycle:
             target.cycleTowerKind();
+          case PadActionKind.place:
+            if (action.slot >= 0 && action.slot < TowerKind.values.length) {
+              target.buildTower(TowerKind.values[action.slot]);
+            }
+          case PadActionKind.raise:
+            if (target.nearTower.value case final near?) {
+              target.upgradeTower(near);
+            }
+          case PadActionKind.upgrade:
+            if (action.slot >= 0 && action.slot < UpgradeKind.values.length) {
+              target.buyUpgrade(UpgradeKind.values[action.slot]);
+            }
+          // The game checks that the phone's tank is the host's.
+          case PadActionKind.wave:
+            target.callWaveNow();
+          case PadActionKind.extend:
+            target.extendDefense();
+          case PadActionKind.end:
+            target.withdrawDefense();
         }
       case _Event.status:
     }
@@ -618,6 +643,7 @@ class PadScreen extends _PadChannel {
   static PadStatus statusOf(TankGame game) {
     final tank = game.myTank;
     final defense = game.mode.value == GameMode.defense;
+    final host = defense && game.round?.botHost == game.myId;
     final special = game.specialNotifier.value;
     return PadStatus(
       phase: game.phase.value,
@@ -634,6 +660,38 @@ class PadScreen extends _PadChannel {
       credits: defense ? game.credits.value : 0,
       tower: defense ? game.towerChoice.value : null,
       assist: game.difficulty != BotLevel.hard,
+      shop: [
+        if (defense)
+          for (final kind in TowerKind.values)
+            if (!kind.extension || game.extended)
+              (kind, game.buildCost(kind), game.canAffordTower(kind)),
+      ],
+      near: switch (game.nearTower.value) {
+        final near? when defense => (
+          near.kind,
+          near.level,
+          near.kind.upgradable &&
+                  near.level < TowerKind.levelLimit(extended: game.extended)
+              ? near.kind.upgradeCost(near.level)
+              : 0,
+          game.canAffordNearTower,
+        ),
+        _ => null,
+      },
+      upgrades: [
+        if (defense)
+          for (final kind in UpgradeKind.values)
+            (
+              kind,
+              game.upgrades.value[kind] ?? 0,
+              GameConfig.upgradeLimit(extended: game.extended),
+              kind.costFrom(game.upgrades.value[kind] ?? 0),
+            ),
+      ],
+      callWave: defense && game.canCallWave,
+      deciding: defense && (game.defense.value?.deciding ?? false),
+      canExtend: host && (game.defense.value?.canExtend ?? false),
+      canEnd: host && game.defenseWonAlready,
     );
   }
 }

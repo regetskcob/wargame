@@ -612,6 +612,45 @@ extension TankGameDefense on TankGame {
     );
   }
 
+  /// Whether a gun or trench of [kind] could go up now as far as the funds,
+  /// the wave and the limit go; where the tank stands is for the build to
+  /// say.
+  bool canAffordTower(TowerKind kind) {
+    if (!kind.unlockedIn(defense.value?.wave ?? 0, extended: extended) ||
+        credits.value < buildCost(kind)) {
+      return false;
+    }
+    final mine = towers.values
+        .where(
+          (t) => t.ownerId == myId && !t.isHq && t.kind.isGun == kind.isGun,
+        )
+        .length;
+    return mine < (kind.isGun ? towerLimit : GameConfig.maxTrenches);
+  }
+
+  /// Whether the own gun next to the tank can go up a level now.
+  bool get canAffordNearTower {
+    final near = nearTower.value;
+    return near != null &&
+        near.kind.upgradable &&
+        near.level < TowerKind.levelLimit(extended: extended) &&
+        credits.value >= near.kind.upgradeCost(near.level);
+  }
+
+  /// Whether the next step of [kind] for the own tank is within the funds.
+  bool canAffordUpgrade(UpgradeKind kind) {
+    final level = _level(kind);
+    return level < GameConfig.upgradeLimit(extended: extended) &&
+        credits.value >= kind.costFrom(level);
+  }
+
+  /// Something to build or a gun to upgrade, for the dot on the guns button.
+  bool get anyTowerAffordable =>
+      canAffordNearTower || TowerKind.values.any(canAffordTower);
+
+  /// An upgrade for the tank, for the dot on the upgrades button.
+  bool get anyUpgradeAffordable => UpgradeKind.values.any(canAffordUpgrade);
+
   /// B builds this kind of gun next.
   void cycleTowerKind() {
     if (defenseMap == null) {
