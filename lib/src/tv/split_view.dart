@@ -40,91 +40,99 @@ class TvSplitView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListenableBuilder(
-      listenable: Listenable.merge([second, host.phase, host.overview]),
-      builder: (context, _) {
-        final guest = second.guest;
-        // A duel shows the whole field instead, the second game unseen.
-        final split =
-            guest != null &&
-            _inRound.contains(host.phase.value) &&
-            !host.overview.value;
-        return LayoutBuilder(
-          builder: (context, box) {
-            // Side by side on a wide screen, one above the other on a tablet
-            // held upright.
-            final wide = box.maxWidth >= box.maxHeight;
-            final full = Offset.zero & box.biggest;
-            final first = wide
-                ? Rect.fromLTRB(0, 0, box.maxWidth / 2 - 2, box.maxHeight)
-                : Rect.fromLTRB(0, 0, box.maxWidth, box.maxHeight / 2 - 2);
-            final second = wide
-                ? Rect.fromLTRB(
-                    box.maxWidth / 2 + 2,
-                    0,
-                    box.maxWidth,
-                    box.maxHeight,
-                  )
-                : Rect.fromLTRB(
-                    0,
-                    box.maxHeight / 2 + 2,
-                    box.maxWidth,
-                    box.maxHeight,
-                  );
-            return Stack(
-              children: [
-                Positioned.fromRect(
-                  rect: split ? first : full,
-                  child: ClipRect(child: child),
+      listenable: second,
+      builder: (context, _) => ListenableBuilder(
+        listenable: Listenable.merge([
+          host.phase,
+          host.overview,
+          ?second.guest?.phase,
+        ]),
+        builder: (context, _) => _halves(context),
+      ),
+    );
+  }
+
+  Widget _halves(BuildContext context) {
+    final guest = second.guest;
+    // A duel shows the whole field instead, the second game unseen. A
+    // second player who came in during a round waits for the next one:
+    // their half stayed empty until then, so the first keeps the
+    // whole screen.
+    final split =
+        guest != null &&
+        _inRound.contains(host.phase.value) &&
+        _inRound.contains(guest.phase.value) &&
+        !host.overview.value;
+    return LayoutBuilder(
+      builder: (context, box) {
+        // Side by side on a wide screen, one above the other on a tablet
+        // held upright.
+        final wide = box.maxWidth >= box.maxHeight;
+        final full = Offset.zero & box.biggest;
+        final first = wide
+            ? Rect.fromLTRB(0, 0, box.maxWidth / 2 - 2, box.maxHeight)
+            : Rect.fromLTRB(0, 0, box.maxWidth, box.maxHeight / 2 - 2);
+        final second = wide
+            ? Rect.fromLTRB(
+                box.maxWidth / 2 + 2,
+                0,
+                box.maxWidth,
+                box.maxHeight,
+              )
+            : Rect.fromLTRB(
+                0,
+                box.maxHeight / 2 + 2,
+                box.maxWidth,
+                box.maxHeight,
+              );
+        return Stack(
+          children: [
+            Positioned.fromRect(
+              rect: split ? first : full,
+              child: ClipRect(child: child),
+            ),
+            if (guest != null)
+              Positioned.fromRect(
+                rect: second,
+                // Unseen between rounds, but running: it joins the
+                // rounds of the room like any other pilot.
+                child: Offstage(
+                  offstage: !split,
+                  child: ExcludeFocus(child: ClipRect(child: _guest(guest))),
                 ),
-                if (guest != null)
-                  Positioned.fromRect(
-                    rect: second,
-                    // Unseen between rounds, but running: it joins the
-                    // rounds of the room like any other pilot.
-                    child: Offstage(
-                      offstage: !split,
-                      child: ExcludeFocus(
-                        child: ClipRect(child: _guest(guest)),
+              ),
+            if (split)
+              for (final (player, rect) in [first, second].indexed)
+                Positioned.fromRect(
+                  rect: rect,
+                  child: IgnorePointer(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        border: Border.all(
+                          color: halfColor(player == 0 ? host : guest, player),
+                          width: 3,
+                        ),
                       ),
-                    ),
-                  ),
-                if (split)
-                  for (final (player, rect) in [first, second].indexed)
-                    Positioned.fromRect(
-                      rect: rect,
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            border: Border.all(
-                              color: halfColor(
-                                player == 0 ? host : guest,
-                                player,
-                              ),
-                              width: 3,
+                      child: Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: PlayerTag(
+                            player: player,
+                            color: halfColor(
+                              player == 0 ? host : guest,
+                              player,
                             ),
-                          ),
-                          child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: PlayerTag(
-                                player: player,
-                                color: halfColor(
-                                  player == 0 ? host : guest,
-                                  player,
-                                ),
-                                seat: player < this.second.seats.length
-                                    ? this.second.seats[player]
-                                    : null,
-                              ),
-                            ),
+                            seat: player < this.second.seats.length
+                                ? this.second.seats[player]
+                                : null,
                           ),
                         ),
                       ),
                     ),
-              ],
-            );
-          },
+                  ),
+                ),
+          ],
         );
       },
     );
