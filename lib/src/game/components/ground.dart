@@ -5,10 +5,11 @@ import 'package:flame/components.dart';
 
 import '../game_config.dart';
 import '../map_theme.dart';
+import 'static_picture.dart';
 
 /// The ground of a map: patches of colour and a ring where the tanks start.
 /// City maps are paved and cut by two roads.
-class Ground extends PositionComponent {
+class Ground extends PositionComponent with StaticPicture {
   Ground(this.theme, {this.plain = false}) : super(priority: -20) {
     final random = Random(7);
     _patches = [
@@ -34,12 +35,16 @@ class Ground extends PositionComponent {
   late final List<(Offset, double, Color)> _patches;
 
   @override
-  void render(Canvas canvas) {
+  void render(Canvas canvas) => renderStatic(canvas);
+
+  @override
+  void paintStatic(Canvas canvas) {
     const reach = GameConfig.groundReach;
     canvas.drawRect(
       Rect.fromCircle(center: Offset.zero, radius: reach),
       Paint()..color = theme.ground,
     );
+    final patch = Paint();
     for (final (offset, patchRadius, color) in _patches) {
       canvas.drawOval(
         Rect.fromCenter(
@@ -47,7 +52,7 @@ class Ground extends PositionComponent {
           width: patchRadius * 2,
           height: patchRadius * 1.4,
         ),
-        Paint()..color = color,
+        patch..color = color,
       );
     }
     if (plain) {

@@ -54,4 +54,35 @@ void main() {
     expect(player.done, isTrue);
     expect(replay.length, 900);
   });
+
+  test('a long round keeps positions sparser but every shot', () {
+    var now = DateTime(2026, 10, 10);
+    withClock(Clock(() => now), () {
+      final recorder = ReplayRecorder()
+        ..start(
+          round(now.millisecondsSinceEpoch),
+          names: const {},
+          styles: const {},
+        );
+      // Fill up to the point where positions get thinned, at 10 Hz.
+      for (var i = 0; i < ReplayRecorder.thinAfter; i++) {
+        now = now.add(const Duration(milliseconds: 100));
+        recorder.add(NetEvent.state, {'id': 'a'});
+      }
+      for (var i = 0; i < 100; i++) {
+        now = now.add(const Duration(milliseconds: 100));
+        recorder
+          ..add(NetEvent.state, {'id': 'a'})
+          ..add(NetEvent.state, {'id': 'b'})
+          ..add(NetEvent.shoot, {'id': 'a'});
+      }
+      final events = recorder.finish()!.events.skip(ReplayRecorder.thinAfter);
+      expect(events.where((e) => e.event == NetEvent.shoot).length, 100);
+      // Ten seconds at one position every half second, for each tank.
+      final a = events.where(
+        (e) => e.event == NetEvent.state && e.payload['id'] == 'a',
+      );
+      expect(a.length, inInclusiveRange(19, 21));
+    });
+  });
 }

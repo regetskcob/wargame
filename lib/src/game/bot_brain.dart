@@ -149,12 +149,30 @@ class BotBrain extends Component with HasGameRef<TankGame> {
   double _headingTo(Vector2 point) =>
       atan2(point.x - tank.position.x, -(point.y - tank.position.y));
 
-  Iterable<Obstacle> get _obstacles =>
-      gameRef.world.descendants().whereType<Obstacle>();
+  /// Walking the whole world for every probe cost more than the rest of the
+  /// brain; obstacles change rarely, so the list is reused for a second.
+  List<Obstacle> _obstacleCache = const [];
+  DateTime? _obstaclesAt;
+  static const _obstaclesFor = Duration(seconds: 1);
+
+  List<Obstacle> get _obstacles {
+    final now = clock.now();
+    final at = _obstaclesAt;
+    if (at == null || now.difference(at).abs() >= _obstaclesFor) {
+      _obstaclesAt = now;
+      _obstacleCache = gameRef.world
+          .descendants()
+          .whereType<Obstacle>()
+          .toList();
+    }
+    return _obstacleCache;
+  }
 
   bool _blocked(Vector2 point, {double margin = 0}) {
     for (final obstacle in _obstacles) {
-      if (obstacle.toRect().inflate(margin).contains(point.toOffset())) {
+      // A building shot down since the last walk is no wall any more.
+      if (obstacle.isMounted &&
+          obstacle.toRect().inflate(margin).contains(point.toOffset())) {
         return true;
       }
     }

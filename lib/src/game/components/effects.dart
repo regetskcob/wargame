@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui' hide TextStyle;
 
@@ -15,11 +16,18 @@ class TrackLayer extends Component {
 
   final _marks = <_Mark>[];
 
-  /// Scorched holes from mines and barrages, kept for the whole round.
-  final _craters = <(double, double, double)>[];
+  /// Scorched holes from mines and barrages. A long defense round leaves
+  /// thousands, so only the newest stay: three circles each, every frame.
+  final _craters = Queue<(double, double, double)>();
+  static const craterCapacity = 150;
+
+  int get craterCount => _craters.length;
 
   void addCrater(Vector2 at, double radius) {
     _craters.add((at.x, at.y, radius));
+    while (_craters.length > craterCapacity) {
+      _craters.removeFirst();
+    }
   }
 
   void addMarks(

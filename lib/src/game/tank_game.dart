@@ -729,6 +729,9 @@ class TankGame extends FlameGame
       _staleTimer = 0;
       _dropSilentTanks();
       closeWhenIdle();
+      // Planes, drones, brains and wrecks that are gone would otherwise stay
+      // referenced until the round ends; once a second keeps it cheap.
+      _extras.removeWhere((extra) => extra.isRemoved);
     }
     _engineTimer += dt;
     if (_engineTimer >= 0.1) {

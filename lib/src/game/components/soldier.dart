@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:math';
 import 'dart:ui';
 
@@ -201,6 +202,34 @@ class Soldier extends PositionComponent {
     }
   }
 
+  // Paints shared by every soldier: a defense wave has dozens on the field
+  // and each one used to make a dozen paints per frame.
+  static final _shadow = Paint()..color = const Color(0x44000000);
+  static final _lines = Paint()
+    ..strokeWidth = 0.8
+    ..color = const Color(0xFFE6E2D3);
+  static final _canopy = Paint();
+  static final _canopyEdge = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1
+    ..color = const Color(0xFF4A5A2E);
+  static final _boot = Paint()..color = const Color(0xFF2B2B22);
+  static final _tube = Paint()
+    ..strokeWidth = 3
+    ..color = const Color(0xFF4B5320);
+  static final _rifle = Paint()
+    ..strokeWidth = 1.6
+    ..color = const Color(0xFF222222);
+  static final _muzzle = Paint()..color = const Color(0xFFFFD27A);
+  static final _shoulders = Paint()..color = const Color(0xFF6B7F3A);
+  static final _pack = Paint()..color = const Color(0xFF4A5A2E);
+  static final _skin = Paint()..color = const Color(0xFFC9A27E);
+  static final _helmet = Paint()..color = const Color(0xFF3E4A28);
+  static final _band = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeWidth = 1.3;
+  static final _shine = Paint()..color = const Color(0x33FFFFFF);
+
   @override
   void render(Canvas canvas) {
     final c = Offset(size.x / 2, size.y / 2);
@@ -210,15 +239,12 @@ class Soldier extends PositionComponent {
         width: 12,
         height: 8,
       ),
-      Paint()..color = const Color(0x44000000),
+      _shadow,
     );
     if (_wasAirborne) {
       // Canopy with its lines.
-      final lines = Paint()
-        ..strokeWidth = 0.8
-        ..color = const Color(0xFFE6E2D3);
-      canvas.drawLine(c, c.translate(-13, -19), lines);
-      canvas.drawLine(c, c.translate(13, -19), lines);
+      canvas.drawLine(c, c.translate(-13, -19), _lines);
+      canvas.drawLine(c, c.translate(13, -19), _lines);
       final canopy = Rect.fromCenter(
         center: c.translate(0, -19),
         width: 28,
@@ -229,79 +255,45 @@ class Soldier extends PositionComponent {
         pi,
         pi,
         true,
-        Paint()..color = tint ?? const Color(0xFFC8D6A0),
+        _canopy..color = tint ?? const Color(0xFFC8D6A0),
       );
-      canvas.drawArc(
-        canopy,
-        pi,
-        pi,
-        true,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1
-          ..color = const Color(0xFF4A5A2E),
-      );
+      canvas.drawArc(canopy, pi, pi, true, _canopyEdge);
     }
     // Legs
     final swing = sin(_gait) * 2.2;
-    final boot = Paint()..color = const Color(0xFF2B2B22);
-    canvas.drawCircle(c.translate(-2.2, 3 + swing), 1.9, boot);
-    canvas.drawCircle(c.translate(2.2, 3 - swing), 1.9, boot);
+    canvas.drawCircle(c.translate(-2.2, 3 + swing), 1.9, _boot);
+    canvas.drawCircle(c.translate(2.2, 3 - swing), 1.9, _boot);
     if (rocket) {
       // Launch tube over the shoulder.
-      canvas.drawLine(
-        c.translate(3.5, 5),
-        c.translate(3.5, -11),
-        Paint()
-          ..strokeWidth = 3
-          ..color = const Color(0xFF4B5320),
-      );
+      canvas.drawLine(c.translate(3.5, 5), c.translate(3.5, -11), _tube);
     } else {
-      canvas.drawLine(
-        c.translate(3, 2),
-        c.translate(3, -9),
-        Paint()
-          ..strokeWidth = 1.6
-          ..color = const Color(0xFF222222),
-      );
+      canvas.drawLine(c.translate(3, 2), c.translate(3, -9), _rifle);
     }
     if (_flash > 0) {
       canvas.drawCircle(
         c.translate(rocket ? 3.5 : 3, rocket ? -12 : -10),
         rocket ? 4 : 2.5,
-        Paint()..color = const Color(0xFFFFD27A),
+        _muzzle,
       );
     }
     // Shoulders and backpack
     canvas.drawOval(
       Rect.fromCenter(center: c, width: 12, height: 6.5),
-      Paint()..color = const Color(0xFF6B7F3A),
+      _shoulders,
     );
     canvas.drawOval(
       Rect.fromCenter(center: c.translate(0, 2.4), width: 7, height: 4.5),
-      Paint()..color = const Color(0xFF4A5A2E),
+      _pack,
     );
     // Arms and helmet
-    final skin = Paint()..color = const Color(0xFFC9A27E);
-    canvas.drawCircle(c.translate(-4.6, -1.2 + swing * 0.4), 1.4, skin);
-    canvas.drawCircle(c.translate(3.4, -3.5), 1.4, skin);
-    canvas.drawCircle(c, 3.4, Paint()..color = const Color(0xFF3E4A28));
+    canvas.drawCircle(c.translate(-4.6, -1.2 + swing * 0.4), 1.4, _skin);
+    canvas.drawCircle(c.translate(3.4, -3.5), 1.4, _skin);
+    canvas.drawCircle(c, 3.4, _helmet);
     final band = tint;
     if (band != null) {
-      canvas.drawCircle(
-        c,
-        3.4,
-        Paint()
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 1.3
-          ..color = band,
-      );
+      canvas.drawCircle(c, 3.4, _band..color = band);
     }
-    canvas.drawCircle(
-      c.translate(-0.7, -0.7),
-      1.2,
-      Paint()..color = const Color(0x33FFFFFF),
-    );
+    canvas.drawCircle(c.translate(-0.7, -0.7), 1.2, _shine);
   }
 }
 
@@ -395,15 +387,25 @@ class SoldierField extends Component {
   /// Soldiers of the seed, by their index.
   final soldiers = <Soldier>[];
 
-  /// Soldiers that came in during the round, by their key.
+  /// Soldiers that came in during the round and still live, by their key.
+  /// The fallen leave it, a defense round brings in hundreds.
   final squads = <String, Soldier>{};
+
+  /// Squads that came in already, so a repeated message cannot bring a
+  /// fallen squad back. Their soldiers are no longer in [squads], and a late
+  /// `soldier` message for one of them finds nobody and is ignored.
+  final _squadIds = <String>{};
+  final _splats = Queue<BloodSplat>();
+  static const _splatCapacity = 60;
   bool _built = false;
   bool get built => _built;
   final _pending = <Soldier>[];
   final _announced = <double>{};
 
   /// Every soldier, also those still waiting for their drop or march.
-  Iterable<Soldier> get all => [...soldiers, ...squads.values];
+  /// A view, no copy: it is read several times a frame. Callers that kill
+  /// soldiers while walking it take a copy themselves.
+  Iterable<Soldier> get all => soldiers.followedBy(squads.values);
 
   /// Seconds since the round clock started.
   double get clock =>
@@ -422,17 +424,20 @@ class SoldierField extends Component {
   }
 
   void addSplat(Vector2 at, int index) {
-    add(BloodSplat(position: at.clone(), seed: index));
-    final splats = children.whereType<BloodSplat>().toList();
-    if (splats.length > 60) {
-      splats.first.removeFromParent();
+    final splat = BloodSplat(position: at.clone(), seed: index);
+    add(splat);
+    _splats.add(splat);
+    // Counting children would include splats still on their way out, so the
+    // cap never held; the queue knows the oldest.
+    while (_splats.length > _splatCapacity) {
+      _splats.removeFirst().removeFromParent();
     }
   }
 
   /// Brings in the squad of [payload]. [tint] marks the side, [map] is the
   /// road of a defense round for a squad that marches.
   void addSquad(SquadPayload payload, {Color? tint, DefenseMap? map}) {
-    if (squads.containsKey('${payload.squad}/0')) {
+    if (!_squadIds.add(payload.squad)) {
       return;
     }
     final random = Random(stableHash(payload.squad));
@@ -569,6 +574,9 @@ class SoldierField extends Component {
   void update(double dt) {
     if (!_built && isMounted) {
       _build();
+    }
+    if (squads.isNotEmpty) {
+      squads.removeWhere((_, soldier) => soldier.dead);
     }
     if (_pending.isNotEmpty) {
       final now = clock;

@@ -209,9 +209,14 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
     _spawnTimer -= dt;
     if (_queue.isNotEmpty && _spawnTimer <= 0) {
       final spawn = _queue.first;
-      final room =
-          spawn != _Spawn.tank ||
-          gameRef.enemiesAlive < GameConfig.maxEnemiesAlive * _lanes.length;
+      final room = switch (spawn) {
+        _Spawn.tank =>
+          gameRef.enemiesAlive < GameConfig.maxEnemiesAlive * _lanes.length,
+        _Spawn.helicopter ||
+        _Spawn.jet ||
+        _Spawn.drone => _airAlive < GameConfig.maxEnemyAirAlive * _lanes.length,
+        _Spawn.squad => true,
+      };
       if (room) {
         _queue.removeAt(0);
         // The same wave down every road, so neither side has it easier.
@@ -257,6 +262,11 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
 enum _Spawn { tank, squad, helicopter, jet, drone }
 
 extension on DefenseDirector {
+  /// Aircraft and drones of the waves still flying, by their `td-` ids.
+  int get _airAlive =>
+      gameRef.aircraft.keys.where((id) => id.startsWith('td-')).length +
+      gameRef.drones.keys.where((id) => id.startsWith('td-')).length;
+
   /// A squad leads the way, the aircraft come in between the tanks, the
   /// drones last.
   List<_Spawn> _order(WavePlan plan) {

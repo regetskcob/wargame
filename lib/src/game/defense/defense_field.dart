@@ -7,6 +7,7 @@ import 'package:flame/components.dart';
 import '../game_config.dart';
 import '../components/tree.dart';
 import '../components/obstacle.dart';
+import '../components/static_picture.dart';
 import '../map_theme.dart';
 import 'defense_map.dart';
 
@@ -188,7 +189,7 @@ class _Ground extends Component {
   }
 }
 
-class _River extends PositionComponent {
+class _River extends PositionComponent with StaticPicture {
   _River({required this.map, required this.theme}) : super(priority: -16);
 
   final DefenseMap map;
@@ -200,8 +201,15 @@ class _River extends PositionComponent {
     _time += dt;
   }
 
+  static final _ripple = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round
+    ..strokeWidth = 2
+    ..color = const Color(0x55FFFFFF);
+
+  /// Banks and water, recorded once; only the ripples move.
   @override
-  void render(Canvas canvas) {
+  void paintStatic(Canvas canvas) {
     final line = Path()..moveTo(map.river.first.x, map.river.first.y);
     for (final point in map.river.skip(1)) {
       line.lineTo(point.x, point.y);
@@ -231,8 +239,13 @@ class _River extends PositionComponent {
         ice ? const Color(0xFF8DB0C4) : const Color(0xFF3B7194),
       ),
     );
+  }
+
+  @override
+  void render(Canvas canvas) {
+    renderStatic(canvas);
     // Ripples that drift downstream.
-    final ripple = stroke(2, const Color(0x55FFFFFF));
+    final ripple = _ripple;
     final shift = (_time * 30) % 90;
     for (var i = 0; i < map.river.length - 1; i++) {
       final a = map.river[i];
@@ -292,14 +305,18 @@ void _drawBridge(Canvas canvas, Bridge bridge) {
   canvas.restore();
 }
 
-class _Road extends PositionComponent {
+class _Road extends PositionComponent with StaticPicture {
   _Road({required this.map, required this.theme}) : super(priority: -15);
 
   final DefenseMap map;
   final MapTheme theme;
 
   @override
-  void render(Canvas canvas) {
+  void render(Canvas canvas) => renderStatic(canvas);
+
+  /// Road, chevrons and bridges never change in a round.
+  @override
+  void paintStatic(Canvas canvas) {
     final outside = Path()
       ..fillType = PathFillType.evenOdd
       ..addRect(

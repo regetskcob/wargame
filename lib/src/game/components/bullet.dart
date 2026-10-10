@@ -53,6 +53,10 @@ class Bullet extends PositionComponent
 
   double _ttl = GameConfig.bulletTtl;
 
+  // Made once per shell, not per frame: the colour never changes.
+  late final _core = Paint()..color = color;
+  late final _glow = Paint()..color = color.withValues(alpha: 0.3);
+
   /// Seconds of flight before a shell can hit a depot.
   static const _armSeconds = 0.1;
 
@@ -63,7 +67,7 @@ class Bullet extends PositionComponent
 
   @override
   void update(double dt) {
-    position.add(velocity * dt);
+    position.addScaled(velocity, dt);
     _ttl -= dt;
     if (_ttl <= 0) {
       removeFromParent();
@@ -106,11 +110,11 @@ class Bullet extends PositionComponent
   void render(Canvas canvas) {
     final center = (size / 2).toOffset();
     if (small) {
-      canvas.drawCircle(center, 1.4, Paint()..color = color);
+      canvas.drawCircle(center, 1.4, _core);
       return;
     }
-    canvas.drawCircle(center, 5, Paint()..color = color.withValues(alpha: 0.3));
-    canvas.drawCircle(center, 2.5, Paint()..color = color);
+    canvas.drawCircle(center, 5, _glow);
+    canvas.drawCircle(center, 2.5, _core);
   }
 
   @override
