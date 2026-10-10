@@ -239,6 +239,12 @@ h3 { font-size: 18px; letter-spacing: 0.1em; }
   border: 1.5px solid rgba(138, 154, 91, 0.5);
 }
 
+/* Wide enough for all of them: side by side across the page, no scrolling. */
+@media (min-width: 1100px) {
+  .shots { margin: 0; padding: 0; overflow: visible; }
+  .shots img { flex: 1 1 0; width: auto; min-width: 0; }
+}
+
 .pledge {
   margin: clamp(32px, 5vw, 56px) 0 clamp(40px, 6vw, 72px);
   text-align: center;

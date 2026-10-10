@@ -12,6 +12,21 @@
         "8080"
       ],
       "port": 8080
+    },
+    {
+      "name": "site",
+      "runtimeExecutable": "hugo",
+      "runtimeArgs": [
+        "server",
+        "-s",
+        "site",
+        "--port",
+        "1313",
+        "--baseURL",
+        "http://localhost:1313/wargame/",
+        "--appendPort=false"
+      ],
+      "port": 1313
     }
   ]
 }
