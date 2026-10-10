@@ -491,7 +491,11 @@ extension TankGameDefense on TankGame {
         ? build.isGun
               ? tr('Höchstens $limit Geschütze', 'At most $limit turrets')
               : tr('Höchstens $limit Gräben', 'At most $limit trenches')
-        : map.whyNotBuild(tank.position, towers.values.map((t) => t.position));
+        : map.whyNotBuild(
+            tank.position,
+            towers.values.map((t) => t.position),
+            onRoad: !build.isGun,
+          );
     if (reason != null) {
       showNotice(reason.toUpperCase());
       return;
@@ -728,10 +732,12 @@ extension TankGameDefense on TankGame {
     ]);
   }
 
-  /// Whether a tank at [at] stands in a trench, any player's.
-  bool inTrench(Vector2 at) => towers.values.any(
+  /// Whether the tank of [of] at [at] stands in a trench of its own side.
+  /// A trench across the road gives the enemy rolling over it no cover.
+  bool inTrench(Vector2 at, {required String of}) => towers.values.any(
     (t) =>
         t.kind == TowerKind.trench &&
+        !hurtsTower(of, t.ownerId) &&
         t.position.distanceTo(at) < GameConfig.trenchReach,
   );
 

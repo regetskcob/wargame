@@ -449,22 +449,21 @@ class _HudOverlayState extends State<HudOverlay> {
   }
 
   /// Shells, and below them the fuel from the middle level on. The easy
-  /// level hides the fuel and never runs out of shells.
+  /// level hides the fuel and never runs out of shells, so it shows
+  /// neither: an endless gauge would only take room.
   Widget _ammo(TankGame game) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        ValueListenableBuilder<int>(
-          valueListenable: game.ammoNotifier,
-          builder: (context, ammo, _) => AmmoGauge(
-            ammo: ammo,
-            maxAmmo: game.myMagazine,
-            endless: game.endlessAmmo,
+        if (!game.endlessAmmo)
+          ValueListenableBuilder<int>(
+            valueListenable: game.ammoNotifier,
+            builder: (context, ammo, _) =>
+                AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, endless: false),
           ),
-        ),
         if (game.usesFuel) ...[
-          const SizedBox(height: 6),
+          if (!game.endlessAmmo) const SizedBox(height: 6),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
             builder: (context, fuel, _) => FuelGauge(fuel: fuel),
@@ -587,7 +586,7 @@ class _HudOverlayState extends State<HudOverlay> {
   /// Short windows such as a laptop browser bring it up under the gauges.
   bool _gaugesMeetInventory(TankGame game, double height) {
     final scale = MediaQuery.textScalerOf(context).scale(1);
-    final plates = game.usesFuel ? 3 : 2;
+    final plates = 1 + (game.endlessAmmo ? 0 : 1) + (game.usesFuel ? 1 : 0);
     final gaugesBottom = 16 + plates * _plateHeight * scale;
     // Same placement as the Align(-1, 0.1) inside the SafeArea in build().
     final inventoryTop = 8 + (height - 16 - _inventoryHeight) * 0.55;
@@ -623,7 +622,8 @@ class _HudOverlayState extends State<HudOverlay> {
                     builder: (context, hp, _) =>
                         HealthBar(hp: hp, maxHp: game.myMaxHp),
                   ),
-                  const SizedBox(height: 6),
+                  if (!game.endlessAmmo || game.usesFuel)
+                    const SizedBox(height: 6),
                   _ammo(game),
                 ],
               ),
@@ -827,6 +827,10 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _shopDesktop(int credits) {
     final near = game.nearTower.value;
+    final bounty = GameConfig.bountyIn(
+      GameConfig.creditsPerKill,
+      max(1, game.defense.value?.wave ?? 1),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -841,10 +845,12 @@ class _DefensePanelState extends State<_DefensePanel> {
         ),
         Text(
           tr(
-            'Geld gibt es für eigene Abschüsse (+${GameConfig.creditsPerKill}) '
-                'und jede abgewehrte Welle (+${GameConfig.waveBonus}).',
-            'Money comes with your own kills (+${GameConfig.creditsPerKill}) '
-                'and every wave beaten off (+${GameConfig.waveBonus}).',
+            'Geld gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
+                'jeder Welle weniger) und jede abgewehrte Welle '
+                '(+${GameConfig.waveBonus}).',
+            'Money comes with your own kills (a tank now +$bounty, less '
+                'with every wave) and every wave beaten off '
+                '(+${GameConfig.waveBonus}).',
           ),
           style: const TextStyle(fontSize: 11, color: GameColors.textDim),
         ),
@@ -1208,7 +1214,9 @@ class _DefensePanelState extends State<_DefensePanel> {
                       ? 0
                       : (kIsWeb ? 96 : 48),
                 )
-              : const EdgeInsets.all(8),
+              // Desktops: clear of the mini map in the lower right, so a
+              // narrow window wraps the buttons instead of covering it.
+              : const EdgeInsets.fromLTRB(8, 8, MiniMap.defaultSize + 24, 8),
           child: _HudButtons(game: game, child: panel),
         ),
       ),

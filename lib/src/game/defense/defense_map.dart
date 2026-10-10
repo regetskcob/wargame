@@ -332,12 +332,18 @@ class DefenseMap {
     return p.distanceTo(a + ab * t);
   }
 
-  /// Why a gun can not go to [point], or null when it can.
-  String? whyNotBuild(Vector2 point, Iterable<Vector2> towers) {
+  /// Why a gun can not go to [point], or null when it can. A trench
+  /// ([onRoad]) may cut across the road: tanks roll over it and soldiers
+  /// march on through it, as they would in a real war.
+  String? whyNotBuild(
+    Vector2 point,
+    Iterable<Vector2> towers, {
+    bool onRoad = false,
+  }) {
     if (!bounds.deflate(40).contains(point.toOffset())) {
       return tr('Zu nah am Rand', 'Too close to the edge');
     }
-    if (distanceToRoad(point) < roadHalfWidth + 30) {
+    if (!onRoad && distanceToRoad(point) < roadHalfWidth + 30) {
       return tr('Nicht auf der Straße', 'Not on the road');
     }
     if (inWater(point, margin: 26) ||

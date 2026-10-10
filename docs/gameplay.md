@@ -271,7 +271,14 @@ Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
-player, they do not count as guns.
+player, they do not count as guns. Guns keep off the road, trenches may
+cut across it (not over a bridge): tanks roll over a trench and soldiers
+march on through it, and only a tank of the side that dug it takes cover
+there, so an enemy rolling over a trench on the road gets none.
+
+On the easy level shells never run out, so the HUD leaves the ammunition
+gauge out. On a desktop the defense panel keeps clear of the mini map and
+wraps its buttons in a narrow window.
 
 **The enemy's guns.** From wave 3 the enemy digs in guns beside the first
 stretch of the road, one more every second wave up to 4 (wave 3: 1, wave 5:

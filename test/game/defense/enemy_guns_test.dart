@@ -85,4 +85,23 @@ void main() {
     expect(game.buildCost(TowerKind.cannon), TowerKind.cannon.cost);
     expect(game.credits.value, 10000 - first);
   });
+
+  test('a trench covers its own side, not the enemy rolling over it', () async {
+    final game = await defenseRound(playing: true);
+    final tank = game.myTank!;
+    game
+      ..credits.value = 1000
+      // Trenches come up with the second wave.
+      ..defense.value = game.defense.value!.copyWith(
+        wave: TowerKind.trench.fromWave,
+      )
+      ..buildTower(TowerKind.trench);
+    game.update(0);
+    final trench = game.towers.values.single;
+    expect(trench.kind, TowerKind.trench);
+    expect(game.inTrench(trench.position, of: game.myId), isTrue);
+    expect(game.inTrench(trench.position, of: 'ally-0-0'), isTrue);
+    expect(game.inTrench(trench.position, of: 'td-3-1'), isFalse);
+    expect(tank.position.distanceTo(trench.position), lessThan(1));
+  });
 }

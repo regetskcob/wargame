@@ -12,7 +12,10 @@ import '../../game/game_config.dart';
 import '../theme.dart';
 
 class MiniMap extends StatefulWidget {
-  const MiniMap({required this.game, this.size = 150, super.key});
+  const MiniMap({required this.game, this.size = defaultSize, super.key});
+
+  /// Edge of the map in the lower right corner of a desktop.
+  static const defaultSize = 150.0;
 
   final TankGame game;
   final double size;
