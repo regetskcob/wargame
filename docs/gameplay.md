@@ -81,11 +81,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   in its own colour, and in red against blue (teams, capture the flag) in
   its team's red or blue, so the lobby offers no camouflage then. The
   defense paints its sides the same way: defenders red, attackers blue, and
-  in a duel the left base red, the right one blue. A ring in the team's
-  colour stays only around hulls of another colour and shows while a hit
-  flashes the hull white. The own tank always wears its ring, in the
-  team's colour or amber without sides, with a dark rim, so it stands out
-  among its side.
+  in a duel each player sees their own side red and the other one blue
+  (two players on one screen: the left base red, the right one blue). A
+  ring in the team's colour stays only around hulls of another colour and
+  shows while a hit flashes the hull white. The own tank always wears its
+  ring, in the team's colour or amber without sides, with a dark rim, so it
+  stands out among its side.
 - Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
   (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
   day and night taking turns at a fixed pace: 80 seconds of day, 40 of
