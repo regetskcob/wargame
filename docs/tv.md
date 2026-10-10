@@ -51,7 +51,7 @@ Done:
   through the same `PopScope` as on the Apple TV.
 - **Game controllers** come through the gamepad path that already serves
   Android phones and tablets.
-- **Manifest:** `LEANBACK_LAUNCHER`, a banner (`@drawable/tv_banner`, built
+- **Manifest:** `LEANBACK_LAUNCHER`, a banner (`@drawable/tv_banner`, the tank of the Apple TV icon without the name, built
   by `store/tool/tv_icons.py`), and touch screen, camera, gamepad and
   leanback declared as not required, so Google Play and the Amazon Appstore
   list the app for televisions.

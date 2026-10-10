@@ -6,7 +6,7 @@ The tvOS icon is a stack of layers that tilt against each other while it
 has the focus: the ground of the app icon at the back, its tank in front.
 The top shelf shows the tank and the name on the same ground, the launch
 screen the tank alone. Writes into tvos/Runner/Assets.xcassets, and the
-banner of the Android TV home screen, a small top shelf, into
+banner of the Android TV home screen, drawn like the icon, into
 android/app/src/main/res. Needs Pillow.
 """
 
@@ -86,27 +86,12 @@ def top_shelf(ground, tank, folder, file, base):
 
 def android_banner(ground, tank):
     """The banner Android TV, Google TV and Fire TV show for the app: 320 by
-    180 dp. Too small for the top shelf's lettering, so the name is fitted
-    to the room beside the tank."""
+    180 dp, drawn like the Apple TV icon, the tank in the middle of the
+    ground, without the name."""
     for folder, factor in (("drawable-xhdpi", 1), ("drawable-xxxhdpi", 2)):
         size = (320 * factor, 180 * factor)
         image = cover(ground, size).convert("RGBA")
-        image.alpha_composite(placed(tank, size, 0.4, 0.21))
-        draw = ImageDraw.Draw(image)
-        text = "PANZERGEFECHT"
-        x = round(size[0] * 0.41)
-        room = size[0] - x - round(size[0] * 0.05)
-        height = round(size[1] * 0.2)
-        while True:
-            font = ImageFont.truetype(str(FONT), height)
-            box = draw.textbbox((0, 0), text, font=font)
-            if box[2] - box[0] <= room:
-                break
-            height -= 1
-        y = (size[1] - (box[3] - box[1])) // 2 - box[1]
-        offset = max(1, round(size[1] * 0.01))
-        draw.text((x + offset, y + offset), text, font=font, fill=SHADOW)
-        draw.text((x, y), text, font=font, fill=SAND)
+        image.alpha_composite(placed(tank, size, 0.66, 0.5))
         out = ANDROID_RES / folder
         out.mkdir(exist_ok=True)
         image.convert("RGB").save(out / "tv_banner.png", optimize=True)
