@@ -514,17 +514,34 @@ class GameConfig {
   /// the question itself.
   static const hostSettleSeconds = 3.0;
 
-  /// Team 0 plays alone, 1 is red, 2 is blue.
-  static const teamColors = [
+  /// Team 0 plays alone, 1 is red, 2 is blue, before [swapSides].
+  static const sideColors = [
     Color(0xFFE6E2D3),
     Color(0xFFE5533D),
     Color(0xFF4A90E2),
   ];
-  static List<String> get teamNames => [
-    '',
-    tr('ROT', 'RED'),
-    tr('BLAU', 'BLUE'),
+  static const _swappedColors = [
+    Color(0xFFE6E2D3),
+    Color(0xFF4A90E2),
+    Color(0xFFE5533D),
   ];
+
+  /// The defense shows the own side red. In a duel the right base is team
+  /// 2, so its player sees the teams the other way round: their own side
+  /// red and the left one blue. Set by the round, off between rounds and
+  /// when two players share one screen.
+  static bool swapSides = false;
+
+  /// What [team] looks like on this screen, see [swapSides].
+  static int shownTeam(int team) => swapSides && team > 0 ? 3 - team : team;
+
+  /// Colour of each team as this screen shows it.
+  static List<Color> get teamColors => swapSides ? _swappedColors : sideColors;
+
+  static List<String> get teamNames {
+    final names = ['', tr('ROT', 'RED'), tr('BLAU', 'BLUE')];
+    return swapSides ? [names[0], names[2], names[1]] : names;
+  }
 
   static int styleOf(int tankType, int color) =>
       tankType * tankColors.length + color;
