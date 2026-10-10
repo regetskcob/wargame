@@ -104,7 +104,8 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   Die README bleibt kurz: Details und Tabellen gehören nach `docs/`.
 - **Plattenplatz:** Ist die Aufgabe einer Sitzung mit `/ship` oder
   `/release` abgeschlossen, räumt sie zuletzt ihren Worktree mit
-  `tool/finish_worktree.sh` weg (samt Builds, DerivedData und gemergtem
+  `tool/finish_worktree.sh` weg (samt Builds, Xcode-DerivedData,
+  Claude-Scratchpad unter `/private/tmp/claude-<uid>/` und gemergtem
   Branch; verweigert bei ungesicherter Arbeit). Liegengebliebene zeigt
   `tool/finish_worktree.sh --all --dry-run`.
 - `dart format` ist in CI Pflicht.
