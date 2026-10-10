@@ -48,3 +48,25 @@ jobs:
       - run: flutter build appbundle --release
       # The same app for Wear OS watches, with the watch manifest.
       - run: flutter build appbundle --release --android-project-arg=wear=true
+
+  # Builds the Apple Watch app for the Simulator, which needs no
+  # flutter-watchos account. Release builds for the watch stay local for now,
+  # see "Apple Watch" in docs/platforms.md.
+  watchos:
+    runs-on: macos-latest
+    env:
+      FLUTTER_WATCHOS_VERSION: v3.47.5-watchos.0.1.1
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install flutter-watchos
+        run: |
+          git clone --depth 1 --branch "$FLUTTER_WATCHOS_VERSION" \
+            https://github.com/flutterwatch/flutter-watchos.git "$RUNNER_TEMP/flutter-watchos"
+          echo "$RUNNER_TEMP/flutter-watchos/bin" >> "$GITHUB_PATH"
+      - uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/flutter-watchos/engine_artifacts
+          key: flutter-watchos-${{ env.FLUTTER_WATCHOS_VERSION }}
+      - run: xcodebuild -version
+      - run: flutter-watchos precache
+      - run: flutter-watchos build watchos --simulator
