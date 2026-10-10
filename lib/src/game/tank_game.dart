@@ -392,8 +392,9 @@ class TankGame extends FlameGame
   /// and full tank keep empty gauges out of the store pictures. So does a
   /// device that never played a round: the first one should teach, not
   /// punish.
+  /// After the first round the level last chosen on this device.
   final botLevel = ValueNotifier<BotLevel>(
-    Env.shots || !roundPlayed() ? BotLevel.easy : BotLevel.normal,
+    Env.shots || !roundPlayed() ? BotLevel.easy : BotLevel.of(storedLevel()),
   );
   final fillWithBots = ValueNotifier<bool>(false);
 

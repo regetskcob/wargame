@@ -207,13 +207,14 @@ class _WatchLobbyState extends State<WatchLobby> {
             _TankPicker(game: game),
             if (host) ...[
               if (mode != GameMode.multi) ...[
-                WatchLabel(tr('STUFE', 'LEVEL')),
+                WatchLabel(tr('SCHWIERIGKEIT', 'DIFFICULTY')),
                 WatchButton(
                   label: game.botLevel.value.label,
                   icon: Icons.tune,
-                  onPressed: () => game.botLevel.value =
-                      BotLevel.values[(game.botLevel.value.index + 1) %
-                          BotLevel.values.length],
+                  onPressed: () => game.chooseLevel(
+                    BotLevel.values[(game.botLevel.value.index + 1) %
+                        BotLevel.values.length],
+                  ),
                 ),
               ],
               if (mode == GameMode.multi)

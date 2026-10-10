@@ -214,7 +214,7 @@ destroyed, round won or lost).
 The watch has its own screens (`lib/src/watch`), used instead of the phone
 overlays when `FlutterWatchosPlatform.isWatch`: a start page with the call sign
 (a tap opens the watch keyboard), the three ways to play and the open rooms,
-a waiting room with vehicle, level and public or private, a slim HUD (tanks
+a waiting room with vehicle, difficulty and public or private, a slim HUD (tanks
 left or wave, armour, magazine, up to three inventory items, in a defense
 round a button to build a gun), and an end screen. The Digital Crown scrolls
 the menus. In a round it steers: the tank drives all the time and fires by

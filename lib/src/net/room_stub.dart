@@ -14,6 +14,7 @@ import 'room_code.dart';
 const _tutorialKey = 'panzergefecht.tutorial';
 const _veteranKey = 'panzergefecht.veteran';
 const _pilotKey = 'panzergefecht.pilot';
+const _levelKey = 'panzergefecht.level';
 
 SharedPreferencesWithCache? _store;
 
@@ -24,7 +25,7 @@ Future<void> openLocalStore() async {
   try {
     _store = await SharedPreferencesWithCache.create(
       cacheOptions: const SharedPreferencesWithCacheOptions(
-        allowList: {_tutorialKey, _veteranKey, _pilotKey},
+        allowList: {_tutorialKey, _veteranKey, _pilotKey, _levelKey},
       ),
     );
   } on Object {
@@ -117,6 +118,18 @@ void rememberRoundPlayed() {
   }
   _roundPlayed = true;
   unawaited(_store?.setBool(_veteranKey, true));
+}
+
+int? _level;
+
+/// The difficulty last chosen on this device, null before the first one.
+int? storedLevel() => _level ?? _store?.getInt(_levelKey);
+
+/// Keeps the difficulty: after a restart the game fell back to normal, and
+/// "last played" on the start page named a level that was not.
+void rememberLevel(int index) {
+  _level = index;
+  unawaited(_store?.setInt(_levelKey, index));
 }
 
 (String, int)? _pilot;

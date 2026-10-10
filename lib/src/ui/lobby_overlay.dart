@@ -170,7 +170,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         (option, option.label, null),
                     ],
                     selected: level,
-                    onSelected: (v) => game.botLevel.value = v ?? level,
+                    onSelected: (v) => game.chooseLevel(v ?? level),
                   ),
                   const SizedBox(height: 6),
                   _hint(switch (level) {

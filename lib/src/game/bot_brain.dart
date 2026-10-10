@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
+import 'package:flutter/foundation.dart' show visibleForTesting;
 
 import 'game_config.dart';
 import 'bot_items.dart';
@@ -16,6 +17,7 @@ import 'components/tank_base.dart';
 import 'game_phase.dart';
 import 'tank_game.dart';
 import 'special_weapon.dart';
+import 'tank_stats.dart';
 import 'touch_input.dart';
 
 /// Drives a computer controlled tank by pressing the same virtual buttons a
@@ -362,6 +364,17 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     controls.brake = _wantBrake && facing;
   }
 
+  /// How far a CPU tank in a vehicle of [stats] fires: as far as its shells
+  /// fly, at a person no further than [vision], what that person can see.
+  /// At night, in fog or sand there is no arrow for what lies beyond: in
+  /// the play test on hard a tank out of view shot the player from 600
+  /// away at night, who never saw it coming.
+  @visibleForTesting
+  static double reach(TankStats stats, {double? vision}) => min(
+    stats.bulletSpeed * GameConfig.bulletTtl * 0.9,
+    vision ?? double.infinity,
+  );
+
   void _gunnery(double dt) {
     final target = _target;
     if (target == null || !target.isMounted) {
@@ -380,7 +393,10 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     final error = _aimError * (0.5 + distance / 500);
     controls.aim = _headingTo(aimPoint) + error;
 
-    final range = stats.bulletSpeed * GameConfig.bulletTtl * 0.9;
+    final range = reach(
+      stats,
+      vision: _human(target) ? gameRef.conditions?.vision : null,
+    );
     final onTarget =
         (controls.aim! - tank.turretAngle).toNormalizedAngle().abs() < 0.12;
     if (distance < range && _hasLineOfSight && onTarget) {

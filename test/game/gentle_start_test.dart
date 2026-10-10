@@ -24,7 +24,11 @@ void main() {
       expect(roundPlayed(), isFalse);
       expect((await loadedGame()).botLevel.value, BotLevel.easy);
       rememberRoundPlayed();
-      expect((await loadedGame()).botLevel.value, BotLevel.normal);
+      final game = await loadedGame();
+      expect(game.botLevel.value, BotLevel.normal);
+      // The level picked last comes back with the next start.
+      game.chooseLevel(BotLevel.hard);
+      expect((await loadedGame()).botLevel.value, BotLevel.hard);
     },
   );
 

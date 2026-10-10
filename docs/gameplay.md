@@ -126,6 +126,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   Fuchs) on easy and normal, and up to rank 3 (Habicht, Keiler) on hard
   (`BotLevel.maxVehicleLevel`). They once came in any vehicle, the Wolf
   and the Hirsch with three times the armour of a starter.
+- At night, in fog or sand CPU tanks fire at people only as far as those
+  can see (`BotBrain.reach`): there is no arrow for a tank beyond sight, and
+  in a play test on hard one shot the player from out of view.
+- The difficulty picked last stays on the device for the next start
+  (`TankGame.chooseLevel`), so LAST PLAYED names the level really played.
 - Three levels that change more than the CPU tanks: on easy the ground is
   flat and fuel and shells never run out. On normal the land gets hilly
   (slower uphill, faster downhill) and fuel and shells must be found, fuel

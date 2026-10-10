@@ -1,8 +1,13 @@
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/bot_brain.dart';
 import 'package:wargame/src/game/bot_level.dart';
+import 'package:wargame/src/game/components/tank_painter.dart';
 import 'package:wargame/src/game/game_config.dart';
+import 'package:wargame/src/game/tank_stats.dart';
+import 'package:wargame/src/game/map_theme.dart';
+import 'package:wargame/src/game/weather.dart';
 
 void main() {
   test('alone there are always some CPU tanks', () {
@@ -41,5 +46,35 @@ void main() {
     expect(BotLevel.of(null), BotLevel.normal);
     expect(BotLevel.of(99), BotLevel.normal);
     expect(BotLevel.of(BotLevel.hard.index), BotLevel.hard);
+  });
+
+  test('CPU tanks fire at people only as far as those can see', () {
+    final night = const Conditions(
+      sky: Sky.clear,
+      night: true,
+      theme: MapTheme.forest,
+    ).vision!;
+    for (final type in TankType.values) {
+      final stats = TankStats.of(type);
+      expect(BotBrain.reach(stats, vision: night), lessThanOrEqualTo(night));
+      expect(
+        BotBrain.reach(stats),
+        stats.bulletSpeed * GameConfig.bulletTtl * 0.9,
+        reason: 'by day and at other CPU tanks as far as the shells fly',
+      );
+    }
+  });
+
+  test('easy and normal CPU tanks drive the starter vehicles', () {
+    for (final level in [BotLevel.easy, BotLevel.normal]) {
+      final random = Random(1);
+      for (var i = 0; i < 50; i++) {
+        final style = GameConfig.randomStyle(
+          random,
+          maxLevel: level.maxVehicleLevel,
+        );
+        expect(GameConfig.typeOf(style).level, 1);
+      }
+    }
   });
 }

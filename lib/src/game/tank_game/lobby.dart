@@ -286,6 +286,13 @@ extension TankGameLobby on TankGame {
     return teams;
   }
 
+  /// The difficulty picked in the waiting room, kept on this device for
+  /// the next start.
+  void chooseLevel(BotLevel level) {
+    botLevel.value = level;
+    rememberLevel(level.index);
+  }
+
   /// The call sign given when registering: shown everywhere instead of the
   /// e-mail address.
   void claimCallSign(String name) {

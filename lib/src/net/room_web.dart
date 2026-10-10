@@ -93,6 +93,27 @@ void rememberRoundPlayed() {
   }
 }
 
+const _levelKey = 'panzergefecht.level';
+
+/// The difficulty last chosen in this browser, null before the first one.
+int? storedLevel() {
+  try {
+    return int.tryParse(web.window.localStorage.getItem(_levelKey) ?? '');
+  } on Object {
+    return null;
+  }
+}
+
+/// Keeps the difficulty: after a reload the game fell back to normal, and
+/// "last played" on the start page named a level that was not.
+void rememberLevel(int index) {
+  try {
+    web.window.localStorage.setItem(_levelKey, '$index');
+  } on Object {
+    // Without storage the next visit starts on normal again.
+  }
+}
+
 const _pilotKey = 'panzergefecht.pilot';
 
 /// Call sign and style last used in this browser, at hand before the
