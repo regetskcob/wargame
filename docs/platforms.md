@@ -244,7 +244,9 @@ joins the first player's room. Rounds then play on a split screen, side by side
 or, on a tablet held upright, one above the other, each half from its own tank
 (`lib/src/tv/split_view.dart`); the menus stay with the first player. Single
 player puts both against the CPU tanks, multiplayer and defense take both
-pilots along. The browser reads controllers through its Gamepad API
+pilots along, and capture the flag puts both on the same side against the
+CPU tanks or, as the host picks in the settings, one red and one blue, with
+CPU tanks evening out the sides. The browser reads controllers through its Gamepad API
 (`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
 pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
 the Mac the same way (`macos/Runner/GamepadPlugin.swift`), and Android from

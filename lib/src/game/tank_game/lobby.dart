@@ -205,6 +205,15 @@ extension TankGameLobby on TankGame {
         teams[id] = pick;
       }
     }
+    // The second player on this screen goes along with the first when they
+    // capture the flag together, else to the other side, whatever was
+    // picked.
+    final mate = partner?.myId;
+    if (force && mate != null && ids.contains(mate)) {
+      final mine = teams[myId] ?? 1;
+      teams[myId] = mine;
+      teams[mate] = duoTogether.value ? mine : FlagMatch.otherTeam(mine);
+    }
     for (final id in ids) {
       if (teams.containsKey(id)) {
         continue;
