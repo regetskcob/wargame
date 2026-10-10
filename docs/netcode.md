@@ -16,6 +16,25 @@
   only rises after a repair crate, a tank at high health cannot die from one
   message, and mines and barrages need a crate first. This is a plausibility
   check, not an anti-cheat.
+- Anybody with the public key can broadcast into any room, so every client
+  also guards itself against floods and made up messages (penetration test
+  of issue #12): `InboundLimiter` lets each sender 40 messages a second per
+  kind (80 at once) and everybody together 300 a second per kind, much less
+  for rare kinds such as `squad`, `roundStart` or `close`; a round start must
+  lie within five minutes of the own clock and name at most 32 tanks; a
+  `blast` needs the drone that went off, a grenade must leave its tank's
+  barrel at the launcher's pace; remote speeds and angles stay finite and
+  below any tank's top speed; remote tanks, aircraft, drones and guns per
+  builder are capped; a `close` only counts once the host's presence is
+  gone; duel troops come at most one per sender every 0.8 seconds; forged
+  early join times rank last; call signs lose control and invisible
+  characters. A message about a player sent by somebody else (the host
+  reporting what is left of a builder's gun) names its sender in `from`, so
+  the builder does not drop it as its own echo. Deaths carry the start of
+  their round, so a late one cannot knock a player out of a rematch.
+- A player who drops out of the presence during a round (a phone switching
+  networks) keeps tank, guns and, as host, the waves for six seconds
+  (`GameConfig.peerLeftGrace`); only who is still gone then counts as left.
 - A round is defined by `{seed, startedAt}`: every client generates an
   identical world from the seed and derives the round clock from the start
   time. The world costs zero bandwidth.
@@ -79,7 +98,15 @@
   function. It clamps the numbers, grants experience (10 more per opponent
   outlasted since migration 0017) and moves the Elo rating against the
   opponents the player outlasted or fell before, and keeps the round in
-  `round_results` for the wins per vehicle behind a badge. The
+  `round_results` for the wins per vehicle behind a badge. Since migration
+  0018 only opponents whose game sent a heartbeat in the last five minutes
+  count, kills and damage are capped by the time since the pilot's last
+  round, a pilot records at most 300 rounds a day, badges get the server's
+  time and call signs lose invisible characters. `claim_load` caps a room at
+  400 and a phone slot at 160 messages a second, ignores `p_force` and
+  takes the smaller of the build's budget and the one in
+  `private.settings` (`realtime_budget`, 400 for the Pro plan; set it with
+  SQL when the plan changes). The
   all time leaderboard is a typed Postgres Changes stream on `scores`.
 - Replays need no extra traffic: the client keeps every message of the round
   with its time, and since the world follows from the seed, playing them back
@@ -283,3 +310,9 @@ still fits the plan.
   older TestFlight builds also do not see the CPU tanks of a newer host.
   Web and a new TestFlight build should go out together.
 - On Pro: decide on the spend cap and look at the usage once a month.
+- Identity: the `id` in a message is whatever the sender writes. The checks
+  above cut floods and impossible messages, but a client that poses as the
+  host can still end a defense or flag round for everybody. The real fix is private channels with Realtime Authorization
+  and signed messages; it needs the dashboard (see issue #12).
+- When the host of a defense leaves for good, the base is lost; nobody
+  takes over the waves yet (capture the flag hands the flags over).
