@@ -286,5 +286,13 @@ still a win.
   after 15 s and counts down on its button; alone it stays until the
   player picks.
 - Ranks from experience, an Elo rating, ten badges and one leaderboard of all
-  pilots by rating.
+  pilots by points.
+- Leaderboard points weigh every total a pilot has, so more rounds, wins and
+  kills always count (`lib/src/db/score_points.dart`): 10 per round, 50 per
+  win, 20 per kill, 1 per 20 damage, up to 20 per round for accuracy (hits
+  per shot), 1 per 30 s alive, and twice the rating's distance from the
+  start of 1000 once a rated round moved it. Never below zero. Ties go to
+  the rating, then wins, then kills. The rating alone ranked badly: it only
+  moves in rounds with a rated opponent, so one even round outranked a
+  dozen rounds with eleven wins.
 
