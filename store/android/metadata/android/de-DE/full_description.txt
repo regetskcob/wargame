@@ -26,3 +26,5 @@ Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer 
 Keine Werbung, kein Tracking.
 
 Panzergefecht ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.
+
+Alle Rechte vorbehalten. Lizenzen und verwendete Open-Source-Komponenten: https://www.regetskcob.de/wargame/lizenzen/

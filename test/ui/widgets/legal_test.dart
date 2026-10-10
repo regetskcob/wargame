@@ -27,4 +27,17 @@ void main() {
     expect(find.textContaining('Supabase'), findsWidgets);
     expect(find.textContaining('Bestenliste'), findsWidgets);
   });
+
+  testWidgets('the licences reserve all rights and open the component list', (
+    tester,
+  ) async {
+    await open(tester, 'Lizenzen');
+    expect(find.textContaining('Alle Rechte vorbehalten'), findsOneWidget);
+    expect(find.textContaining('Roboto'), findsWidgets);
+    await tester.tap(find.text('Lizenztexte der Komponenten'));
+    await tester.pumpAndSettle();
+    expect(find.byType(LicensePage), findsOneWidget);
+    // The bundled font is listed next to the packages.
+    expect(find.text('Roboto'), findsOneWidget);
+  });
 }

@@ -179,8 +179,12 @@ switch does not flash, and pointing at the button already prefetches the
 game's scripts. Links that used to open the game at the old address (room
 and pairing links of older apps, sign-in mails with `?code=`, home screen
 shortcuts) are passed on to `play/` before the page draws, so they keep
-working. The Impressum and privacy pages stay at `/wargame/impressum/` and
-`/wargame/datenschutz/`.
+working. The Impressum, privacy and licence pages stay at
+`/wargame/impressum/`, `/wargame/datenschutz/` and `/wargame/lizenzen/`; the
+licence page links the `NOTICES` file of the web build, which holds the
+licences of every package and the engine, and adds Roboto in full. The game
+shows the same under "Lizenzen" with Flutter's licence page, where
+`LegalLinks` registers the Roboto licence as well.
 
 `/wargame/support/` (and `en/support/`) is the support URL of the store
 listings. Without a server of its own its form sends nothing: it writes

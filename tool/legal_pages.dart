@@ -1,6 +1,7 @@
-// Writes the Impressum and the privacy notice as plain pages next to the web
-// build, so they open at <game>/impressum/ and <game>/datenschutz/ without
-// starting the game. The App Store links the privacy page.
+// Writes the Impressum, the privacy notice and the licence terms as plain
+// pages next to the web build, so they open at <game>/impressum/,
+// <game>/datenschutz/ and <game>/lizenzen/ without starting the game. The App
+// Store links the privacy page, the store texts the licence page.
 //
 //   dart run tool/legal_pages.dart build/web
 //
@@ -16,9 +17,34 @@ void main(List<String> args) {
   final out = Directory(args.isEmpty ? 'build/web' : args.first);
   _write(out, 'datenschutz', 'Datenschutz', privacy);
   _write(out, 'impressum', 'Impressum', imprint);
+  // The component licences: the NOTICES file of the web build holds those of
+  // every package and the engine, Roboto comes in full below it.
+  final roboto = const HtmlEscape().convert(
+    File('assets/fonts/Roboto_LICENSE.txt').readAsStringSync(),
+  );
+  _write(
+    out,
+    'lizenzen',
+    'Lizenzen',
+    licenses,
+    extra:
+        '<h2>Lizenztexte der Komponenten</h2>\n'
+        '<p><a href="../play/assets/NOTICES">Lizenztexte aller Pakete und '
+        'der Flutter-Engine</a></p>\n'
+        '<h2>Roboto</h2>\n'
+        '<p>Copyright 2011 Google Inc. Für das Spiel auf lateinische Zeichen '
+        'gekürzt.</p>\n'
+        '<pre>$roboto</pre>\n',
+  );
 }
 
-void _write(Directory out, String slug, String title, List<LegalBlock> text) {
+void _write(
+  Directory out,
+  String slug,
+  String title,
+  List<LegalBlock> text, {
+  String extra = '',
+}) {
   final escape = const HtmlEscape();
   String paragraphs(String body) => body
       .trim()
@@ -32,6 +58,7 @@ void _write(Directory out, String slug, String title, List<LegalBlock> text) {
     }
     body.writeln(paragraphs(block.body));
   }
+  body.write(extra);
   final page =
       '''
 <!doctype html>
@@ -70,6 +97,7 @@ void _write(Directory out, String slug, String title, List<LegalBlock> text) {
   p { margin: 0 0 12px; }
   a { color: #ffb300; }
   .back { font-size: 0.9rem; }
+  pre { font-size: 0.8rem; white-space: pre-wrap; color: #b9b5a6; }
 </style>
 </head>
 <body>

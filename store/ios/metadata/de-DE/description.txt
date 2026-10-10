@@ -33,3 +33,5 @@ Ein Widget zeigt, wer gerade online ist, eine Live-Aktivität die laufende Runde
 Keine Werbung, kein Tracking.
 
 Panzergefecht ist ein privates, nicht kommerzielles Spiel und steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.
+
+Alle Rechte vorbehalten. Lizenzen und verwendete Open-Source-Komponenten: https://www.regetskcob.de/wargame/lizenzen/

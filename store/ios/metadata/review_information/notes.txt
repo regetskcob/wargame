@@ -6,6 +6,8 @@ Mehrspieler läuft über Supabase Realtime. Mit nur einem Gerät füllt die Opti
 
 Das Spiel ist privat und nicht kommerziell, ohne Werbung, ohne Käufe und ohne Tracking. Es steht in keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.
 
+Lizenzen: Spiel und Quelltext gehören Daniel Bocksteger, alle Rechte vorbehalten; der öffentliche Quelltext auf GitHub ist keine Open-Source-Lizenz. Verwendete Open-Source-Komponenten (Flutter, Flame, Supabase u. a., BSD/MIT/Apache 2.0) und die Schrift Roboto (Apache 2.0) sind mit ihren Lizenztexten in der App unter „Lizenzen“ am unteren Rand des Startbildschirms aufgeführt und unter https://www.regetskcob.de/wargame/lizenzen/. Die Klänge erzeugt ein eigenes Skript, Icon und Grafiken sind selbst gezeichnet.
+
 English: No sign-in is needed. On the start screen choose "PLAY AS GUEST" (the game follows the device language, English or German), then a game mode. For a short round choose "Single player", difficulty "Easy", start the battle.
 
 The optional account with an e-mail address is confirmed with the code from the sign-in mail, the link in the mail opens the web version of the game.
@@ -13,3 +15,5 @@ The optional account with an e-mail address is confirmed with the code from the 
 Multiplayer runs on Supabase Realtime. With only one device, the option "Fill with CPU" fills the field with CPU tanks.
 
 The game is private and non-commercial, with no ads, no purchases and no tracking. It has no connection to any armed forces or vehicle manufacturer.
+
+Licences: the game and its source code belong to Daniel Bocksteger, all rights reserved; the public source code on GitHub is not an open source licence. The open source components used (Flutter, Flame, Supabase and others, BSD/MIT/Apache 2.0) and the Roboto font (Apache 2.0) are listed with their licence texts in the app under "Licences" at the bottom of the start screen and at https://www.regetskcob.de/wargame/lizenzen/. The sounds come from our own script, the icon and graphics are our own drawings.
