@@ -1,12 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../legal/legal_text.dart';
 import '../theme.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
-/// "Impressum · Datenschutz" along the bottom edge of the welcome and the
-/// start page. Each opens its text in a dialog.
+/// "Impressum · Datenschutz · Lizenzen" along the bottom edge of the welcome
+/// and the start page. Each opens its text in a dialog.
 class LegalLinks extends StatelessWidget {
   const LegalLinks({super.key});
 
@@ -34,12 +36,57 @@ class LegalLinks extends StatelessWidget {
             ),
             child: Text(tr('Datenschutz', 'Privacy'), style: style),
           ),
+          const Text('·', style: style),
+          TextButton(
+            onPressed: () => _show(
+              context,
+              tr('LIZENZEN', 'LICENCES'),
+              L10n.current == AppLang.de ? licenses : licensesEn,
+              action: (
+                tr(
+                  'Lizenztexte der Komponenten',
+                  'Licence texts of components',
+                ),
+                () => _showComponentLicenses(context),
+              ),
+            ),
+            child: Text(tr('Lizenzen', 'Licences'), style: style),
+          ),
         ],
       ),
     );
   }
 
-  static void _show(BuildContext context, String title, List<LegalBlock> text) {
+  static var _fontRegistered = false;
+
+  /// Flutter collects the licences of all packages and the engine by itself,
+  /// but not of the bundled Roboto, which Apache 2.0 asks to pass on too.
+  static void _showComponentLicenses(BuildContext context) {
+    if (!_fontRegistered) {
+      _fontRegistered = true;
+      LicenseRegistry.addLicense(() async* {
+        final text = await rootBundle.loadString(
+          'assets/fonts/Roboto_LICENSE.txt',
+        );
+        yield LicenseEntryWithLineBreaks(
+          const ['Roboto'],
+          'Roboto, Copyright 2011 Google Inc. Cut down to Latin letters for this game.\n\n$text',
+        );
+      });
+    }
+    showLicensePage(
+      context: context,
+      applicationName: 'Panzergefecht',
+      applicationLegalese: '© 2026 Daniel Bocksteger',
+    );
+  }
+
+  static void _show(
+    BuildContext context,
+    String title,
+    List<LegalBlock> text, {
+    (String, VoidCallback)? action,
+  }) {
     showDialog<void>(
       context: context,
       builder: (context) => Dialog(
@@ -104,6 +151,18 @@ class LegalLinks extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (action != null)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: action.$2,
+                        icon: const Icon(Icons.description_outlined),
+                        label: Text(action.$1),
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

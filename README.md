@@ -165,3 +165,10 @@ flutter run -d chrome \
 - Seasons and weekly challenges on top of `round_results`.
 - Friends, clans and shared replays.
 - Key bindings, colour blindness settings, and the web version as a PWA.
+
+## License
+
+© 2026 Daniel Bocksteger. All rights reserved. The source code is public for
+reading only, it is not open source; see [LICENSE](LICENSE). Third-party
+components keep their own licences, listed in the game under "Licences" and
+at <https://www.regetskcob.de/wargame/lizenzen/>.

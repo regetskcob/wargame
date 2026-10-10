@@ -1,6 +1,7 @@
-// Impressum and privacy notice of the game. Plain Dart without Flutter, so
-// the in-game dialog and tool/legal_pages.dart, which writes the pages at
-// /impressum/ and /datenschutz/ next to the web build, share one text.
+// Impressum, privacy notice and licence terms of the game. Plain Dart without
+// Flutter, so the in-game dialog and tool/legal_pages.dart, which writes the
+// pages at /impressum/, /datenschutz/ and /lizenzen/ next to the web build,
+// share one text.
 
 class LegalBlock {
   const LegalBlock(this.heading, this.body);
@@ -89,7 +90,14 @@ const privacy = [
         'Kamera öffnen. Das Bild wird nur auf deinem Gerät nach dem Code '
         'durchsucht, weder gespeichert noch übertragen. Die App fragt vorher '
         'um Erlaubnis, du kannst sie in den Einstellungen jederzeit '
-        'zurücknehmen und den Raumcode stattdessen eintippen.',
+        'zurücknehmen und den Raumcode stattdessen eintippen.\n\n'
+        'Unter Android erkennt Google ML Kit den Code. ML Kit arbeitet auf '
+        'dem Gerät, meldet aber Kennzahlen zu Nutzung und Leistung der '
+        'Erkennung sowie Angaben zu Gerät und App an Google (Google LLC, '
+        'USA), etwa um Fehler zu beheben. Kamerabilder sind nicht darunter. '
+        'Rechtsgrundlage ist Art. 6 Abs. 1 lit. f DSGVO, unser Interesse ist '
+        'eine verlässliche Code-Erkennung. Unter iOS übernimmt das '
+        'Betriebssystem die Erkennung.',
   ),
   LegalBlock(
     'Konto mit E-Mail-Adresse (freiwillig)',
@@ -138,7 +146,7 @@ const privacy = [
         'Landesbeauftragte für Datenschutz und Informationsfreiheit '
         'Nordrhein-Westfalen.',
   ),
-  LegalBlock(null, '\nStand: 8. Oktober 2026'),
+  LegalBlock(null, '\nStand: 10. Oktober 2026'),
 ];
 
 // English reading copies of the texts above, shown in the game when English is
@@ -221,7 +229,14 @@ const privacyEn = [
         'The image is searched for the code on your device only and is '
         'neither stored nor transmitted. The app asks for permission first, '
         'you can withdraw it in the settings at any time and type the room '
-        'code instead.',
+        'code instead.\n\n'
+        'On Android, Google ML Kit recognises the code. ML Kit works on the '
+        'device but reports figures on the use and performance of the '
+        'recognition as well as details of the device and the app to Google '
+        '(Google LLC, USA), for example to fix bugs. Camera images are not '
+        'among them. The legal basis is Art. 6 (1) (f) GDPR, our interest is '
+        'reliable code recognition. On iOS, the operating system does the '
+        'recognition.',
   ),
   LegalBlock(
     'Account with e-mail address (optional)',
@@ -269,7 +284,94 @@ const privacyEn = [
   ),
   LegalBlock(
     null,
-    '\nAs of: 8 October 2026\n\nThis is an English reading copy. The German '
+    '\nAs of: 10 October 2026\n\nThis is an English reading copy. The German '
     'text is binding.',
+  ),
+];
+
+// The licence terms: the game itself is not open source, the components it
+// is built from are, and their notices come with the game.
+
+const licensesUrl = 'https://www.regetskcob.de/wargame/lizenzen/';
+
+const licenses = [
+  LegalBlock(
+    'Panzergefecht',
+    '© 2026 Daniel Bocksteger. Alle Rechte vorbehalten.\n\n'
+        'Spiel, Quelltext, Grafiken, Klänge und Texte sind urheberrechtlich '
+        'geschützt. Du darfst das Spiel über die Website und die offiziellen '
+        'App-Stores kostenlos privat spielen. Jede weitere Nutzung, '
+        'insbesondere Vervielfältigen, Bearbeiten, Weitergeben, öffentliches '
+        'Zugänglichmachen oder eigene Builds und Server, ist ohne vorherige '
+        'schriftliche Zustimmung nicht erlaubt.',
+  ),
+  LegalBlock(
+    'Quelltext',
+    'Der Quelltext ist auf GitHub öffentlich einsehbar. Das ist keine '
+        'Open-Source-Lizenz: Es wird kein Recht eingeräumt, ihn ganz oder in '
+        'Teilen zu nutzen, zu kopieren, zu verändern oder zu verbreiten. '
+        'Erlaubt ist nur, was die Nutzungsbedingungen von GitHub zwingend '
+        'vorsehen, also das Ansehen und Forken auf GitHub selbst.',
+  ),
+  LegalBlock(
+    'Komponenten von Dritten',
+    'Das Spiel baut auf quelloffenen Komponenten auf, darunter Flutter, '
+        'Flame, Supabase und audioplayers, unter den Lizenzen BSD, MIT und '
+        'Apache 2.0. Die Schrift Roboto (Google) steht unter der Apache-'
+        'Lizenz 2.0 und ist für das Spiel auf lateinische Zeichen gekürzt. '
+        'Unter Android erkennt Google ML Kit QR-Codes, nach den '
+        'Nutzungsbedingungen von Google. Die vollständigen Lizenztexte '
+        'zeigt die Schaltfläche unten, im Web stehen sie auch unter '
+        '$licensesUrl.\n\n'
+        'Diese Rechte bleiben von den Vorbehalten oben unberührt: Für die '
+        'Komponenten gelten allein ihre eigenen Lizenzen.',
+  ),
+  LegalBlock(
+    'Marken',
+    'Panzergefecht ist ein privates, nicht kommerzielles Spiel. '
+        'Fahrzeugnamen sind erfunden. Genannte Marken gehören ihren '
+        'Inhabern.',
+  ),
+];
+
+const licensesEn = [
+  LegalBlock(
+    'Panzergefecht',
+    '© 2026 Daniel Bocksteger. All rights reserved.\n\n'
+        'The game, its source code, graphics, sounds and texts are protected '
+        'by copyright. You may play the game privately and free of charge '
+        'through the website and the official app stores. Any other use, in '
+        'particular copying, modifying, passing on, making it publicly '
+        'available or running your own builds and servers, is not permitted '
+        'without prior written consent.',
+  ),
+  LegalBlock(
+    'Source code',
+    'The source code is publicly visible on GitHub. This is not an open '
+        'source licence: no right is granted to use, copy, modify or '
+        'distribute it in whole or in part. Only what the GitHub terms of '
+        'service require is allowed, that is viewing and forking on GitHub '
+        'itself.',
+  ),
+  LegalBlock(
+    'Third-party components',
+    'The game is built on open source components, among them Flutter, '
+        'Flame, Supabase and audioplayers, under the BSD, MIT and Apache 2.0 '
+        'licences. The Roboto font (Google) is licensed under the Apache '
+        'License 2.0 and cut down to Latin letters for the game. On Android, '
+        'Google ML Kit recognises QR codes under the Google terms of '
+        'service. The button below shows the full licence texts, on the web '
+        'they are also at $licensesUrl.\n\n'
+        'These rights are not affected by the reservations above: the '
+        'components are governed by their own licences alone.',
+  ),
+  LegalBlock(
+    'Trademarks',
+    'Panzergefecht is a private, non-commercial game. The vehicle names are '
+        'made up. Trademarks mentioned belong to their owners.',
+  ),
+  LegalBlock(
+    null,
+    '\nThis is an English reading copy. The German text is binding.',
   ),
 ];
