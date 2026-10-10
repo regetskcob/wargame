@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../app/routes.dart';
 import '../game/game_phase.dart';
 import '../game/special_weapon.dart';
+import '../haptics.dart';
 import '../net/pad_link.dart';
 import '../net/payloads/pad_payload.dart';
 import 'theme.dart';
@@ -59,7 +60,7 @@ class _ControllerViewState extends State<ControllerView> {
   void _onOnline() {
     if (_remote.screenOnline.value && !_everOnline) {
       setState(() => _everOnline = true);
-      unawaited(HapticFeedback.mediumImpact());
+      Haptics.feel(HapticFeedback.mediumImpact);
     }
   }
 
@@ -75,7 +76,7 @@ class _ControllerViewState extends State<ControllerView> {
     }
     // A hit on the screen is felt in the hands.
     if (status.phase == GamePhase.playing && status.hp < _lastHp - 0.01) {
-      unawaited(HapticFeedback.heavyImpact());
+      Haptics.feel(HapticFeedback.heavyImpact);
     }
     _lastHp = status.hp;
   }
@@ -336,7 +337,7 @@ class _Chip extends StatelessWidget {
       shape: GameShapes.chip(edge: color, width: 1.8),
       child: InkWell(
         onTap: () {
-          unawaited(HapticFeedback.selectionClick());
+          Haptics.feel(HapticFeedback.selectionClick);
           onTap();
         },
         child: Padding(

@@ -14,7 +14,13 @@ shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and
 below; in a defense round the field's height fills an upright screen. The
 apps have no mute button: the sounds follow the silent switch and the volume
-keys, and mix with music from other apps. Android has the `INTERNET`
+keys, and mix with music from other apps. Phones vibrate with the game
+(`lib/src/haptics.dart`, Flutter's `HapticFeedback`: the Taptic Engine on the
+iPhone, the vibration motor on Android): a light tap for a blast close by, a
+hard knock for a heavy hit, the own tank destroyed and the end of a round, a
+click per second of the countdown and a firm tap at the start. A switch in the
+account sheet turns it off, Android also follows the system setting for touch
+vibration. iPads and most Android tablets have no motor and stay still. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
 While the app starts it reaches the server before the start page shows.
@@ -205,6 +211,12 @@ Store Connect. The embed phase
 stale one; `ALLOW_NO_WATCH=1` lets one through on purpose. Older watches
 (Series 4 to 8, SE 1/2, Ultra 1) get the stub slice flutter-watchos adds, which
 only says that the app needs a Series 9.
+
+CI (job `watchos` in `ci.yaml`) builds the watch app for the Simulator with
+the toolchain tag `v3.47.5-watchos.0.1.1`, which needs no account, so a
+broken watch build shows up there. Release builds need a signed-in
+`flutter-watchos` account and stay local (`tool/archive_ios.sh`); the
+`testflight` workflow cannot build the watch app.
 
 Use `FlutterWatchosPlatform.isWatch` from `flutter_watchos` to branch for the
 watch, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`

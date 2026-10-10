@@ -954,8 +954,10 @@ class _DefensePanelState extends State<_DefensePanel> {
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        Wrap(
+          alignment: WrapAlignment.end,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          runSpacing: 4,
           children: [
             Text(
               tr('MITTEL $credits', 'FUNDS $credits'),
@@ -1175,8 +1177,11 @@ class _DefensePanelState extends State<_DefensePanel> {
           ),
         );
         if (touch) {
-          return Row(
-            mainAxisSize: MainAxisSize.min,
+          // Upright the wave label may have to drop below the bar.
+          return Wrap(
+            alignment: WrapAlignment.end,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runSpacing: 2,
             children: [
               Tooltip(
                 message:
@@ -1228,6 +1233,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           if (touch) ...[
             Text(
               widget.counts,
+              textAlign: TextAlign.end,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 3),
@@ -1252,24 +1258,42 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
     return SafeArea(
       minimum: const EdgeInsets.all(8),
-      child: Align(
-        alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
-        child: Padding(
-          // Phones: in the top right corner.
-          // Room for the exit and the mute button, which only the browser
-          // shows. Upright both sit under the gauges.
-          padding: touch
-              ? EdgeInsets.only(
-                  right: MediaQuery.sizeOf(context).width < _uprightWidth
-                      ? 0
-                      : onTv
-                      ? 0
-                      : (kIsWeb ? 96 : 48),
-                )
-              // Desktops: clear of the mini map in the lower right, so a
-              // narrow window wraps the buttons instead of covering it.
-              : const EdgeInsets.fromLTRB(8, 8, MiniMap.defaultSize + 24, 8),
-          child: _HudButtons(game: game, child: panel),
+      child: LayoutBuilder(
+        builder: (context, constraints) => Align(
+          alignment: touch ? Alignment.topRight : Alignment.bottomLeft,
+          child: Padding(
+            // Phones: in the top right corner.
+            // Room for the exit and the mute button, which only the browser
+            // shows. Upright both sit under the gauges.
+            padding: touch
+                ? EdgeInsets.only(
+                    right: MediaQuery.sizeOf(context).width < _uprightWidth
+                        ? 0
+                        : onTv
+                        ? 0
+                        : (kIsWeb ? 96 : 48),
+                  )
+                // Desktops: clear of the mini map in the lower right, so a
+                // narrow window wraps the buttons instead of covering it.
+                : const EdgeInsets.fromLTRB(8, 8, MiniMap.defaultSize + 24, 8),
+            child: _HudButtons(
+              game: game,
+              // Upright phones: the gauges, the map and the kill feed fill the
+              // left column, so the panel keeps to the width beside it and
+              // wraps instead of covering them.
+              child: touch && constraints.maxWidth < _uprightWidth
+                  ? ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: max(
+                          0,
+                          constraints.maxWidth - VitalsPlate.outerWidth - 6,
+                        ),
+                      ),
+                      child: panel,
+                    )
+                  : panel,
+            ),
+          ),
         ),
       ),
     );

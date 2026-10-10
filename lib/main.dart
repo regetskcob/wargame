@@ -9,6 +9,7 @@ import 'src/app/game_app.dart';
 import 'src/audio/audio_service.dart';
 import 'src/db/account_service.dart';
 import 'src/db/server_status.dart';
+import 'src/haptics.dart';
 import 'src/app/env.dart';
 import 'src/l10n/l10n.dart';
 import 'src/net/pad_link.dart';
@@ -44,6 +45,7 @@ Future<void> main() async {
   }
   await openLocalStore();
   await L10n.init();
+  await Haptics.init();
   // A link from a sign-in mail carries a one time code. Supabase redeems it
   // during initialize and drops it from the address, unless this browser
   // lacks the key the code was requested with.
