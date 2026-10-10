@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:convert';
+
 import 'package:flame/components.dart';
 import 'package:flutter/widgets.dart';
 import 'package:wargame/src/app/overlay_ids.dart';
@@ -8,6 +11,7 @@ import 'package:wargame/src/db/score_service.dart';
 import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
+import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/net_service.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
 import 'package:wargame/src/net/room_directory.dart';
@@ -125,6 +129,49 @@ class FakeNet extends NetService {
   Future<void> dispose() async => disposes++;
 }
 
+/// Two games in one test that hear each other as through a room's
+/// channel: what one sends reaches the other in a later microtask, the way
+/// a broadcast arrives after the frame that sent it.
+class LoopbackNet extends NetService {
+  LoopbackNet(String id, {super.isHost}) : super(myId: id, room: 'TEST1');
+
+  LoopbackNet? peer;
+  var connects = 0;
+
+  /// Links two games both ways.
+  static (LoopbackNet, LoopbackNet) pair() {
+    final host = LoopbackNet('host', isHost: true);
+    final guest = LoopbackNet('guest');
+    host
+      ..peer = guest
+      ..othersPresent = true;
+    guest
+      ..peer = host
+      ..othersPresent = true;
+    return (host, guest);
+  }
+
+  @override
+  Future<void> connect(LobbyPresence me) async {
+    connects++;
+    listenWithoutChannel();
+  }
+
+  @override
+  void transmit(NetEvent event, Map<String, dynamic> payload) {
+    final to = peer;
+    if (to == null) {
+      return;
+    }
+    // A copy, as the wire would hand over.
+    final copy = jsonDecode(jsonEncode(payload)) as Map<String, dynamic>;
+    scheduleMicrotask(() => to.deliverForTest(event, copy));
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
 /// The Realtime budget without a server: every claim gets in unless told
 /// otherwise, and counting changes nothing.
 class FakeSlots implements RoomSlots {
@@ -172,7 +219,7 @@ TankGame offlineGame({
   ScoreService? scores,
 }) => TankGame(
   net: net ?? FakeNet(),
-  myId: 'me',
+  myId: net?.myId ?? 'me',
   scoreService: scores ?? FakeScores(),
   profiles: profiles ?? FakeProfiles(),
   accounts: accounts ?? FakeAccounts(),

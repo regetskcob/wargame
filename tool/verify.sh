@@ -13,8 +13,10 @@ step "dart format"
 dart format --set-exit-if-changed .
 step "flutter analyze"
 flutter analyze
-step "flutter test (without the supabase tag)"
-flutter test --exclude-tags supabase
+step "flutter test (without the supabase tag), with coverage"
+flutter test --exclude-tags supabase --coverage
+step "coverage floor"
+dart run tool/coverage.dart --min 75
 
 if $quick; then
   printf '\nQuick check green.\n'
