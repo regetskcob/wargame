@@ -316,6 +316,11 @@ class TankGame extends FlameGame
   final towers = <String, Tower>{};
   int _towerCounter = 0;
 
+  /// The guns the enemy digs in belong to this id, an enemy's like the
+  /// waves' `td-…`, and are run by the player who runs the waves.
+  static const enemyGunOwner = 'td-g';
+  int _enemyGunCounter = 0;
+
   /// Seconds until the local tank is back after it was destroyed in a
   /// defense round, 0 while it is on the field.
   final respawnSeconds = ValueNotifier<int>(0);

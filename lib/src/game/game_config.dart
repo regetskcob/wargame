@@ -234,6 +234,39 @@ class GameConfig {
   static const creditsPerKill = 20;
   static const waveBonus = 50;
 
+  /// Bounties shrink with every wave by this share of the first wave's, so
+  /// the larger waves later on do not flood the players with funds: every
+  /// further gun has to be earned harder, while the wave bonus stays.
+  static const bountyDecay = 0.2;
+
+  /// What a kill worth [base] in the first wave brings in [wave], never
+  /// less than one.
+  static int bountyIn(int base, int wave) =>
+      max(1, (base / (1 + bountyDecay * max(0, wave - 1))).round());
+
+  /// Every further gun of the same kind a player builds costs this share of
+  /// its price more, so a wall of one kind gets dear.
+  static const towerCostStep = 0.3;
+
+  /// From [enemyGunsFromWave] on the enemy digs in guns of its own beside
+  /// the first stretch of the road, one more every second wave up to
+  /// [maxEnemyGuns], and rebuilds the ones the players destroyed. They fire
+  /// slower than the players' guns by [enemyGunCooldown] and bring
+  /// [creditsPerGun] (shrinking like any bounty) to whoever destroys them.
+  static const enemyGunsFromWave = 3;
+  static const maxEnemyGuns = 4;
+  static const enemyGunCooldown = 1.8;
+  static const creditsPerGun = 60;
+
+  /// How many guns the enemy holds in [wave].
+  static int enemyGunsIn(int wave) => wave < enemyGunsFromWave
+      ? 0
+      : min(maxEnemyGuns, 1 + (wave - enemyGunsFromWave) ~/ 2);
+
+  /// Level of the enemy's guns in [wave]: one step every three waves.
+  static int enemyGunLevelIn(int wave) =>
+      (1 + max(0, wave - enemyGunsFromWave) ~/ 3).clamp(1, 5);
+
   /// What a tank sent against the other side of a defense duel costs.
   static const troopCost = 120;
   static const towerCost = 100;

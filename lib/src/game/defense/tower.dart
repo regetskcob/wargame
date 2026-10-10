@@ -5,6 +5,7 @@ import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 import 'package:flame/extensions.dart';
 
+import '../game_config.dart';
 import '../game_phase.dart';
 import '../tank_game.dart';
 import '../../l10n/l10n.dart';
@@ -33,6 +34,7 @@ enum TowerKind {
     damage: 6,
     shotSpeed: 720,
     antiAir: true,
+    groundFactor: 0.3,
   ),
   mortar(
     'MÖRSER',
@@ -87,6 +89,7 @@ enum TowerKind {
     required this.damage,
     required this.shotSpeed,
     this.antiAir = false,
+    this.groundFactor = 1,
     this.minRange = 0,
     this.blast = 1,
     this.fromWave = 0,
@@ -106,6 +109,19 @@ enum TowerKind {
 
   /// Aims at aircraft and drones first, and hits them hard.
   final bool antiAir;
+
+  /// Share of [damage] that reaches tanks, guns and soldiers. Flak is built
+  /// for the sky: on the ground its light shells barely scratch, or a row
+  /// of flak would hold the road as well as the cannon does.
+  final double groundFactor;
+
+  /// What one shell of a gun at [level] does to aircraft and drones.
+  double airDamageAt(int level) =>
+      damage * damageFactor(level) * GameConfig.antiAirFactor;
+
+  /// What one shell of a gun at [level] does to everything on the ground.
+  double groundDamageAt(int level) =>
+      damage * damageFactor(level) * groundFactor;
 
   /// The mortar and the howitzer cannot fire at what is right next to them.
   final double minRange;
@@ -220,6 +236,13 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   /// Shows a hit.
   void hit() => _flash = 0.12;
 
+  /// Who last hit it as this client saw it: whoever destroys a gun of the
+  /// enemy earns the bounty on their own screen.
+  String? lastHitBy;
+
+  /// A gun the enemy dug in beside the road, see [GameConfig.enemyGunsIn].
+  bool get isEnemy => gameRef.round?.isEnemy(ownerId) ?? false;
+
   double get range => kind.rangeAt(level);
 
   double turretAngle = 0;
@@ -230,6 +253,11 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   PositionComponent? _target;
 
   bool get _mine => ownerId == gameRef.myId;
+
+  /// This client aims and fires it: its builder, and for the enemy's guns
+  /// the player who runs the waves.
+  bool get _runs =>
+      _mine || (isEnemy && gameRef.round?.botHost == gameRef.myId);
 
   void fired(Vector2 direction) {
     turretAngle = atan2(direction.x, -direction.y);
@@ -265,7 +293,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     _recoil = max(0, _recoil - dt * 6);
     _upgraded = max(0, _upgraded - dt);
     _flash = max(0, _flash - dt);
-    if (!_mine || !kind.isGun) {
+    if (!_runs || !kind.isGun) {
       return;
     }
     final phase = gameRef.phase.value;
@@ -291,7 +319,8 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     final diff = (wanted - turretAngle).toNormalizedAngle();
     turretAngle += diff.clamp(-6 * dt, 6 * dt);
     if (diff.abs() < 0.08 && _cooldown <= 0) {
-      _cooldown = kind.cooldownAt(level);
+      _cooldown =
+          kind.cooldownAt(level) * (isEnemy ? GameConfig.enemyGunCooldown : 1);
       if (kind.lobs) {
         gameRef.fireMortarTower(this, aim);
       } else {

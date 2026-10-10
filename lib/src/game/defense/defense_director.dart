@@ -190,6 +190,7 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
       _spawned = 0;
       _spawnTimer = 0;
       _sendSupport(next.wave);
+      gameRef.digInEnemyGuns(next.wave);
       // Every base sends troops on foot against every wave, more as it
       // grows.
       for (final lane in _lanes) {
