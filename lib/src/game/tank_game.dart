@@ -1,13 +1,16 @@
 import 'dart:async';
 import 'dart:async' as async;
+import 'dart:io' show File, exit;
 import 'dart:math';
-import 'dart:ui' show Canvas, Color, Gradient, Offset, Paint, Rect, Size;
+import 'dart:ui'
+    show Canvas, Color, Gradient, ImageByteFormat, Offset, Paint, Rect, Size;
 
 import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart' show Rectangle;
 import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/rendering.dart' show OffsetLayer, RendererBinding;
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart' show KeyEventResult;
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
@@ -108,6 +111,7 @@ part 'tank_game/targeting.dart';
 part 'tank_game/view.dart';
 part 'tank_game/flag.dart';
 part 'tank_game/supply.dart';
+part 'tank_game/shots.dart';
 
 /// Whether the welcome page comes before the start page. Everybody else
 /// lands right on the three ways to play and signs in from the account
@@ -571,6 +575,10 @@ class TankGame extends FlameGame
     _refreshTutorialDone();
     touchMode.addListener(_refreshTutorialDone);
     unawaited(_refreshPilot());
+    final scene = Env.shotScene;
+    if (scene != null) {
+      unawaited(_stageShot(scene));
+    }
   }
 
   /// Whether the player went through the tutorial for the current

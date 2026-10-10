@@ -10,12 +10,10 @@ launching: Loading the game …
 notFoundTitle: No tank here
 notFoundText: This page does not exist. Back to the start or straight into battle.
 home: Back to the start
-shot-01-gefecht: A battle against CPU tanks in town
-shot-02-verteidigung: "Defense: an enemy tank reaches the base"
-shot-03-geschuetze: Building guns at the base during an air raid
-shot-04-fahrzeuge: Choosing the vehicle and its camouflage
-shot-05-steuerung: Two sticks and aim assist in a town battle
-shot-06-modi: The start page with the four ways to play
+shot-01-gefecht: A town battle with two sticks and aim assist
+shot-02-verteidigung: "Defense: building guns at the base by the river"
+shot-03-fahrzeuge: Choosing the vehicle and its camouflage
+shot-04-modi: The start page with the four ways to play
 devicesTitle: On every screen, in one room
 device-web: In the browser
 device-web-text: Right away on any computer, nothing to install, no sign-up, with keyboard, controller or phone.

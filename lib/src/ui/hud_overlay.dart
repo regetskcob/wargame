@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../app/env.dart';
 import '../game/bot_level.dart';
 import '../game/components/storm_zone.dart';
 import '../net/pad_link.dart';
@@ -753,7 +754,8 @@ class _DefensePanel extends StatefulWidget {
 enum _Shop { closed, towers, upgrades }
 
 class _DefensePanelState extends State<_DefensePanel> {
-  _Shop _shop = _Shop.closed;
+  /// The store picture of the defense shows the guns to build.
+  _Shop _shop = Env.shotScene == 'defense' ? _Shop.towers : _Shop.closed;
 
   /// The list the desktop panel shows, the guns to begin with.
   _Shop _desk = _Shop.towers;
