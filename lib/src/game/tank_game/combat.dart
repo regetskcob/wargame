@@ -303,10 +303,9 @@ extension TankGameCombat on TankGame {
       );
     }
 
-    // The player who runs the waves keeps the score of every gun.
-    if (round?.botHost == myId) {
-      _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
-    }
+    // The player who runs the waves keeps the score of every gun, every
+    // client notes whose blast caught the enemy's guns for the bounty.
+    _blastTowers(ownerId, at, weapon.radius, weapon.damageAt(0) * power);
     if (!runsShooter(ownerId)) {
       return;
     }
@@ -356,7 +355,8 @@ extension TankGameCombat on TankGame {
         direction: direction,
         color: tower.color,
         speed: tower.kind.shotSpeed,
-        damage: tower.kind.damage * tower.kind.damageFactor(tower.level),
+        damage: tower.kind.groundDamageAt(tower.level),
+        airDamage: tower.kind.airDamageAt(tower.level),
         antiAir: tower.kind.antiAir,
       );
       return;
@@ -435,6 +435,7 @@ extension TankGameCombat on TankGame {
     required Color color,
     double? speed,
     double? damage,
+    double? airDamage,
     bool antiAir = false,
     bool small = false,
   }) {
@@ -447,6 +448,7 @@ extension TankGameCombat on TankGame {
       color: color,
       damage: damage ?? stats.damage,
       antiAir: antiAir,
+      airDamage: airDamage,
       small: small,
     );
     bullets[bulletId] = bullet;

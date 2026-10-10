@@ -577,13 +577,13 @@ extension TankGameItems on TankGame {
           damageBase(strike.damage, lane: base.lane);
         }
       }
-      _blastTowers(
-        strike.ownerId,
-        strike.position,
-        GameConfig.artilleryRadius,
-        strike.damage,
-      );
     }
+    _blastTowers(
+      strike.ownerId,
+      strike.position,
+      GameConfig.artilleryRadius,
+      strike.damage,
+    );
     if (runsShooter(strike.ownerId)) {
       _blastSoldiers(
         strike.ownerId,

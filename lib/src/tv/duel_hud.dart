@@ -208,7 +208,7 @@ class _PlayerPanel extends StatelessWidget {
                   ),
                   Text(
                     '${game.towerChoice.value.label} '
-                    '${game.towerChoice.value.cost}'
+                    '${game.buildCost(game.towerChoice.value)}'
                     '${pad ? '  ·  R1 ${tr('baut', 'builds')}  ·  Y ${tr('Panzer', 'tank')} ${GameConfig.troopCost}' : ''}',
                     style: const TextStyle(
                       fontSize: 12,

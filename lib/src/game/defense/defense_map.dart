@@ -437,6 +437,44 @@ class DefenseMap {
     ];
   }
 
+  /// Where along the first stretch of the road the enemy digs in its guns,
+  /// in the order it builds them: well short of the comrades' posts, so the
+  /// players have to push out to take them, or reach them with a howitzer.
+  static const _enemyGunShares = [0.2, 0.32, 0.26, 0.14, 0.36, 0.22];
+
+  /// The spots for the enemy's guns, beside the road and on dry ground,
+  /// alternating sides.
+  late final List<Vector2> enemyGunSpots = () {
+    final spots = <Vector2>[];
+    for (var i = 0; i < _enemyGunShares.length; i++) {
+      final at = _placeEnemyGun(_enemyGunShares[i], i.isEven ? 1.0 : -1.0);
+      if (at != null) {
+        spots.add(at);
+      }
+    }
+    return spots;
+  }();
+
+  Vector2? _placeEnemyGun(double share, double side) {
+    const offset = roadHalfWidth + 70;
+    for (final nudge in const [0.0, 0.03, -0.03, 0.06, -0.06]) {
+      final (point, segment) = pointAlong(roadLength * (share + nudge));
+      final along = (road[segment + 1] - road[segment]).normalized();
+      final normal = Vector2(-along.y, along.x);
+      for (final sign in [side, -side]) {
+        final at = point + normal * (offset * sign);
+        if (bounds.deflate(60).contains(at.toOffset()) &&
+            distanceToRoad(at) > roadHalfWidth + 40 &&
+            !inWater(at, margin: 40) &&
+            bridges.every((b) => b.centre.distanceTo(at) > b.halfLength + 40) &&
+            at.distanceTo(outpost) > 130) {
+          return at;
+        }
+      }
+    }
+    return null;
+  }
+
   /// The enemy's outpost: beside the start of the road, where the waves
   /// roll out from. Only scenery, it cannot be attacked.
   late final Vector2 outpost = () {

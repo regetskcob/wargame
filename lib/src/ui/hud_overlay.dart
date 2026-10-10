@@ -799,13 +799,13 @@ class _DefensePanelState extends State<_DefensePanel> {
                         ? _buttonStyle
                         : _buyStyle(GameColors.oliveLight),
                     onPressed:
-                        credits >= kind.cost &&
+                        credits >= game.buildCost(kind) &&
                             kind.unlockedIn(wave, extended: extended)
                         ? () => game.buildTower(kind)
                         : null,
                     child: Text(
                       kind.unlockedIn(wave, extended: extended)
-                          ? '${kind.label} ${kind.cost}'
+                          ? '${kind.label} ${game.buildCost(kind)}'
                           : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
                       style: _small,
                     ),

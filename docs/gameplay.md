@@ -122,11 +122,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   Habicht that hits aircraft properly), mortars and later howitzers, three
   levels each, trenches that cover a tank, and armour, gun, engine and
   magazine upgrades for the tank, one list at a time in the panel. The
-  enemy shoots guns and trenches to pieces. Money comes with the player's
-  own kills (+20, aircraft +40, soldiers +5, rising from the wreck) and
-  every wave beaten off (+50). On a desktop the camera may run past the
-  field's edge by the width of the mini map, so the base at the end of the
-  road never hides under it.
+  enemy shoots guns and trenches to pieces and from wave 3 digs in cannons
+  and flak of its own beside the first stretch of the road. Money comes
+  with the player's own kills (rising from the wreck, less with every
+  wave) and every wave beaten off (+50). On a desktop the camera may run
+  past the field's edge by the width of the mini map, so the base at the
+  end of the road never hides under it.
 - On iOS a widget with the pilots online, a Live Activity for the running
   round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
@@ -197,7 +198,7 @@ seconds up to 300.
 | Who | Damage | Notes |
 | --- | --- | --- |
 | Cannon | 18 per shot, 0.45 s, range 420 | +35 % per level |
-| Flak | 6 per shot, 0.16 s, range 480 | double against aircraft |
+| Flak | 6 per shot, 0.16 s, range 480 | 12 against aircraft, 1.8 on the ground |
 | Mortar emplacement | 50, radius 75, range 130–620 | +35 % per level |
 | Howitzer | 110, radius 75, range 240–1050 | +35 % per level |
 | Helicopter (both sides) | 10 per rocket, every 1.8 s, range 420 | |
@@ -209,7 +210,9 @@ seconds up to 300.
 **What softens a hit.** A shield lets 40 % through, every armour upgrade
 takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
 to the tank's shells. Against aircraft, flak and the Habicht do double, other
-shells a quarter to a helicopter and nothing to a jet.
+shells a quarter to a helicopter and nothing to a jet. On the ground flak
+does only 30 % of its damage, about a quarter of what a cannon fires in the
+same time, so a row of flak no longer holds the road.
 
 ## Defense thresholds
 
@@ -239,8 +242,12 @@ seconds.
 which stays 40 seconds. From wave 5 a jet follows 14 seconds into the wave
 and bombs the enemy closest to the base.
 
-**Money.** 150 at the start, 20 per tank, 40 per aircraft, 5 per soldier and
-50 for every wave beaten off.
+**Money.** 150 at the start and 50 for every wave beaten off. Bounties
+shrink with the waves: in wave *w* they are the first wave's divided by
+1 + 0.2 × (*w* − 1), rounded, at least 1. A tank brings 20 in wave 1, 14 in
+wave 3 and 8 in wave 8; an aircraft 40, 29 and 17; a soldier 5, 4 and 2; an
+enemy gun 60, 43 and 25. The waves grow, so a whole wave pays about the
+same, but the guns get dearer.
 
 **Guns and trenches.**
 
@@ -253,11 +260,26 @@ and bombs the enemy closest to the base.
 | Trench | 60 | 2 | 360 | a tank in it takes half damage |
 | Rockets | 260 | extension | 260 | tanks and aircraft, range 640 |
 
+The price is for the first of a kind; every further one of the same kind a
+player already has adds 30 % of it (flak 120, 156, 192, …), so a wall of one
+kind gets dear. The buttons show the current price.
+
 Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
 player, they do not count as guns.
+
+**The enemy's guns.** From wave 3 the enemy digs in guns beside the first
+stretch of the road, one more every second wave up to 4 (wave 3: 1, wave 5:
+2, wave 7: 3, wave 9: 4), cannon and flak by turns, on fixed spots between
+14 % and 36 % of the road. They start at level 1, rise a level every third
+wave and fire at 1.8 times the players' interval, at tanks, guns, soldiers
+and, the flak, the base's aircraft. Every new wave rebuilds the ones that
+were destroyed. The players' shells and blasts, the comrades and the
+players' guns hit them; whoever hit one last on their own screen gets its
+bounty. The host fires them (`tower` and `shoot` events with the id
+`td-g`); not in a duel.
 
 **The extension.** After the last of the 8 regular waves the host has 25
 seconds to extend; without an answer the round ends as a win. Extended, the

@@ -25,6 +25,7 @@ class Bullet extends PositionComponent
     required this.color,
     required this.damage,
     this.antiAir = false,
+    this.airDamage,
     this.small = false,
   }) : super(size: Vector2.all(6), anchor: Anchor.center, priority: 5);
 
@@ -36,6 +37,11 @@ class Bullet extends PositionComponent
 
   /// Fired by flak or the Habicht: brings down aircraft and drones.
   final bool antiAir;
+
+  /// What it does to aircraft when that differs from [damage] times
+  /// [GameConfig.antiAirFactor]: a flak shell hits the sky far harder than
+  /// the ground.
+  final double? airDamage;
 
   /// A rifle bullet, drawn thinner than a shell.
   final bool small;
@@ -90,6 +96,7 @@ class Bullet extends PositionComponent
       // Enemy shells wear the guns down, the defenders shoot over them.
       if (gameRef.hurtsTower(ownerId, other.ownerId)) {
         _impact(const Color(0xFF8A8A80));
+        other.lastHitBy = ownerId;
         // The player who runs the waves keeps the score of every gun, also
         // of the other player's shots in a duel.
         if (gameRef.round?.botHost == gameRef.myId) {

@@ -696,9 +696,12 @@ extension TankGameRound on TankGame {
       // In a duel the other player's tank pays as well.
       if (activeRound.isEnemy(victimId) ||
           (activeRound.duel && activeRound.lanes.contains(victimId))) {
-        final gain = aircraft.containsKey(victimId)
-            ? GameConfig.creditsPerAircraft
-            : GameConfig.creditsPerKill;
+        final gain = GameConfig.bountyIn(
+          aircraft.containsKey(victimId)
+              ? GameConfig.creditsPerAircraft
+              : GameConfig.creditsPerKill,
+          defense.value?.wave ?? 1,
+        );
         credits.value += gain;
         _showGain(victim?.position, gain);
       }
