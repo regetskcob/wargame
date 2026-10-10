@@ -15,6 +15,17 @@ shot-03-geschuetze: Geschütze am Stützpunkt bauen, während er unter Feuer lie
 shot-04-fahrzeuge: Fahrzeug und Tarnung wählen
 shot-05-steuerung: Zwei Sticks und Zielhilfe im Stadtgefecht
 shot-06-modi: Die Startseite mit den vier Spielarten
+devicesTitle: Auf jedem Bildschirm, in einem Raum
+device-web: Im Browser
+device-web-text: Sofort auf jedem Rechner, ohne Installation und ohne Anmeldung, mit Tastatur, Controller oder Handy.
+device-phone: iPhone und iPad
+device-phone-text: Zwei Daumen-Sticks, die dort erscheinen, wo dein Daumen aufsetzt, oder ein Game-Controller.
+device-gamepad: Handy als Controller
+device-gamepad-text: QR-Code scannen, und das iPhone steuert deinen Panzer im Browser, auf dem iPad oder bald auf dem Apple TV. Mit zwei Handys spielt ihr zu zweit an einem Bildschirm.
+device-watch: Apple Watch
+device-watch-text: Ein eigenes Spiel am Handgelenk. Die Digital Crown lenkt, der Panzer zielt und feuert selbst.
+device-tv: Apple TV · bald
+device-tv-text: Auf dem großen Bildschirm mit Siri Remote, Controller oder Handy, zu zweit im Split-Screen oder im Stützpunkt-Duell. Kommt bald in den App Store.
 support: Support
 supportTitle: Support
 supportLead: Ein Fehler, eine Frage oder eine Idee? Schreib uns, wir antworten per E-Mail.
