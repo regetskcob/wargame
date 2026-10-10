@@ -14,7 +14,13 @@ shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and
 below; in a defense round the field's height fills an upright screen. The
 apps have no mute button: the sounds follow the silent switch and the volume
-keys, and mix with music from other apps. Android has the `INTERNET`
+keys, and mix with music from other apps. Phones vibrate with the game
+(`lib/src/haptics.dart`, Flutter's `HapticFeedback`: the Taptic Engine on the
+iPhone, the vibration motor on Android): a light tap for a blast close by, a
+hard knock for a heavy hit, the own tank destroyed and the end of a round, a
+click per second of the countdown and a firm tap at the start. A switch in the
+account sheet turns it off, Android also follows the system setting for touch
+vibration. iPads and most Android tablets have no motor and stay still. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
 While the app starts it reaches the server before the start page shows.

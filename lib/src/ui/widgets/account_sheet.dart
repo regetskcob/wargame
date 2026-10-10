@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../app/env.dart';
 import '../../game/tank_game.dart';
+import '../../haptics.dart';
 import '../../net/room.dart';
 import '../theme.dart';
 import 'account_panel.dart';
@@ -196,6 +197,37 @@ class _AccountSheetState extends State<AccountSheet> {
           }
         },
       ),
+      if (Haptics.onPhone) const SizedBox(height: 12),
+      if (Haptics.onPhone)
+        // A plain row: a ListTile would paint its ink behind the panel.
+        ValueListenableBuilder<bool>(
+          valueListenable: Haptics.on,
+          builder: (context, on, _) => Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr('VIBRATION', 'VIBRATION'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      tr(
+                        'Treffer, Explosionen und Rundenstart spüren',
+                        'Feel hits, blasts and the start of a round',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: on,
+                onChanged: (value) => unawaited(Haptics.set(value: value)),
+              ),
+            ],
+          ),
+        ),
       const SizedBox(height: 16),
       ControllerSection(game: _game),
     ];
