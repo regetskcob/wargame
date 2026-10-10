@@ -166,6 +166,7 @@ class SecondPlayer extends ChangeNotifier {
         accounts: AccountService(client),
       )
       ..myName = tr('SPIELER 2', 'PLAYER 2')
+      ..sharesScreen = true
       // Steered by a controller or a phone, never by touch.
       ..touchMode.value = false;
   }

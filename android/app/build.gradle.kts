@@ -16,6 +16,15 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// The Wear OS build of the same app: `flutter build appbundle
+// --android-project-arg=wear=true`. Same package, its own Wear OS track on
+// Play, see store/android/README.md.
+val wear = project.findProperty("wear") == "true"
+
+// Play wants a version code of its own for every bundle of the app. The
+// watch's stay clear of the phone's this way.
+val wearVersionOffset = 100_000
+
 android {
     namespace = "de.regetskcob.wargame"
     compileSdk = flutter.compileSdkVersion
@@ -32,13 +41,13 @@ android {
         applicationId = "de.regetskcob.wargame"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = if (wear) 30 else flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
         // flag during build.
-        versionCode = flutter.versionCode
+        versionCode = flutter.versionCode + if (wear) wearVersionOffset else 0
         versionName = flutter.versionName
     }
 
@@ -73,4 +82,10 @@ kotlin {
 
 flutter {
     source = "../.."
+}
+
+dependencies {
+    if (wear) {
+        implementation(project(":wear"))
+    }
 }

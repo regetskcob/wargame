@@ -8,6 +8,12 @@ BUNDLE = File.expand_path(
   "../../build/app/outputs/bundle/release/app-release.aab", __dir__
 )
 
+# Play keeps the Wear OS releases on tracks of their own, named
+# "wear:internal", "wear:production" and so on.
+def track_for(track, form_factor)
+  form_factor.to_s == "wear" ? "wear:#{track}" : track
+end
+
 platform :android do
   desc "Checks the key and the metadata without changing anything"
   lane :validate do
@@ -21,9 +27,10 @@ platform :android do
   end
 
   desc "Uploads the bundle to a track (internal, alpha, beta, production)"
+  desc "form_factor:wear sends the Wear OS bundle to the watch's own track"
   lane :deploy do |options|
     upload_to_play_store(
-      track: options.fetch(:track, "internal"),
+      track: track_for(options.fetch(:track, "internal"), options[:form_factor]),
       aab: BUNDLE,
       metadata_path: METADATA,
       skip_upload_metadata: !options[:metadata],
@@ -48,8 +55,8 @@ platform :android do
   desc "Moves the latest release from one track to another"
   lane :promote do |options|
     upload_to_play_store(
-      track: options.fetch(:from, "internal"),
-      track_promote_to: options.fetch(:to, "alpha"),
+      track: track_for(options.fetch(:from, "internal"), options[:form_factor]),
+      track_promote_to: track_for(options.fetch(:to, "alpha"), options[:form_factor]),
       skip_upload_aab: true,
       skip_upload_metadata: true,
       skip_upload_images: true,

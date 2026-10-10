@@ -6,6 +6,11 @@ name: play
 on:
   workflow_dispatch:
     inputs:
+      form_factor:
+        description: phone, or the Wear OS build for its own track
+        type: choice
+        options: [phone, wear]
+        default: phone
       track:
         description: Track
         type: choice
@@ -70,6 +75,9 @@ jobs:
           if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
           if [ -n "$MAX_PILOTS" ]; then args+=(--dart-define=MAX_PILOTS="$MAX_PILOTS"); fi
           if [ -n "$REALTIME_BUDGET" ]; then args+=(--dart-define=REALTIME_BUDGET="$REALTIME_BUDGET"); fi
+          # The watch build adds the Wear OS manifest and its own range of
+          # version codes, see android/app/build.gradle.kts.
+          if [ "$FORM_FACTOR" = "wear" ]; then args+=(--android-project-arg=wear=true); fi
           flutter build appbundle --release "${args[@]}"
         env:
           SUPABASE_URL: ${{ vars.SUPABASE_URL }}
@@ -77,9 +85,11 @@ jobs:
           ACCOUNTS: ${{ vars.ACCOUNTS }}
           MAX_PILOTS: ${{ vars.MAX_PILOTS }}
           REALTIME_BUDGET: ${{ vars.REALTIME_BUDGET }}
+          FORM_FACTOR: ${{ inputs.form_factor }}
       - name: Upload to Google Play
         run: >-
           bundle exec fastlane deploy
+          form_factor:${{ inputs.form_factor }}
           track:${{ inputs.track }}
           release_status:${{ inputs.release_status }}
           metadata:${{ inputs.metadata }}
@@ -93,5 +103,5 @@ jobs:
       - name: Keep the bundle
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-${{ github.run_number }}
+          name: app-release-${{ inputs.form_factor }}-${{ github.run_number }}
           path: build/app/outputs/bundle/release/app-release.aab

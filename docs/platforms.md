@@ -14,7 +14,13 @@ shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and
 below; in a defense round the field's height fills an upright screen. The
 apps have no mute button: the sounds follow the silent switch and the volume
-keys, and mix with music from other apps. Android has the `INTERNET`
+keys, and mix with music from other apps. Phones vibrate with the game
+(`lib/src/haptics.dart`, Flutter's `HapticFeedback`: the Taptic Engine on the
+iPhone, the vibration motor on Android): a light tap for a blast close by, a
+hard knock for a heavy hit, the own tank destroyed and the end of a round, a
+click per second of the countdown and a firm tap at the start. A switch in the
+account sheet turns it off, Android also follows the system setting for touch
+vibration. iPads and most Android tablets have no motor and stay still. Android has the `INTERNET`
 permission in the main manifest, so release builds can reach Supabase.
 
 The start page does not wait for the server: a first visit signs in as a
@@ -211,11 +217,74 @@ stale one; `ALLOW_NO_WATCH=1` lets one through on purpose. Older watches
 (Series 4 to 8, SE 1/2, Ultra 1) get the stub slice flutter-watchos adds, which
 only says that the app needs a Series 9.
 
-Use `FlutterWatchosPlatform.isWatch` from `flutter_watchos` to branch for the
-watch, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`
+CI (job `watchos` in `ci.yaml`) builds the watch app for the Simulator with
+the toolchain tag `v3.47.5-watchos.0.1.1`, which needs no account, so a
+broken watch build shows up there. Release builds need a signed-in
+`flutter-watchos` account and stay local (`tool/archive_ios.sh`); the
+`testflight` workflow cannot build the watch app.
+
+Use `onWatch` from `lib/src/watch/watch_support.dart` to branch for a watch
+(the Apple Watch or Wear OS), `FlutterWatchosPlatform.isWatch` only for what
+is Apple's alone, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`
 package; without one calls throw `MissingPluginException`.
 `app_links`, `share_plus` and `mobile_scanner` have none, so no room links, no
 sharing and no QR scanning on the watch.
+
+## Wear OS
+
+A Wear OS watch (Galaxy Watch 4 and later, Pixel Watch) runs the Android
+app itself. Before the game starts, `detectWear` asks `WearPlugin.kt` whether
+the device has `FEATURE_WATCH`; then `onWear` and `onWatch` are true and the
+watch gets the same screens and crown steering as the Apple Watch. Other
+watches (Garmin, Huawei, Fitbit) cannot run Flutter and get nothing.
+
+Flutter's Android embedding only takes motion events from pointing devices
+and drops the rotary encoder of a watch. `MainActivity` hands those events to
+`WearPlugin.kt`, which streams them to `WearCrown` (`lib/src/watch/wear_crown.dart`)
+as detents (forward positive, one per click of a Galaxy bezel) and the
+system's scroll distance for them. Between rounds `WearCrown` turns them into
+scroll events in the middle of the screen, so the menus scroll as native
+lists do; while a round runs it keeps the detents for `WatchSteering`.
+Without the Digital Crown's acceleration one click turns the heading by
+`bezelTurn` (15 degrees, as far as the bezel itself turns), and the heading
+may run up to `bezelMaxLead` (135 degrees) ahead of the hull, so a quarter
+turn of the bezel turns the tank a quarter however quick the hand was.
+
+The wrist is tapped for the same moments as on the Apple Watch
+(`lib/src/haptics.dart`): `WearHaptics` asks `WearPlugin.kt` to vibrate, a
+click for a countdown second or a hit close by, a heavy click for a heavy
+hit, a 150 ms pulse for the start, two short pulses for a win and a long
+double for the own tank destroyed or a lost round. Only the Wear OS manifest
+asks for `VIBRATE`, the phone build stays without it.
+
+On a round screen (`watchRound`, from Android's `isScreenRound`) the
+screens keep to the circle. `watchInsets` keeps the menus inside the largest
+square of the circle. The HUD draws armour and magazine as arcs along the rim
+(`WatchRimPainter`: armour on the left, the magazine on the right, both
+filling from the bottom, no magazine arc when shells never run out), puts the
+status at the top, the inventory on a ring above the bottom with the first
+slot on the left, and in a defense round the build button under the own
+tank. The Apple Watch keeps its rectangular layout.
+
+The Wear OS build is the Android app with `-P wear=true`: it merges the
+manifest of the library module `android/wear/` (`android.hardware.type.watch`,
+`com.google.android.wearable.standalone`, `VIBRATE`), raises minSdk to 30 (Wear OS 3)
+and adds 100000 to the version code. Play takes it as a form factor of its
+own with `wear:` tracks, uploaded through the `play` workflow with
+`form_factor: wear` (see `store/android/README.md`). The phone bundle carries
+none of this. CI and `tool/verify.sh` build both.
+
+State: tried in the Wear OS 6 emulator (small round, 384 px), not on a real
+watch yet; the Wear OS form factor still has to be added in the Play Console.
+
+```sh
+sdkmanager "system-images;android-36;android-wear-signed;arm64-v8a"
+avdmanager create avd -n Wear_Round_API36 \
+  -k "system-images;android-36;android-wear-signed;arm64-v8a" -d wearos_small_round
+emulator -avd Wear_Round_API36
+flutter run -d emulator-5554 --android-project-arg=wear=true
+adb shell input scroll --axis SCROLL,-1    # one click of the bezel, clockwise
+```
 
 ## Apple TV
 

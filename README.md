@@ -139,6 +139,9 @@ flutter run -d chrome \
   on in Supabase. The game shows their buttons on its own.
 - The Apple Watch version on a real watch (crown sensitivity, text sizes),
   with the tutorial and sign-in.
+- Wear OS: the watch screens, crown steering, the round layout and the Wear
+  OS bundle are ready; next the form factor in the Play Console and a real
+  watch.
 - The iMessage app on real phones and in a group chat.
 - Replays for defense rounds, and replays to share through Supabase Storage.
 - Trust in the room channels: every message names its sender itself, so a
@@ -147,10 +150,11 @@ flutter run -d chrome \
   owner per room.
 - Round results checked on the server through an Edge Function instead of
   trusting what each client reports. Until then numbers are only clamped.
-- More tests (about 20 % of the code is not covered): the defense rules as a
-  pure function with an injected clock, `record_round` and the policies with
-  pgTAP in CI, widget and golden tests for HUD, shop, lobby and leaderboards,
-  coverage in CI with a floor.
+- More tests (about 78 % of the loaded lines are covered, CI holds a floor
+  of 75 %): the defense rules as a pure function with an injected clock,
+  `record_round` and the policies with pgTAP in CI, golden tests for HUD,
+  shop, lobby and leaderboards, and the app shell and Apple TV split screen,
+  which no test loads yet.
 
 **Ideas**
 

@@ -24,6 +24,30 @@ tests also check that `GameConfig.roomLoad` and `GameConfig.padLoad` are
 not below what rooms and phones measurably send. All of them run without a server; see
 [Realtime limits](netcode.md#realtime-limits).
 
+Three smoke tests play whole rounds without a server and only ask that
+nothing throws. `test/game/smoke_test.dart` runs every mode on every bot
+level with the local tank driving, firing and setting off every item, and
+a defense round with every gun, trench and aircraft on both sides.
+`test/game/two_player_smoke_test.dart` puts two real games in one room
+through `LoopbackNet` (`test/helpers/fakes.dart`), so round start, tank
+states, deaths, the host's defense and flag state and the replay cross
+the wire format. `test/ui/overlays_smoke_test.dart` builds the waiting
+room, countdown, HUD, spectator view, round end and closed room from a
+real game in its phase, on a desktop and a phone, in German and English,
+with the bundled Roboto loaded so a layout overflow is one a player would
+see. Two things matter when driving a `TankGame` in a test: `update`
+runs the whole component tree, but tanks the host spawns mid-round load
+asynchronously and only mount if the test yields between frames
+(`await Future<void>.delayed(Duration.zero)`); and inside `testWidgets`
+game changes that start timers belong in `tester.runAsync`.
+
+CI and `tool/verify.sh` run the tests with `--coverage` and
+`dart run tool/coverage.dart --min 75` fails below 75 % of the lines.
+It leaves generated code out, prints the files with the most uncovered
+lines, and lists the files no test loads at all (the app shell, the
+Apple TV split screen, the web-only room code), which the share does not
+count.
+
 The integration smoke test exercises Broadcast, Presence, and the typed
 `scores` table against the local stack:
 

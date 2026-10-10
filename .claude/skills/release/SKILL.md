@@ -42,3 +42,7 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
 - Run `/ship` first, so main is green and holds the version bump.
 - Afterwards: `gh run watch` once, report the build number, and update the
   store memory entries with what is still open in the store consoles.
+- Last, once the upload is through: `tool/finish_worktree.sh` removes this
+  session's worktree with its DerivedData and scratchpad, as at the end
+  of `/ship`. The archive in the
+  Organizer lives outside it and stays.

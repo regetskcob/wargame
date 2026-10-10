@@ -65,7 +65,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Netz | `lib/src/net/net_service.dart` (Kanal, `_listen`), `room_web.dart`/`room_stub.dart`, `pad_link.dart` |
 | UI / Overlays | `lib/src/ui/` (`hud_overlay.dart`, `lobby_overlay.dart`, `launch_view.dart`, `welcome_view.dart`), Overlay-IDs in `app/overlay_ids.dart` |
 | Navigation | go_router in `lib/src/app/routes.dart`: `/` = Spiel (alles in der Runde bleibt Flame-Overlay), darüber `/pad/:code` (Handy-Controller) und `/scan/room\|pad` (QR-Kamera). Raum bleibt im Web in `?room=` vor dem `#`, Dialoge weiter per `showDialog` |
-| Watch | `lib/src/watch/`, verzweigen nur mit `FlutterWatchosPlatform.isWatch` |
+| Watch | `lib/src/watch/` für Apple Watch und Wear OS (Android-App mit Watch-Screens, Krone über `WearPlugin.kt` → `wear_crown.dart`, runde Uhren mit `watchRound`/`watchInsets`, Wear-Bundle mit `--android-project-arg=wear=true` und Manifest aus `android/wear/`), verzweigen mit `onWatch` (beide Uhren), `onWear` bzw. `FlutterWatchosPlatform.isWatch` nur für eine |
 | Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift` |
 | iMessage | `ios/MessagesExtension` (Swift, lädt nur ein: Blase mit Raum-Link, öffnet die App per `panzergefecht://play?room=…&mode=…&host=1`), Dart-Seite `listenForRoomLinks` + `chooseInvitedMode`; Rundenergebnis über App Group `group.de.regetskcob.wargame` (`ios/Shared/ChatResult.swift`, geschrieben in `LiveActivityPlugin.swift`); Bilder aus `store/tool/imessage.py`; `docs/platforms.md` „iMessage“ |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
@@ -102,6 +102,12 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
 - Kommentare erklären das *Warum*; `docs/` (Gameplay, Plattformen, Netcode)
   und README (Highlights, Roadmap) mitpflegen, wenn sich Verhalten ändert.
   Die README bleibt kurz: Details und Tabellen gehören nach `docs/`.
+- **Plattenplatz:** Ist die Aufgabe einer Sitzung mit `/ship` oder
+  `/release` abgeschlossen, räumt sie zuletzt ihren Worktree mit
+  `tool/finish_worktree.sh` weg (samt Builds, Xcode-DerivedData,
+  Claude-Scratchpad unter `/private/tmp/claude-<uid>/` und gemergtem
+  Branch; verweigert bei ungesicherter Arbeit). Liegengebliebene zeigt
+  `tool/finish_worktree.sh --all --dry-run`.
 - `dart format` ist in CI Pflicht.
 - Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
 - `TankGame` wächst nicht wieder zu: neue Felder in `tank_game.dart`, neue
