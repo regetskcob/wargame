@@ -48,7 +48,9 @@
 - In the defense mode the players hold a base together on a fixed map without
   the closing zone. The host runs the enemy waves like CPU tanks and is the
   authority over the base: it broadcasts the base's hit points, the wave and
-  the result as `defense`, along with how far the base has grown. Guns go up
+  the result as `defense`, along with how far the base has grown and, once
+  extended, the last wave of the extension (`until`; a client that gets an
+  extension without it, from an older host, lets the waves run on). Guns go up
   with `tower`, and only their builder aims and fires them, so their shots
   travel as ordinary `shoot` events. The host also keeps the guns' hit
   points and sends them with `tower` after every hit; at nothing the gun is

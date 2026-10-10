@@ -134,10 +134,19 @@ class GameConfig {
   static const artilleryRange = 360.0;
 
   /// Defense: the base, the waves and the guns the players put down. After
-  /// [defenseWaves] the win is safe and the host may extend: the waves go
-  /// on until the base falls or the defenders pull out, with higher steps
-  /// for guns and tank, the rocket launcher and tougher enemies.
+  /// [defenseWaves] the win is safe and the host may extend by
+  /// [defenseExtension] waves at a time, up to [defenseMaxWaves], with
+  /// higher steps for guns and tank, the rocket launcher and tougher
+  /// enemies.
   static const defenseWaves = 8;
+
+  /// Waves one extension adds. Endless waves left no clear end in the play
+  /// test: the round only stopped when the base fell or somebody pulled out.
+  static const defenseExtension = 4;
+
+  /// The round ends as a win after this wave, however often it was
+  /// extended.
+  static const defenseMaxWaves = 20;
 
   /// How long the defenders have to decide whether to extend.
   static const extendDecisionSeconds = 25;

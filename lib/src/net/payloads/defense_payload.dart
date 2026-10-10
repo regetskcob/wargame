@@ -14,6 +14,7 @@ class DefensePayload {
     this.hp2,
     this.hq2 = 1,
     this.fell = -1,
+    this.until,
   });
 
   factory DefensePayload.fromJson(Map<String, dynamic> json) {
@@ -32,6 +33,10 @@ class DefensePayload {
       hp2: (json['hp2'] as num?)?.toDouble(),
       hq2: json['hq2'] as int? ?? 1,
       fell: json['fell'] as int? ?? -1,
+      until: switch (json['until']) {
+        final int wave when wave > 0 => wave,
+        _ => null,
+      },
     );
   }
 
@@ -65,7 +70,16 @@ class DefensePayload {
   /// both fell at once.
   final int fell;
 
+  /// The last wave the host extended to, null before the first extension.
+  /// Older hosts never send it: their extension runs on without an end.
+  final int? until;
+
   bool get duel => hp2 != null;
+
+  /// The last wave of the stretch under way: the regular waves, then each
+  /// extension's. Null when the waves run on until a base falls, as in a
+  /// duel past the regular waves.
+  int? get lastWave => until ?? (extended ? null : GameConfig.defenseWaves);
 
   /// Hit points of the base of [lane].
   double hpOf(int lane) => lane == 1 ? hp2 ?? 0 : hp;
@@ -77,13 +91,20 @@ class DefensePayload {
   DefensePayload withBase(int lane, {double? hp, int? hq}) =>
       lane == 1 ? copyWith(hp2: hp, hq2: hq) : copyWith(hp: hp, hq: hq);
 
-  /// The last regular wave is beaten off and the host has yet to say
+  /// The last wave of the stretch is beaten off and the host has yet to say
   /// whether to go on.
-  bool get deciding =>
-      !extended &&
-      result == DefenseResult.running &&
-      wave >= GameConfig.defenseWaves &&
-      nextWaveAt > 0;
+  bool get deciding {
+    final last = lastWave;
+    return last != null &&
+        result == DefenseResult.running &&
+        wave >= last &&
+        nextWaveAt > 0;
+  }
+
+  /// Whether the host may add another [GameConfig.defenseExtension] waves.
+  bool get canExtend =>
+      deciding &&
+      wave + GameConfig.defenseExtension <= GameConfig.defenseMaxWaves;
 
   DefensePayload copyWith({
     double? hp,
@@ -95,6 +116,7 @@ class DefensePayload {
     double? hp2,
     int? hq2,
     int? fell,
+    int? until,
   }) {
     return DefensePayload(
       id: id,
@@ -107,6 +129,7 @@ class DefensePayload {
       hp2: hp2 ?? this.hp2,
       hq2: hq2 ?? this.hq2,
       fell: fell ?? this.fell,
+      until: until ?? this.until,
     );
   }
 
@@ -122,6 +145,7 @@ class DefensePayload {
       if (hp2 != null) 'hp2': hp2,
       if (hq2 != 1) 'hq2': hq2,
       if (fell >= 0) 'fell': fell,
+      if (until != null) 'until': until,
     };
   }
 }

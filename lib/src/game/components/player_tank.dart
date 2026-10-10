@@ -672,7 +672,7 @@ class PlayerTank extends TankBase
       }
       AudioService.play('hit');
       if (other.ownerId == gameRef.myId) {
-        gameRef.registerHit(min(other.damage, hp));
+        gameRef.registerHit(min(other.damage, hp), bulletId: other.bulletId);
       }
       applyDamage(other.damage, killerId: other.ownerId);
       gameRef.net.send(

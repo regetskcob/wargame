@@ -6,7 +6,6 @@ import 'package:flutter_watchos/flutter_watchos.dart';
 
 import '../game/inventory.dart';
 import '../game/tank_game.dart';
-import '../game/game_config.dart';
 import '../l10n/l10n.dart';
 import '../ui/theme.dart';
 import 'watch_support.dart';
@@ -54,7 +53,8 @@ class _WatchHudState extends State<WatchHud> {
     final round = game.round;
     final defense = game.defense.value;
     if (round != null && round.defense && defense != null) {
-      final waves = defense.extended ? '' : '/${GameConfig.defenseWaves}';
+      final last = defense.lastWave;
+      final waves = last == null ? '' : '/$last';
       final wait = defense.nextWaveAt - DateTime.now().millisecondsSinceEpoch;
       final label = tr(
         'Welle ${defense.wave}$waves',

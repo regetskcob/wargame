@@ -225,11 +225,18 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
         next.nextWaveAt == 0 &&
         _queue.isEmpty &&
         !gameRef.enemyForcesLeft) {
-      // After the last regular wave the host gets a longer break to decide
-      // whether to go on.
-      // A duel goes on by itself until a base falls.
-      final pause =
-          next.wave >= GameConfig.defenseWaves && !next.extended && !_duel
+      // After the last wave of a stretch the host gets a longer break to
+      // decide whether to go on, and after the very last one the round is
+      // won. A duel goes on by itself until a base falls.
+      final last = next.lastWave;
+      final stretchDone = !_duel && last != null && next.wave >= last;
+      if (stretchDone && next.wave >= GameConfig.defenseMaxWaves) {
+        gameRef.publishDefense(
+          _grow(next).copyWith(nextWaveAt: _now, result: DefenseResult.won),
+        );
+        return;
+      }
+      final pause = stretchDone
           ? GameConfig.extendDecisionSeconds
           : GameConfig.waveBreakSeconds;
       next = _grow(next).copyWith(

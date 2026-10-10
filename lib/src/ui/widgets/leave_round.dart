@@ -47,6 +47,33 @@ class LeaveRoundPrompt extends StatelessWidget {
           return const SizedBox.shrink();
         }
         final keys = !game.touchMode.value;
+        // Leaving records nothing, neither a loss nor the experience: say
+        // so, and once the defense is won let the host end it as a win
+        // instead, the way out the extension was missing.
+        final won = game.defenseWonAlready;
+        final host = game.round?.botHost == game.myId;
+        final String note;
+        if (won && host) {
+          note = tr(
+            'Der Sieg ist gesichert. Beende die Runde, damit er zählt; '
+                'Verlassen wertet sie nicht.',
+            'The victory is secured. End the round so it counts; leaving '
+                'does not record it.',
+          );
+        } else if (won) {
+          note = tr(
+            'Der Sieg zählt, wenn der Host die Runde beendet. Verlassen '
+                'wertet sie für dich nicht.',
+            'The victory counts once the host ends the round. Leaving does '
+                'not record it for you.',
+          );
+        } else {
+          note = tr(
+            'Die Runde wird dann nicht gewertet: keine EP, keine '
+                'Abzeichen, keine Niederlage.',
+            'The round is then not recorded: no XP, no badges, no defeat.',
+          );
+        }
         return Center(
           child: MouseRegion(
             onEnter: (_) => game.pointerOnHud = true,
@@ -63,6 +90,18 @@ class LeaveRoundPrompt extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
+                  const SizedBox(height: 6),
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 320),
+                    child: Text(
+                      note,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        color: GameColors.textDim,
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Wrap(
                     spacing: 8,
@@ -77,10 +116,22 @@ class LeaveRoundPrompt extends StatelessWidget {
                               : tr('WEITERSPIELEN', 'KEEP PLAYING'),
                         ),
                       ),
-                      FilledButton(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: GameColors.danger,
+                      if (won && host)
+                        FilledButton.icon(
+                          onPressed: () {
+                            game.pointerOnHud = false;
+                            game.leaveAsked.value = false;
+                            game.withdrawDefense();
+                          },
+                          icon: const Icon(Icons.flag_outlined),
+                          label: Text(tr('SIEG · BEENDEN', 'WIN · END')),
                         ),
+                      (won && host ? OutlinedButton.new : FilledButton.new)(
+                        style: won && host
+                            ? null
+                            : FilledButton.styleFrom(
+                                backgroundColor: GameColors.danger,
+                              ),
                         onPressed: () {
                           game.pointerOnHud = false;
                           game.leaveRound();

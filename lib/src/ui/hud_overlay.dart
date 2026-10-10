@@ -177,21 +177,25 @@ class _HudOverlayState extends State<HudOverlay> {
         : tr('Welle läuft: Haltet die Straße', 'Wave on: hold the road');
   }
 
-  /// The wave out of the regular ones, or how far into the extension.
-  /// [short] drops the word for windows too narrow for the whole line.
+  /// The wave out of the stretch under way: the regular ones or the
+  /// extension's. [short] drops the word for windows too narrow for the
+  /// whole line.
   static String _wave(DefensePayload? state, {bool short = false}) {
     final wave = state?.wave ?? 0;
-    if (short) {
-      return state != null && state.extended
+    final last = state == null ? GameConfig.defenseWaves : state.lastWave;
+    final extended = state != null && state.extended;
+    if (last == null) {
+      // A duel past the regular waves, or an older host's endless extension.
+      return short
           ? tr('$wave · VERL.', '$wave · EXT.')
-          : '$wave/${GameConfig.defenseWaves}';
+          : tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION');
     }
-    return state != null && state.extended
-        ? tr('WELLE $wave · VERLÄNGERUNG', 'WAVE $wave · EXTENSION')
-        : tr(
-            'WELLE $wave/${GameConfig.defenseWaves}',
-            'WAVE $wave/${GameConfig.defenseWaves}',
-          );
+    if (short) {
+      return '$wave/$last';
+    }
+    return extended
+        ? tr('WELLE $wave/$last · VERL.', 'WAVE $wave/$last · EXT.')
+        : tr('WELLE $wave/$last', 'WAVE $wave/$last');
   }
 
   /// Wave, enemies and comrades in one short line, for the phone panel.
@@ -199,7 +203,13 @@ class _HudOverlayState extends State<HudOverlay> {
     final game = widget.game;
     final round = game.round;
     final allies = round == null ? 0 : round.alive.where(round.isAlly).length;
-    return '${_wave(game.defense.value)}'
+    // Without the word for the extension, which made the line too long for
+    // an upright phone: the count up to its end says enough.
+    final state = game.defense.value;
+    final wave = state?.lastWave == null
+        ? _wave(state)
+        : '${tr('WELLE', 'WAVE')} ${_wave(state, short: true)}';
+    return '$wave'
         ' · ${tr('FEINDE', 'ENEMIES')} ${game.enemiesOnField}'
         ' · ${tr('KAM.', 'ALLIES')} $allies';
   }
@@ -492,107 +502,140 @@ class _HudOverlayState extends State<HudOverlay> {
 
   Widget _effects(TankGame game) {
     // On a desktop the defense panel fills the lower left and hid the wave
-    // announcements, so there they show above the middle.
-    final high = (game.round?.defense ?? false) && !game.touchMode.value;
+    // announcements, so there they show above the middle. On phones they
+    // sit just under the tank: lower down they ran into the sticks, their
+    // labels and the aim assist hint.
+    final touch = game.touchMode.value;
+    final high = (game.round?.defense ?? false) && !touch;
     return IgnorePointer(
       child: Align(
-        alignment: high ? const Alignment(0, -0.35) : const Alignment(0, 0.55),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ValueListenableBuilder<String?>(
-              valueListenable: game.notice,
-              builder: (context, text, _) => text == null
-                  ? const SizedBox()
-                  : Text(
-                      text,
-                      style: const TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 3,
-                        color: GameColors.amber,
-                      ),
-                    ),
-            ),
-            ValueListenableBuilder<int>(
-              valueListenable: game.respawnSeconds,
-              builder: (context, seconds, _) => seconds <= 0
-                  ? const SizedBox()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Panel(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 8,
-                        ),
-                        child: Text(
-                          tr(
-                            'ZERSTÖRT  ·  WIEDER EINSATZBEREIT IN $seconds s',
-                            'DESTROYED  ·  READY AGAIN IN $seconds s',
-                          ),
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                            color: GameColors.danger,
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-            ValueListenableBuilder<int>(
-              valueListenable: game.rapidFireSeconds,
-              builder: (context, seconds, _) => seconds <= 0
-                  ? const SizedBox()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Panel(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: Text(
-                          tr(
-                            'SCHNELLFEUER  $seconds s',
-                            'RAPID FIRE  $seconds s',
-                          ),
-                        ),
-                      ),
-                    ),
-            ),
-            ValueListenableBuilder<int>(
-              valueListenable: game.shieldSeconds,
-              builder: (context, seconds, _) => seconds <= 0
-                  ? const SizedBox()
-                  : Padding(
-                      padding: const EdgeInsets.only(top: 6),
-                      child: Panel(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 6,
-                        ),
-                        child: Text(
-                          tr('SCHILD  $seconds s', 'SHIELD  $seconds s'),
-                          style: const TextStyle(color: Color(0xFF81D4FA)),
-                        ),
-                      ),
-                    ),
-            ),
-            // On phones the special weapon button shows the same.
-            if (!game.touchMode.value)
-              ValueListenableBuilder<(SpecialWeapon, int)?>(
-                valueListenable: game.specialNotifier,
-                builder: (context, special, _) => special == null
+        alignment: high
+            ? const Alignment(0, -0.35)
+            : touch
+            ? const Alignment(0, 0.3)
+            : const Alignment(0, 0.55),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ValueListenableBuilder<String?>(
+                valueListenable: game.notice,
+                builder: (context, text, _) => text == null
                     ? const SizedBox()
-                    : Padding(
-                        padding: const EdgeInsets.only(top: 6),
-                        child: SpecialPlate(
-                          weapon: special.$1,
-                          charges: special.$2,
-                          keyHint: 'F',
+                    : Text(
+                        text,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: touch ? 18 : 24,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: touch ? 1.5 : 3,
+                          color: GameColors.amber,
+                          shadows: const [
+                            Shadow(color: Color(0xCC000000), blurRadius: 6),
+                          ],
                         ),
                       ),
               ),
-          ],
+              ValueListenableBuilder<int>(
+                valueListenable: game.respawnSeconds,
+                builder: (context, seconds, _) => seconds <= 0
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        // Two lines: in one the countdown broke off mid-word
+                        // on an upright phone.
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                tr('ZERSTÖRT', 'DESTROYED'),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 2,
+                                  color: GameColors.danger,
+                                ),
+                              ),
+                              Text(
+                                tr(
+                                  'Wieder einsatzbereit in $seconds s',
+                                  'Ready again in $seconds s',
+                                ),
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+              ),
+              ValueListenableBuilder<int>(
+                valueListenable: game.rapidFireSeconds,
+                // A wrecked tank fires nothing, so its rapid fire stays out of
+                // the way of the countdown.
+                builder: (context, seconds, _) =>
+                    seconds <= 0 || game.respawnSeconds.value > 0
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            tr(
+                              'SCHNELLFEUER  $seconds s',
+                              'RAPID FIRE  $seconds s',
+                            ),
+                          ),
+                        ),
+                      ),
+              ),
+              ValueListenableBuilder<int>(
+                valueListenable: game.shieldSeconds,
+                builder: (context, seconds, _) => seconds <= 0
+                    ? const SizedBox()
+                    : Padding(
+                        padding: const EdgeInsets.only(top: 6),
+                        child: Panel(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            tr('SCHILD  $seconds s', 'SHIELD  $seconds s'),
+                            style: const TextStyle(color: Color(0xFF81D4FA)),
+                          ),
+                        ),
+                      ),
+              ),
+              // On phones the special weapon button shows the same.
+              if (!game.touchMode.value)
+                ValueListenableBuilder<(SpecialWeapon, int)?>(
+                  valueListenable: game.specialNotifier,
+                  builder: (context, special, _) => special == null
+                      ? const SizedBox()
+                      : Padding(
+                          padding: const EdgeInsets.only(top: 6),
+                          child: SpecialPlate(
+                            weapon: special.$1,
+                            charges: special.$2,
+                            keyHint: 'F',
+                          ),
+                        ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -911,14 +954,15 @@ class _DefensePanelState extends State<_DefensePanel> {
         ),
         const SizedBox(height: 6),
         // One list at a time, like on phones: with both the panel covered a
-        // quarter of a laptop screen and the road beneath it.
-        Row(
-          mainAxisSize: MainAxisSize.min,
+        // quarter of a laptop screen and the road beneath it. A narrow
+        // window wraps the call for the next wave below the tabs.
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
           children: [
             _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
-            const SizedBox(width: 6),
             _deskTab('UPGRADES', _Shop.upgrades),
-            if (game.canCallWave) ...[const SizedBox(width: 6), _callWave()],
+            if (game.canCallWave) _callWave(),
           ],
         ),
         const SizedBox(height: 6),
@@ -956,49 +1000,88 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
   }
 
-  Widget _tab(String label, _Shop shop) {
+  /// A list toggle of the phone panel: only the symbol, the name is in the
+  /// tooltip and for the screen reader. Spelled out, the two tabs and the
+  /// funds took a line of their own on an upright phone.
+  Widget _tab(String label, IconData icon, _Shop shop) {
     final open = _shop == shop;
-    return (open ? FilledButton.new : OutlinedButton.new)(
-      style: _buttonStyle,
-      onPressed: () => setState(() => _shop = open ? _Shop.closed : shop),
-      child: Text(label, style: _small),
+    return Tooltip(
+      message: label,
+      child: Semantics(
+        button: true,
+        selected: open,
+        label: label,
+        child: ExcludeSemantics(
+          child: (open ? FilledButton.new : OutlinedButton.new)(
+            style: _iconStyle,
+            onPressed: () => setState(() => _shop = open ? _Shop.closed : shop),
+            child: Icon(icon, size: 18),
+          ),
+        ),
+      ),
     );
   }
 
-  /// Phones: a slim header with the base and the credits, the lists fold out
-  /// on demand. Standing by a gun shows its upgrade button right away.
+  ButtonStyle get _iconStyle => _buttonStyle.copyWith(
+    padding: const WidgetStatePropertyAll(EdgeInsets.zero),
+    minimumSize: const WidgetStatePropertyAll(Size(40, 32)),
+  );
+
+  /// Phones: one line with the funds and the toggles, the lists fold out on
+  /// demand. Standing by a gun shows its upgrade button right away.
   Widget _shopTouch(int credits) {
     final near = game.nearTower.value;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Wrap(
-          alignment: WrapAlignment.end,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          runSpacing: 4,
+        Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              tr('MITTEL $credits', 'FUNDS $credits'),
+              '$credits',
+              semanticsLabel: tr('Mittel $credits', 'Funds $credits'),
               style: const TextStyle(
                 color: GameColors.amber,
                 fontSize: 12,
                 fontWeight: FontWeight.w800,
               ),
             ),
+            const SizedBox(width: 2),
+            const Icon(Icons.paid_outlined, size: 13, color: GameColors.amber),
             const SizedBox(width: 8),
-            _tab(tr('TÜRME', 'TOWERS'), _Shop.towers),
-            const SizedBox(width: 6),
-            _tab('UPGRADES', _Shop.upgrades),
+            _tab(
+              tr('Türme', 'Towers'),
+              Icons.construction_outlined,
+              _Shop.towers,
+            ),
+            const SizedBox(width: 4),
+            _tab('Upgrades', Icons.upgrade_outlined, _Shop.upgrades),
+            if (game.canCallWave) ...[
+              const SizedBox(width: 4),
+              Tooltip(
+                message: tr('Welle jetzt', 'Wave now'),
+                child: Semantics(
+                  button: true,
+                  label: tr('Welle jetzt', 'Wave now'),
+                  child: ExcludeSemantics(
+                    child: FilledButton(
+                      style: _iconStyle,
+                      onPressed: game.callWaveNow,
+                      child: const Icon(Icons.fast_forward_outlined, size: 18),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
-        if (game.canCallWave) ...[const SizedBox(height: 6), _callWave()],
         if (near != null) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           _nearTower(near, credits),
         ],
         if (_shop != _Shop.closed) ...[
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 330),
             child: _shop == _Shop.towers
@@ -1036,97 +1119,21 @@ class _DefensePanelState extends State<_DefensePanel> {
     );
   }
 
-  /// After the last regular wave: the host extends or pulls out, everybody
-  /// else learns what is at stake. In the extension the host may pull out
-  /// between waves.
+  /// After the last wave of a stretch: the host extends or ends the round,
+  /// everybody else learns what is at stake. Ending later goes through the
+  /// exit button, whose question offers the win.
   Widget _decision() {
     return ValueListenableBuilder<DefensePayload?>(
       valueListenable: game.defense,
       builder: (context, state, _) {
-        if (state == null ||
-            state.result != DefenseResult.running ||
-            state.nextWaveAt == 0 ||
-            !(state.deciding || state.extended)) {
+        if (state == null || !state.deciding) {
           return const SizedBox.shrink();
         }
         final host = game.round?.botHost == game.myId;
-        final withdraw = OutlinedButton.icon(
-          style: _buyStyle(GameColors.sand),
-          onPressed: game.withdrawDefense,
-          icon: const Icon(Icons.flag_outlined, size: 16),
-          label: Text(tr('ABZIEHEN', 'WITHDRAW'), style: _small),
-        );
-        final children = <Widget>[];
-        if (state.deciding) {
-          children
-            ..add(
-              Text(
-                tr(
-                  'ALLE ${GameConfig.defenseWaves} WELLEN ABGEWEHRT · SIEG GESICHERT',
-                  'ALL ${GameConfig.defenseWaves} WAVES REPELLED · VICTORY SECURED',
-                ),
-                style: TextStyle(
-                  color: GameColors.amber,
-                  fontSize: touch ? 11 : 13,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            )
-            ..add(const SizedBox(height: 4))
-            ..add(
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: Text(
-                  tr(
-                    'Verlängerung: Wellen ohne Ende mit zäheren Gegnern, Stufe 4 '
-                        'und 5 für Geschütze und Panzer, Raketenwerfer und eine '
-                        'Zitadelle. Fällt der Stützpunkt, bleibt der Sieg.',
-                    'Extension: endless waves with tougher enemies, levels 4 '
-                        'and 5 for turrets and tanks, rocket launchers and a '
-                        'citadel. If the base falls, the victory remains.',
-                  ),
-                  style: TextStyle(fontSize: touch ? 10 : 11),
-                ),
-              ),
-            )
-            ..add(const SizedBox(height: 6))
-            ..add(
-              host
-                  ? Wrap(
-                      spacing: 8,
-                      runSpacing: 4,
-                      children: [
-                        FilledButton.icon(
-                          style: _buttonStyle,
-                          onPressed: game.extendDefense,
-                          icon: const Icon(
-                            Icons.all_inclusive_outlined,
-                            size: 16,
-                          ),
-                          label: Text(
-                            tr('VERLÄNGERN', 'EXTEND'),
-                            style: _small,
-                          ),
-                        ),
-                        withdraw,
-                      ],
-                    )
-                  : Text(
-                      tr(
-                        'Der Host entscheidet, ob es weitergeht.',
-                        'The host decides whether it goes on.',
-                      ),
-                      style: TextStyle(
-                        fontSize: touch ? 10 : 11,
-                        color: GameColors.textDim,
-                      ),
-                    ),
-            );
-        } else if (host) {
-          children.add(withdraw);
-        } else {
-          return const SizedBox.shrink();
-        }
+        const more = GameConfig.defenseExtension;
+        final first = !state.extended;
+        final small = TextStyle(fontSize: touch ? 10 : 11);
+        final align = touch ? TextAlign.end : TextAlign.start;
         return Padding(
           padding: EdgeInsets.only(bottom: touch ? 6 : 10),
           child: Column(
@@ -1134,7 +1141,81 @@ class _DefensePanelState extends State<_DefensePanel> {
                 ? CrossAxisAlignment.end
                 : CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: children,
+            children: [
+              Text(
+                tr(
+                  'WELLE ${state.wave} GEHALTEN · SIEG GESICHERT',
+                  'WAVE ${state.wave} HELD · VICTORY SECURED',
+                ),
+                textAlign: align,
+                style: TextStyle(
+                  color: GameColors.amber,
+                  fontSize: touch ? 11 : 13,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 2),
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 420),
+                child: Text(
+                  !state.canExtend
+                      ? tr(
+                          'Das war die letzte Welle.',
+                          'That was the last wave.',
+                        )
+                      : first
+                      ? tr(
+                          'Noch $more Wellen: zähere Gegner, Stufe 4 und 5, '
+                              'Raketenwerfer. Der Sieg bleibt.',
+                          '$more more waves: tougher enemies, levels 4 and 5, '
+                              'rocket launchers. The victory stays.',
+                        )
+                      : tr(
+                          'Noch $more Wellen, noch zäher. Der Sieg bleibt.',
+                          '$more more waves, tougher still. The victory stays.',
+                        ),
+                  textAlign: align,
+                  style: small,
+                ),
+              ),
+              const SizedBox(height: 4),
+              if (host)
+                Wrap(
+                  alignment: touch ? WrapAlignment.end : WrapAlignment.start,
+                  spacing: 6,
+                  runSpacing: 4,
+                  children: [
+                    if (state.canExtend)
+                      FilledButton.icon(
+                        style: _buttonStyle,
+                        onPressed: game.extendDefense,
+                        icon: const Icon(Icons.add_outlined, size: 16),
+                        label: Text(
+                          tr('$more WELLEN', '$more WAVES'),
+                          style: _small,
+                        ),
+                      ),
+                    OutlinedButton.icon(
+                      style: _buyStyle(GameColors.sand),
+                      onPressed: game.withdrawDefense,
+                      icon: const Icon(Icons.flag_outlined, size: 16),
+                      label: Text(
+                        tr('SIEG · BEENDEN', 'WIN · END'),
+                        style: _small,
+                      ),
+                    ),
+                  ],
+                )
+              else
+                Text(
+                  tr(
+                    'Der Host entscheidet, ob es weitergeht.',
+                    'The host decides whether it goes on.',
+                  ),
+                  textAlign: align,
+                  style: small.copyWith(color: GameColors.textDim),
+                ),
+            ],
           ),
         );
       },

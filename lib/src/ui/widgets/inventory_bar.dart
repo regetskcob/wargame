@@ -86,15 +86,23 @@ class _Slot extends StatelessWidget {
                 children: [
                   Icon(type.icon, size: compact ? 16 : 20, color: type.color),
                   const SizedBox(height: 2),
-                  Text(
-                    type.short,
-                    style: TextStyle(
-                      fontSize: compact ? 6.5 : 7.5,
-                      letterSpacing: 0,
-                      color: GameColors.text,
+                  // The longest names (SCHNELLF., ARTILLERIE) were cut off
+                  // in the 44 px slot of a phone; they shrink a little
+                  // instead.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        type.short,
+                        style: TextStyle(
+                          fontSize: compact ? 6.5 : 7.5,
+                          letterSpacing: 0,
+                          color: GameColors.text,
+                        ),
+                        maxLines: 1,
+                      ),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.clip,
                   ),
                 ],
               ),

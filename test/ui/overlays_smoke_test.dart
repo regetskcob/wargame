@@ -53,7 +53,12 @@ Widget _overlay(String id, TankGame game) => switch (id) {
 /// Any seed does; a fixed one makes a failure repeat.
 const _seed = 20261010;
 
-const _screens = {'desktop': Size(1280, 720), 'phone': Size(844, 390)};
+const _screens = {
+  'desktop': Size(1280, 720),
+  'phone': Size(844, 390),
+  // Most of the play test's pictures were taken upright.
+  'upright': Size(390, 844),
+};
 
 /// Shows what the game has open right now, as the GameWidget would.
 Future<void> _show(WidgetTester tester, TankGame game, Size size) async {
@@ -286,6 +291,39 @@ void main() {
                 at: DateTime.now(),
               ),
           ];
+        await _show(tester, game, size);
+        expect(find.byType(HudOverlay), findsOneWidget);
+        await tester.pumpWidget(const SizedBox());
+      });
+
+      testWidgets('the defense decision, the extension and the question to '
+          'leave lay out ($where)', (tester) async {
+        L10n.lang.value = lang;
+        addTearDown(tester.view.reset);
+        final game = await _game(tester);
+        await _start(tester, game, GameMode.defense);
+        game.touchMode.value = screen != 'desktop';
+        final now = DateTime.now().millisecondsSinceEpoch;
+        await _act(
+          tester,
+          () => game.publishDefense(
+            game.defense.value!.copyWith(
+              wave: GameConfig.defenseWaves,
+              nextWaveAt: now + 20000,
+            ),
+          ),
+        );
+        expect(game.defense.value!.deciding, isTrue);
+        await _show(tester, game, size);
+        expect(find.byType(HudOverlay), findsOneWidget);
+        await _act(tester, game.extendDefense);
+        await _act(
+          tester,
+          () => game.publishDefense(
+            game.defense.value!.copyWith(wave: 10, nextWaveAt: 0),
+          ),
+        );
+        game.leaveAsked.value = true;
         await _show(tester, game, size);
         expect(find.byType(HudOverlay), findsOneWidget);
         await tester.pumpWidget(const SizedBox());

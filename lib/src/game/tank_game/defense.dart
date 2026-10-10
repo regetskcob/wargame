@@ -339,15 +339,17 @@ extension TankGameDefense on TankGame {
   /// Whether the defenders went on past the last regular wave.
   bool get extended => defense.value?.extended ?? false;
 
-  /// Host, after the last regular wave: go on with the waves.
+  /// Host, after the last wave of a stretch: another
+  /// [GameConfig.defenseExtension] waves.
   void extendDefense() {
     final state = defense.value;
-    if (state == null || round?.botHost != myId || !state.deciding) {
+    if (state == null || round?.botHost != myId || !state.canExtend) {
       return;
     }
     publishDefense(
       state.copyWith(
         extended: true,
+        until: state.wave + GameConfig.defenseExtension,
         nextWaveAt:
             DateTime.now().millisecondsSinceEpoch +
             GameConfig.waveBreakSeconds * 1000,
@@ -380,14 +382,21 @@ extension TankGameDefense on TankGame {
     );
   }
 
-  /// Host, between waves once the win is safe: end the round as a win.
+  /// Whether the win is safe, so that ending the round now counts as one:
+  /// after the regular waves, and all through an extension.
+  bool get defenseWonAlready {
+    final state = defense.value;
+    return state != null &&
+        !state.duel &&
+        state.result == DefenseResult.running &&
+        (state.deciding || state.extended);
+  }
+
+  /// Host, once the win is safe: end the round as a win, also in the middle
+  /// of a wave, so the round never has to be left without its win.
   void withdrawDefense() {
     final state = defense.value;
-    if (state == null ||
-        round?.botHost != myId ||
-        state.result != DefenseResult.running ||
-        state.nextWaveAt == 0 ||
-        !(state.deciding || state.extended)) {
+    if (state == null || round?.botHost != myId || !defenseWonAlready) {
       return;
     }
     publishDefense(state.copyWith(result: DefenseResult.won));
@@ -442,7 +451,19 @@ extension TankGameDefense on TankGame {
       );
       AudioService.play('win', volume: 0.5);
     }
-    if (before != null && state.extended && !before.extended) {
+    final until = state.until;
+    if (before != null && until != null && until != before.until) {
+      showNotice(
+        before.extended
+            ? tr('VERLÄNGERT BIS WELLE $until', 'EXTENDED TO WAVE $until')
+            : tr(
+                'VERLÄNGERT BIS WELLE $until: STUFE 4 UND 5, RAKETENWERFER',
+                'EXTENDED TO WAVE $until: LEVELS 4 AND 5, ROCKET LAUNCHERS',
+              ),
+      );
+      AudioService.play('go', volume: 0.6);
+    } else if (before != null && state.extended && !before.extended) {
+      // An older host extends without an end.
       showNotice(
         tr(
           'VERLÄNGERUNG: STUFE 4 UND 5, RAKETENWERFER',
@@ -458,7 +479,7 @@ extension TankGameDefense on TankGame {
       // A wave was beaten off.
       credits.value += GameConfig.waveBonus;
       showNotice(
-        state.deciding
+        state.deciding || state.result == DefenseResult.won
             ? tr(
                 'ALLE ${state.wave} WELLEN ABGEWEHRT  +${GameConfig.waveBonus}',
                 'ALL ${state.wave} WAVES REPELLED  +${GameConfig.waveBonus}',

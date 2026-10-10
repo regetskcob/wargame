@@ -43,9 +43,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   the break is over (WAVE NOW, key N). Kills bring money for guns (key B), the
   base hands out ammunition, and destroyed tanks return after a short time.
   A base that holds well grows from a watchtower to barracks to a fortress.
-  After wave 8 the win is safe and the host may extend: endless waves with
-  tougher enemies, a fifth step for guns and tank, a rocket launcher and a
-  citadel, until the base falls (still a win) or the host pulls out.
+  After wave 8 the win is safe and the host may extend by 4 waves at a
+  time, up to wave 20: tougher enemies, a fifth step for guns and tank, a
+  rocket launcher and a citadel. The round ends as a win after the last
+  wave of a stretch, when the base falls or when the host ends it.
   See [Defense thresholds](#defense-thresholds) for the numbers.
 - **Capture the flag:** red against blue on the open field, a base at the
   left and the right end with a flag each. Drive over the other side's
@@ -316,8 +317,11 @@ bounty. The host fires them (`tower` and `shoot` events with the id
 `td-g`); not in a duel.
 
 **The extension.** After the last of the 8 regular waves the host has 25
-seconds to extend; without an answer the round ends as a win. Extended, the
-waves go on without end and the host may pull out in any break. Guns and the
+seconds to add 4 more waves; without an answer the round ends as a win. After
+those 4 the same question comes again, and after wave 20 the round is over
+whatever happens. Endless waves left no clear end in the play test. The host
+may also end the secured round at any time, mid-wave too, through the exit
+button, whose question then offers *Win · end*. Guns and the
 tank's upgrades go up to level 5 instead of 3 (armour steps 4 and 5 shield
 10 % each instead of 15 %), the rocket launcher can be built, and every wave
 past the 8th makes enemy tanks 12 % tougher. If the base falls, the round is
@@ -329,8 +333,10 @@ still a win.
   while watching), asks whether to leave the running round; Escape again
   or *Keep playing* takes it back, Enter or *Leave* goes. The round runs on
   behind the question, it cannot be paused for the others.
-- Alone with CPU tanks the player is straight back in the waiting room and
-  nothing is recorded. With other people in the round the player leaves the
+- Leaving records nothing, neither a defeat nor experience or badges, and
+  the question says so. Once a defense is won (after wave 8) the host's
+  question offers ending the round as a win instead.
+- Alone with CPU tanks the player is straight back in the waiting room. With other people in the round the player leaves the
   room too, and the others see the tank go like a pilot who closed the tab.
 - On the end screen Escape goes back to the waiting room, in a replay it
   ends the replay. The Apple TV keeps its Menu button from throwing anybody
@@ -355,7 +361,8 @@ still a win.
 - Leaderboard points weigh every total a pilot has, so more rounds, wins and
   kills always count (`lib/src/db/score_points.dart`): 10 per round, 50 per
   win, 20 per kill, 1 per 20 damage, up to 20 per round for accuracy (hits
-  per shot), 1 per 30 s alive, and twice the rating's distance from the
+  per shot; only shells out of the own gun count, each once, not guns,
+  mines or blasts), 1 per 30 s alive, and twice the rating's distance from the
   start of 1000 once a rated round moved it. Never below zero. Ties go to
   the rating, then wins, then kills. The rating alone ranked badly: it only
   moves in rounds with a rated opponent, so one even round outranked a

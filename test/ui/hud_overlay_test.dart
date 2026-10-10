@@ -40,13 +40,14 @@ void main() {
       ),
     );
     // The fullest state: the guns to build folded out.
-    await tester.tap(find.text('TÜRME'));
+    final towers = find.byIcon(Icons.construction_outlined);
+    await tester.tap(towers);
     await tester.pump();
 
     expect(tester.takeException(), isNull);
     final gauges = tester.getRect(find.byType(VitalsPlate));
     final panel = tester.getRect(
-      find.ancestor(of: find.text('TÜRME'), matching: find.byType(Panel)).first,
+      find.ancestor(of: towers, matching: find.byType(Panel)).first,
     );
     expect(panel.right, lessThanOrEqualTo(393));
     expect(panel.left, greaterThanOrEqualTo(gauges.right));

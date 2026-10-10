@@ -42,7 +42,7 @@ extension TankGameCombat on TankGame {
     for (final start in tank.barrelStarts(GameConfig.tankRadius + 16)) {
       final bulletId = '$ownerId-${_bulletCounter++}';
       if (tank == myTank) {
-        roundStats.shots++;
+        roundStats.fired(bulletId);
       }
       final upgraded = tank.gunFactor != 1;
       final damage = stats.damage * tank.gunFactor;
@@ -477,7 +477,7 @@ extension TankGameCombat on TankGame {
         }
       }
       if (payload.shooterId == myId && !replaying.value) {
-        registerHit(damage);
+        registerHit(damage, bulletId: payload.bulletId);
       }
       tank
         ..hp = hp
@@ -490,10 +490,10 @@ extension TankGameCombat on TankGame {
     }
   }
 
-  /// A shell of the local player hit a tank for [damage].
-  void registerHit(double damage) {
-    roundStats.hits++;
-    roundStats.damage += max(0.0, damage);
+  /// Something of the local player hit a tank for [damage]; [bulletId] names
+  /// the shell when it was one.
+  void registerHit(double damage, {String? bulletId}) {
+    roundStats.hit(damage, bulletId: bulletId);
   }
 
   /// Applies a shell hit to a building or barrier and tells the other players.

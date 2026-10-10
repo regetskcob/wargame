@@ -96,18 +96,21 @@ class RoundRewards extends StatelessWidget {
             color: GameColors.amber,
           ),
         ),
-        Text.rich(
-          TextSpan(
-            text: '${tr('WERTUNG', 'RATING')} ${record.rating} ',
-            children: [
-              TextSpan(
-                text: '(${change >= 0 ? '+' : ''}$change)',
-                style: TextStyle(color: changeColor),
-              ),
-            ],
+        // The rating weighs who outlasted whom. A defense round has no such
+        // order and always left it unchanged, which read like a "+0" penalty.
+        if (change != 0)
+          Text.rich(
+            TextSpan(
+              text: '${tr('WERTUNG', 'RATING')} ${record.rating} ',
+              children: [
+                TextSpan(
+                  text: '(${change >= 0 ? '+' : ''}$change)',
+                  style: TextStyle(color: changeColor),
+                ),
+              ],
+            ),
+            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
           ),
-          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
-        ),
       ],
     );
   }

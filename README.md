@@ -28,7 +28,7 @@ Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
   code or QR code) or public ones from the room list. Late joiners watch.
 - **Defense:** together against 8 waves of tanks, helicopters, jets and
   drones. Build guns, upgrade the tank, watch the base grow from a
-  watchtower to a citadel, and extend into endless waves.
+  watchtower to a citadel, and extend by four waves at a time up to 20.
 - **Capture the flag:** red against blue, steal the other side's flag and
   bring it home, with CPU tanks filling both sides.
 - **Two on one screen:** split screen on the Apple TV, a tablet (iPad or
