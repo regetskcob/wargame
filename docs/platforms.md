@@ -227,7 +227,7 @@ destroyed, round won or lost).
 
 The watch has its own screens (`lib/src/watch`), used instead of the phone
 overlays when `FlutterWatchosPlatform.isWatch`: a start page with the call sign
-(a tap opens the watch keyboard), the three ways to play and the open rooms,
+(a tap opens the watch keyboard) and the four ways to play, all alone,
 a waiting room with vehicle, difficulty and public or private, a slim HUD (tanks
 left or wave, armour, magazine, up to three inventory items, in a defense
 round a button to build a gun), and an end screen. The Digital Crown scrolls
@@ -241,7 +241,30 @@ round. Measured in the watch Simulator through Device Hub, still to be tried
 on a real watch. The watch camera looks 12 % closer than the phone's
 (`GameConfig.watchZoom`), and in a solo round every tank tops out 15 % slower
 (`GameConfig.watchSoloSpeed`), since the crown steers slower than a thumb;
-shared rounds keep the same speed for all. The watch plays as a guest, signing in takes the phone.
+shared rounds keep the same speed for all.
+
+The watch plays every mode alone against CPU tanks: watchOS gives an app no
+WebSocket, so a room channel never connected there and retried every 30 s.
+`NetService.offline` leaves the channel and the room list out, the player
+is the room's only member and host, battle and capture the flag fill up
+with CPU tanks, and the watch offers no open rooms and no public room.
+
+Rounds on the watch count for the account signed in in the iPhone app; the
+watch signs in to nothing itself (`lib/src/watch/account_link.dart`, over
+WatchConnectivity with `flutter_watch_link`). The phone hands over who is
+signed in and the current access token on every change of its session, as
+the latest-wins application context, and answers when the watch asks. Only
+the access token travels, never the refresh token: Supabase turns refresh
+tokens over on every use, and two devices sharing one would sign each other
+out. The watch records its rounds with that token on a connection of its
+own (`LinkedScores`, `LinkedProfiles`); a round that ends after the token
+ran out (an hour) waits on the watch (`PendingRounds`, up to 30) and goes in
+once the phone sends a fresh one, nine seconds apart as `record_round`
+asks. The start page says whether the watch plays for the iPhone account or
+as a guest. In the paired Simulators the context arrives, the watch's own
+asking fails with "Companion app is not installed" (a Simulator limit);
+both apps must come from the same build, the watch app embedded in the
+iPhone app.
 The app icon is the one of the phone app.
 
 ```sh

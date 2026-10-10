@@ -80,6 +80,49 @@ class ScoreService {
     }
   }
 
+  /// The parameters of `record_round` for one round, as [recordRound]
+  /// sends them.
+  static Map<String, dynamic> roundParams({
+    required String name,
+    required RoundStats stats,
+    required bool won,
+    required int tankType,
+    List<String> beaten = const [],
+    List<String> beatenBy = const [],
+    int cpuBeaten = 0,
+    int cpuBeatenBy = 0,
+    int cpuRating = 1000,
+  }) => {
+    if (cpuBeaten + cpuBeatenBy > 0) ...{
+      'p_cpu_beaten': cpuBeaten,
+      'p_cpu_beaten_by': cpuBeatenBy,
+      'p_cpu_rating': cpuRating,
+    },
+    'p_name': name,
+    'p_tank': tankType,
+    'p_won': won,
+    'p_kills': stats.kills,
+    'p_damage': stats.damage.round(),
+    'p_shots': stats.shots,
+    'p_hits': stats.hits,
+    'p_survival': (stats.survived ?? 0).round(),
+    'p_beaten': beaten,
+    'p_beaten_by': beatenBy,
+  };
+
+  /// Sends a round built by [roundParams]. Throws when the database refuses
+  /// it or cannot be reached.
+  Future<RoundRecord> submit(Map<String, dynamic> params) async {
+    final rows = await _call(params);
+    final row = rows.single as Map<String, dynamic>;
+    return RoundRecord(
+      rating: row['rating'] as int,
+      ratingChange: row['rating_change'] as int,
+      xp: row['xp'] as int,
+      xpGained: row['xp_gained'] as int,
+    );
+  }
+
   /// Records one finished round. The database adds it to the totals, grants
   /// experience and moves the rating against the human opponents the player
   /// outlasted ([beaten], by account id) or fell before ([beatenBy]). Null
@@ -115,31 +158,19 @@ class ScoreService {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
   }) async {
-    final cpu = cpuBeaten + cpuBeatenBy > 0;
     try {
-      final rows = await _call({
-        if (cpu) ...{
-          'p_cpu_beaten': cpuBeaten,
-          'p_cpu_beaten_by': cpuBeatenBy,
-          'p_cpu_rating': cpuRating,
-        },
-        'p_name': name,
-        'p_tank': tankType,
-        'p_won': won,
-        'p_kills': stats.kills,
-        'p_damage': stats.damage.round(),
-        'p_shots': stats.shots,
-        'p_hits': stats.hits,
-        'p_survival': (stats.survived ?? 0).round(),
-        'p_beaten': beaten,
-        'p_beaten_by': beatenBy,
-      });
-      final row = rows.single as Map<String, dynamic>;
-      return RoundRecord(
-        rating: row['rating'] as int,
-        ratingChange: row['rating_change'] as int,
-        xp: row['xp'] as int,
-        xpGained: row['xp_gained'] as int,
+      return await submit(
+        roundParams(
+          name: name,
+          stats: stats,
+          won: won,
+          tankType: tankType,
+          beaten: beaten,
+          beatenBy: beatenBy,
+          cpuBeaten: cpuBeaten,
+          cpuBeatenBy: cpuBeatenBy,
+          cpuRating: cpuRating,
+        ),
       );
     } on Object {
       // Refused, for example because it came too soon after the last one,

@@ -47,6 +47,7 @@ import '../net/payloads/strike_payload.dart';
 import '../net/replay.dart';
 import '../net/retry_backoff.dart';
 import '../net/room_directory.dart';
+import '../watch/account_link.dart';
 import '../net/room.dart';
 import 'components/aim_overlay.dart';
 import 'components/artillery_strike.dart';
@@ -419,7 +420,8 @@ class TankGame extends FlameGame
   ReplayPlayer? _replayPlayer;
 
   /// The public list of rooms.
-  late final directory = _directory ?? RoomDirectory(room: net.room);
+  late final directory =
+      _directory ?? RoomDirectory(room: net.room, offline: net.offline);
   final RoomDirectory? _directory;
 
   /// The project-wide slots for rooms with more than one pilot.

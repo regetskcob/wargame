@@ -28,8 +28,14 @@ class NetService {
     required this.myId,
     required this.room,
     this.isHost = true,
+    this.offline = false,
     SupabaseClient? client,
   }) : _ownClient = client;
+
+  /// Plays without a room channel: the Apple Watch, which watchOS gives no
+  /// WebSocket for. Rooms there never connected and retried every 30 s, so
+  /// the watch plays every mode alone against CPU tanks.
+  final bool offline;
 
   /// A connection of its own, for a second player on the same device: one
   /// connection joins a room's channel only once.
@@ -107,6 +113,12 @@ class NetService {
   Future<void> connect(LobbyPresence me) async {
     _disposed = false;
     _me = me;
+    if (offline) {
+      _registerHandlers(null);
+      // Alone in the room, and so its host.
+      scheduleMicrotask(() => onRosterChanged?.call([me]));
+      return;
+    }
     final link = this.link;
     if (link != null && identical(link.guest, this)) {
       // A second player on this device: no channel, the first player's

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_watchos/flutter_watchos.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'src/app/game_app.dart';
@@ -18,6 +19,7 @@ import 'src/tv/tv_input.dart';
 import 'src/ui/loading_view.dart';
 import 'src/ui/widgets/tablet_scale.dart';
 import 'src/vision/vision_support.dart';
+import 'src/watch/account_link.dart';
 import 'src/watch/wear_crown.dart';
 
 Future<void> main() async {
@@ -104,6 +106,18 @@ Future<void> main() async {
     return;
   }
   unawaited(session);
+  // The watch plays under the account signed in on the phone: the phone
+  // hands it over, the watch takes it.
+  if (FlutterWatchosPlatform.isWatch) {
+    unawaited(AccountLink.instance.startOnWatch());
+  } else if (!onTv) {
+    unawaited(
+      AccountLink.instance.startOnPhone(
+        Supabase.instance.client,
+        name: () => storedPilot()?.$1 ?? '',
+      ),
+    );
+  }
   TvInput.instance.start();
   runApp(const GameApp());
   // The sounds load once the start page stands, so they take no bandwidth

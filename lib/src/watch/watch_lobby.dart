@@ -10,6 +10,7 @@ import '../net/room.dart';
 import '../net/room_directory.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/tank_choice.dart';
+import 'account_link.dart';
 import 'watch_widgets.dart';
 
 /// The menus on the watch: start page and waiting room in one overlay, as
@@ -32,8 +33,8 @@ class _WatchLobbyState extends State<WatchLobby> {
   @override
   void initState() {
     super.initState();
-    // Signing in with an e-mail address takes a phone. The watch plays as a
-    // guest until an account is already signed in.
+    // The watch signs in to no account itself: it plays under the one of
+    // the iPhone app (AccountLink), as a guest until the phone lends one.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted && !game.welcomed.value) {
         game.playAsGuest();
@@ -80,6 +81,25 @@ class _WatchLobbyState extends State<WatchLobby> {
         ),
         const SizedBox(height: 8),
         _CallSignButton(game: game),
+        ValueListenableBuilder(
+          valueListenable: AccountLink.instance.account,
+          builder: (context, linked, _) => Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              linked != null
+                  ? tr(
+                      'Konto vom iPhone, wird gewertet',
+                      'iPhone account, ranked',
+                    )
+                  : tr(
+                      'Gast. Melde dich in der iPhone-App an.',
+                      'Guest. Sign in in the iPhone app.',
+                    ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+            ),
+          ),
+        ),
         const SizedBox(height: 8),
         WatchButton(
           label: tr('EINZELSPIELER', 'SINGLE PLAYER'),
@@ -102,11 +122,14 @@ class _WatchLobbyState extends State<WatchLobby> {
           icon: Icons.outlined_flag,
           onPressed: () => game.chooseMode(GameMode.flag),
         ),
-        WatchButton(
-          label: tr('OFFENE RÄUME', 'OPEN ROOMS'),
-          icon: Icons.meeting_room_outlined,
-          onPressed: () => setState(() => _rooms = true),
-        ),
+        // Without a room channel every mode is played alone against CPU
+        // tanks, there are no rooms to join.
+        if (!game.net.offline)
+          WatchButton(
+            label: tr('OFFENE RÄUME', 'OPEN ROOMS'),
+            icon: Icons.meeting_room_outlined,
+            onPressed: () => setState(() => _rooms = true),
+          ),
       ],
     );
   }
@@ -217,7 +240,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   ),
                 ),
               ],
-              if (mode == GameMode.multi)
+              if (mode == GameMode.multi && !game.net.offline)
                 WatchButton(
                   label: game.publicRoom.value
                       ? tr('ÖFFENTLICH', 'PUBLIC')
