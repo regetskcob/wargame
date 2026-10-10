@@ -44,9 +44,11 @@
   <link rel="manifest" href="manifest.json">
   <style>
     /* The launch screen of the apps, until Flutter draws its loading view
-       (lib/src/ui/loading_view.dart) over it in the same place. */
+       (lib/src/ui/loading_view.dart) over it in the same place. The
+       pictures are Flutter's own assets, so the loading view finds them
+       in the browser cache instead of loading them a second time. */
     html, body { margin: 0; height: 100%; background: #68733F
-      url(launch_ground.jpg) center / cover no-repeat; }
+      url(assets/assets/images/launch_ground.jpg) center / cover no-repeat; }
     #launch { position: fixed; left: 50%; top: 50%; width: 160px;
       transform: translate(-50%, -50%); }
   </style>
@@ -61,7 +63,7 @@
   </script>
 </head>
 <body>
-  <img id="launch" src="launch_tank.png" alt="">
+  <img id="launch" src="assets/assets/images/launch_tank.png" alt="">
   <!--
     You can customize the "flutter_bootstrap.js" script.
     This is useful to provide a custom configuration to the Flutter loader

@@ -355,6 +355,31 @@ extension TankGameDefense on TankGame {
     );
   }
 
+  /// Whether the host may let the next wave roll now: during a break, but
+  /// not while the extension is up for decision.
+  bool get canCallWave {
+    final state = defense.value;
+    return state != null &&
+        round?.botHost == myId &&
+        state.result == DefenseResult.running &&
+        state.nextWaveAt > DateTime.now().millisecondsSinceEpoch + 1000 &&
+        !state.deciding;
+  }
+
+  /// Host: the next wave rolls at once instead of after the break. The
+  /// play test counted some 95 s of waiting in a full defense round, most
+  /// of it with nothing left to build.
+  void callWaveNow() {
+    if (!canCallWave) {
+      return;
+    }
+    publishDefense(
+      defense.value!.copyWith(
+        nextWaveAt: DateTime.now().millisecondsSinceEpoch,
+      ),
+    );
+  }
+
   /// Host, between waves once the win is safe: end the round as a win.
   void withdrawDefense() {
     final state = defense.value;

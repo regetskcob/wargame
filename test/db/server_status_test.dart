@@ -22,7 +22,38 @@ const _restricted = PostgrestApiException(
   statusCode: 402,
 );
 
+/// An auth client without a session whose guest sign-in waits for [done].
+class _SlowAuth implements AuthClient {
+  final done = Completer<Session>();
+  var signIns = 0;
+
+  @override
+  Session? get currentSession => null;
+
+  @override
+  Future<Session> signInAnonymously({
+    Map<String, dynamic>? data,
+    String? captchaToken,
+  }) {
+    signIns++;
+    return done.future;
+  }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 void main() {
+  test('the start and the first heartbeat share one guest sign-in', () async {
+    final auth = _SlowAuth();
+    final first = ServerStatus.ensureSession(auth);
+    final second = ServerStatus.ensureSession(auth);
+    auth.done.completeError(Exception('offline'));
+    expect(await first, isFalse);
+    expect(await second, isFalse);
+    expect(auth.signIns, 1);
+  });
+
   group('asking the server', () {
     Future<bool> ok() async => true;
     Future<void> beat() async {}

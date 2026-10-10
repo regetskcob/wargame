@@ -16,12 +16,21 @@ class ServerStatus {
   /// kept the game "available" for minutes while nothing got through.
   static const timeout = Duration(seconds: 10);
 
+  /// A guest sign-in on its way, shared by everybody who asks meanwhile:
+  /// the start and the first heartbeat ask at the same moment, and two
+  /// sign-ins would make two guests.
+  static Future<bool>? _signingIn;
+
   /// Makes sure there is a session, the anonymous guest one if need be.
   /// False when the server refused or could not be reached.
   static Future<bool> ensureSession(AuthClient auth) async {
     if (auth.currentSession != null) {
       return true;
     }
+    return _signingIn ??= _signIn(auth).whenComplete(() => _signingIn = null);
+  }
+
+  static Future<bool> _signIn(AuthClient auth) async {
     try {
       await auth.signInAnonymously().timeout(timeout);
       return true;

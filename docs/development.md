@@ -210,3 +210,18 @@ flutter build web --base-href /your-repo/play/ \
   --dart-define=SUPABASE_KEY=sb_publishable_...
 ```
 
+## Fonts
+
+The four Roboto weights in `assets/fonts/` are cut down to Latin with its
+extensions, punctuation, arrows and the few symbols the game shows (about
+43 KB instead of 168 KB each), because the browser loads them before the
+first frame. Letters outside that range come from the system fonts in the
+apps and from Noto in the browser. To cut a fresh copy:
+
+```sh
+pyftsubset Roboto-Regular.ttf --unicodes="U+0020-007E,U+00A0-00FF,U+0100-017F,U+0218-021B,U+2010-2027,U+2030-203A,U+20AC,U+2122,U+2190-2193,U+221E,U+25CB,U+25CF" --layout-features='*' --no-hinting --output-file=assets/fonts/Roboto-Regular.ttf
+```
+
+`pyftsubset` comes with `pip install fonttools`. Check new texts for
+characters outside that range before they ship.
+

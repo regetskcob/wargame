@@ -185,6 +185,8 @@ class PlayerTank extends TankBase
         gameRef.cycleTowerKind();
       } else if (key == LogicalKeyboardKey.keyT) {
         gameRef.sendTroops();
+      } else if (key == LogicalKeyboardKey.keyN) {
+        gameRef.callWaveNow();
       } else {
         final slot = _itemKeys.indexOf(key);
         if (slot >= 0) {
