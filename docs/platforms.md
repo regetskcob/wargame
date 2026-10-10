@@ -190,10 +190,13 @@ On the Vision Pro the round changes in three ways:
   makes people feel sick); the red edge of a hit stays.
 - **Its own tutorial cards** for driving, looking and pinching.
 
-Game controllers and a paired phone work as on the iPad. Not yet tried on a
-Vision Pro or in its simulator: Xcode needs the visionOS simulator runtime
-(Settings > Components). A native shell with SwiftUI ornaments around the game
-would need Flutter on visionOS first.
+Game controllers and a paired phone work as on the iPad. The simulator build
+for iOS installs on an Apple Vision Pro simulator (visionOS runtime from Xcode
+Settings > Components) with `xcrun simctl install`, runs online there and
+reports `onVision`. Taps cannot be injected into that simulator, so looking
+and pinching are tried by hand in its window, and not yet on a real headset.
+A native shell with SwiftUI ornaments around the game would need Flutter on
+visionOS first.
 
 ## Apple Watch
 
