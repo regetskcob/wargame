@@ -87,7 +87,7 @@ TvPadKind get tvPadForTutorial =>
 List<TutorialStep> get _gamepad => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
-    icon: Icons.sports_esports,
+    icon: Icons.sports_esports_outlined,
     scene: DemoScene.drive,
     text: tr(
       'Der linke Stick zeigt, wohin der Panzer soll: Er dreht sich von selbst '
@@ -98,7 +98,7 @@ List<TutorialStep> get _gamepad => [
   ),
   TutorialStep(
     title: tr('ZIELEN', 'AIM'),
-    icon: Icons.track_changes,
+    icon: Icons.track_changes_outlined,
     scene: DemoScene.aim,
     text: tr(
       'Der rechte Stick richtet den Turm aus, ganz gleich, wohin der Panzer '
@@ -111,7 +111,7 @@ List<TutorialStep> get _gamepad => [
   ),
   TutorialStep(
     title: tr('FEUERN', 'FIRE'),
-    icon: Icons.local_fire_department,
+    icon: Icons.local_fire_department_outlined,
     scene: DemoScene.fire,
     text: tr(
       'R2 oder A feuert, gedrückt halten heißt Dauerfeuer. Die Munition ist '
@@ -122,7 +122,7 @@ List<TutorialStep> get _gamepad => [
   ),
   TutorialStep(
     title: tr('INVENTAR', 'INVENTORY'),
-    icon: Icons.inventory_2,
+    icon: Icons.inventory_2_outlined,
     scene: DemoScene.inventory,
     text: tr(
       'Kisten und Gems landen im Inventar am linken Rand. X setzt das erste '
@@ -135,7 +135,7 @@ List<TutorialStep> get _gamepad => [
   ),
   TutorialStep(
     title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
-    icon: Icons.sports_baseball,
+    icon: Icons.sports_baseball_outlined,
     scene: DemoScene.special,
     text: tr(
       'Granatwerfer, Mörser und Drohne aus Gems feuert L2.',
@@ -144,7 +144,7 @@ List<TutorialStep> get _gamepad => [
   ),
   TutorialStep(
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
-    icon: Icons.shield,
+    icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
@@ -159,7 +159,7 @@ List<TutorialStep> get _gamepad => [
 List<TutorialStep> get _remote => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
-    icon: Icons.settings_remote,
+    icon: Icons.settings_remote_outlined,
     scene: DemoScene.drive,
     text: tr(
       'Leg den Daumen auf die Touchfläche der Siri Remote, dorthin, wohin der '
@@ -172,7 +172,7 @@ List<TutorialStep> get _remote => [
   ),
   TutorialStep(
     title: tr('ZIELEN', 'AIM'),
-    icon: Icons.track_changes,
+    icon: Icons.track_changes_outlined,
     scene: DemoScene.aim,
     text: tr(
       'Mit der Remote zielt die Zielhilfe: Sie dreht den Turm auf den '
@@ -185,7 +185,7 @@ List<TutorialStep> get _remote => [
   ),
   TutorialStep(
     title: tr('FEUERN', 'FIRE'),
-    icon: Icons.local_fire_department,
+    icon: Icons.local_fire_department_outlined,
     scene: DemoScene.fire,
     text: tr(
       'Ein Klick auf die Touchfläche feuert, gedrückt halten heißt '
@@ -196,7 +196,7 @@ List<TutorialStep> get _remote => [
   ),
   TutorialStep(
     title: tr('INVENTAR', 'INVENTORY'),
-    icon: Icons.inventory_2,
+    icon: Icons.inventory_2_outlined,
     scene: DemoScene.inventory,
     text: tr(
       'Kisten und Gems landen im Inventar am linken Rand. Play/Pause setzt '
@@ -207,7 +207,7 @@ List<TutorialStep> get _remote => [
   ),
   TutorialStep(
     title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
-    icon: Icons.sports_baseball,
+    icon: Icons.sports_baseball_outlined,
     scene: DemoScene.special,
     text: tr(
       'Granatwerfer, Mörser und Drohne aus Gems feuert Play/Pause. Solange '
@@ -218,7 +218,7 @@ List<TutorialStep> get _remote => [
   ),
   TutorialStep(
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
-    icon: Icons.shield,
+    icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
@@ -234,7 +234,7 @@ List<TutorialStep> get _remote => [
 List<TutorialStep> get _touch => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
-    icon: Icons.open_with,
+    icon: Icons.open_with_outlined,
     scene: DemoScene.drive,
     text: tr(
       'Setz den linken Daumen irgendwo unten links auf, dort erscheint der '
@@ -247,7 +247,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('ZIELEN', 'AIM'),
-    icon: Icons.track_changes,
+    icon: Icons.track_changes_outlined,
     scene: DemoScene.aim,
     text: tr(
       'Der rechte Daumen richtet den Turm aus, ganz gleich, wohin der '
@@ -258,7 +258,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('FEUERN', 'FIRE'),
-    icon: Icons.local_fire_department,
+    icon: Icons.local_fire_department_outlined,
     scene: DemoScene.fire,
     text: tr(
       'Schieb den rechten Stick über den Ring hinaus, dann feuert der '
@@ -270,7 +270,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('ZIELHILFE', 'AIM ASSIST'),
-    icon: Icons.gps_fixed,
+    icon: Icons.gps_fixed_outlined,
     scene: DemoScene.assist,
     text: tr(
       'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
@@ -285,7 +285,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('INVENTAR', 'INVENTORY'),
-    icon: Icons.inventory_2,
+    icon: Icons.inventory_2_outlined,
     scene: DemoScene.inventory,
     text: tr(
       'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
@@ -296,7 +296,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
-    icon: Icons.sports_baseball,
+    icon: Icons.sports_baseball_outlined,
     scene: DemoScene.special,
     text: tr(
       'Granatwerfer, Mörser und Drohne aus Gems bekommen einen runden Knopf '
@@ -309,7 +309,7 @@ List<TutorialStep> get _touch => [
   ),
   TutorialStep(
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
-    icon: Icons.shield,
+    icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. Ein Tipp auf ein '
@@ -325,7 +325,7 @@ List<TutorialStep> get _touch => [
 List<TutorialStep> get _desktop => [
   TutorialStep(
     title: tr('FAHREN', 'DRIVE'),
-    icon: Icons.keyboard,
+    icon: Icons.keyboard_outlined,
     scene: DemoScene.drive,
     text: tr(
       'W fährt vorwärts, S bremst und setzt zurück, A und D lenken. Die '
@@ -336,7 +336,7 @@ List<TutorialStep> get _desktop => [
   ),
   TutorialStep(
     title: tr('ZIELEN', 'AIM'),
-    icon: Icons.mouse,
+    icon: Icons.mouse_outlined,
     scene: DemoScene.aim,
     text: tr(
       'Der Turm folgt der Maus, ganz gleich, wohin der Panzer fährt. Ohne '
@@ -347,7 +347,7 @@ List<TutorialStep> get _desktop => [
   ),
   TutorialStep(
     title: tr('FEUERN', 'FIRE'),
-    icon: Icons.local_fire_department,
+    icon: Icons.local_fire_department_outlined,
     scene: DemoScene.fire,
     text: tr(
       'Linksklick oder Leertaste feuert, gedrückt halten heißt Dauerfeuer. '
@@ -358,7 +358,7 @@ List<TutorialStep> get _desktop => [
   ),
   TutorialStep(
     title: tr('INVENTAR', 'INVENTORY'),
-    icon: Icons.inventory_2,
+    icon: Icons.inventory_2_outlined,
     scene: DemoScene.inventory,
     text: tr(
       'Fahr über Kisten und Gems, sie landen im Inventar am linken Rand. '
@@ -371,7 +371,7 @@ List<TutorialStep> get _desktop => [
   ),
   TutorialStep(
     title: tr('SPEZIALWAFFE', 'SPECIAL WEAPON'),
-    icon: Icons.sports_baseball,
+    icon: Icons.sports_baseball_outlined,
     scene: DemoScene.special,
     text: tr(
       'Granatwerfer, Mörser und Drohne aus Gems löst du mit F aus. Granaten '
@@ -382,7 +382,7 @@ List<TutorialStep> get _desktop => [
   ),
   TutorialStep(
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
-    icon: Icons.shield,
+    icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. B baut ein Geschütz '
@@ -396,7 +396,7 @@ List<TutorialStep> get _desktop => [
 List<TutorialStep> get _tour => [
   TutorialStep(
     title: tr('DREI WEGE ZU SPIELEN', 'THREE WAYS TO PLAY'),
-    icon: Icons.flag,
+    icon: Icons.flag_outlined,
     text: tr(
       'Allein gegen CPU-Panzer, mit anderen per Link, Code oder Raumliste, '
           'oder gemeinsam gegen ${GameConfig.defenseWaves} Wellen.',
@@ -404,10 +404,13 @@ List<TutorialStep> get _tour => [
           'or together against ${GameConfig.defenseWaves} waves.',
     ),
     chips: [
-      TutorialChip(Icons.person, tr('EINZELSPIELER', 'SINGLE PLAYER')),
-      TutorialChip(Icons.groups, tr('MEHRSPIELER', 'MULTIPLAYER')),
-      TutorialChip(Icons.compare_arrows, tr('ROT GEGEN BLAU', 'RED VS BLUE')),
-      TutorialChip(Icons.shield, tr('VERTEIDIGUNG', 'DEFENSE')),
+      TutorialChip(Icons.person_outlined, tr('EINZELSPIELER', 'SINGLE PLAYER')),
+      TutorialChip(Icons.groups_outlined, tr('MEHRSPIELER', 'MULTIPLAYER')),
+      TutorialChip(
+        Icons.compare_arrows_outlined,
+        tr('ROT GEGEN BLAU', 'RED VS BLUE'),
+      ),
+      TutorialChip(Icons.shield_outlined, tr('VERTEIDIGUNG', 'DEFENSE')),
     ],
   ),
   TutorialStep(
@@ -415,7 +418,7 @@ List<TutorialStep> get _tour => [
       '${_count(TankType.values.length)} FAHRZEUGE',
       '${_countEn(TankType.values.length)} VEHICLES',
     ),
-    icon: Icons.directions_car,
+    icon: Icons.directions_car_outlined,
     scene: DemoScene.vehicles,
     text: tr(
       'Jedes mit eigener Panzerung, Tempo und Kanone. Weitere Fahrzeuge '
@@ -426,7 +429,7 @@ List<TutorialStep> get _tour => [
   ),
   TutorialStep(
     title: tr('KISTEN', 'CRATES'),
-    icon: Icons.all_inbox,
+    icon: Icons.all_inbox_outlined,
     text: tr(
       'Im Feld liegen Kisten mit Hilfe für den Notfall.',
       'Crates with emergency help lie around the field.',
@@ -438,7 +441,7 @@ List<TutorialStep> get _tour => [
   ),
   TutorialStep(
     title: 'GEMS',
-    icon: Icons.diamond,
+    icon: Icons.diamond_outlined,
     text: tr(
       'Gems bringen Munition, Treibstoff und Spezialwaffen, bis hin zu '
           'Fallschirmjägern mit Panzerfäusten.',
@@ -452,7 +455,7 @@ List<TutorialStep> get _tour => [
   ),
   TutorialStep(
     title: tr('NACHSCHUB', 'SUPPLIES'),
-    icon: Icons.local_gas_station,
+    icon: Icons.local_gas_station_outlined,
     text: tr(
       'Ab Stufe Normal stehen Tankstellen und Munitionsdepots auf der Karte. '
           'Halte darauf an, um aufzufüllen. Beschuss lässt sie in die Luft '
@@ -468,7 +471,9 @@ List<TutorialStep> get _tour => [
     chips: [
       for (final kind in DepotKind.values)
         TutorialChip(
-          kind == DepotKind.fuel ? Icons.local_gas_station : Icons.inventory_2,
+          kind == DepotKind.fuel
+              ? Icons.local_gas_station_outlined
+              : Icons.inventory_2_outlined,
           kind.label,
           kind.color,
         ),
@@ -476,7 +481,7 @@ List<TutorialStep> get _tour => [
   ),
   TutorialStep(
     title: tr('GELÄNDE UND WETTER', 'TERRAIN AND WEATHER'),
-    icon: Icons.terrain,
+    icon: Icons.terrain_outlined,
     text: tr(
       'Vier Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
           'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Häuser, '
@@ -486,18 +491,21 @@ List<TutorialStep> get _tour => [
           'can be shot to pieces.',
     ),
     chips: [
-      TutorialChip(Icons.park, MapTheme.forest.name.toUpperCase()),
-      TutorialChip(Icons.wb_sunny, MapTheme.desert.name.toUpperCase()),
-      TutorialChip(Icons.ac_unit, MapTheme.winter.name.toUpperCase()),
-      TutorialChip(Icons.location_city, MapTheme.city.name.toUpperCase()),
-      TutorialChip(Icons.water_drop, tr('REGEN', 'RAIN')),
-      TutorialChip(Icons.blur_on, tr('NEBEL', 'FOG')),
-      TutorialChip(Icons.nightlight_round, tr('NACHT', 'NIGHT')),
+      TutorialChip(Icons.park_outlined, MapTheme.forest.name.toUpperCase()),
+      TutorialChip(Icons.wb_sunny_outlined, MapTheme.desert.name.toUpperCase()),
+      TutorialChip(Icons.ac_unit_outlined, MapTheme.winter.name.toUpperCase()),
+      TutorialChip(
+        Icons.location_city_outlined,
+        MapTheme.city.name.toUpperCase(),
+      ),
+      TutorialChip(Icons.water_drop_outlined, tr('REGEN', 'RAIN')),
+      TutorialChip(Icons.blur_on_outlined, tr('NEBEL', 'FOG')),
+      TutorialChip(Icons.nightlight_round_outlined, tr('NACHT', 'NIGHT')),
     ],
   ),
   TutorialStep(
     title: tr('DREI STUFEN', 'THREE LEVELS'),
-    icon: Icons.signal_cellular_alt,
+    icon: Icons.signal_cellular_alt_outlined,
     text: tr(
       'Leicht: flaches Land, Treibstoff und Munition gehen nie aus. '
           'Normal: Hügel und Nachschub, der gesucht werden muss. Schwer: '
@@ -507,10 +515,16 @@ List<TutorialStep> get _tour => [
           'strikes.',
     ),
     chips: [
-      TutorialChip(Icons.signal_cellular_alt_1_bar, BotLevel.easy.label),
-      TutorialChip(Icons.signal_cellular_alt_2_bar, BotLevel.normal.label),
       TutorialChip(
-        Icons.signal_cellular_alt,
+        Icons.signal_cellular_alt_1_bar_outlined,
+        BotLevel.easy.label,
+      ),
+      TutorialChip(
+        Icons.signal_cellular_alt_2_bar_outlined,
+        BotLevel.normal.label,
+      ),
+      TutorialChip(
+        Icons.signal_cellular_alt_outlined,
         BotLevel.hard.label,
         GameColors.danger,
       ),
@@ -518,7 +532,7 @@ List<TutorialStep> get _tour => [
   ),
   TutorialStep(
     title: tr('STÜTZPUNKT HALTEN', 'HOLD THE BASE'),
-    icon: Icons.fort,
+    icon: Icons.fort_outlined,
     text: tr(
       'Geschütze, Gräben und Upgrades für den Panzer. Hält der Stützpunkt '
           'gut, wächst er vom Wachturm zur Festung und schickt eigene '
@@ -533,12 +547,12 @@ List<TutorialStep> get _tour => [
     chips: [
       for (final kind in TowerKind.values)
         TutorialChip(_towerIcon(kind), kind.label),
-      TutorialChip(Icons.upgrade, 'UPGRADES'),
+      TutorialChip(Icons.upgrade_outlined, 'UPGRADES'),
     ],
   ),
   TutorialStep(
     title: tr('NACH DER RUNDE', 'AFTER THE ROUND'),
-    icon: Icons.emoji_events,
+    icon: Icons.emoji_events_outlined,
     text: tr(
       'Revanche auf Knopfdruck, die letzte Runde als Wiederholung, dazu '
           'Ränge, Wertung, Abzeichen und Bestenlisten.',
@@ -546,18 +560,21 @@ List<TutorialStep> get _tour => [
           'ranks, rating, badges and leaderboards.',
     ),
     chips: [
-      TutorialChip(Icons.replay, tr('REVANCHE', 'REMATCH')),
+      TutorialChip(Icons.replay_outlined, tr('REVANCHE', 'REMATCH')),
       TutorialChip(Icons.movie_outlined, tr('WIEDERHOLUNG', 'REPLAY')),
-      TutorialChip(Icons.military_tech, tr('RÄNGE', 'RANKS')),
-      TutorialChip(Icons.workspace_premium, tr('ABZEICHEN', 'BADGES')),
-      TutorialChip(Icons.leaderboard, tr('BESTENLISTE', 'LEADERBOARD')),
+      TutorialChip(Icons.military_tech_outlined, tr('RÄNGE', 'RANKS')),
+      TutorialChip(Icons.workspace_premium_outlined, tr('ABZEICHEN', 'BADGES')),
+      TutorialChip(
+        Icons.leaderboard_outlined,
+        tr('BESTENLISTE', 'LEADERBOARD'),
+      ),
     ],
   ),
 ];
 
 TutorialStep get _ready => TutorialStep(
   title: tr('BEREIT, KOMMANDANT', 'READY, COMMANDER'),
-  icon: Icons.military_tech,
+  icon: Icons.military_tech_outlined,
   scene: DemoScene.ready,
   text: tr(
     'Das war die Einweisung. Du findest sie jederzeit wieder auf der '
@@ -568,12 +585,12 @@ TutorialStep get _ready => TutorialStep(
 );
 
 IconData _towerIcon(TowerKind kind) => switch (kind) {
-  TowerKind.cannon => Icons.adjust,
-  TowerKind.flak => Icons.flight,
-  TowerKind.mortar => Icons.vertical_align_top,
-  TowerKind.howitzer => Icons.gps_fixed,
-  TowerKind.trench => Icons.horizontal_rule,
-  TowerKind.rockets => Icons.rocket_launch,
+  TowerKind.cannon => Icons.adjust_outlined,
+  TowerKind.flak => Icons.flight_outlined,
+  TowerKind.mortar => Icons.vertical_align_top_outlined,
+  TowerKind.howitzer => Icons.gps_fixed_outlined,
+  TowerKind.trench => Icons.horizontal_rule_outlined,
+  TowerKind.rockets => Icons.rocket_launch_outlined,
 };
 
 /// Small numbers spelled out, as on the cards.

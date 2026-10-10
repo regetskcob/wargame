@@ -184,7 +184,7 @@ class _AssistToggleState extends State<_AssistToggle> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.gps_fixed, size: 18, color: color),
+            Icon(Icons.gps_fixed_outlined, size: 18, color: color),
             const SizedBox(width: 6),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -276,7 +276,7 @@ class _SpecialButtonState extends State<_SpecialButton> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond, size: 18, color: color),
+            Icon(Icons.diamond_outlined, size: 18, color: color),
             Text(switch (widget.weapon) {
               SpecialWeapon.drone => tr('DROHNE', 'DRONE'),
               SpecialWeapon.mortar => tr('MÖRSER', 'MORTAR'),

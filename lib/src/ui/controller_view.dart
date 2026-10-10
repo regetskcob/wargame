@@ -177,7 +177,7 @@ class _ControllerViewState extends State<ControllerView> {
           child: Row(
             children: [
               Icon(
-                online ? Icons.sports_esports : Icons.sync,
+                online ? Icons.sports_esports_outlined : Icons.sync_outlined,
                 color: online ? GameColors.amber : GameColors.textDim,
               ),
               const SizedBox(width: 10),
@@ -211,7 +211,7 @@ class _ControllerViewState extends State<ControllerView> {
               ),
               TextButton.icon(
                 onPressed: _close,
-                icon: const Icon(Icons.link_off, size: 18),
+                icon: const Icon(Icons.link_off_outlined, size: 18),
                 label: Text(tr('TRENNEN', 'UNPAIR')),
               ),
             ],
@@ -257,7 +257,7 @@ class _ControllerViewState extends State<ControllerView> {
         children: [
           Expanded(
             child: bar(
-              Icons.health_and_safety,
+              Icons.health_and_safety_outlined,
               status.hp,
               hpColor,
               '${(status.hp * 100).round()} %',
@@ -266,7 +266,7 @@ class _ControllerViewState extends State<ControllerView> {
           const SizedBox(width: 12),
           Expanded(
             child: bar(
-              Icons.circle,
+              Icons.circle_outlined,
               ammo,
               ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
               '${status.ammo}',
@@ -297,7 +297,7 @@ class _ControllerViewState extends State<ControllerView> {
             ),
           if (status.defense) ...[
             _Chip(
-              icon: Icons.add_location_alt,
+              icon: Icons.add_location_alt_outlined,
               color: GameColors.amber,
               label:
                   '${tr('BAUEN', 'BUILD')} ${status.tower?.label ?? ''}'
@@ -305,7 +305,7 @@ class _ControllerViewState extends State<ControllerView> {
               onTap: () => _remote.act(PadActionKind.build),
             ),
             _Chip(
-              icon: Icons.swap_horiz,
+              icon: Icons.swap_horiz_outlined,
               color: GameColors.sand,
               label: tr('GESCHÜTZ', 'TURRET'),
               onTap: () => _remote.act(PadActionKind.cycle),

@@ -110,7 +110,7 @@ class LegalLinks extends StatelessWidget {
                     IconButton(
                       tooltip: tr('Schließen', 'Close'),
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close_outlined),
                     ),
                   ],
                 ),

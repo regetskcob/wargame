@@ -50,10 +50,17 @@ class AccountSheet extends StatefulWidget {
             maxWidth: onTv ? 1100 : 560,
             maxHeight: 760,
           ),
-          // Picking another language below redraws the whole sheet in it.
-          child: ValueListenableBuilder<AppLang>(
-            valueListenable: L10n.lang,
-            builder: (context, _, _) => AccountSheet(game: game),
+          // Lets go of the keyboard before the sheet goes, however it is
+          // closed: a field that keeps the focus past its route leaves the
+          // keyboard standing over the page below.
+          child: PopScope(
+            onPopInvokedWithResult: (_, _) =>
+                FocusManager.instance.primaryFocus?.unfocus(),
+            // Picking another language redraws the whole sheet in it.
+            child: ValueListenableBuilder<AppLang>(
+              valueListenable: L10n.lang,
+              builder: (context, _, _) => AccountSheet(game: game),
+            ),
           ),
         ),
       ),
@@ -212,7 +219,10 @@ class _AccountSheetState extends State<AccountSheet> {
               // Always there, so the field does not change width when it
               // turns into a button.
               suffixIcon: saved
-                  ? const Icon(Icons.check_circle, color: GameColors.amber)
+                  ? const Icon(
+                      Icons.check_circle_outlined,
+                      color: GameColors.amber,
+                    )
                   : IconButton(
                       tooltip: tr('Rufnamen speichern', 'Save call sign'),
                       onPressed: dirty && _nameValid ? _rename : null,
@@ -223,7 +233,7 @@ class _AccountSheetState extends State<AccountSheet> {
                           90,
                         ),
                       ),
-                      icon: const Icon(Icons.check),
+                      icon: const Icon(Icons.check_outlined),
                     ),
             ),
             onChanged: (_) {
@@ -235,7 +245,7 @@ class _AccountSheetState extends State<AccountSheet> {
           );
         },
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: 24),
       if (Env.accounts)
         // Follows the saved call sign, which registering takes.
         ValueListenableBuilder<int>(
@@ -301,7 +311,7 @@ class _AccountSheetState extends State<AccountSheet> {
                             height: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
                           )
-                        : const Icon(Icons.delete_forever),
+                        : const Icon(Icons.delete_forever_outlined),
                     label: Text(tr('KONTO LÖSCHEN', 'DELETE ACCOUNT')),
                   ),
                   if (_error != null) ...[
@@ -316,26 +326,6 @@ class _AccountSheetState extends State<AccountSheet> {
       ),
     ];
     final right = <Widget>[
-      Text(
-        tr('SPRACHE', 'LANGUAGE'),
-        style: Theme.of(context).textTheme.titleMedium,
-      ),
-      const SizedBox(height: 8),
-      // The game keeps the choice with the account, so it
-      // comes along to every device.
-      ChoiceRow<AppLang>(
-        options: [
-          for (final lang in AppLang.values)
-            (lang, lang.label.toUpperCase(), null),
-        ],
-        selected: L10n.current,
-        onSelected: (lang) {
-          if (lang != null) {
-            unawaited(L10n.set(lang));
-          }
-        },
-      ),
-      if (Haptics.onPhone) const SizedBox(height: 12),
       if (Haptics.onPhone)
         // A plain row: a ListTile would paint its ink behind the panel.
         ValueListenableBuilder<bool>(
@@ -378,21 +368,42 @@ class _AccountSheetState extends State<AccountSheet> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  tr('KONTO', 'ACCOUNT'),
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              IconButton(
-                tooltip: tr('Schließen', 'Close'),
-                onPressed: () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close),
-              ),
-            ],
+          // The language sits in the title line, on a narrow phone on a
+          // line of its own right below it.
+          LayoutBuilder(
+            builder: (context, box) {
+              final narrow = box.maxWidth < 420;
+              final title = Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      tr('KONTO', 'ACCOUNT'),
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ),
+                  if (!narrow) const _Language(),
+                  const SizedBox(width: 4),
+                  IconButton(
+                    tooltip: tr('Schließen', 'Close'),
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_outlined),
+                  ),
+                ],
+              );
+              if (!narrow) {
+                return title;
+              }
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  title,
+                  const _Language(),
+                  const SizedBox(height: 12),
+                ],
+              );
+            },
           ),
+          const SizedBox(height: 8),
           Flexible(
             child: FitOrScroll(
               padding: const EdgeInsets.only(right: 8),
@@ -440,7 +451,7 @@ class _ControllerBox extends StatelessWidget {
             Row(
               children: [
                 const Icon(
-                  Icons.sports_esports,
+                  Icons.sports_esports_outlined,
                   color: GameColors.sand,
                   size: 24,
                 ),
@@ -459,6 +470,36 @@ class _ControllerBox extends StatelessWidget {
             const SizedBox(height: 8),
             ControllerSection(game: game, heading: false),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// The language in one short line. The game keeps the choice with the
+/// account, so it comes along to every device.
+class _Language extends StatelessWidget {
+  const _Language();
+
+  @override
+  Widget build(BuildContext context) {
+    // Listens itself: as a const widget it is not rebuilt with the sheet.
+    return ValueListenableBuilder<AppLang>(
+      valueListenable: L10n.lang,
+      builder: (context, current, _) => Semantics(
+        label: tr('Sprache', 'Language'),
+        child: ChoiceRow<AppLang>(
+          minHeight: 32,
+          options: [
+            for (final lang in AppLang.values)
+              (lang, lang.label.toUpperCase(), null),
+          ],
+          selected: current,
+          onSelected: (lang) {
+            if (lang != null) {
+              unawaited(L10n.set(lang));
+            }
+          },
         ),
       ),
     );

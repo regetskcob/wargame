@@ -18,7 +18,9 @@ class MuteButton extends StatelessWidget {
       builder: (context, muted, _) => IconButton(
         tooltip: muted ? 'Ton an' : 'Ton aus',
         onPressed: () => AudioService.muted.value = !muted,
-        icon: Icon(muted ? Icons.volume_off : Icons.volume_up),
+        icon: Icon(
+          muted ? Icons.volume_off_outlined : Icons.volume_up_outlined,
+        ),
       ),
     );
   }

@@ -151,7 +151,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _battleSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.tune,
+      icon: Icons.tune_outlined,
       title: tr('EINSATZ', 'MISSION'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
@@ -491,7 +491,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         if (game.mode.value == GameMode.solo && game.isHost.value) {
           leave = OutlinedButton.icon(
             onPressed: game.changeMode,
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(Icons.arrow_back_outlined),
             label: _oneLine(tr('ZURÜCK', 'BACK')),
           );
         } else {
@@ -506,7 +506,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ? const BorderSide(color: GameColors.danger)
                   : null,
             ),
-            icon: Icon(_closeArmed ? Icons.warning_amber : Icons.close),
+            icon: Icon(
+              _closeArmed ? Icons.warning_amber_outlined : Icons.close_outlined,
+            ),
             // Short enough for half a phone width at full size; the red
             // frame and the warning icon say that the second tap counts.
             label: _oneLine(switch ((_closeArmed, game.isHost.value)) {
@@ -533,7 +535,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           if (live != null)
                             OutlinedButton.icon(
                               onPressed: game.spectateLiveMatch,
-                              icon: const Icon(Icons.visibility),
+                              icon: const Icon(Icons.visibility_outlined),
                               label: Text(
                                 tr(
                                   'LAUFENDES GEFECHT BEOBACHTEN',
@@ -565,7 +567,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                             game.startRound();
                           }
                         : null,
-                    icon: const Icon(Icons.flag),
+                    icon: const Icon(Icons.flag_outlined),
                     label: _oneLine(
                       game.canStart
                           ? tr('STARTEN', 'START')
@@ -653,7 +655,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               Navigator.of(dialog).pop();
               game.showTutorial();
             },
-            icon: const Icon(Icons.school, size: 18),
+            icon: const Icon(Icons.school_outlined, size: 18),
             label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
           FilledButton(
@@ -759,12 +761,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           children: [
             FilledButton.icon(
               onPressed: game.closeSettings,
-              icon: const Icon(Icons.check),
+              icon: const Icon(Icons.check_outlined),
               label: Text(tr('FERTIG', 'DONE')),
             ),
             OutlinedButton.icon(
               onPressed: game.changeMode,
-              icon: const Icon(Icons.swap_horiz),
+              icon: const Icon(Icons.swap_horiz_outlined),
               label: Text(tr('MODUS WECHSELN', 'CHANGE MODE')),
             ),
           ],
@@ -806,7 +808,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               visualDensity: VisualDensity.compact,
             ),
-            icon: const Icon(Icons.tune, size: 16),
+            icon: const Icon(Icons.tune_outlined, size: 16),
             label: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -976,7 +978,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 }
 
-/// A group of settings under a heading, set off by a thin frame.
+/// A group of settings under a heading, a quiet dark box without a frame:
+/// the page's panel is the only frame.
 class _Section extends StatelessWidget {
   const _Section({required this.child, this.icon, this.title});
 
@@ -987,9 +990,9 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x44000000),
-        shape: GameShapes.card(),
+      decoration: BoxDecoration(
+        color: const Color(0x55000000),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
@@ -1036,25 +1039,36 @@ class ColorSwatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // A round dab of colour, the chosen one in a thin amber ring with a
+    // little air: always the same size, so nothing moves on picking.
     return InkWell(
       onTap: onTap,
+      customBorder: const CircleBorder(),
       child: Container(
-        width: 32,
-        height: 32,
-        alignment: Alignment.center,
-        decoration: ShapeDecoration(
-          color: locked ? color.withValues(alpha: 0.35) : color,
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-            side: BorderSide(
-              color: selected ? GameColors.amber : Colors.black45,
-              width: 2.5,
-            ),
+        width: 34,
+        height: 34,
+        padding: const EdgeInsets.all(3),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: selected ? GameColors.amber : Colors.transparent,
+            width: 1.5,
           ),
         ),
-        child: locked
-            ? const Icon(Icons.lock, size: 14, color: Color(0xCCFFFFFF))
-            : null,
+        child: Container(
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: locked ? color.withValues(alpha: 0.35) : color,
+          ),
+          child: locked
+              ? const Icon(
+                  Icons.lock_outlined,
+                  size: 12,
+                  color: Color(0xCCFFFFFF),
+                )
+              : null,
+        ),
       ),
     );
   }
@@ -1067,15 +1081,15 @@ class _JoinedBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x44000000),
-        shape: GameShapes.card(),
+      decoration: BoxDecoration(
+        color: const Color(0x55000000),
+        borderRadius: BorderRadius.circular(10),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            const Icon(Icons.hourglass_top, color: GameColors.amber),
+            const Icon(Icons.hourglass_top_outlined, color: GameColors.amber),
             const SizedBox(width: 12),
             Expanded(
               child: Text(

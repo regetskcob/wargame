@@ -25,7 +25,6 @@ import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
 import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
-import 'widgets/panel.dart';
 import '../l10n/l10n.dart';
 
 /// Start page of the host: alone, with others or together against waves.
@@ -148,14 +147,18 @@ class LaunchView extends StatelessWidget {
                 child: Row(
                   children: [
                     TutorialButton(game: game),
-                    const Spacer(),
                     // From tablets up the last round sits quietly at the
                     // end of the briefing's line. Phones keep the space for
                     // the ways to play, and the television walks its menu
                     // with the remote, where one more stop costs more than
                     // it saves.
                     if (box.maxWidth >= 600 && !onTv)
-                      Flexible(child: _LastPlayed(game: game)),
+                      Expanded(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: _LastPlayed(game: game),
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -279,7 +282,7 @@ class _LastPlayed extends StatelessWidget {
         final tank = GameConfig.typeOf(game.myColorIndex).label;
         return TextButton.icon(
           onPressed: game.quickStart,
-          icon: const Icon(Icons.replay, size: 18),
+          icon: const Icon(Icons.replay_outlined, size: 18),
           label: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -314,7 +317,11 @@ class _GuestCard extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
           child: Row(
             children: [
-              const Icon(Icons.login, color: GameColors.sand, size: 24),
+              const Icon(
+                Icons.login_outlined,
+                color: GameColors.sand,
+                size: 24,
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -352,7 +359,10 @@ class _GuestCard extends StatelessWidget {
               IconButton(
                 tooltip: tr('Anmelden', 'Sign in'),
                 onPressed: () => AccountSheet.show(context, game),
-                icon: const Icon(Icons.chevron_right, color: GameColors.sand),
+                icon: const Icon(
+                  Icons.chevron_right_outlined,
+                  color: GameColors.sand,
+                ),
               ),
             ],
           ),
@@ -385,7 +395,7 @@ List<_Option> get _options => [
   ),
   (
     mode: GameMode.flag,
-    icon: Icons.outlined_flag,
+    icon: Icons.flag,
     title: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
     kicker: tr('ROT GEGEN BLAU', 'RED AGAINST BLUE'),
   ),
@@ -412,13 +422,15 @@ class _ModeCard extends StatelessWidget {
   }
 
   Widget _card(BuildContext context) {
+    // A quiet dark box without a frame, like the boxes around it: the
+    // page's panel is the only frame.
     return Material(
-      color: const Color(0x44000000),
-      shape: GameShapes.card(),
+      color: const Color(0x55000000),
+      borderRadius: BorderRadius.circular(10),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        hoverColor: const Color(0x22FFB300),
+        hoverColor: const Color(0x18FFB300),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
           child: Row(
@@ -458,7 +470,7 @@ class _ModeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right, color: GameColors.amber),
+              const Icon(Icons.chevron_right_outlined, color: GameColors.amber),
             ],
           ),
         ),
