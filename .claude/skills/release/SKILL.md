@@ -9,7 +9,7 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
   must rise for every upload to either store.
 - **Changelog**: add the version to `CHANGELOG.md` (newest first, in
   English, its 5 to 10 most important points as a list) and the same entry
-  in German to `de_changelog.md`. Both files always carry the same versions,
+  in German to `CHANGELOG.de.md`. Both files always carry the same versions,
   sections and points; every change to one goes into the other in the same
   commit.
 - **Store texts, icons, screenshots**: `store/ios` and `store/android`, each

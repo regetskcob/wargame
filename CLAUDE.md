@@ -108,7 +108,7 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   Claude-Scratchpad unter `/private/tmp/claude-<uid>/` und gemergtem
   Branch; verweigert bei ungesicherter Arbeit). Liegengebliebene zeigt
   `tool/finish_worktree.sh --all --dry-run`.
-- `CHANGELOG.md` (Englisch) und `de_changelog.md` (Deutsch) laufen
+- `CHANGELOG.md` (Englisch) und `CHANGELOG.de.md` (Deutsch) laufen
   parallel: jede Änderung an einem kommt im selben Commit ins andere.
 - `dart format` ist in CI Pflicht.
 - Neue Netz-Events: Skill `/net-event`. Neue Migration: Skill `/db-migration`.
