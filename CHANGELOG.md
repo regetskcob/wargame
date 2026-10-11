@@ -4,6 +4,8 @@ What each store version of Panzergefecht brought, newest first, as its most
 important points. The build number follows in brackets; the web version at
 <https://www.regetskcob.de/wargame/play/> is always the latest `main`. The
 store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
+The German version is [`de_changelog.md`](de_changelog.md); keep both in
+step, point for point.
 
 ## 1.4.0 (9) – 2026-10-10
 

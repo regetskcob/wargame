@@ -8,7 +8,10 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
 - **Version** in `pubspec.yaml` (`version: x.y.z+build`). The build number
   must rise for every upload to either store.
 - **Changelog**: add the version to `CHANGELOG.md` (newest first, in
-  English, its 5 to 10 most important points as a list).
+  English, its 5 to 10 most important points as a list) and the same entry
+  in German to `de_changelog.md`. Both files always carry the same versions,
+  sections and points; every change to one goes into the other in the same
+  commit.
 - **Store texts, icons, screenshots**: `store/ios` and `store/android`, each
   with a README of what goes where and which secrets the workflows need.
 - **TestFlight**: workflow `testflight` (manual, `workflow_dispatch`, inputs
