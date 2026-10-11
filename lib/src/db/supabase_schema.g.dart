@@ -72,6 +72,87 @@ class Achievements {
   );
 }
 
+/// A row of the `entitlements` table, as `select()` reads it with every column.
+/// Store purchases per pilot, written by verify-purchase
+extension type const EntitlementsRow(Map<String, dynamic> _json)
+    implements Object {
+  String get playerId => _json['player_id'] as String;
+  String get product => _json['product'] as String;
+  String get store => _json['store'] as String;
+  String get transactionId => _json['transaction_id'] as String;
+  DateTime get grantedAt => DateTime.parse(_json['granted_at'] as String);
+
+  /// The row as decoded from the response.
+  Map<String, dynamic> toJson() => _json;
+}
+
+/// Values for inserting a row into `entitlements`. Columns that are nullable,
+/// identity, or covered by a database default are optional; passing `null`
+/// omits the column so the database default applies. Columns the database
+/// always generates itself are left out entirely. Use the `set…ToNull` methods
+/// to insert SQL NULL explicitly.
+extension type const EntitlementsInsert._(Map<String, dynamic> _json)
+    implements Object {
+  EntitlementsInsert({
+    required String playerId,
+    required String product,
+    required String store,
+    required String transactionId,
+    DateTime? grantedAt,
+  }) : this._({
+         'player_id': playerId,
+         'product': product,
+         'store': store,
+         'transaction_id': transactionId,
+         'granted_at': ?grantedAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Values for updating rows of `entitlements`. All columns are optional;
+/// passing `null` omits the column, leaving it unchanged. Use the `set…ToNull`
+/// methods to write SQL NULL explicitly.
+extension type const EntitlementsUpdate._(Map<String, dynamic> _json)
+    implements Object {
+  EntitlementsUpdate({
+    String? playerId,
+    String? product,
+    String? store,
+    String? transactionId,
+    DateTime? grantedAt,
+  }) : this._({
+         'player_id': ?playerId,
+         'product': ?product,
+         'store': ?store,
+         'transaction_id': ?transactionId,
+         'granted_at': ?grantedAt?.toUtc().toIso8601String(),
+       });
+}
+
+/// Typed access to the `entitlements` table.
+class Entitlements {
+  const Entitlements._();
+
+  /// Table definition for [PostgrestClient.table].
+  static const table =
+      PostgrestTable<EntitlementsRow, EntitlementsInsert, EntitlementsUpdate>(
+        'entitlements',
+        EntitlementsRow.new,
+        schema: 'public',
+        primaryKey: [playerId, product],
+      );
+
+  static const playerId = PostgrestColumn<EntitlementsRow, String>('player_id');
+  static const product = PostgrestColumn<EntitlementsRow, String>('product');
+  static const store = PostgrestColumn<EntitlementsRow, String>('store');
+  static const transactionId = PostgrestColumn<EntitlementsRow, String>(
+    'transaction_id',
+  );
+  static const grantedAt = PostgrestColumn<EntitlementsRow, DateTime>(
+    'granted_at',
+    fromJson: _dateTimeFromJson,
+  );
+}
+
 /// A row of the `players` table, as `select()` reads it with every column.
 /// Call sign and vehicle of every pilot
 extension type const PlayersRow(Map<String, dynamic> _json) implements Object {

@@ -135,6 +135,8 @@ flutter run -d chrome \
   what works where and what is next.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
+- [In-app purchases](docs/purchases.md): the supporter pack, prepared but
+  not live, and what going live takes.
 - [Development](docs/development.md): tests, regenerating the typed models,
   deploying.
 
@@ -161,6 +163,10 @@ flutter run -d chrome \
   `record_round` and the policies with pgTAP in CI, golden tests for HUD,
   shop, lobby and leaderboards, and the app shell and Apple TV split screen,
   which no test loads yet.
+
+- In-app purchases: a supporter pack (a star on the pilot card, no
+  advantage in play) is prepared and off in every build; see
+  [docs/purchases.md](docs/purchases.md).
 
 **Ideas**
 

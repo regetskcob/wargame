@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
+import '../../store/product.dart';
 import '../theme.dart';
 import '../../l10n/l10n.dart';
 
@@ -9,9 +11,13 @@ import '../../l10n/l10n.dart';
 /// badges fold out on demand. Drawn as a quiet dark box without a frame, so
 /// it reads as status and does not compete with the framed mode buttons.
 class PilotCard extends StatefulWidget {
-  const PilotCard({required this.progress, super.key});
+  const PilotCard({required this.progress, this.owned, super.key});
 
   final PilotProgress progress;
+
+  /// What the account bought, for the supporter star; null while purchases
+  /// are off.
+  final ValueListenable<Set<Product>>? owned;
 
   @override
   State<PilotCard> createState() => _PilotCardState();
@@ -29,10 +35,13 @@ class _PilotCardState extends State<PilotCard> {
         progress.rank,
         progress.rating,
         progress.badges,
+        ?widget.owned,
       ]),
       builder: (context, _) {
         final rank = progress.rank.value;
         final rating = progress.rating.value;
+        final supporter =
+            widget.owned?.value.contains(Product.supporter) ?? false;
         return Container(
           padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
           decoration: BoxDecoration(
@@ -52,6 +61,7 @@ class _PilotCardState extends State<PilotCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
+                          '${supporter ? '★ ' : ''}'
                           '${rank.title.toUpperCase()} · ${tr('STUFE', 'LEVEL')} ${rank.level}',
                           style: const TextStyle(
                             fontSize: 12,

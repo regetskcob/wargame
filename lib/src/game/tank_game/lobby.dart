@@ -122,6 +122,8 @@ extension TankGameLobby on TankGame {
       welcomed.value = true;
     }
     _refreshTutorialDone();
+    // What an account owns goes with it when signing in or out.
+    unawaited(shop?.refresh());
     final id = accounts.user.value?.id;
     if (id == null || id == _accountId) {
       return;

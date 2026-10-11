@@ -185,7 +185,7 @@ class LaunchView extends StatelessWidget {
         valueListenable: game.accounts.user,
         builder: (context, _, _) => Env.accounts && game.accounts.isGuest
             ? _GuestCard(game: game)
-            : PilotCard(progress: game.progress),
+            : PilotCard(progress: game.progress, owned: game.shop?.owned),
       ),
       const SizedBox(height: 20),
       const ServerNotice(),

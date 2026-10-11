@@ -23,6 +23,8 @@ import '../db/profile_service.dart';
 import '../db/room_slots.dart';
 
 import '../db/score_service.dart';
+import '../store/open_shop.dart';
+import '../store/shop.dart';
 import '../db/supabase_schema.g.dart' show PlayersRow;
 import '../app/env.dart';
 import '../haptics.dart';
@@ -157,6 +159,10 @@ class TankGame extends FlameGame
 
   /// Rank, rating and badges of the local pilot.
   late final progress = PilotProgress(scores: scoreService, profiles: profiles);
+
+  /// The supporter pack on the account page, null while purchases are off
+  /// for this build (docs/purchases.md).
+  late final Shop? shop = openShop(accounts);
 
   /// Account ids of the players in the current round, for the rating.
   final _uids = <String, String>{};
@@ -646,6 +652,7 @@ class TankGame extends FlameGame
     // this device shows at once, the server's copy follows below.
     _adoptStoredPilot();
     accounts.user.addListener(_onAccountChanged);
+    unawaited(shop?.start());
     _adoptLanguage();
     L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;

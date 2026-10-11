@@ -14,6 +14,7 @@ import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/legal.dart';
 import 'widgets/pad_pairing.dart';
+import 'widgets/supporter_section.dart';
 import 'widgets/tablet_scale.dart';
 import '../l10n/l10n.dart';
 import '../tv/tv_input.dart';
@@ -291,6 +292,24 @@ class _AccountPageState extends State<AccountPage> {
         ),
       if (_vibrates) const SizedBox(height: 24),
       _ControllerBox(game: _game),
+      // Only where this device can buy (docs/purchases.md): off in every
+      // build without PURCHASES, and on the web, the watch and the TV.
+      if (_game.shop case final shop?)
+        ValueListenableBuilder<bool>(
+          valueListenable: shop.open,
+          builder: (context, open, _) => !open
+              ? const SizedBox.shrink()
+              : ValueListenableBuilder(
+                  valueListenable: accounts.user,
+                  builder: (context, _, _) => Padding(
+                    padding: const EdgeInsets.only(top: 24),
+                    child: SupporterSection(
+                      shop: shop,
+                      guest: accounts.isGuest,
+                    ),
+                  ),
+                ),
+        ),
       // Last on the page, below everything one comes here for, so it is
       // never in the way. A guest has nothing lasting to delete, signing in
       // or registering above is what they are offered.

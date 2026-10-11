@@ -73,6 +73,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
 | Landingpage | `site/` (Hugo) vor dem Spiel unter `/wargame/`, Spiel unter `/wargame/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
+| In-App-Käufe | `lib/src/store/` (`Shop`, `Product`), `lib/src/db/purchase_service.dart`, Edge Function `supabase/functions/verify-purchase`, Tabelle `entitlements` (0021); vorbereitet, aus per `PURCHASES`, nur mit Konto; `docs/purchases.md` |
 | Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell); vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 
