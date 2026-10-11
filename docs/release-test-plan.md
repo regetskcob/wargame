@@ -304,20 +304,24 @@ both stores together and say so in the release issue (as with migrations
 ## 6. Accepted open risks
 
 Known and decided; each release confirms nothing made them worse and asks
-the owner whether they still stand:
+the owner whether they still stand. Room identity, the XP ticket for
+rounds against CPU tanks, `claim_load` of other rooms and the defense host
+takeover were closed in f7c83b7 (#12) and are no longer here.
 
-- **Room identity.** The `id` in a message is whatever the sender writes;
-  someone posing as the host can end a defense or flag round. Fix: private
-  channels with Realtime Authorization and signed messages, breaks older
-  builds (#12 "Needs you").
-- **XP against CPU tanks** still trusts the client within the caps; a round
-  ticket from the server would close it.
-- **`claim_load` of another room** can be lowered by its code.
-- **Defense host leaving for good** loses the base after the 6 s grace; no
-  takeover yet.
-- **Not covered by Claude:** five-finger multi-touch, a real Bluetooth
-  controller, capture the flag measured on the BoPad, account flows with a
-  real address, sound by ear. These are the owner's rows in sections 3–5.
+- **Builds before the room keys** still play, unsigned and only in their
+  own name; their rounds count without a ticket and earn nothing from CPU
+  tanks. Goes away as those builds die out; 3.13 keeps them playable.
+- **A flood closes every channel of the project.** Above the message limit
+  Realtime shuts all rooms for about 10 s (`docs/netcode.md` "Flood
+  behaviour"); the game rejoins with backoff and keeps rounds together, but
+  only Supabase can stop the shutdown itself.
+- **Sound at defense wave 30** costs about 10 fps on the BoPad (AVPlayer);
+  a mixing audio engine would win them back.
+- **Not covered by Claude:** human fingers on a real touch screen (five
+  pointers were only tested in code), two real phones as controllers, a
+  real Bluetooth controller, account flows with a real address, sound by
+  ear, the watch on a real wrist, a look at the Mac app. These are the
+  owner's rows in sections 3–5 (#12, #23).
 
 ## 7. Result and sign-off
 
