@@ -107,6 +107,7 @@ class DefensePayload {
       wave + GameConfig.defenseExtension <= GameConfig.defenseMaxWaves;
 
   DefensePayload copyWith({
+    String? id,
     double? hp,
     int? wave,
     int? nextWaveAt,
@@ -119,7 +120,7 @@ class DefensePayload {
     int? until,
   }) {
     return DefensePayload(
-      id: id,
+      id: id ?? this.id,
       hp: hp ?? this.hp,
       wave: wave ?? this.wave,
       nextWaveAt: nextWaveAt ?? this.nextWaveAt,

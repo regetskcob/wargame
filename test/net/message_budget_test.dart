@@ -243,6 +243,20 @@ void main() {
       );
     });
 
+    test('a defense room claims what two players sent at wave 2', () {
+      // Measured on a local stack (issue #12): 75 to 105 a second, above
+      // the 70 a room of two with CPU tanks claimed before.
+      expect(
+        GameConfig.roomLoad(2, cpu: true, defense: true),
+        greaterThanOrEqualTo(104),
+      );
+      // A full room of four still fits one room's cap in `claim_load`.
+      expect(
+        GameConfig.roomLoad(4, cpu: true, defense: true),
+        lessThanOrEqualTo(400),
+      );
+    });
+
     test('two pilots with CPU tanks fit the free plan', () {
       final load = _roomLoad(pilots: 2, pilot: pilot, host: host);
       expect(load, lessThan(_freePlanPerSecond), reason: 'room: $load/s');

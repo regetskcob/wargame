@@ -104,8 +104,9 @@ extension TankGameDefense on TankGame {
   DefenseMap? get myLaneMap => laneMap(myLane);
 
   /// Host of a defense round: an enemy rolls in at the start of the road of
-  /// [lane]. A troop a player sent fights for the side of [team].
-  void spawnEnemy(String id, {int lane = 0, int team = 2}) {
+  /// [lane]. A troop a player sent fights for the side of [team]. A new
+  /// host goes on with one of the old host's [from] where it was last seen.
+  void spawnEnemy(String id, {int lane = 0, int team = 2, TankBase? from}) {
     final activeRound = round;
     final map = laneMap(lane);
     if (activeRound == null || map == null) {
@@ -115,7 +116,9 @@ extension TankGameDefense on TankGame {
     final controls = TouchInput();
     // In a duel the road starts at the other side's base: out in front of
     // it, not in it.
-    final (at, _) = map.duel
+    final (at, _) = from != null
+        ? (from.position, null)
+        : map.duel
         ? map.alongRoad(DefenseMap.baseRadius + 40)
         : (map.entry, map.road[1]);
     final tank =
@@ -125,7 +128,7 @@ extension TankGameDefense on TankGame {
             tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at.clone(),
-            angle: TankGame._headingFrom(at, map.road[1]),
+            angle: from?.angle ?? TankGame._headingFrom(at, map.road[1]),
             controls: controls,
           )
           ..team = team
@@ -134,6 +137,9 @@ extension TankGameDefense on TankGame {
           ..fireFactor = GameConfig.enemyFireFactor
           ..armorFactor = GameConfig.enemyArmorIn(defense.value?.wave ?? 0)
           ..syncInterval = GameConfig.enemySyncInterval;
+    if (from != null) {
+      tank.hp = from.hp;
+    }
     activeRound.alive.add(id);
     aliveCount.value = activeRound.alive.length;
     botTanks[id] = tank;
@@ -149,8 +155,9 @@ extension TankGameDefense on TankGame {
   }
 
   /// Host of a defense round: a CPU comrade rolls out of the base to the
-  /// post of [slot].
-  void spawnAlly(String id, int slot) {
+  /// post of [slot]. A new host goes on with one of the old host's [from]
+  /// where it was last seen.
+  void spawnAlly(String id, int slot, {TankBase? from}) {
     final activeRound = round;
     final map = defenseMap;
     if (activeRound == null || map == null) {
@@ -159,8 +166,10 @@ extension TankGameDefense on TankGame {
     final style = activeRound.allyStyle(id);
     final route = map.allyRoute(slot);
     final at =
+        from?.position.clone() ??
         map.base +
-        (route.first - map.base).normalized() * (DefenseMap.baseRadius + 30);
+            (route.first - map.base).normalized() *
+                (DefenseMap.baseRadius + 30);
     final controls = TouchInput();
     final tank =
         PlayerTank(
@@ -169,12 +178,15 @@ extension TankGameDefense on TankGame {
             tankColor: _colorFor(id),
             tankType: GameConfig.typeOf(style),
             position: at,
-            angle: TankGame._headingFrom(at, route.first),
+            angle: from?.angle ?? TankGame._headingFrom(at, route.first),
             controls: controls,
           )
           ..team = 1
           ..endlessAmmo = true
           ..syncInterval = GameConfig.enemySyncInterval;
+    if (from != null) {
+      tank.hp = from.hp;
+    }
     activeRound.alive.add(id);
     aliveCount.value = activeRound.alive.length;
     botTanks[id] = tank;
@@ -406,21 +418,198 @@ extension TankGameDefense on TankGame {
     publishDefense(state.copyWith(result: DefenseResult.won));
   }
 
-  /// Host: applies a new state of the base and the waves and sends it.
+  /// Host: applies a new state of the base and the waves and sends it, in
+  /// its own name also when it goes on from a state the old host sent.
   void publishDefense(DefensePayload state) {
-    _applyDefense(state);
-    net.send(NetEvent.defense, state.toJson());
+    final own = state.id == myId ? state : state.copyWith(id: myId);
+    _applyDefense(own);
+    net.send(NetEvent.defense, own.toJson());
+  }
+
+  /// The host of a defense round left for good: the next player in line
+  /// runs the waves on, see [nextBotHost]. Every client switches to the
+  /// new host by itself after the same grace and takes only its word from
+  /// then on.
+  void _handOverDefense(RoundState activeRound) {
+    final next = nextBotHost(activeRound);
+    activeRound.botHost = next;
+    // Aircraft and drones of the waves fly only on the host's screen; the
+    // others' copies vanished with its messages and are gone for good.
+    for (final plane in aircraft.values.where((p) => p.remote).toList()) {
+      activeRound.destroyedEnemies.add(plane.unitId);
+      aircraft.remove(plane.unitId);
+      plane.removeFromParent();
+    }
+    for (final drone in drones.values.toList()) {
+      if (drone.remote && activeRound.isBot(drone.ownerId)) {
+        drones.remove(drone.droneId);
+        drone.removeFromParent();
+      }
+    }
+    if (next == null) {
+      return;
+    }
+    if (next != myId) {
+      final name = _nameOf(next).toUpperCase();
+      showNotice(
+        tr('$name FÜHRT JETZT DIE WELLEN', '$name NOW RUNS THE WAVES'),
+      );
+      return;
+    }
+    _takeOverDefense(activeRound);
+    showNotice(tr('DU FÜHRST JETZT DIE WELLEN', 'YOU NOW RUN THE WAVES'));
+  }
+
+  /// This client is the new host: the enemies and comrades the old host
+  /// drove go on from where they were last seen, now as its own CPU
+  /// tanks, and a director picks the waves up from the last state heard.
+  void _takeOverDefense(RoundState activeRound) {
+    final state = defense.value;
+    if (state == null || state.result != DefenseResult.running) {
+      return;
+    }
+    for (final id in remoteTanks.keys.toList()) {
+      final enemy = activeRound.isEnemy(id);
+      final slot = activeRound.isAlly(id)
+          ? int.tryParse(id.split('-')[1])
+          : null;
+      if (!enemy && slot == null) {
+        continue;
+      }
+      final tank = remoteTanks.remove(id)!..removeFromParent();
+      if (!activeRound.alive.contains(id) || tank.hp <= 0) {
+        continue;
+      }
+      if (enemy) {
+        spawnEnemy(
+          id,
+          lane: _enemyLane(activeRound, id),
+          team: activeRound.teamOf(id),
+          from: tank,
+        );
+      } else {
+        spawnAlly(id, slot!, from: tank);
+      }
+    }
+    // The enemy's guns already dug in keep their numbers.
+    for (final tower in towers.values) {
+      if (tower.ownerId == TankGame.enemyGunOwner) {
+        _enemyGunCounter = max(_enemyGunCounter, tower.index + 1);
+      }
+    }
+    final director = DefenseDirector(
+      startedAt: activeRound.startedAt,
+      allies: activeRound.duel
+          ? 0
+          : max(1, GameConfig.defenseSquad - activeRound.participants.length),
+      resume: state,
+      spawned: _spawnedIn(activeRound, state.wave),
+    );
+    _extras.add(director);
+    world.add(director);
+  }
+
+  /// The road an enemy rolls down: a troop down the other side's, and in
+  /// a duel the right road's units of the waves end in `b`.
+  int _enemyLane(RoundState activeRound, String id) {
+    final sent = activeRound.laneOfUnit(id);
+    if (sent != null) {
+      return 1 - sent;
+    }
+    return activeRound.duel && id.endsWith('b') ? 1 : 0;
+  }
+
+  /// How many units of [wave] the old host already sent, from the highest
+  /// number of the wave this client knows of, on the field or destroyed.
+  /// A new host sends only the rest, under numbers nobody has used yet.
+  int _spawnedIn(RoundState activeRound, int wave) {
+    final ids = [
+      ...botTanks.keys,
+      ...activeRound.alive,
+      ...activeRound.destroyedEnemies,
+      ...aircraft.keys,
+      ...drones.keys,
+      for (final soldier in soldierField?.all ?? const <Soldier>[])
+        ?soldier.ownerId,
+    ];
+    var spawned = 0;
+    for (final id in ids) {
+      final match = TankGame._waveUnit.firstMatch(id);
+      if (match != null && int.parse(match.group(1)!) == wave) {
+        spawned = max(spawned, int.parse(match.group(2)!) + 1);
+      }
+    }
+    return spawned;
   }
 
   void _onDefense(DefensePayload payload) {
     final activeRound = round;
     // Only the player who runs the waves says how the base stands.
-    if (activeRound != null &&
-        activeRound.defense &&
-        payload.id == activeRound.botHost &&
-        !net.duplicateIds.contains(payload.id)) {
-      _applyDefense(payload);
+    if (activeRound == null ||
+        !activeRound.defense ||
+        net.duplicateIds.contains(payload.id)) {
+      return;
     }
+    if (payload.id != activeRound.botHost) {
+      if (!_takesWavesBack(activeRound, payload.id)) {
+        return;
+      }
+      _handBackDefense(activeRound, payload.id);
+    }
+    _applyDefense(payload);
+  }
+
+  /// Whether [id], who counted as gone and still runs the waves, takes
+  /// them back from who runs them now. Above the project's message limit
+  /// Realtime drops every room's channel, and a host who came back after
+  /// the grace found a stand-in running the waves: both ran them on, each
+  /// with a base of its own. The one ranking first keeps them, the same on
+  /// every screen; anybody else who never ran them cannot claim them so.
+  bool _takesWavesBack(RoundState activeRound, String id) {
+    final runner = activeRound.botHost;
+    return runner != null &&
+        activeRound.left.contains(id) &&
+        activeRound.participants.contains(id) &&
+        !activeRound.isBot(id) &&
+        _rosterMember(id) != null &&
+        _firstOf(id, runner) == id;
+  }
+
+  /// [to] runs the waves again. A stand-in stops its director and lets go
+  /// of the enemies and comrades it drove; everybody drops the units of
+  /// the stand-in's waves and takes those of [to] from its next states.
+  void _handBackDefense(RoundState activeRound, String to) {
+    activeRound
+      ..left.remove(to)
+      ..botHost = to;
+    for (final director in _extras.whereType<DefenseDirector>()) {
+      director.removeFromParent();
+    }
+    bool wave(String id) => activeRound.isEnemy(id) || activeRound.isAlly(id);
+    for (final id in botTanks.keys.where(wave).toList()) {
+      botTanks.remove(id)!.removeFromParent();
+      activeRound.alive.remove(id);
+    }
+    for (final id in remoteTanks.keys.where(wave).toList()) {
+      remoteTanks.remove(id)!.removeFromParent();
+      activeRound.alive.remove(id);
+    }
+    // The units of the two runs share their numbers: one destroyed here
+    // may still roll on the screen of [to].
+    activeRound.destroyedEnemies.removeWhere(wave);
+    for (final plane in aircraft.values.where((p) => !p.remote).toList()) {
+      aircraft.remove(plane.unitId);
+      plane.removeFromParent();
+    }
+    for (final drone in drones.values.toList()) {
+      if (!drone.remote && activeRound.isBot(drone.ownerId)) {
+        drones.remove(drone.droneId);
+        drone.removeFromParent();
+      }
+    }
+    aliveCount.value = activeRound.alive.length;
+    final name = to == myId ? tr('DU', 'YOU') : _nameOf(to).toUpperCase();
+    showNotice(tr('$name FÜHRT JETZT DIE WELLEN', '$name NOW RUNS THE WAVES'));
   }
 
   void _applyDefense(DefensePayload state) {
@@ -738,8 +927,11 @@ extension TankGameDefense on TankGame {
       return;
     }
     // In a duel the guns of a base belong to the player of its side, and
-    // fight for that side.
-    final owner = activeRound.duel ? activeRound.lanes[lane] : myId;
+    // fight for that side. Otherwise to the host that armed it first: a new
+    // host upgrades those instead of putting a second set beside them.
+    final owner = activeRound.duel
+        ? activeRound.lanes[lane]
+        : towers.values.where((t) => t.isHq).firstOrNull?.ownerId ?? myId;
     final guns = [
       if (level >= 2)
         (Tower.hqIndex, TowerKind.cannon, map.base, min(level - 1, 3)),
@@ -1056,6 +1248,7 @@ extension TankGameDefense on TankGame {
             y: tower.position.y,
             kind: tower.kind.index,
             level: tower.level,
+            from: myId,
           ).toJson(),
         );
       }
@@ -1078,6 +1271,9 @@ extension TankGameDefense on TankGame {
         y: at.y,
         kind: (index.isEven ? TowerKind.cannon : TowerKind.flak).index,
         level: level,
+        // In the host's name, so an old host that comes back after a
+        // takeover digs nothing in on the others' fields.
+        from: myId,
       );
       _addTower(payload);
       net.send(NetEvent.tower, payload.toJson());
@@ -1168,15 +1364,17 @@ extension TankGameDefense on TankGame {
     AudioService.play('cannon', volume: 0.35, distance: _distanceToView(start));
   }
 
-  /// A mortar or howitzer of the local player lobs a shell onto [at].
+  /// A mortar or howitzer this client runs lobs a shell onto [at]: the
+  /// local player's, or one a host who left behind.
   void fireMortarTower(Tower tower, Vector2 at) {
     final from = tower.position.clone();
     tower.fired((at - from).normalized());
     final power = tower.kind.blast * tower.kind.damageFactor(tower.level);
-    final grenadeId = '$myId-t${_bulletCounter++}';
+    final owner = tower.ownerId;
+    final grenadeId = '$owner-t${_bulletCounter++}';
     _launchGrenade(
       grenadeId,
-      myId,
+      owner,
       from,
       at,
       weapon: SpecialWeapon.shell,
@@ -1185,7 +1383,7 @@ extension TankGameDefense on TankGame {
     net.send(
       NetEvent.grenade,
       GrenadePayload(
-        id: myId,
+        id: owner,
         grenadeId: grenadeId,
         x: from.x,
         y: from.y,

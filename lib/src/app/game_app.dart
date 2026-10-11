@@ -14,11 +14,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../db/account_service.dart';
 import '../db/online_service.dart';
 import '../db/profile_service.dart';
+import '../db/room_registry.dart';
 import '../db/score_service.dart';
 import '../game/game_phase.dart';
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../net/net_service.dart';
+import '../net/room_key.dart';
 import '../net/pad_link.dart';
 import '../net/room.dart';
 import '../watch/account_link.dart';
@@ -121,12 +123,11 @@ class _GameAppState extends State<GameApp> {
 
   TankGame _createGame(String room, {required bool host}) {
     final client = Supabase.instance.client;
-    final random = Random();
-    final myId = [
-      for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
-    ].join();
-    // The watch speaks as the phone's account, when it lent one.
+    // The watch plays without a room, so it needs no key to speak with.
     final watch = FlutterWatchosPlatform.isWatch;
+    final key = watch ? null : RoomKey.generate();
+    final myId = key?.id ?? _randomId();
+    // The watch speaks as the phone's account, when it lent one.
     final link = AccountLink.instance;
     final linked = watch ? linkedClient(link, client) : null;
     final game =
@@ -136,6 +137,8 @@ class _GameAppState extends State<GameApp> {
               room: room,
               isHost: host,
               offline: watch,
+              key: key,
+              registry: watch ? null : RoomRegistry(client),
             ),
             myId: myId,
             scoreService: linked == null
@@ -155,6 +158,15 @@ class _GameAppState extends State<GameApp> {
       link.account.addListener(game.reloadPilot);
     }
     return game;
+  }
+
+  /// An id for a game without a key, as long as those of keys.
+  static String _randomId() {
+    final random = Random();
+    return [
+      for (var i = 0; i < RoomKey.idLength; i++)
+        random.nextInt(16).toRadixString(16),
+    ].join();
   }
 
   /// The apps' stand-in for loading another room's address: the old game

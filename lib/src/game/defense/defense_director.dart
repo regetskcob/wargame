@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:clock/clock.dart';
 import 'package:flame/components.dart';
 
@@ -13,9 +15,21 @@ import 'defense_map.dart';
 /// enemies has one: it spawns them and the CPU comrades, keeps the score of
 /// the base and tells the others how it stands.
 class DefenseDirector extends Component with HasGameRef<TankGame> {
-  DefenseDirector({required this.startedAt, required this.allies});
+  DefenseDirector({
+    required this.startedAt,
+    required this.allies,
+    this.resume,
+    this.spawned = 0,
+  });
 
   final int startedAt;
+
+  /// The last state of the base and the waves a new host heard from the
+  /// one that left: it goes on from there instead of from the start.
+  final DefensePayload? resume;
+
+  /// How many units of the wave under way the old host already sent.
+  final int spawned;
 
   /// Number of CPU comrades on the side of the players at the start. Every
   /// step the base grows brings one more.
@@ -55,6 +69,11 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   @override
   void onMount() {
     super.onMount();
+    final resume = this.resume;
+    if (resume != null) {
+      _resume(resume);
+      return;
+    }
     // The screenshot mode skips the first waves and opens with the base one
     // step grown, so aircraft and a fuller field show up at once.
     final staged = Env.shots && !_duel && Env.shotWave > 1;
@@ -75,6 +94,48 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
     for (var slot = 0; slot < allies; slot++) {
       _sendAlly(slot);
     }
+  }
+
+  /// Takes the waves over from a host that left, from what [state] says
+  /// and what is on the field.
+  void _resume(DefensePayload state) {
+    for (final lane in _lanes) {
+      // As many clean waves as the base's level took, its hit points as
+      // they are now: the old host's counts went with it.
+      _cleanWaves[lane] =
+          GameConfig.hqCleanWaves[(state.hqOf(lane) - 1).clamp(
+            0,
+            GameConfig.hqCleanWaves.length - 1,
+          )];
+      _hpAtWave[lane] = state.hpOf(lane);
+    }
+    if (state.wave > 0 && state.nextWaveAt == 0) {
+      // The rest of the wave under way, under numbers not yet used.
+      _queue.addAll(_order(DefenseMap.planFor(state.wave)).skip(spawned));
+      _spawned = spawned;
+    }
+    // The comrades the new host adopted hold their posts; an empty post
+    // gets a fresh one after the usual wait, with a life nobody used.
+    final round = gameRef.round;
+    for (var slot = 0; slot < _allyIds.length; slot++) {
+      _allyWait[slot] = GameConfig.allyRespawnSeconds;
+    }
+    for (final id in [...gameRef.botTanks.keys, ...?round?.destroyedEnemies]) {
+      final parts = id.split('-');
+      final slot = parts.length == 3 ? int.tryParse(parts[1]) : null;
+      final life = parts.length == 3 ? int.tryParse(parts[2]) : null;
+      if (!(round?.isAlly(id) ?? false) ||
+          slot == null ||
+          life == null ||
+          slot >= _allyIds.length) {
+        continue;
+      }
+      _allyLives[slot] = max(_allyLives[slot], life + 1);
+      if (gameRef.botTanks.containsKey(id)) {
+        _allyIds[slot] = id;
+      }
+    }
+    gameRef.publishDefense(state);
   }
 
   /// A wave was beaten off. If the base held without heavy losses it may

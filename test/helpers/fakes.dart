@@ -15,6 +15,7 @@ import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/net_service.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
 import 'package:wargame/src/net/room_directory.dart';
+import 'package:wargame/src/net/room_key.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 User _user({required bool guest}) => User(
@@ -142,10 +143,43 @@ class FakeNet extends NetService {
 /// channel: what one sends reaches the other in a later microtask, the way
 /// a broadcast arrives after the frame that sent it.
 class LoopbackNet extends NetService {
-  LoopbackNet(String id, {super.isHost}) : super(myId: id, room: 'TEST1');
+  LoopbackNet(String id, {super.isHost, super.key})
+    : super(myId: id, room: 'TEST1');
+
+  /// A game that speaks with a key of its own, as the apps' games do.
+  factory LoopbackNet.keyed({bool isHost = false}) {
+    final key = RoomKey.generate();
+    return LoopbackNet(key.id, isHost: isHost, key: key);
+  }
 
   LoopbackNet? peer;
+
+  /// Everybody else of a room of more than two, see [group].
+  final others = <LoopbackNet>[];
   var connects = 0;
+
+  /// Links games under [ids] all with all, like one channel.
+  static List<LoopbackNet> group(List<String> ids) {
+    final nets = [
+      for (var i = 0; i < ids.length; i++)
+        LoopbackNet(ids[i], isHost: i == 0)..othersPresent = true,
+    ];
+    for (final net in nets) {
+      net.others.addAll(nets.where((other) => other != net));
+    }
+    return nets;
+  }
+
+  /// Takes this game off the channel: it neither hears nor reaches the
+  /// others any more.
+  void cut() {
+    for (final other in others) {
+      other.others.remove(this);
+    }
+    others.clear();
+    peer?.peer = null;
+    peer = null;
+  }
 
   /// Links two games both ways.
   static (LoopbackNet, LoopbackNet) pair() {
@@ -168,13 +202,15 @@ class LoopbackNet extends NetService {
 
   @override
   void transmit(NetEvent event, Map<String, dynamic> payload) {
-    final to = peer;
-    if (to == null) {
-      return;
+    for (final to in [?peer, ...others]) {
+      // A copy, as the wire would hand over: the Realtime client writes
+      // the type and the event's name into every broadcast it sends, and
+      // the receiver gets them with the payload.
+      final copy = jsonDecode(
+        jsonEncode({...payload, 'type': 'broadcast', 'event': event.name}),
+      ) as Map<String, dynamic>;
+      scheduleMicrotask(() => to.deliverForTest(event, copy));
     }
-    // A copy, as the wire would hand over.
-    final copy = jsonDecode(jsonEncode(payload)) as Map<String, dynamic>;
-    scheduleMicrotask(() => to.deliverForTest(event, copy));
   }
 
   @override

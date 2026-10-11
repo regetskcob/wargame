@@ -35,6 +35,9 @@ class PilotProgress {
 
   int _rounds = 0;
 
+  /// The server's ticket for the round under way, while it is being taken.
+  Future<String?>? _ticket;
+
   /// Whether the pilot's rank allows driving [type].
   bool vehicleUnlocked(TankType type) => rank.value.level >= type.level;
 
@@ -62,6 +65,13 @@ class PilotProgress {
     unranked.value = false;
   }
 
+  /// The local pilot's round with [cpu] CPU tanks starts: takes the
+  /// server's ticket that [recordRound] hands in at its end. Guests are not
+  /// ranked and take none.
+  void startRound({required int cpu}) {
+    _ticket = scores.isGuest ? null : scores.startRound(cpu: cpu);
+  }
+
   /// Records the round and hands out the badges it earned.
   Future<void> recordRound({
     required String name,
@@ -82,6 +92,9 @@ class PilotProgress {
       unranked.value = true;
       return;
     }
+    // Every ticket counts once: the next round takes a new one.
+    final ticket = _ticket;
+    _ticket = null;
     final record = await scores.recordRound(
       name: name,
       stats: stats,
@@ -92,6 +105,7 @@ class PilotProgress {
       cpuBeaten: cpuBeaten,
       cpuBeatenBy: cpuBeatenBy,
       cpuRating: cpuRating,
+      ticket: await ticket,
     );
     // A refused round earns no badges either: the database only takes
     // badges right after a recorded round.

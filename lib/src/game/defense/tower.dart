@@ -404,9 +404,16 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   bool get _mine => ownerId == gameRef.myId;
 
   /// This client aims and fires it: its builder, and for the enemy's guns
-  /// the player who runs the waves.
-  bool get _runs =>
-      _mine || (isEnemy && gameRef.round?.botHost == gameRef.myId);
+  /// and those of a host who left the player who runs the waves now.
+  bool get _runs {
+    if (_mine) {
+      return true;
+    }
+    final round = gameRef.round;
+    return round != null &&
+        round.botHost == gameRef.myId &&
+        (isEnemy || round.left.contains(ownerId));
+  }
 
   /// A shot went off in [direction]. For a trench of another client [from]
   /// tells which of the men fired, so the flash shows at his rifle.

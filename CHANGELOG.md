@@ -40,11 +40,27 @@ step, point for point.
 - Mortars and howitzers lead their shells onto where a target will be when
   they land: a mortar now stops tanks on the road about as well as a
   cannon instead of letting all of them through
-
-## Unreleased
-
+- Nobody can play in somebody else's name any more: every message carries
+  a tag that only its sender can make, and who hosts a room comes from the
+  server, so a player posing as the owner or the first to come no longer
+  takes the room, closes it or ends its round
+- When the host of a defense round leaves for good, the next player takes
+  over waves, base and guns instead of the base falling for everybody
+- Rounds against CPU tanks earn experience and rating only for the time
+  really played, as the server measured it
+- Only the room that claimed its share of the Realtime budget can lower it
+- After the server closed every room for too many messages, games wait
+  longer and longer before rejoining instead of knocking every two seconds
 - A replay can show the whole map from above instead of following one
   tank: *Whole map* in its bar or the key M
+- In capture the flag a host who drops out and comes back takes the flags
+  back, and a last capture made while it was cut off still ends the round
+  on every screen
+- Touch controls let go of everything when they are rebuilt under a held
+  finger, a second thumb takes over a stick, and two fingers on the
+  special weapon no longer drop it when one lifts
+- Sounds no longer come seconds late in a busy defense round: late ones are
+  left out, own shots get voices of their own
 
 ## 1.5.0 (11) – 2026-10-11
 

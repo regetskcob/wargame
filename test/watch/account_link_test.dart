@@ -69,10 +69,14 @@ void main() {
       stats: RoundStats()..kills = 2,
       won: true,
       tankType: 1,
+      ticket: 'ticket-1',
     );
     expect(record, isNull);
     expect(await pending.length, 1);
     expect((await pending.first())!['p_kills'], 2);
+    // The ticket from the round's start waits with it: the server measures
+    // the round from there, however late it arrives.
+    expect((await pending.first())!['p_ticket'], 'ticket-1');
   });
 
   test('the queue keeps the latest rounds up to its limit', () async {

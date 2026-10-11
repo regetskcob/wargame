@@ -56,6 +56,16 @@ class LinkedScores extends ScoreService {
   @override
   bool get isGuest => link.account.value == null;
 
+  /// The ticket is taken with the phone's token as well, so a round that
+  /// waits in [pending] still carries the time it was played at. Without a
+  /// usable token at the start the round goes without one.
+  @override
+  Future<String?> startRound({int cpu = 0}) async {
+    final usable =
+        (link.account.value?.usable ?? false) || await link.refresh();
+    return usable ? super.startRound(cpu: cpu) : null;
+  }
+
   @override
   Future<RoundRecord?> recordRound({
     required String name,
@@ -67,6 +77,7 @@ class LinkedScores extends ScoreService {
     int cpuBeaten = 0,
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
+    String? ticket,
   }) async {
     final params = ScoreService.roundParams(
       name: name,
@@ -78,6 +89,7 @@ class LinkedScores extends ScoreService {
       cpuBeaten: cpuBeaten,
       cpuBeatenBy: cpuBeatenBy,
       cpuRating: cpuRating,
+      ticket: ticket,
     );
     final usable =
         (link.account.value?.usable ?? false) || await link.refresh();
@@ -88,8 +100,9 @@ class LinkedScores extends ScoreService {
     try {
       return await submit(params);
     } on PostgrestApiException {
-      // Refused by the database, as too soon after the last round: trying
-      // again later would be refused just the same.
+      // Refused by the database, as too soon after the last round or for a
+      // ticket already used: trying again later would be refused just the
+      // same.
       return null;
     } on Object {
       // Out of reach: it goes in later.

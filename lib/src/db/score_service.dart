@@ -80,8 +80,25 @@ class ScoreService {
     }
   }
 
+  /// Takes the server's ticket for a round that starts now, with [cpu] CPU
+  /// tanks in it (migration 0019). `record_round` measures the round by the
+  /// server's clock from this moment and takes every ticket once; a round
+  /// without one counts with much tighter limits and nothing for CPU tanks.
+  /// Null when there is none: a guest, no server, a database without the
+  /// migration.
+  Future<String?> startRound({int cpu = 0}) async {
+    try {
+      return await _client
+          .rpc<String?>('start_round', params: {'p_cpu': cpu})
+          // The round goes on without it; only the recording waits.
+          .timeout(const Duration(seconds: 10));
+    } on Object {
+      return null;
+    }
+  }
+
   /// The parameters of `record_round` for one round, as [recordRound]
-  /// sends them.
+  /// sends them, with the [ticket] from [startRound] if there was one.
   static Map<String, dynamic> roundParams({
     required String name,
     required RoundStats stats,
@@ -92,7 +109,9 @@ class ScoreService {
     int cpuBeaten = 0,
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
+    String? ticket,
   }) => {
+    'p_ticket': ?ticket,
     if (cpuBeaten + cpuBeatenBy > 0) ...{
       'p_cpu_beaten': cpuBeaten,
       'p_cpu_beaten_by': cpuBeatenBy,
@@ -127,23 +146,27 @@ class ScoreService {
   /// experience and moves the rating against the human opponents the player
   /// outlasted ([beaten], by account id) or fell before ([beatenBy]). Null
   /// when the database refused the round.
-  /// Calls `record_round`. A database without migration 0007 does not know
-  /// the CPU parameters: then the round goes in without them.
+  /// Calls `record_round`. A database without migration 0019 does not know
+  /// the ticket, one without 0007 the CPU parameters: then the round goes in
+  /// without them.
   Future<List<dynamic>> _call(Map<String, dynamic> params) async {
     try {
       return await _client.rpc<List<dynamic>>('record_round', params: params);
     } on PostgrestApiException catch (error) {
-      if (error.errorCode != 'PGRST202' ||
-          !params.containsKey('p_cpu_beaten')) {
+      if (error.errorCode != 'PGRST202') {
         rethrow;
       }
-      return _client.rpc<List<dynamic>>(
-        'record_round',
-        params: {
-          for (final entry in params.entries)
-            if (!entry.key.startsWith('p_cpu_')) entry.key: entry.value,
-        },
-      );
+      // The parameters of the newest migration go first.
+      final newest = ['p_ticket', 'p_cpu_']
+          .where((prefix) => params.keys.any((k) => k.startsWith(prefix)))
+          .firstOrNull;
+      if (newest == null) {
+        rethrow;
+      }
+      return _call({
+        for (final entry in params.entries)
+          if (!entry.key.startsWith(newest)) entry.key: entry.value,
+      });
     }
   }
 
@@ -157,6 +180,7 @@ class ScoreService {
     int cpuBeaten = 0,
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
+    String? ticket,
   }) async {
     try {
       return await submit(
@@ -170,6 +194,7 @@ class ScoreService {
           cpuBeaten: cpuBeaten,
           cpuBeatenBy: cpuBeatenBy,
           cpuRating: cpuRating,
+          ticket: ticket,
         ),
       );
     } on Object {

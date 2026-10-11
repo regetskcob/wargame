@@ -75,10 +75,24 @@ class GameConfig {
   /// Messages a second Realtime counts for a room of [pilots], sent plus
   /// delivered, as `message_budget_test.dart` measures them: about 11 per
   /// pilot and receiver, and 13 more for the host's CPU tanks, 19 for the
-  /// bigger crew that fills the sides of a capture the flag round. A pilot
+  /// bigger crew that fills the sides of a capture the flag round and 30
+  /// for the waves of a defense (enemies, guns, squads, aircraft; two
+  /// players at wave 2 sent 75 to 105 a second on a local stack). A pilot
   /// alone sends nothing.
-  static int roomLoad(int pilots, {required bool cpu, bool flag = false}) =>
-      pilots < 2 ? 0 : (11 * pilots + (cpu ? (flag ? 19 : 13) : 0)) * pilots;
+  static int roomLoad(
+    int pilots, {
+    required bool cpu,
+    bool flag = false,
+    bool defense = false,
+  }) => pilots < 2
+      ? 0
+      : (11 * pilots +
+                (defense
+                    ? 30
+                    : cpu
+                    ? (flag ? 19 : 13)
+                    : 0)) *
+            pilots;
 
   /// The same for one phone controller and its screen, on a channel of
   /// their own (`pad_budget_test.dart`).
@@ -88,6 +102,14 @@ class GameConfig {
   /// How long a player missing from the room's presence during a round has
   /// to come back before they count as gone (a phone switching networks).
   static const peerLeftGrace = Duration(seconds: 6);
+
+  /// How long players missing from the room count as away, not gone, after
+  /// this game's own channel dropped. Above the project's message limit
+  /// Realtime closes the channels of every room, and each client comes
+  /// back on its own backoff (2, 4, 8, 16 seconds): measured on a local
+  /// stack, two players of a defense round each saw the other gone for
+  /// longer than [peerLeftGrace], and both ran the waves from then on.
+  static const outageGrace = Duration(seconds: 45);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
   static const remoteTeleportDistance = 200.0;

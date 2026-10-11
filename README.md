@@ -56,7 +56,9 @@ Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
 - An iMessage app that invites the chat into a room: a group fights, two
   can also hold the base together or duel, and the result of the round
   takes the place of the invitation.
-- No game server: the netcode runs entirely on Supabase Realtime.
+- No game server: the netcode runs entirely on Supabase Realtime, and every
+  message carries a tag per receiver from the sender's own key, so nobody
+  can play in somebody else's name.
 
 All features with their numbers (damage tables, defense thresholds) are in
 [docs/gameplay.md](docs/gameplay.md).
@@ -149,12 +151,9 @@ flutter run -d chrome \
 - The Apple Vision Pro (iPad app, look and pinch to fire) in its simulator
   and on a real headset.
 - Replays for defense rounds, and replays to share through Supabase Storage.
-- Trust in the room channels: every message names its sender itself, so a
-  player can still pose as another. Fix with private channels and Realtime
-  Authorization that bind a presence to its account, and a server-side
-  owner per room.
 - Round results checked on the server through an Edge Function instead of
-  trusting what each client reports. Until then numbers are only clamped.
+  trusting what each client reports. Until then numbers are clamped and
+  bounded by the time of a server ticket taken at the round's start.
 - More tests (about 78 % of the loaded lines are covered, CI holds a floor
   of 75 %): the defense rules as a pure function with an injected clock,
   `record_round` and the policies with pgTAP in CI, golden tests for HUD,

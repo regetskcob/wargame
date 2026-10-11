@@ -40,11 +40,31 @@ gepflegt.
 - Mörser und Haubitzen halten ihre Granaten dorthin vor, wo das Ziel bei
   der Landung sein wird: ein Mörser hält Panzer auf der Straße jetzt etwa
   so gut auf wie eine Kanone, statt alle durchzulassen
-
-## Unveröffentlicht
-
+- Niemand kann mehr in fremdem Namen spielen: Jede Nachricht trägt ein
+  Zeichen, das nur ihr Absender setzen kann, und wer einen Raum leitet,
+  sagt der Server; wer sich als Besitzer oder Erster ausgibt, übernimmt den
+  Raum nicht mehr, schließt ihn nicht und beendet keine Runde
+- Verlässt der Gastgeber einer Verteidigung die Runde endgültig, übernimmt
+  der nächste Spieler Wellen, Stützpunkt und Geschütze, statt dass der
+  Stützpunkt für alle fällt
+- Runden gegen CPU-Panzer bringen Erfahrung und Wertung nur für die
+  wirklich gespielte Zeit, wie der Server sie gemessen hat
+- Den Anteil eines Raums am Realtime-Budget kann nur der Raum senken, der
+  ihn belegt hat
+- Hat der Server wegen zu vieler Nachrichten alle Räume geschlossen,
+  warten die Spiele immer länger, bevor sie wieder beitreten, statt alle
+  zwei Sekunden anzuklopfen
 - Eine Wiederholung kann die ganze Karte von oben zeigen, statt einem
   Panzer zu folgen: *Gesamtkarte* in ihrer Leiste oder die Taste M
+- Bei Capture the Flag holt sich ein Gastgeber, der kurz weg war, die
+  Fahnen zurück, und eine letzte Eroberung während seiner Funkstille
+  beendet die Runde trotzdem auf allen Bildschirmen
+- Die Touch-Steuerung lässt alles los, wenn sie unter einem gehaltenen
+  Finger neu aufgebaut wird, ein zweiter Daumen übernimmt einen Stick, und
+  zwei Finger auf der Spezialwaffe lassen sie nicht mehr los, wenn einer
+  sich hebt
+- Töne kommen in einer vollen Verteidigungsrunde nicht mehr Sekunden zu
+  spät: verspätete fallen weg, eigene Schüsse haben eigene Stimmen
 
 ## 1.5.0 (11) – 11.10.2026
 

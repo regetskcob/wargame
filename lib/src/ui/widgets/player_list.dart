@@ -10,6 +10,7 @@ class PlayerList extends StatelessWidget {
     required this.members,
     required this.myId,
     required this.colorOf,
+    this.hostId,
     super.key,
   });
 
@@ -18,6 +19,12 @@ class PlayerList extends StatelessWidget {
 
   /// Colour the member's tank will have, camouflage or a player colour.
   final Color Function(LobbyPresence member) colorOf;
+
+  /// Who hosts the room by the server's ranking, which gets the star. A
+  /// presence can claim to host and to own the room: a poser showed a star
+  /// of its own while the owner kept the role. Null while the ranking is
+  /// unknown, the presences' claims count then.
+  final String? hostId;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +51,7 @@ class PlayerList extends StatelessWidget {
                       ? '${member.name} (${tr('du', 'you')})'
                       : member.name,
                 ),
-                if (member.host) ...[
+                if (hostId == null ? member.host : member.id == hostId) ...[
                   const SizedBox(width: 6),
                   const Icon(
                     Icons.star_outlined,

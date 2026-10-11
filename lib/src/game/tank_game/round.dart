@@ -236,6 +236,10 @@ extension TankGameRound on TankGame {
     killFeed.value = const [];
     if (!replay) {
       progress.clearRound();
+      // A duel counts for nobody, see _endDefense.
+      if (activeRound.participants.contains(myId) && !activeRound.duel) {
+        progress.startRound(cpu: activeRound.bots.length);
+      }
       _uids
         ..clear()
         ..addAll({
@@ -651,10 +655,16 @@ extension TankGameRound on TankGame {
   /// A tank of a capture the flag round is back from its base. A state
   /// sent just before it went down does not count.
   bool _respawnedInFlag(RoundState activeRound, String id) {
-    if (!activeRound.flag ||
-        !activeRound.participants.contains(id) ||
-        activeRound.left.contains(id)) {
+    if (!activeRound.flag || !activeRound.participants.contains(id)) {
       return false;
+    }
+    if (activeRound.left.contains(id)) {
+      // Gone for longer than the grace, but back in the room: when the
+      // project went over its message limit everybody dropped at once.
+      if (_rosterMember(id) == null || activeRound.isBot(id)) {
+        return false;
+      }
+      activeRound.left.remove(id);
     }
     final down = activeRound.downAt[id];
     return down == null ||
@@ -874,26 +884,28 @@ extension TankGameRound on TankGame {
       GamePhase.spectating,
     }.contains(phase.value);
     if (!confirmed && round != null && running) {
-      final during = round;
-      Future<void>.delayed(GameConfig.peerLeftGrace, () {
-        if (identical(round, during) && _rosterMember(id) == null) {
-          _onPeerLeft(id, confirmed: true);
-        }
-      });
+      _confirmLeft(id, round!, clock.now());
       return;
     }
     final tank = remoteTanks.remove(id);
     tank?.removeFromParent();
     final activeRound = round;
     if (activeRound != null && activeRound.defense) {
-      for (final tower in towers.values.where((t) => t.ownerId == id)) {
-        tower.removeFromParent();
-      }
-      towers.removeWhere((_, tower) => tower.ownerId == id);
       if (activeRound.botHost == id) {
-        // Nobody runs the waves any more, the base is lost.
-        _endDefense(won: false);
-        return;
+        // The next player in line runs the waves on. The host's guns stay,
+        // the base's own among them, and the new host fires them.
+        activeRound.left.add(id);
+        _handOverDefense(activeRound);
+        if (activeRound.botHost == null) {
+          // Nobody is left to run the waves, the base is lost.
+          _endDefense(won: false);
+          return;
+        }
+      } else {
+        for (final tower in towers.values.where((t) => t.ownerId == id)) {
+          tower.removeFromParent();
+        }
+        towers.removeWhere((_, tower) => tower.ownerId == id);
       }
     }
     if (activeRound != null && activeRound.botHost == id) {
@@ -916,6 +928,51 @@ extension TankGameRound on TankGame {
       _refreshSpectateTarget();
       _checkRoundEnd();
     }
+  }
+
+  /// Counts [id] as gone once it stayed away for the grace, and for as long
+  /// as this game's own channel was down lately ([GameConfig.outageGrace]):
+  /// when the project is over its message limit everybody drops at once
+  /// and comes back on their own backoff.
+  void _confirmLeft(String id, RoundState during, DateTime since) {
+    Future<void>.delayed(peerLeftGrace, () {
+      if (!identical(round, during) || _rosterMember(id) != null) {
+        return;
+      }
+      if (net.blindFor(outageGrace) &&
+          clock.now().difference(since) < outageGrace) {
+        _confirmLeft(id, during, since);
+        return;
+      }
+      _onPeerLeft(id, confirmed: true);
+    });
+  }
+
+  /// Who runs the flags or the waves after their authority left for good:
+  /// of the people still in the round and in the room, the first in the
+  /// room's ranking once the server told it ([TankGameIdentity._rankOf]),
+  /// else the first by id. Every client picks the same one from the same
+  /// roster without a word on the wire, and a player posing as the first
+  /// comer does not get the role.
+  String? nextBotHost(RoundState activeRound) {
+    final present = {myId, for (final member in roster.value) member.id};
+    final next = [
+      for (final id in activeRound.participants)
+        if (!activeRound.isBot(id) &&
+            !activeRound.left.contains(id) &&
+            present.contains(id))
+          id,
+    ]..sort();
+    if (next.isEmpty) {
+      return null;
+    }
+    final rank = _rankOf([
+      for (final member in roster.value)
+        if (next.contains(member.id)) member,
+      if (next.contains(myId) && !roster.value.any((m) => m.id == myId))
+        _presencePayload(),
+    ]);
+    return rank != null && rank.isNotEmpty ? rank.first : next.first;
   }
 
   void _handleRemoteDeath(String id, {required bool explode}) {

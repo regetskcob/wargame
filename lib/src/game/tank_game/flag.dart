@@ -28,6 +28,7 @@ extension TankGameFlag on TankGame {
   void _setUpFlag() {
     flagMatch = FlagMatch();
     _flagSync = 0;
+    _formerFlagHosts.clear();
     _flagOvertime = false;
     final bases = FlagBases();
     final markers = FlagMarkers();
@@ -50,9 +51,14 @@ extension TankGameFlag on TankGame {
       return;
     }
     final current = phase.value;
+    if (current == GamePhase.roundOver) {
+      _repeatFinalScore(dt, match);
+      return;
+    }
     if (current != GamePhase.playing && current != GamePhase.spectating) {
       return;
     }
+    _flagAfterglow = GameConfig.outageGrace.inSeconds.toDouble();
     _respawnBots(dt);
     if (_runsFlags) {
       final tanks = <String, FlagTank>{
@@ -86,6 +92,26 @@ extension TankGameFlag on TankGame {
       bot.carriesFlag = match.carriedBy(bot.playerId) != null;
     }
     _checkFlagEnd(activeRound, match);
+  }
+
+  /// The flag host repeats the final score for a while after the round.
+  /// Above the project's message limit Realtime drops every room at once:
+  /// a host that scored the last capture while its channel was down ended
+  /// the round alone, and the others played on. Once its channel is back
+  /// they hear the score and end the round too.
+  void _repeatFinalScore(double dt, FlagMatch match) {
+    if (!_runsFlags || _flagAfterglow <= 0) {
+      return;
+    }
+    _flagAfterglow -= dt;
+    _flagSync += dt;
+    if (_flagSync >= GameConfig.flagSyncSeconds) {
+      _flagSync = 0;
+      net.send(
+        NetEvent.flag,
+        match.snapshot(myId, FlagAction.sync, 1).toJson(),
+      );
+    }
   }
 
   void _checkFlagEnd(RoundState activeRound, FlagMatch match) {
@@ -127,12 +153,44 @@ extension TankGameFlag on TankGame {
     if (activeRound == null ||
         match == null ||
         !activeRound.flag ||
-        payload.id != activeRound.flagHost ||
         net.duplicateIds.contains(payload.id)) {
       return;
     }
+    if (payload.id != activeRound.flagHost) {
+      if (!_takesFlagsBack(activeRound, payload.id)) {
+        return;
+      }
+      _handBackFlags(activeRound, payload.id);
+    }
     match.apply(payload);
     _announceFlag(payload);
+  }
+
+  /// Whether [id], who ran the flags before and still does, takes them
+  /// back from who runs them now: a host that came back after the grace,
+  /// when everybody dropped at once. The one ranking first keeps them, the
+  /// same on every screen, as with the waves of a defense.
+  bool _takesFlagsBack(RoundState activeRound, String id) {
+    final runner = activeRound.flagHost;
+    return runner != null &&
+        _formerFlagHosts.contains(id) &&
+        activeRound.participants.contains(id) &&
+        !activeRound.isBot(id) &&
+        _rosterMember(id) != null &&
+        _firstOf(id, runner) == id;
+  }
+
+  /// [to] runs the flags again, from its own state, which the message that
+  /// brought it back carries whole.
+  void _handBackFlags(RoundState activeRound, String to) {
+    if (activeRound.flagHost case final runner?) {
+      _formerFlagHosts.add(runner);
+    }
+    activeRound
+      ..left.remove(to)
+      ..flagHost = to;
+    final name = to == myId ? tr('DU', 'YOU') : _nameOf(to).toUpperCase();
+    showNotice(tr('$name FÜHRT JETZT DIE FAHNEN', '$name NOW RUNS THE FLAGS'));
   }
 
   /// What a flag message means for this player, said in a few words.
@@ -192,15 +250,10 @@ extension TankGameFlag on TankGame {
     if (!activeRound.flag || !activeRound.left.contains(activeRound.flagHost)) {
       return;
     }
-    final present = {myId, for (final member in roster.value) member.id};
-    final next = [
-      for (final id in activeRound.participants)
-        if (!activeRound.isBot(id) &&
-            !activeRound.left.contains(id) &&
-            present.contains(id))
-          id,
-    ]..sort();
-    activeRound.flagHost = next.isEmpty ? null : next.first;
+    if (activeRound.flagHost case final runner?) {
+      _formerFlagHosts.add(runner);
+    }
+    activeRound.flagHost = nextBotHost(activeRound);
     _flagSync = GameConfig.flagSyncSeconds;
   }
 

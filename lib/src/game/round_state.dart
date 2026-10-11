@@ -31,9 +31,11 @@ class RoundState {
   /// Team per player, empty for a free for all.
   final Map<String, int> teams;
 
-  /// Computer controlled tanks (id to look) and who runs them.
+  /// Computer controlled tanks (id to look) and who runs them. In a defense
+  /// round the next player in line takes over when the host leaves for
+  /// good, see `TankGame.nextBotHost`; in every other round it stays.
   final Map<String, int> bots;
-  final String? botHost;
+  String? botHost;
   final BotLevel botLevel;
 
   /// Everybody together against waves of enemies, see [isEnemy].
@@ -52,7 +54,8 @@ class RoundState {
   String? flagHost;
 
   /// Players and CPU tanks that left a capture the flag round for good, so
-  /// a side without anybody left loses.
+  /// a side without anybody left loses, and the host who left a defense
+  /// round, whose guns the next host runs on.
   final left = <String>{};
 
   /// When a tank last went down, in milliseconds since the epoch. A state

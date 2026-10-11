@@ -266,7 +266,10 @@ void main() {
         _pilot('friend', joined: 2, pad: true),
       ]);
       await settle();
-      expect(slots.claimed.last.$2, 70);
+      expect(
+        slots.claimed.last.$2,
+        GameConfig.roomLoad(2, cpu: true, defense: true),
+      );
     });
 
     test('a room that held its slot keeps playing when a pilot drops out '

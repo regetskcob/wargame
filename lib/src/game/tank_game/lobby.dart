@@ -355,13 +355,26 @@ extension TankGameLobby on TankGame {
   }
 
   /// Makes sure the room has exactly one host. Presence takes a moment to
-  /// travel, so a missing or doubled host is only fixed once it lasts: then
-  /// the player with the smallest id stands in, and a stand-in hands back as
-  /// soon as the owner of the room returns.
+  /// travel, so a missing or doubled host is only fixed once it lasts.
+  /// Once the server told who owns the room and who came when, the host is
+  /// whoever ranks first ([rightfulHost]); before that, and in rooms of
+  /// older builds, the player with the smallest id stands in, and a
+  /// stand-in hands back as soon as the owner of the room returns.
   void _settleHost(double dt) {
     final members = roster.value;
     if (phase.value == GamePhase.closed || !members.any((m) => m.id == myId)) {
       _hostlessFor = _hostClashFor = 0;
+      return;
+    }
+    final rightful = rightfulHost;
+    if (rightful != null) {
+      _hostlessFor = 0;
+      final mine = rightful == myId;
+      _hostClashFor = mine != isHost.value ? _hostClashFor + dt : 0;
+      if (_hostClashFor >= GameConfig.hostSettleSeconds) {
+        _hostClashFor = 0;
+        _setHost(mine);
+      }
       return;
     }
     final hosts = [
@@ -532,13 +545,17 @@ extension TankGameLobby on TankGame {
     if (sender == null || !sender.host || phase.value == GamePhase.closed) {
       return;
     }
-    // Anybody can claim to be host in their own presence. While the owner
-    // is in the room only the owner closes it, and an id two presences
-    // claim is somebody posing as another.
+    // Anybody can claim to be host in their own presence. Once the server
+    // ranked the room only its host closes it. Before, while the owner is
+    // in the room only the owner closes it, and an id two presences claim
+    // is somebody posing as another.
+    final rightful = rightfulHost;
     final owners = roster.value.where((m) => m.owner).toList();
-    if (net.duplicateIds.contains(id) ||
-        owners.length > 1 ||
-        (owners.length == 1 && owners.single.id != id)) {
+    if (rightful != null
+        ? rightful != id
+        : net.duplicateIds.contains(id) ||
+              owners.length > 1 ||
+              (owners.length == 1 && owners.single.id != id)) {
       return;
     }
     // A host that closes the room leaves its channel right after. Anybody
@@ -665,7 +682,7 @@ extension TankGameLobby on TankGame {
   }
 
   void _onRosterChanged(List<LobbyPresence> all) {
-    final members = LobbyPresence.admitted(all, GameConfig.maxPilots);
+    final members = _admitted(all);
     if (phase.value != GamePhase.closed &&
         all.any((member) => member.id == myId) &&
         !members.any((member) => member.id == myId)) {
@@ -739,6 +756,7 @@ extension TankGameLobby on TankGame {
     _pilotsOnline,
     cpu: !roomHasPhone || mode.value == GameMode.defense,
     flag: mode.value == GameMode.flag,
+    defense: mode.value == GameMode.defense,
   );
 
   void _onPadSteered() {

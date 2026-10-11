@@ -1,3 +1,4 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/net_service.dart';
@@ -13,6 +14,25 @@ void main() {
     expect(backoff.failures, 7);
     backoff.reset();
     expect(backoff.next(), const Duration(seconds: 2));
+  });
+
+  test('only a channel that stays up starts over at the short wait', () {
+    fakeAsync((async) {
+      final backoff = RetryBackoff();
+      // A flood above the project's limit: every join gets through and is
+      // closed again at once. The waits keep growing.
+      final waits = <int>[];
+      for (var i = 0; i < 5; i++) {
+        waits.add(backoff.next().inSeconds);
+        async.elapse(const Duration(milliseconds: 5));
+        backoff.up();
+        async.elapse(const Duration(milliseconds: 5));
+      }
+      expect(waits, [2, 4, 8, 16, 30]);
+      // Up for long enough: the next drop is the first again.
+      async.elapse(backoff.stableAfter);
+      expect(backoff.next(), const Duration(seconds: 2));
+    });
   });
 
   test('a failed fire-and-forget future is logged, not thrown', () async {

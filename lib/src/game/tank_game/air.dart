@@ -193,8 +193,11 @@ extension TankGameAir on TankGame {
 
   void _onAir(AirPayload payload) {
     final activeRound = round;
+    // Only the player who runs the waves flies them, also after a takeover
+    // when the old host comes back.
     if (activeRound == null ||
         !activeRound.defense ||
+        payload.id != activeRound.botHost ||
         !(activeRound.isEnemy(payload.unit) ||
             activeRound.isFriendlyAir(payload.unit)) ||
         activeRound.destroyedEnemies.contains(payload.unit)) {

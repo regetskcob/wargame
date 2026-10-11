@@ -30,6 +30,7 @@ import '../tv/tv_input.dart';
 import '../watch/watch_support.dart';
 import 'game_config.dart';
 import '../net/net_events.dart';
+import '../net/host_rank.dart';
 import '../net/net_service.dart';
 import '../net/payloads/death_payload.dart';
 import '../net/payloads/defense_payload.dart';
@@ -117,6 +118,7 @@ part 'tank_game/view.dart';
 part 'tank_game/flag.dart';
 part 'tank_game/supply.dart';
 part 'tank_game/shots.dart';
+part 'tank_game/identity.dart';
 
 /// Whether the welcome page comes before the start page. Everybody else
 /// lands right on the three ways to play and signs in from the account
@@ -399,6 +401,11 @@ class TankGame extends FlameGame
   final _lastGrenade = <String, DateTime>{};
   int _enemyGunCounter = 0;
 
+  /// A unit of the defense waves: `td-<wave>-<n>` for a tank, with a
+  /// letter in front for the others and a `b` behind on the right road of
+  /// a duel. A new host counts what the old one already sent by them.
+  static final _waveUnit = RegExp(r'^td-(?:[hjdi]-)?(\d+)-(\d+)b?$');
+
   /// Seconds until the local tank is back after it was destroyed in a
   /// defense round, 0 while it is on the field.
   final respawnSeconds = ValueNotifier<int>(0);
@@ -410,6 +417,13 @@ class TankGame extends FlameGame
   FlagMatch? flagMatch;
   double _flagSync = 0;
   bool _flagOvertime = false;
+
+  /// Seconds the flag host still repeats the final score after the round,
+  /// see [TankGameFlag._repeatFinalScore].
+  double _flagAfterglow = 0;
+
+  /// Who ran the flags of this round before the one running them now.
+  final _formerFlagHosts = <String>{};
 
   /// Host: CPU tanks of a capture the flag round waiting to come back, with
   /// the seconds left.
@@ -625,7 +639,8 @@ class TankGame extends FlameGame
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged
       ..onPeerLeft = _onPeerLeft
-      ..onClose = _onClose;
+      ..onClose = _onClose
+      ..admits = _admits;
     _accountId = scoreService.myId;
     // The start page does not wait for the server: the call sign kept on
     // this device shows at once, the server's copy follows below.
@@ -809,6 +824,16 @@ class TankGame extends FlameGame
   /// Left the room quietly after a long time on the start or welcome page.
   @visibleForTesting
   var dozing = false;
+
+  /// How long a player has to be gone in a running round before it counts
+  /// as left, [GameConfig.peerLeftGrace]; tests shorten it.
+  @visibleForTesting
+  var peerLeftGrace = GameConfig.peerLeftGrace;
+
+  /// How long players stay away instead of gone after the own channel
+  /// dropped, [GameConfig.outageGrace]; tests shorten it.
+  @visibleForTesting
+  var outageGrace = GameConfig.outageGrace;
 }
 
 enum RoundOutcome { none, won, lost }

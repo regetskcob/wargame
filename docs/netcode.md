@@ -44,6 +44,41 @@
   reporting what is left of a builder's gun) names its sender in `from`, so
   the builder does not drop it as its own echo. Deaths carry the start of
   their round, so a late one cannot knock a player out of a rematch.
+- Every game speaks with a key of its own (`room_key.dart`, migration 0020),
+  so nobody can speak for somebody else, not even another player in the
+  room. A game makes an X25519 key pair when it starts; its id is the
+  start of the SHA-256 of the public key (16 hex digits, as long as the
+  random ids before), and its presence carries the key as `key`. A
+  presence whose key is not its id's, or one without a key for an id that
+  has one, is dropped. Every two games in a room agree on a secret from
+  their keys, and every message carries `mac`: the sender `s`, a running
+  number `n` and a tag `t` per receiver, an HMAC-SHA256 cut to 9 bytes over
+  the event, sender, number and every field, written the same way on every
+  platform (keys sorted, numbers in thousandths, since a browser reads
+  `1.0` as `1`). A message in the name of a player with a key (`from`, else
+  `id`) only counts with that player's tag and a number above the last
+  one, so a copied or changed message does not either. Messages about CPU
+  tanks, the enemy and the infantry only count from whoever runs them, a
+  round start only from the host. A key costs ~15 ms to make and agree on
+  in the apps and ~100 ms in a browser, a tag 0.07 ms (0.2 ms in a browser);
+  a message grows by about 30 bytes per receiver. The watch plays without a
+  room and has no key; games of builds before keys play on with unsigned
+  messages, and only messages in their own name or for CPU tanks of such a
+  runner count unsigned.
+- Who leads the room comes from the server, not from the presences, which
+  anybody can write: every game enters its key with `enter_room` when it
+  joins (the account that enters a room first as its owner owns it, a
+  reload with a new key keeps it) and reads `room_order`, the keys of the
+  room with the server's time of arrival. Every client ranks the pilots the
+  same way (`host_rank.dart`): the owner by the server, then (only in rooms
+  of older builds, which have no owner on the server) whoever claims to
+  own it, then keys by when the server saw them, then keys the server does
+  not know (the second player on a screen has no session) and last the
+  players of older builds, both by the time they claim. The first hosts the
+  room after three seconds, closes it, starts rounds, and whoever ranks
+  first among those still there takes over flags and waves; the ranking
+  also decides who stays when too many come. Until the server answered,
+  offline and in tests without keys the presences settle it as before.
 - A player who drops out of the presence during a round (a phone switching
   networks) keeps tank, guns and, as host, the waves for six seconds
   (`GameConfig.peerLeftGrace`); only who is still gone then counts as left.
@@ -55,15 +90,19 @@
   together as one `states` message. A client alone in its room sends
   nothing at all. See [Realtime limits](#realtime-limits).
 - A room holds `MAX_PILOTS` pilots (four by default), spectators included.
-  Presences carry when the pilot joined; every client keeps the owner and
-  then the earliest arrivals, and whoever comes later sees that the room is
-  full and leaves.
+  Every client keeps the first by the ranking above (before the server
+  answered: the owner and then the earliest arrivals by their presences),
+  and whoever comes later sees that the room is full and leaves.
 - Rooms and phone controllers share the project's Realtime budget,
   `REALTIME_BUDGET` messages a second (400 by default). A room takes a slot
   with its load through the `claim_load` database function as soon as a
   second pilot is in it, a screen with paired phones takes one for them,
   and everybody refreshes once a minute; a silent slot runs out after two
-  and a half minutes. Who comes into a room that does not fit any more
+  and a half minutes. Only the pilot who claimed a slot may lower its load
+  (migration 0019); the others refresh it and may raise it within the
+  budget. When the claimer has not refreshed for two and a half minutes,
+  the next pilot who refreshes (the stand-in host or anybody left in the
+  room) takes the slot over and may lower it from then on. Who comes into a room that does not fit any more
   sees that all rooms are taken and leaves; the owner stays and waits.
   Phones that do not fit wait and steer nothing. A room with a phone in it
   plays without CPU tanks filling it up. See
@@ -95,10 +134,11 @@
   do, as every client works out each enemy's vehicle from the wave: the
   host marks the seed of a room that knows content 1 one bit higher still
   (`DefenseMap.freshRoom`), and only such rounds send the Igel in.
-- One host per room: a doubled host settles after three seconds. The owner
-  (who opened the room) keeps the role against a stand-in, two stand-ins
-  leave it to the smaller id, and so do two owners, which happens when one
-  browser opens the room in a second tab (both remember having opened it).
+- One host per room: a doubled host settles after three seconds, by the
+  ranking above. Before the server answered, the owner (who opened the
+  room) keeps the role against a stand-in, two stand-ins leave it to the
+  smaller id, and so do two owners, which happens when one browser opens
+  the room in a second tab (both remember having opened it).
 - In the defense mode the players hold a base together on a fixed map without
   the closing zone. The host runs the enemy waves like CPU tanks and is the
   authority over the base: it broadcasts the base's hit points, the wave and
@@ -109,6 +149,23 @@
   travel as ordinary `shoot` events. The host also keeps the guns' hit
   points and sends them with `tower` after every hit; at nothing the gun is
   gone on every client.
+- When the host of a defense leaves for good (still gone after the grace),
+  the next player in line takes over the waves, by the same rule as the
+  flags: the first by the ranking above of the people still in the round
+  and the room, the smallest id while the server has not answered
+  (`TankGame.nextBotHost`). Every client switches by itself, nothing extra
+  goes over the wire. The new host turns the enemies and comrades it saw
+  as remote tanks into its own CPU tanks where they were last seen, starts
+  a director from the last `defense` state it heard (wave, break, base,
+  growth, extension) and sends the rest of the wave under unit numbers not
+  yet used, counted from the ids it knows. Aircraft and drones of the old
+  host are dropped, they only flew on its screen. The old host's guns stay,
+  the base's own among them, and the new host aims and fires them in their
+  owner's name. Funds are every player's own and stay as they are. From
+  then on `defense`, `states`, `air`, wave squads and the guns' hit points
+  count only from the new host, so an old host that comes back after the
+  grace plays on in a world of its own without touching the others'. A
+  player left alone with the host goes on alone and sends nothing.
 - In capture the flag the host is the authority over the flags. It sees
   every tank through the `state` and `states` it receives anyway, so
   nobody sends anything extra to pick up a flag: the host notices who
@@ -117,8 +174,14 @@
   `flag` whenever it changes, and again every 5 seconds so a lost message
   or a late spectator catches up. That is a few messages a minute. Every
   client ends the round itself from the score and the round clock. When
-  the host leaves, the next player in line (smallest id) takes over from
-  the last state they heard. Destroyed tanks come back at their base and
+  the host leaves, the next player in line (by the ranking above) takes over from
+  the last state they heard. A host that comes back (everybody dropped
+  at once when the project went over its message limit) and ranks first
+  takes the flags back with its own state, and a player counted as gone
+  who is back in the room comes back with their next `state`. After the
+  round the flag host repeats the final score for 45 seconds, so a last
+  capture made while its channel was down still ends the round for the
+  others. Destroyed tanks come back at their base and
   announce themselves with their next `state`; one that arrives shortly
   after a death is ignored, so a late message does not bring a wreck back.
   The bigger CPU crew of three a side costs more than a battle's, so a
@@ -131,7 +194,23 @@
   0018 only opponents whose game sent a heartbeat in the last five minutes
   count, kills and damage are capped by the time since the pilot's last
   round, a pilot records at most 300 rounds a day, badges get the server's
-  time and call signs lose invisible characters. `claim_load` caps a room at
+  time and call signs lose invisible characters. Since migration 0019 every
+  round starts with `start_round`, which returns a ticket bound to the
+  account and the server's clock; `record_round` takes it once
+  (`p_ticket`) and caps survival, kills, damage and shots by the time from
+  the ticket until the recording or the pilot's next ticket, whichever
+  comes first, so rounds never overlap. CPU tanks count up to the number
+  the ticket names (at most four), one per five seconds, and a round under
+  five seconds earns only the ten points for taking part. Tickets stay
+  valid for a day, so a round the watch keeps in `PendingRounds` still
+  counts with its own time. A round without a valid ticket (store builds
+  from before, a watch round started without a usable phone token, a
+  foreign or expired ticket) still counts, but CPU tanks give neither
+  rating nor experience, a win only counts with a rated human outlasted,
+  and kills and damage are capped at a fifth of the ticket rate over the
+  time since the last round. A ticket used twice is refused. The client
+  falls back to the old call on a database without the migration.
+  `claim_load` caps a room at
   400 and a phone slot at 160 messages a second, ignores `p_force` and
   takes the smaller of the build's budget and the one in
   `private.settings` (`realtime_budget`, 400 for the Pro plan; set it with
@@ -175,10 +254,13 @@ because of it. The numbers are measured by the budget tests, see
   *n* pilots costs *n* times what its pilots send together: the load grows
   with the square of the room. Above the limit Realtime closes **every
   channel of the project**, all rooms at once
-  (`MessagePerSecondRateLimitReached`). The clients reconnect after two
-  seconds, then wait twice as long after every further drop, up to 30
-  seconds (`RetryBackoff`), so a project over its limit is not kept there
-  by everybody knocking every two seconds.
+  (the server sends "Too many messages per second" and closes them). The
+  clients reconnect after two seconds, then wait twice as long after every
+  further drop, up to 30 seconds (`RetryBackoff`), so a project over its
+  limit is not kept there by everybody knocking every two seconds. Above
+  the limit Realtime still lets every join through and closes it again at
+  once, so only a channel that stayed up for ten seconds starts over at the
+  short wait.
 - **Messages per month**, counted the same way: 2 million on the free plan
   (then a grace period and restrictions), 5 million on Pro ($25 a month,
   then $2.50 per further million).
@@ -190,6 +272,65 @@ Sources: [Realtime limits](https://supabase.com/docs/guides/realtime/limits),
 [ClientPresenceRateLimitReached](https://supabase.com/docs/guides/troubleshooting/realtime-client-presence-rate-limit-reached),
 [Manage Realtime Messages usage](https://supabase.com/docs/guides/platform/manage-your-usage/realtime-messages)
 and the `supabase/realtime` source.
+
+### Flood behaviour (measured locally)
+
+Measured on 11 October 2026 against the local stack (`supabase start`,
+tenant `realtime-dev`), with raw Phoenix clients and with real web builds
+driven in headless Chrome. The hosted numbers are those of the Supabase
+docs, not measured.
+
+| Limit | Local `realtime-dev` | Hosted Free | Hosted Pro |
+|---|---:|---:|---:|
+| Concurrent connections | 200 | 200 | 500 |
+| Messages per second (sent + delivered) | 100 | 100 | 500 |
+| Channel joins per second | 100 | 100 | 500 |
+| Channels per connection | 100 | 100 | 100 |
+| Presence messages per second | 1000 | 20 | 50 |
+| Broadcast payload | 3000 KB | 256 KB | 3000 KB |
+
+- **Over the message limit** Realtime answers every channel of the tenant
+  that sends, joins or tracks with the system message `Too many messages
+  per second` and a `phx_close`, in every room, not only the flooder's. A
+  channel that stays silent (a player alone in a room sends nothing) is
+  only closed when it next acts. Joins are accepted and closed again at
+  once for as long as the tenant stays over the limit.
+- **Recovery**: about 10 seconds after a pure flood ends. With a game
+  running next to it, the rate is averaged, so the closes go on as long
+  as the game's own traffic and the rejoins keep it near the limit (up to
+  40 seconds after the flood below).
+- **Oversized messages**: above 3 MB a broadcast is dropped without a
+  word; at 8 MB the server closes the sender's socket with code 1009.
+- **100 channels per socket**; the per-client presence limit is not
+  enforced on a self-hosted stack.
+
+**Scenario (e)**: two web clients in a defense round (wave 1 to 2, about 75
+to 105 messages a second on their own: a defense round of two is close to
+the local and Free limit by itself), and a flooder sending 300 a second
+from another room for 20 seconds:
+
+| | Before the fixes | After |
+|---|---|---|
+| First close | 20 s into the flood, about when the average over a minute passed 100 | the same |
+| Rejoins of the host | 4 (2, 4, 8, 16 s), back 46 s after the flood | 5 (2, 4, 8, 16, 30 s), back 71 s after |
+| Rejoins of the guest | 3 (2, 4, 8 s), back 29 s after | 2 (2, 4 s), back 13 s after, one more drop later |
+| Who ran the waves | **both**: the guest counted the host as gone after 6 s, took over, and the host ran on as well, with a base each (1054 and 1229 hit points) | the host alone, both screens the same (wave 2, 972 hit points) |
+
+The backoff waited 2, 4, 8, 16 and 30 seconds as planned instead of
+rejoining every 2 seconds (`RetryBackoff` only starts over once a channel
+stayed up for 10 seconds). Two fixes came out of it: a game whose own
+channel dropped in the last 45 seconds counts missing players as away, not
+gone (`GameConfig.outageGrace`), and a defense host who comes back after a
+stand-in took over gets the waves back, the stand-in drops its director
+and its units.
+
+A capture-the-flag round of three with CPU tanks (3 against 3) went over
+the local limit of 100 on its own and split: the host ended it at 0:3
+while its channel was down, so nobody heard the last capture, one guest
+won 0:2 as a stand-in and the other played on. Since then a returning
+flag host takes the flags back and repeats the final score after the
+round (`flag_takeover_test.dart`), and a defense room claims 30 more a
+second per pilot for its waves (`GameConfig.roomLoad`).
 
 ### What keeps the load down
 
@@ -339,9 +480,20 @@ still fits the plan.
   older TestFlight builds also do not see the CPU tanks of a newer host.
   Web and a new TestFlight build should go out together.
 - On Pro: decide on the spend cap and look at the usage once a month.
-- Identity: the `id` in a message is whatever the sender writes. The checks
-  above cut floods and impossible messages, but a client that poses as the
-  host can still end a defense or flag round for everybody. The real fix is private channels with Realtime Authorization
-  and signed messages; it needs the dashboard (see issue #12).
-- When the host of a defense leaves for good, the base is lost; nobody
-  takes over the waves yet (capture the flag hands the flags over).
+- Identity: messages carry tags and the host is ranked by the server since
+  migration 0020. Channels stay public: private channels with Realtime
+  Authorization would only keep out who has no session, and anybody gets
+  a guest session; the tags already keep everybody to their own name. A
+  player of a build before keys can still be posed as, and a room opened
+  by such a build still trusts claims to own it. A client can still flood
+  the project above its message limit, which closes every room (see
+  "Flood behaviour"); only Supabase can stop that.
+- A defense host's takeover rebuilds what the old host kept to itself
+  only roughly: the clean waves towards the next base level follow from the
+  level, the base's hit points at the start of the wave are those at the
+  takeover, and a jet of the base still to come in that wave stays away.
+  Clients whose roster differs at the end of the grace could pick
+  different hosts for a moment. A host that comes back takes the waves
+  back, but what the stand-in's waves left (squads, dug-in enemy guns)
+  stays on its screen only. Replays of a defense round do not show the
+  waves anyway.

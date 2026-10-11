@@ -170,6 +170,9 @@ class _LookToFireState extends State<_LookToFire> {
   final _held = <int>{};
 
   void _down(PointerDownEvent e, Size zone) {
+    if (!mounted) {
+      return;
+    }
     _held.add(e.pointer);
     final input = widget.input;
     final look = widget.onLook;
@@ -188,6 +191,10 @@ class _LookToFireState extends State<_LookToFire> {
   }
 
   void _up(PointerEvent e) {
+    // A finger lifted after the controls went away: dispose let go already.
+    if (!mounted) {
+      return;
+    }
     if (_held.remove(e.pointer) && _held.isEmpty) {
       widget.input
         ..aimFire = false
@@ -339,9 +346,23 @@ class _SpecialButton extends StatefulWidget {
 }
 
 class _SpecialButtonState extends State<_SpecialButton> {
+  /// Fingers on the button: a second one resting there kept firing only
+  /// until the first lifted.
+  final _fingers = <int>{};
   bool _down = false;
 
-  void _set(bool down) {
+  void _press(PointerEvent e) => _set(_fingers..add(e.pointer));
+
+  void _lift(PointerEvent e) => _set(_fingers..remove(e.pointer));
+
+  void _set(Set<int> fingers) {
+    // Fingers still come up after the button went away, when the weapon
+    // ran out or the round ended under them. Dispose let go already, and
+    // a late release would have stopped a new button held meanwhile.
+    if (!mounted) {
+      return;
+    }
+    final down = fingers.isNotEmpty;
     if (_down == down) {
       return;
     }
@@ -362,9 +383,9 @@ class _SpecialButtonState extends State<_SpecialButton> {
     final color = widget.weapon.color;
     return Listener(
       behavior: HitTestBehavior.opaque,
-      onPointerDown: (_) => _set(true),
-      onPointerUp: (_) => _set(false),
-      onPointerCancel: (_) => _set(false),
+      onPointerDown: _press,
+      onPointerUp: _lift,
+      onPointerCancel: _lift,
       child: Container(
         width: _SpecialButton.size,
         height: _SpecialButton.size,
@@ -424,27 +445,59 @@ class _FloatingStickState extends State<_FloatingStick> {
   Offset _knob = Offset.zero;
   int? _pointer;
 
+  /// Further fingers in the zone and where they are, latest last. When the
+  /// steering thumb lifts, the latest one takes the stick over: a thumb
+  /// set down again before the other came up used to steer nothing until
+  /// it was lifted and put down once more.
+  final _others = <int, Offset>{};
+
   double get _radius => widget.size / 2 - widget.size * 0.17;
 
   void _down(PointerDownEvent e, Size zone) {
-    if (_pointer != null) {
+    if (!mounted) {
       return;
     }
-    _pointer = e.pointer;
+    if (_pointer != null) {
+      _others[e.pointer] = e.localPosition;
+      return;
+    }
+    _grab(e.pointer, e.localPosition, zone);
+    _move(e);
+  }
+
+  void _grab(int pointer, Offset at, Size zone) {
+    _pointer = pointer;
     final half = widget.size / 2;
     setState(() {
       _origin = Offset(
-        e.localPosition.dx.clamp(half, max(half, zone.width - half)),
-        e.localPosition.dy.clamp(half, max(half, zone.height - half)),
+        at.dx.clamp(half, max(half, zone.width - half)),
+        at.dy.clamp(half, max(half, zone.height - half)),
       );
       _knob = Offset.zero;
     });
-    _move(e);
+  }
+
+  /// A finger in the zone came up or was cancelled by the system.
+  void _lift(PointerEvent e, Size zone) {
+    if (!mounted || _others.remove(e.pointer) != null) {
+      return;
+    }
+    if (_pointer != e.pointer) {
+      return;
+    }
+    if (_others.isEmpty) {
+      _release();
+      return;
+    }
+    final next = _others.keys.last;
+    _grab(next, _others.remove(next)!, zone);
+    // Centred under the thumb: it steers from where it rests.
+    widget.onChanged(Offset.zero);
   }
 
   void _move(PointerEvent e) {
     final origin = _origin;
-    if (origin == null) {
+    if (!mounted || origin == null) {
       return;
     }
     final delta = e.localPosition - origin;
@@ -468,6 +521,8 @@ class _FloatingStickState extends State<_FloatingStick> {
     if (_origin != null) {
       widget.onReleased();
     }
+    _pointer = null;
+    _others.clear();
     super.dispose();
   }
 
@@ -496,18 +551,12 @@ class _FloatingStickState extends State<_FloatingStick> {
           onPointerMove: (e) {
             if (_pointer == e.pointer) {
               _move(e);
+            } else if (_others.containsKey(e.pointer)) {
+              _others[e.pointer] = e.localPosition;
             }
           },
-          onPointerUp: (e) {
-            if (_pointer == e.pointer) {
-              _release();
-            }
-          },
-          onPointerCancel: (e) {
-            if (_pointer == e.pointer) {
-              _release();
-            }
-          },
+          onPointerUp: (e) => _lift(e, zone),
+          onPointerCancel: (e) => _lift(e, zone),
           child: Stack(
             clipBehavior: Clip.none,
             children: [

@@ -54,7 +54,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   After wave 8 the win is safe and the host may extend by 4 waves at a
   time, up to wave 20: tougher enemies, a fifth step for guns and tank, a
   rocket launcher and a citadel. The round ends as a win after the last
-  wave of a stretch, when the base falls or when the host ends it.
+  wave of a stretch, when the base falls or when the host ends it. When
+  the host leaves for good, the next player in line runs the waves on
+  after a few seconds, with the enemies where they were and the host's
+  guns still standing.
   See [Defense thresholds](#defense-thresholds) for the numbers.
 - **Capture the flag:** red against blue on the open field, a base at the
   left and the right end with a flag each. Drive over the other side's
@@ -215,7 +218,12 @@ Everything the game does, with the numbers behind it. The short version is in th
   an aim assist (on by default, switched with a button right above the aim
   stick that says it fires by itself) turns the turret onto the nearest enemy and fires while the
   right thumb rests. Upright phones look 20 % closer
-  (`GameConfig.uprightPhoneZoom`), outside defense rounds.
+  (`GameConfig.uprightPhoneZoom`), outside defense rounds. Each stick
+  follows the thumb that landed first in its zone, also when it slides
+  over the buttons; a second finger in the zone takes the stick over when
+  the first lifts. The special weapon fires while any finger holds it, and
+  a finger that comes up after the controls were rebuilt under it (aim
+  assist switched by the screen, weapon spent, round over) changes nothing.
 - The phone as a controller for the game on a computer or tablet: the
   account page in the browser shows a pairing QR code, the app on the
   phone scans it (Account, Use as controller). The phone then

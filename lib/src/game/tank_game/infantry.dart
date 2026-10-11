@@ -113,11 +113,15 @@ extension TankGameInfantry on TankGame {
         payload.count > GameConfig.squadRifles + GameConfig.paraDropRockets) {
       return;
     }
-    // Squads of the waves and of the base come from the host.
+    // Squads of the waves and of the base come from the host, and from no
+    // one else.
     final wave =
         activeRound.defense &&
         (activeRound.isEnemy(payload.owner) ||
             activeRound.isAlly(payload.owner));
+    if (wave && payload.id != activeRound.botHost) {
+      return;
+    }
     if (!wave &&
         (!activeRound.alive.contains(payload.owner) ||
             !guard.allowSpecial(payload.owner, consume: true))) {

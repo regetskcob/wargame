@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../db/account_service.dart';
 import '../db/profile_service.dart';
+import '../db/room_registry.dart';
 import '../db/score_service.dart';
 import '../db/supabase_schema.g.dart';
 import '../game/game_phase.dart';
@@ -13,6 +13,7 @@ import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../app/env.dart';
 import '../net/net_service.dart';
+import '../net/room_key.dart';
 import '../net/room_directory.dart';
 import 'tv_input.dart';
 import '../net/pad_link.dart';
@@ -145,15 +146,13 @@ class SecondPlayer extends ChangeNotifier {
 
   TankGame _join(TankGame host, {required bool local}) {
     final client = Supabase.instance.client;
-    final random = Random();
-    final id = [
-      for (var i = 0; i < 16; i++) random.nextInt(16).toRadixString(16),
-    ].join();
+    final key = RoomKey.generate();
+    final id = key.id;
     final NetService net;
     final RoomDirectory directory;
     if (local) {
       // On this device only: costs no messages and takes no room slot.
-      net = NetService(myId: id, room: host.net.room, isHost: false);
+      net = NetService(myId: id, room: host.net.room, isHost: false, key: key);
       LocalLink(host.net, net);
       directory = _NoDirectory(room: host.net.room);
     } else {
@@ -172,6 +171,9 @@ class SecondPlayer extends ChangeNotifier {
         room: host.net.room,
         isHost: false,
         client: connection,
+        key: key,
+        // Reads the room's order; without a session it enters nothing.
+        registry: RoomRegistry(connection, signIn: false),
       );
       directory = RoomDirectory(room: host.net.room, client: connection);
     }

@@ -172,6 +172,9 @@ void main() {
         .where(Scores.id.eq(accountId))
         .single();
     expect(after.name, 'SmokeTestPilot');
-    expect(after.wins, greaterThanOrEqualTo(1));
+    expect(after.rounds, 1);
+    // Without a ticket from start_round a win only counts with a rated
+    // human outlasted (migration 0019, see test/db/round_ticket_test.dart).
+    expect(after.wins, 0);
   });
 }

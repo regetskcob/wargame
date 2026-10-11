@@ -58,7 +58,18 @@ the square of the distance and share a budget of five per quarter second,
 a quieter one waiting behind louder ones. On the phones each sound has a
 few voices, and a new sound takes a free one or the quietest playing one,
 never a louder one in the middle of its sound: restarted in turn they cut
-each other off and stuttered in a late defense wave. The browser runs all
+each other off and stuttered in a late defense wave. Every call to a player
+crosses to the phone's main thread, so the field waits in no queue: with
+three restarts under way a sound of the field is left out, and no sound,
+the own neither, that is not through to its player within 120 ms is
+started at all (`VoiceTraffic`). The player's own sounds have three voices
+per sound and only take one that played through, since stopping a voice
+halfway and winding it back took iOS up to 19 seconds in a late wave. The
+players never ask for their position (audioplayers does that every frame
+for each playing player otherwise). The engine loop
+changes volume and pitch only when the speed moves by a twentieth
+(`EngineThrottle`), not ten times a second. Measured on a real iPad in
+[Device QA](development.md#device-qa). The browser runs all
 sounds through a limiter against crackling.
 
 Android has the `INTERNET` permission in the main manifest, so release
@@ -287,7 +298,9 @@ out. The watch records its rounds with that token on a connection of its
 own (`LinkedScores`, `LinkedProfiles`); a round that ends after the token
 ran out (an hour) waits on the watch (`PendingRounds`, up to 30) and goes in
 once the phone sends a fresh one, nine seconds apart as `record_round`
-asks. The start page says whether the watch plays for the iPhone account or
+asks. The round's ticket (`start_round`, taken with the phone's token at
+the round's start, see `docs/netcode.md`) waits with it, so the server still
+measures the round by when it was played. The start page says whether the watch plays for the iPhone account or
 as a guest. In the paired Simulators the context arrives, the watch's own
 asking fails with "Companion app is not installed" (a Simulator limit);
 both apps must come from the same build, the watch app embedded in the

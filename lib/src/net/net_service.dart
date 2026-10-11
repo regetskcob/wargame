@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:math';
 
+import 'package:clock/clock.dart';
 import 'package:flutter/foundation.dart';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../db/room_registry.dart';
 import 'inbound_limiter.dart';
 import 'net_events.dart';
 import 'payloads/death_payload.dart';
@@ -22,6 +25,7 @@ import 'payloads/strike_payload.dart';
 import 'presence_throttle.dart';
 import 'replay.dart';
 import 'retry_backoff.dart';
+import 'room_key.dart';
 
 class NetService {
   NetService({
@@ -30,7 +34,21 @@ class NetService {
     this.isHost = true,
     this.offline = false,
     SupabaseClient? client,
-  }) : _ownClient = client;
+    this.key,
+    this.registry,
+  }) : assert(key == null || key.id == myId, 'the id follows the key'),
+       _ownClient = client;
+
+  /// The key this game speaks with, whose hash is [myId]. Every message
+  /// then carries a tag for each player in the room who has a key too, and
+  /// a message in the name of such a player only counts with a tag from
+  /// them. Without a key (tests, the watch) messages go out bare and come
+  /// in as they are, as before keys.
+  final RoomKey? key;
+
+  /// Where the key enters the room and the server's order of the room's
+  /// keys comes from, see [order].
+  final RoomRegistry? registry;
 
   /// Plays without a room channel: the Apple Watch, which watchOS gives no
   /// WebSocket for. Rooms there never connected and retried every 30 s, so
@@ -77,8 +95,43 @@ class NetService {
   void Function(String id)? onPeerLeft;
 
   /// Ids that more than one presence in the room claims: somebody poses
-  /// as another player.
+  /// as another player. Ids with a key never count: a copy of their
+  /// presence cannot speak for them.
   Set<String> duplicateIds = const {};
+
+  /// Who came into the room when and who owns it, by the server, once it
+  /// answered. Null before, offline and without a key.
+  RoomOrder? order;
+
+  /// Whether a message that came in counts, asked of the game after the
+  /// tags were checked: [claimed] is the id the message speaks for
+  /// (`from`, else `id`), [sender] the player whose tag proved it was
+  /// them, null for a message without a valid tag. Only asked with a key.
+  bool Function(NetEvent event, String? claimed, String? sender)? admits;
+
+  /// Public keys of players with a key, by id, also of those who left: a
+  /// late message in their name still needs their tag.
+  final _peerKeys = <String, Uint8List>{};
+  final _secrets = <String, Uint8List?>{};
+  final _lastCounter = <String, int>{};
+
+  /// Players on other devices with a key in the room now: every message
+  /// carries a tag for each of them.
+  Set<String> _keyed = const {};
+
+  /// Running number of the messages this game sends, so a tag copied from
+  /// an older message does not count again. It starts from the clock, as
+  /// a game that left and came back keeps its key.
+  late int _counter = clock.now().millisecondsSinceEpoch;
+
+  /// How often the order was asked for an id the server did not know yet:
+  /// a player's presence can come before their key reached the server.
+  final _orderAsks = <String, int>{};
+  Timer? _orderTimer;
+
+  /// Whether [id] speaks with a key: messages in its name need its tag.
+  bool isVerified(String id) =>
+      id == myId ? key != null : _peerKeys.containsKey(id);
 
   /// Keeps the messages of the current round for a replay.
   ReplayRecorder? recorder;
@@ -105,6 +158,33 @@ class NetService {
   @visibleForTesting
   bool othersPresent = false;
   bool _disposed = false;
+
+  /// Whether the room's channel is joined right now.
+  bool _up = false;
+
+  /// When the room's channel last dropped, null while it never did.
+  DateTime? _droppedAt;
+
+  /// Whether this game may not know who is in the room: its channel is
+  /// down, or dropped less than [window] ago. Others who dropped with it
+  /// come back on their own backoff, and were never gone.
+  bool blindFor(Duration window) {
+    final dropped = _droppedAt;
+    return dropped != null &&
+        (!_up || clock.now().difference(dropped) < window);
+  }
+
+  /// Tests: the channel dropped just now and is down.
+  @visibleForTesting
+  void dropForTest() {
+    _up = false;
+    _droppedAt = clock.now();
+  }
+
+  /// Tests: the channel is joined again.
+  @visibleForTesting
+  void upForTest() => _up = true;
+
   final _backoff = RetryBackoff();
   Timer? _reconnect;
   final _subscriptions = <StreamSubscription<void>>[];
@@ -130,6 +210,7 @@ class NetService {
       link.host._emitRoster();
       return;
     }
+    _enterRoom(0);
     final channel = _client.channel(
       'game-arena-$room',
       options: const RealtimeChannelConfig(self: false),
@@ -138,7 +219,19 @@ class NetService {
     _presence = PresenceThrottle(channel);
     _registerHandlers(channel);
     _subscriptions.add(channel.onPresenceSync.listen((_) => _emitRoster()));
-    _subscriptions.add(channel.onPresenceJoin.listen((_) => _emitRoster()));
+    _subscriptions.add(
+      channel.onPresenceJoin.listen((join) {
+        // A key the server did not know when it was last asked may be in
+        // by now (an entry that failed at first): ask again.
+        for (final presence in join.newPresences) {
+          if (presence.payload['id'] case final String id
+              when order?[id] == null) {
+            _orderAsks.remove(id);
+          }
+        }
+        _emitRoster();
+      }),
+    );
     _subscriptions.add(
       channel.onPresenceLeave.listen((leave) {
         final remainingIds = <String>{
@@ -159,7 +252,8 @@ class NetService {
     _subscriptions.add(
       channel.onStatusChange.listen((change) {
         if (change.status == RealtimeSubscribeStatus.subscribed) {
-          _backoff.reset();
+          _up = true;
+          _backoff.up();
           final me = _me;
           if (me != null) {
             _presence?.track(_tracked(me));
@@ -180,8 +274,11 @@ class NetService {
 
   /// Tests: one message that came in, as from the channel.
   @visibleForTesting
-  void deliverForTest(NetEvent event, Map<String, dynamic> json) =>
+  void deliverForTest(NetEvent event, Map<String, dynamic> json) {
+    if (_admit(event, json)) {
       _deliver(event, json);
+    }
+  }
 
   /// What every event does when it comes in, from the channel or from the
   /// other player's game on this device.
@@ -324,6 +421,9 @@ class NetService {
     }
     _subscriptions.add(
       channel.onBroadcast(event: event.name).listen((json) {
+        if (!_admit(event, json)) {
+          return;
+        }
         _deliver(event, json);
         // The second player on this device hears what came in as well.
         final link = this.link;
@@ -333,6 +433,171 @@ class NetService {
       }),
     );
   }
+
+  /// Whether a message from the channel counts: one in the name of a
+  /// player with a key needs that player's tag, and the game decides on
+  /// the rest ([admits]).
+  bool _admit(NetEvent event, Map<String, dynamic> json) {
+    if (key == null) {
+      return true;
+    }
+    final claimed = json['from'] ?? json['id'];
+    final claimedId = claimed is String ? claimed : null;
+    final sender = _senderOf(event, json);
+    // Nobody speaks for a player with a key but that player.
+    if (claimedId != null && isVerified(claimedId) && claimedId != sender) {
+      return false;
+    }
+    return admits?.call(event, claimedId, sender) ?? true;
+  }
+
+  /// The player whose tag for this game proves they sent [json], or null.
+  String? _senderOf(NetEvent event, Map<String, dynamic> json) {
+    final mac = json[RoomMac.field];
+    if (mac is! Map) {
+      return null;
+    }
+    final sender = mac['s'];
+    final counter = mac['n'];
+    final tags = mac['t'];
+    if (sender is! String || counter is! int || tags is! Map) {
+      return null;
+    }
+    final tag = tags[myId];
+    final secret = _secretOf(sender);
+    if (tag is! String || secret == null) {
+      return null;
+    }
+    if (RoomMac.tag(secret, event.name, json, sender, counter) != tag ||
+        counter <= (_lastCounter[sender] ?? 0)) {
+      return null;
+    }
+    _lastCounter[sender] = counter;
+    return sender;
+  }
+
+  Uint8List? _secretOf(String id) {
+    final key = this.key;
+    final public = _peerKeys[id];
+    if (key == null || public == null) {
+      return null;
+    }
+    return _secrets.putIfAbsent(id, () => key.sharedWith(public, room));
+  }
+
+  /// [payload] with a tag for everybody in the room who has a key.
+  Map<String, dynamic> _seal(NetEvent event, Map<String, dynamic> payload) {
+    if (key == null || _keyed.isEmpty) {
+      return payload;
+    }
+    final counter = ++_counter;
+    final tags = <String, String>{
+      for (final id in _keyed)
+        if (_secretOf(id) case final secret?)
+          id: RoomMac.tag(secret, event.name, payload, myId, counter),
+    };
+    return {
+      ...payload,
+      RoomMac.field: {'s': myId, 'n': counter, 't': tags},
+    };
+  }
+
+  /// Enters this game's key into the room's order on the server, not
+  /// waited for: the room opens without the server as well. A failed
+  /// entry is tried again a few times. Until it is in, this game ranks
+  /// after every key the server knows on the other screens, so an owner
+  /// whose entry failed lost the room to a guest, while hosting it on its
+  /// own screen: two hosts.
+  void _enterRoom(int attempt) {
+    final key = this.key;
+    final registry = this.registry;
+    _enterTimer?.cancel();
+    _enterTimer = null;
+    if (key == null || registry == null || _disposed) {
+      return;
+    }
+    fireAndForget(
+      registry.enter(room, key.encoded, owner: isHost).then((entered) {
+        if (_disposed) {
+          return;
+        }
+        if (!entered) {
+          if (attempt < _enterGaps.length) {
+            _enterTimer = Timer(
+              _enterGaps[attempt],
+              () => _enterRoom(attempt + 1),
+            );
+          }
+          return;
+        }
+        _orderAsks.remove(myId);
+        _askOrder();
+        if (attempt > 0) {
+          // The others may have given up asking for this key: a presence
+          // that comes in again makes them ask once more.
+          _retrack();
+        }
+      }),
+      'Entering the room',
+    );
+  }
+
+  Timer? _enterTimer;
+
+  /// Tests: enters the key as [connect] does, without a channel.
+  @visibleForTesting
+  void enterForTest() => _enterRoom(0);
+
+  /// Waits before each further try to enter the room.
+  static const _enterGaps = [
+    Duration(seconds: 2),
+    Duration(seconds: 5),
+    Duration(seconds: 15),
+    Duration(seconds: 30),
+  ];
+
+  /// Asks the server for the room's order when somebody with a key is in
+  /// the room that it did not know yet, a few times with growing gaps.
+  void _askOrder() {
+    final registry = this.registry;
+    if (key == null || registry == null || _orderTimer != null || _disposed) {
+      return;
+    }
+    final known = order?.pilots ?? const {};
+    final missing = [
+      for (final id in {myId, ..._keyed})
+        if (!known.containsKey(id) && (_orderAsks[id] ?? 0) < _orderGaps.length)
+          id,
+    ];
+    if (missing.isEmpty) {
+      return;
+    }
+    var attempt = 0;
+    for (final id in missing) {
+      attempt = max(attempt, _orderAsks[id] ?? 0);
+      _orderAsks[id] = (_orderAsks[id] ?? 0) + 1;
+    }
+    _orderTimer = Timer(_orderGaps[attempt], () async {
+      final next = await registry.order(room);
+      _orderTimer = null;
+      if (_disposed) {
+        return;
+      }
+      if (next != null) {
+        order = next;
+        _emitRoster();
+      }
+      _askOrder();
+    });
+  }
+
+  /// Waits before each ask for the order: the first soon, the later ones
+  /// for a key that reaches the server late.
+  static const _orderGaps = [
+    Duration(milliseconds: 300),
+    Duration(seconds: 3),
+    Duration(seconds: 10),
+  ];
 
   /// One message that came in.
   void _deliver(NetEvent event, Map<String, dynamic> json) {
@@ -375,6 +640,8 @@ class NetService {
     if (me == null) {
       return;
     }
+    _up = false;
+    _droppedAt = clock.now();
     final wait = _backoff.next();
     debugPrint(
       'Room channel $room dropped, rejoining in ${wait.inSeconds} s '
@@ -405,7 +672,7 @@ class NetService {
     if (!othersPresent) {
       return;
     }
-    transmit(event, payload);
+    transmit(event, _seal(event, payload));
   }
 
   /// Puts one message on the channel.
@@ -436,31 +703,63 @@ class NetService {
     if (channel == null) {
       return;
     }
+    _rosterFrom([
+      for (final state in channel.presenceState())
+        for (final presence in state.presences) presence.payload,
+    ]);
+  }
+
+  /// Tests: the room's presences, as the channel would sync them.
+  @visibleForTesting
+  void syncPresencesForTest(List<Map<String, dynamic>> presences) =>
+      _rosterFrom(presences);
+
+  void _rosterFrom(List<Map<String, dynamic>> presences) {
+    // Keys first: a presence without the key of an id that has one, or
+    // with a key that is not the id's, is somebody posing as that player.
+    final keyed = <String>{};
+    for (final payload in presences) {
+      final local = payload['local'];
+      for (final json in [payload, if (local is Map<String, dynamic>) local]) {
+        final id = json['id'];
+        final public = RoomKey.decode(json['key']);
+        if (id is String && public != null && RoomKey.idOf(public) == id) {
+          keyed.add(id);
+          _peerKeys.putIfAbsent(id, () => public);
+        }
+      }
+    }
+    bool genuine(Map<String, dynamic> json, String id) => json['key'] == null
+        ? !_peerKeys.containsKey(id)
+        : RoomKey.belongsTo(id, json['key']);
     final byId = <String, LobbyPresence>{};
     final seen = <String>{};
     final twice = <String>{};
     final carried = <LobbyPresence>[];
-    for (final state in channel.presenceState()) {
-      for (final presence in state.presences) {
-        final member = LobbyPresence.tryParse(presence.payload);
-        if (member == null) {
-          continue;
-        }
-        if (!seen.add(member.id)) {
-          twice.add(member.id);
-        }
-        byId[member.id] = member;
-        // A second player on that device, who has no presence of their own.
-        final local = presence.payload['local'];
-        final guest = local is Map<String, dynamic>
-            ? LobbyPresence.tryParse(local)
-            : null;
-        if (guest != null) {
+    for (final payload in presences) {
+      final member = LobbyPresence.tryParse(payload);
+      if (member == null || !genuine(payload, member.id)) {
+        continue;
+      }
+      if (!seen.add(member.id) && !keyed.contains(member.id)) {
+        twice.add(member.id);
+      }
+      byId[member.id] = member;
+      // A second player on that device, who has no presence of their own.
+      final local = payload['local'];
+      if (local is Map<String, dynamic>) {
+        final guest = LobbyPresence.tryParse(local);
+        if (guest != null && genuine(local, guest.id)) {
           carried.add(guest);
         }
       }
     }
     duplicateIds = twice;
+    _keyed = {
+      for (final id in keyed)
+        if (id != myId && !isLocalPeer(id)) id,
+    };
+    _askOrder();
     // Only people on other devices count: nothing goes over the channel
     // for the second player on this one.
     othersPresent = byId.keys.any((id) => id != myId);
@@ -483,15 +782,26 @@ class NetService {
   /// What this player's presence says: with a second player on this device
   /// it carries theirs, so people on other devices count them as well and
   /// a room of two is full for everybody.
+  /// Tests: what this game's presence says for [me].
+  @visibleForTesting
+  Map<String, dynamic> trackedForTest(LobbyPresence me) => _tracked(me);
+
   Map<String, dynamic> _tracked(LobbyPresence me) {
     final json = me.toJson();
+    if (key case final key?) {
+      json['key'] = key.encoded;
+    }
     final link = this.link;
-    final guestMe = link?.guest._me;
+    final guest = link?.guest;
+    final guestMe = guest?._me;
     if (link != null &&
         link._guestIn &&
         identical(link.host, this) &&
         guestMe != null) {
-      json['local'] = guestMe.toJson();
+      json['local'] = {
+        ...guestMe.toJson(),
+        if (guest?.key case final guestKey?) 'key': guestKey.encoded,
+      };
     }
     return json;
   }
@@ -539,7 +849,7 @@ class NetService {
       try {
         await channel.sendBroadcastMessage(
           event: NetEvent.close.name,
-          payload: {'id': myId},
+          payload: _seal(NetEvent.close, {'id': myId}),
         );
       } on Object {
         // Leaving matters more than the goodbye.
@@ -552,7 +862,15 @@ class NetService {
     _disposed = true;
     _reconnect?.cancel();
     _reconnect = null;
+    _orderTimer?.cancel();
+    _orderTimer = null;
+    _enterTimer?.cancel();
+    _enterTimer = null;
+    _orderAsks.clear();
+    order = null;
     _backoff.reset();
+    _up = false;
+    _droppedAt = null;
     _joinedAt = null;
     final link = this.link;
     if (link != null && identical(link.guest, this) && link._guestIn) {

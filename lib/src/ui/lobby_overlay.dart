@@ -515,6 +515,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         builder: (context, roster, _) => PlayerList(
           members: roster,
           myId: game.myId,
+          hostId: game.rightfulHost,
           colorOf: (member) => game.lobbyColorOf(member.id, member.colorIndex),
         ),
       ),

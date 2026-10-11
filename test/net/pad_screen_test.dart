@@ -200,7 +200,7 @@ void main() {
         screen.debugPeers(const [('a', 'Anna')]);
         await screen.debugClaimSlot();
         final room = slots.claimed.lastWhere((c) => c.$1 == main.net.room);
-        expect(room.$2, 70);
+        expect(room.$2, GameConfig.roomLoad(2, cpu: true, defense: true));
       },
     );
   });

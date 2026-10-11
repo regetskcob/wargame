@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import 'audio_backend.dart';
+import 'engine_throttle.dart';
 import 'sound_mixer.dart';
 import 'audio_backend_native.dart'
     if (dart.library.js_interop) 'audio_backend_web.dart';
@@ -26,6 +27,7 @@ class AudioService {
   static final _mixer = SoundMixer();
   static bool _ready = false;
   static bool _engineStarting = false;
+  static final _engineThrottle = EngineThrottle();
 
   static Future<void> init() async {
     try {
@@ -74,10 +76,10 @@ class AudioService {
       await stopEngine();
       return;
     }
-    final level = load.clamp(0.0, 1.0);
     if (!_backend.hasLoop) {
       if (!_engineStarting) {
         _engineStarting = true;
+        _engineThrottle.reset();
         try {
           await _backend.startLoop('engine', 0.12);
         } on Object catch (error) {
@@ -88,10 +90,20 @@ class AudioService {
       }
       return;
     }
-    await _backend.adjustLoop(
-      volume: 0.1 + 0.25 * level,
-      rate: 0.8 + 0.7 * level,
-    );
+    final level = _engineThrottle.next(load);
+    if (level == null) {
+      return;
+    }
+    try {
+      await _backend.adjustLoop(
+        volume: 0.1 + 0.25 * level,
+        rate: 0.8 + 0.7 * level,
+      );
+    } on Object catch (error) {
+      debugPrint('Engine sound failed: $error');
+    } finally {
+      _engineThrottle.done();
+    }
   }
 
   static Future<void> stopEngine() async {

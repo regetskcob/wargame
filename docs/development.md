@@ -66,6 +66,72 @@ supabase start
 flutter test
 ```
 
+## Device QA
+
+Two things only a real device shows: whether frames fit the display's
+budget, and what the sound costs. The physical reference is an iPad Pro
+11" (2018, A12X, ProMotion 120 Hz).
+
+**Multi-touch.** `test/ui/widgets/touch_controls_multitouch_test.dart`
+puts five fingers on the twin sticks at once: both thumbs on the sticks,
+fingers on the special weapon, the aim assist and the field, lifted in odd
+orders with one cancelled, a thumb sliding from a stick over the buttons,
+a second thumb taking a stick over, the controls taken away under all
+five. `test/ui/controller_view_test.dart` does the same on the phone
+controller while the screen rebuilds its controls under the fingers, and
+checks that what goes out afterwards holds nothing down. On 2026-10-11 the
+same cases ran as a (not kept) `integration_test` with the real game in a
+`GameWidget` on the iPad's own frames and passed. There the fingers are
+injected into Flutter, so the operating system's own touch handling is
+the one part a human hand still has to try.
+
+**Frame timings.** There is no committed measuring mode. The way that
+worked: a temporary scene in `tank_game/shots.dart` that plays a round by
+itself (solo, defense forced to wave 30 with the base kept alive, or
+capture the flag 3 against 3 with CPU crews), reads `FrameTiming` through
+`SchedulerBinding.addTimingsCallback` and appends one line every five
+seconds with build and raster p50/p95 to `tmp/perf.log` in the app's
+container. Build it as a **release** build with a temporary define that
+lets `Env.loadShots` read the scene (`SHOTS=true` is refused for Release
+by `tool/check_dart_defines.sh`, and it also makes the own tank
+invulnerable and the weather fair), install and start it with
+`xcrun devicectl device install app` and `device process launch
+--terminate-existing … -SHOT_SCENE <scene>`, and fetch the log with
+`devicectl device copy from --domain-type appDataContainer
+--domain-identifier de.regetskcob.wargame --source tmp/perf.log`.
+`xcrun devicectl device capture screenshot` shows what the screen shows.
+Pitfalls: a profile or debug build makes iOS ask whether the app may look
+for devices on the local network (for Flutter's tools); until somebody
+answers on the device the app stays inactive and draws nothing, also
+after reinstalling. The iPad must not lock. And the engine now and then
+hands over a batch of timings late, so a window can show 100 frames too
+few while the frames counted by a persistent frame callback stay at 600:
+count those too before calling it a stutter. Runs of the same scene differ
+by several frames a second, so compare in alternating series (sound on,
+muted, three times each), not single runs.
+
+Results on the iPad (release build, 120 Hz, budget 8.3 ms):
+
+| Scene | fps | build p95 | raster p95 | frames > 16.7 ms |
+| --- | --- | --- | --- | --- |
+| Capture the flag 3 against 3, 10 min, 2 rounds, 24 carries, 16 respawns | 120 | 2.9 ms | 6.0 ms (worst window 9.6) | 0.1 % |
+| Defense wave 30, sound on, before | 95 | 6.0 ms | 14.1 ms | 47 % |
+| Defense wave 30, muted, before | 108 | 4.5 ms | 12.0 ms | 26 % |
+| Defense wave 30, sound on, after | 95 | 5.7 ms | 14.4 ms | 47 % |
+| Defense wave 30, muted, after | 105 | 4.7 ms | 12.3 ms | 31 % |
+
+Sound in wave 30 (about 15 sounds a second admitted by the mixer): before,
+the restart of a voice took a p95 of 4.4 s and up to 19 s, almost all of
+it in `stop()`, which winds an AVPlayer back through iOS's media daemon;
+the own shots were heard seconds late or not at all. After
+(`VoiceTraffic`, three own voices, no position polling, `EngineThrottle`)
+the p50 stays at 5 ms, platform calls fell from 40 to 30 a second, and a
+sound that is not through within 120 ms is left out instead of coming
+late. No errors, no players leaking (the count stays at the voices loaded
+at start). What stays is the cost of AVPlayer itself, about 10 frames a
+second in wave 30; only a mixing engine instead of one AVPlayer per voice
+would remove it.
+
 ## Texts in two languages
 
 Every visible text comes from `tr(de, en)` (`lib/src/l10n/l10n.dart`) at build
