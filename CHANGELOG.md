@@ -7,24 +7,24 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## Unreleased
+## 1.5.0 (11) – 2026-10-11
 
-- Ranks take longer: every rank starts from 0 and needs the step the card
-  used to show as the total, and the card counts within the rank
-- The defense shop marks nothing after use: buttons are only bright when
-  affordable or faint; building says what a gun or trench is for, and a
-  notice says when the funds start to reach
-- The last enemy helicopter of a wave comes in to the defenders instead of
-  hanging back far out, and tank shells hurt it a little more
-- The replay's end button sits in the bar beside the next tank
-- Deleting the account comes last on the account page
 - Trenches are manned: three riflemen and a machine gun fire at soldiers
   and tanks, each aiming for himself and looking out where the enemy comes
   from; on the road a trench lies across it from edge to edge, tanks of
   either side crawl over it, and enemy shells now wear it down
-- Guns and soldiers lead their aim on soldiers walking across their fire
 - Squads on foot patrol instead of standing on their spot and stalk enemy
   tanks and soldiers that come within sight
+- Ranks take longer: every rank starts from 0 and needs the step the card
+  used to show as the total, and the card counts within the rank
+- The last enemy helicopter of a wave comes in to the defenders instead of
+  hanging back far out, and tank shells hurt it a little more
+- The defense shop marks nothing after use: buttons are only bright when
+  affordable or faint; building says what a gun or trench is for, and a
+  notice says when the funds start to reach
+- Guns and soldiers lead their aim on soldiers walking across their fire
+- The replay's end button sits in the bar beside the next tank
+- Deleting the account comes last on the account page
 
 ## 1.4.1 (10) – 2026-10-11
 

@@ -8,27 +8,27 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## Unveröffentlicht
+## 1.5.0 (11) – 11.10.2026
 
-- Stufen dauern länger: jede Stufe beginnt bei 0 und braucht den Schritt,
-  den die Karte früher als Summe zeigte, und die Karte zählt innerhalb der
-  Stufe
-- Der Verteidigungsladen markiert nach dem Kauf nichts mehr: Knöpfe sind
-  nur hell, wenn das Geld reicht, sonst blass; Bauen sagt, wofür Geschütz
-  oder Graben gut ist, und ein Hinweis meldet, sobald das Geld reicht
-- Der letzte feindliche Hubschrauber einer Welle kommt zu den Verteidigern,
-  statt weit draußen zu warten, und Panzergranaten treffen ihn etwas härter
-- Der Knopf zum Beenden der Wiederholung sitzt in der Leiste neben dem
-  nächsten Panzer
-- Konto löschen steht ganz unten auf der Kontoseite
 - Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und
   Panzer, jeder zielt selbst und blickt dorthin, woher der Feind kommt; auf
   der Straße liegt ein Graben quer von Rand zu Rand, Panzer beider Seiten
   kriechen langsam darüber, und feindliche Granaten setzen ihm jetzt zu
-- Geschütze und Soldaten halten auf Soldaten vor, die quer durch ihr Feuer
-  laufen
 - Fußgruppen patrouillieren, statt auf ihrem Platz zu stehen, und pirschen
   sich an feindliche Panzer und Soldaten heran, die in Sicht kommen
+- Stufen dauern länger: jede Stufe beginnt bei 0 und braucht den Schritt,
+  den die Karte früher als Summe zeigte, und die Karte zählt innerhalb der
+  Stufe
+- Der letzte feindliche Hubschrauber einer Welle kommt zu den Verteidigern,
+  statt weit draußen zu warten, und Panzergranaten treffen ihn etwas härter
+- Der Verteidigungsladen markiert nach dem Kauf nichts mehr: Knöpfe sind
+  nur hell, wenn das Geld reicht, sonst blass; Bauen sagt, wofür Geschütz
+  oder Graben gut ist, und ein Hinweis meldet, sobald das Geld reicht
+- Geschütze und Soldaten halten auf Soldaten vor, die quer durch ihr Feuer
+  laufen
+- Der Knopf zum Beenden der Wiederholung sitzt in der Leiste neben dem
+  nächsten Panzer
+- Konto löschen steht ganz unten auf der Kontoseite
 
 ## 1.4.1 (10) – 11.10.2026
 
