@@ -99,6 +99,10 @@ extension TankGameView on TankGame {
   /// side alone would show the whole field small with empty space above and
   /// below, so there the field's height fills the screen instead and the
   /// camera follows the tank sideways.
+  /// The camera holds still over the whole field: the overview of a duel,
+  /// or a replay watched from above.
+  bool get wholeMap => overview.value || (replaying.value && replayMap.value);
+
   double get viewScale {
     final short = min(canvasSize.x, canvasSize.y);
     // An upright phone shows the tank only about 25 points wide, too small
@@ -111,9 +115,13 @@ extension TankGameView on TankGame {
         ? GameConfig.uprightPhoneZoom
         : 1.0;
     if (defenseMap == null) {
+      if (wholeMap) {
+        // The round arena with a little of the ground around it.
+        return short / ((GameConfig.worldRadius + 60) * 2);
+      }
       return zoom * short / GameConfig.viewShortSide;
     }
-    if (overview.value) {
+    if (wholeMap) {
       // The whole field fits, with its border.
       const margin = TankGame._defenseMargin;
       return min(
@@ -136,16 +144,16 @@ extension TankGameView on TankGame {
   void _fitCamera() {
     final scale = viewScale;
     camera.viewfinder.zoom = scale;
-    if (defenseMap == null || scale <= 0) {
-      camera.setBounds(null);
-      return;
-    }
-    if (overview.value) {
+    if (wholeMap) {
       // Held still over the middle of the field.
       camera
         ..stop()
         ..setBounds(null);
       camera.viewfinder.position = Vector2.zero();
+      return;
+    }
+    if (defenseMap == null || scale <= 0) {
+      camera.setBounds(null);
       return;
     }
     const margin = TankGame._defenseMargin;

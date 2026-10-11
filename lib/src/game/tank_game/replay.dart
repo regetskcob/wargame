@@ -36,6 +36,19 @@ extension TankGameReplay on TankGame {
     );
   }
 
+  /// Switches the replay between the whole map from above and following
+  /// the watched tank.
+  void toggleReplayMap() {
+    replayMap.value = !replayMap.value;
+    if (!replaying.value) {
+      return;
+    }
+    _fitCamera();
+    if (!wholeMap) {
+      _refreshSpectateTarget();
+    }
+  }
+
   void stopReplay() {
     if (_replayPlayer == null) {
       return;

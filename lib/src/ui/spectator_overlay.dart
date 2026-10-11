@@ -127,31 +127,75 @@ class SpectatorOverlay extends StatelessWidget {
         ),
       ),
     ];
-    final next = ValueListenableBuilder<String?>(
-      valueListenable: game.spectatingName,
-      builder: (context, name, _) => ValueListenableBuilder<int>(
-        valueListenable: game.aliveCount,
-        builder: (context, alive, _) {
-          final count = game.remoteTanks.length + game.botTanks.length;
-          return Tooltip(
-            message: count > 1
-                ? tr('Zum nächsten Panzer wechseln', 'Switch to the next tank')
-                : tr('Es ist nur ein Panzer im Feld', 'Only one tank is left'),
-            child: TextButton(
-              onPressed: count > 1 ? game.spectateNext : null,
-              child: Text(
-                count > 1
-                    ? tr(
-                        'NÄCHSTER PANZER (${game.spectateNumber}/$count)',
-                        'NEXT TANK (${game.spectateNumber}/$count)',
-                      )
-                    : tr('NÄCHSTER PANZER', 'NEXT TANK'),
-              ),
+    final next = ListenableBuilder(
+      listenable: Listenable.merge([
+        game.spectatingName,
+        game.aliveCount,
+        game.replayMap,
+      ]),
+      builder: (context, _) {
+        final count = game.remoteTanks.length + game.botTanks.length;
+        // Over the whole map the camera follows nobody; the button stays
+        // where it is, so the bar does not change its width.
+        final whole = game.wholeMap;
+        return Tooltip(
+          message: whole
+              ? tr(
+                  'Über der Gesamtkarte folgt die Kamera keinem Panzer',
+                  'Over the whole map the camera follows no tank',
+                )
+              : count > 1
+              ? tr('Zum nächsten Panzer wechseln', 'Switch to the next tank')
+              : tr('Es ist nur ein Panzer im Feld', 'Only one tank is left'),
+          child: TextButton(
+            onPressed: count > 1 && !whole ? game.spectateNext : null,
+            child: Text(
+              count > 1
+                  ? tr(
+                      'NÄCHSTER PANZER (${game.spectateNumber}/$count)',
+                      'NEXT TANK (${game.spectateNumber}/$count)',
+                    )
+                  : tr('NÄCHSTER PANZER', 'NEXT TANK'),
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
+    // The whole map from above instead of behind one tank, replays only.
+    final map = game.replaying.value
+        ? ValueListenableBuilder<bool>(
+            valueListenable: game.replayMap,
+            builder: (context, on, _) {
+              final label = game.touchMode.value
+                  ? tr('GESAMTKARTE', 'WHOLE MAP')
+                  : tr('GESAMTKARTE (M)', 'WHOLE MAP (M)');
+              final style = TextButton.styleFrom(
+                backgroundColor: on
+                    ? GameColors.amber.withValues(alpha: 0.18)
+                    : null,
+              );
+              const icon = Icon(Icons.map_outlined, size: 18);
+              return Semantics(
+                toggled: on,
+                child: narrow
+                    ? Tooltip(
+                        message: label,
+                        child: TextButton(
+                          style: style,
+                          onPressed: game.toggleReplayMap,
+                          child: icon,
+                        ),
+                      )
+                    : TextButton.icon(
+                        style: style,
+                        onPressed: game.toggleReplayMap,
+                        icon: icon,
+                        label: Text(label),
+                      ),
+              );
+            },
+          )
+        : null;
     // The way out of a replay sits beside the next tank: on its own low in
     // the field it floated apart from everything and over the tanks.
     final end = game.replaying.value
@@ -179,6 +223,7 @@ class SpectatorOverlay extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Flexible(child: next),
+                    if (map != null) ...[const SizedBox(width: 4), map],
                     if (end != null) ...[
                       const SizedBox(width: 8),
                       Flexible(child: end),
@@ -193,6 +238,7 @@ class SpectatorOverlay extends StatelessWidget {
                 ...title,
                 const SizedBox(width: 12),
                 next,
+                if (map != null) ...[const SizedBox(width: 8), map],
                 if (end != null) ...[const SizedBox(width: 8), end],
               ],
             ),

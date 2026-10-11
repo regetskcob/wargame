@@ -1,8 +1,12 @@
+import 'dart:math';
+
 import 'package:clock/clock.dart';
+import 'package:flame/components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -78,6 +82,28 @@ void main() {
       // In the upper part of the screen, where the bar is, not low in the
       // field.
       expect(tester.getCenter(end).dy, lessThan(size.height / 2));
+
+      // The whole map from above and back behind the tank, without the bar
+      // changing its width.
+      final width = tester.getSize(panelOf(end)).width;
+      final following = game.camera.viewfinder.zoom;
+      await tester.tap(find.byIcon(Icons.map_outlined));
+      await tester.pump();
+      expect(game.replayMap.value, isTrue);
+      expect(game.wholeMap, isTrue);
+      expect(game.camera.viewfinder.zoom, lessThan(following));
+      expect(game.camera.viewfinder.position, Vector2.zero());
+      expect(tester.getSize(panelOf(end)).width, width);
+      // The arena fits on the screen.
+      expect(
+        2 * GameConfig.worldRadius * game.camera.viewfinder.zoom,
+        lessThanOrEqualTo(min(game.canvasSize.x, game.canvasSize.y)),
+      );
+      await tester.tap(find.byIcon(Icons.map_outlined));
+      await tester.pump();
+      expect(game.replayMap.value, isFalse);
+      expect(game.camera.viewfinder.zoom, following);
+      expect(tester.getSize(panelOf(end)).width, width);
 
       await tester.runAsync(() async => game.stopReplay());
       expect(game.replaying.value, isFalse);

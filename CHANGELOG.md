@@ -30,6 +30,11 @@ step, point for point.
   they land: a mortar now stops tanks on the road about as well as a
   cannon instead of letting all of them through
 
+## Unreleased
+
+- A replay can show the whole map from above instead of following one
+  tank: *Whole map* in its bar or the key M
+
 ## 1.5.0 (11) – 2026-10-11
 
 - Trenches are manned: three riflemen and a machine gun fire at soldiers
