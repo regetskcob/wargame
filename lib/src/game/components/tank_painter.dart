@@ -21,7 +21,10 @@ enum TankType {
   /// The self-propelled howitzer with the 155 mm gun and its big turret at
   /// the back. New vehicles always go at the end: the index travels over
   /// the wire and is kept in the players' looks.
-  hirsch('HIRSCH', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4);
+  hirsch('HIRSCH', 'Panzerhaubitze', 'Self-propelled howitzer', level: 4),
+
+  /// A rocket launcher on tracks: four tubes fire a salvo side by side.
+  igel('IGEL', 'Raketenwerfer', 'Rocket launcher', level: 6);
 
   const TankType(this.label, this._roleDe, this._roleEn, {this.level = 1});
 
@@ -50,6 +53,12 @@ const _muzzles = {
   TankType.dachs: [Offset(26, -9)],
   TankType.wolf: [Offset(24, -22)],
   TankType.hirsch: [Offset(24, -21)],
+  TankType.igel: [
+    Offset(16.5, 3),
+    Offset(21.5, 3),
+    Offset(26.5, 3),
+    Offset(31.5, 3),
+  ],
 };
 
 /// Where the turret ring sits on the hull.
@@ -62,6 +71,7 @@ const _pivots = {
   TankType.dachs: Offset(24, 22),
   TankType.wolf: Offset(24, 25),
   TankType.hirsch: Offset(24, 32),
+  TankType.igel: Offset(24, 28),
 };
 
 /// Barrel tips of [type] on the 48 grid, forward is up, one per barrel.
@@ -153,6 +163,8 @@ void paintTank(
       _auerochse(canvas, hull, dark, light, turret);
     case TankType.hirsch:
       _walross(canvas, hull, dark, light, turret);
+    case TankType.igel:
+      _igel(canvas, hull, dark, light, turret);
   }
   canvas.restore();
 }
@@ -773,5 +785,55 @@ void _walross(
     canvas.drawCircle(const Offset(19, 31), 1.3, _fill(light));
     canvas.drawCircle(const Offset(29, 31), 2.4, _fill(dark));
     canvas.drawRect(const Rect.fromLTWH(19, 40, 10, 3), _fill(dark));
+  });
+}
+
+void _igel(
+  Canvas canvas,
+  Color hull,
+  Color dark,
+  Color light,
+  _TurretPass turret,
+) {
+  _tracks(canvas, 6, 47, 9);
+  _skirts(canvas, dark, 10, 44);
+
+  // A short hull with the crew cab up front and the engine at the back.
+  final body = Path()
+    ..moveTo(15, 46)
+    ..lineTo(15, 12)
+    ..lineTo(18, 7)
+    ..lineTo(30, 7)
+    ..lineTo(33, 12)
+    ..lineTo(33, 46)
+    ..close();
+  canvas.drawPath(body, _fill(hull));
+  canvas.drawPath(body, _line(dark));
+  canvas.drawRect(const Rect.fromLTWH(18, 9, 12, 6), _fill(dark));
+  canvas.drawRect(const Rect.fromLTWH(19.5, 10, 9, 2.4), _fill(light));
+  for (var y = 39.0; y < 45; y += 1.8) {
+    canvas.drawLine(Offset(18, y), Offset(30, y), _line(dark, 0.6));
+  }
+  _marking(canvas, 24, 18.5, 4.5);
+
+  turret(() {
+    // The launcher box on its ring: four tubes in a row, open at the front,
+    // the box behind them with its hatch and the elevation arms.
+    final box = RRect.fromRectAndRadius(
+      const Rect.fromLTWH(13, 3, 22, 31),
+      const Radius.circular(2),
+    );
+    canvas.drawRRect(box, _fill(light));
+    canvas.drawRRect(box, _line(dark));
+    for (final x in const [16.5, 21.5, 26.5, 31.5]) {
+      canvas.drawRect(Rect.fromLTWH(x - 2, 3, 4, 22), _fill(_steel));
+      canvas.drawCircle(Offset(x, 4.6), 1.5, _fill(const Color(0xFF0C0C0C)));
+    }
+    canvas.drawLine(const Offset(13, 25), const Offset(35, 25), _line(dark));
+    canvas.drawRect(const Rect.fromLTWH(19, 27, 10, 5), _fill(dark));
+    canvas.drawCircle(const Offset(24, 29.5), 1.6, _fill(light));
+    for (final x in const [11.5, 36.5]) {
+      canvas.drawRect(Rect.fromLTWH(x - 1, 14, 2, 14), _fill(dark));
+    }
   });
 }

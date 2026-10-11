@@ -81,6 +81,17 @@
   waiting room describes the host's mode and shows what will be played
   before the round brings it. Older hosts send neither; their guests show
   no settings line.
+- **Content level.** A round is its seed, and older clients read the map
+  out of it as `seed % 4` and the defense layout as `(seed ~/ 4) % 4`.
+  Newer maps and layouts are marked in higher bits (`MapTheme.indexOf`,
+  `DefenseMap.layoutFor`: a mark of 6 or 7 above the sky's bits picks
+  them), which older clients ignore, so they would play on another field.
+  Every presence therefore says how far its client goes (`content`,
+  `GameConfig.contentLevel`, 1 since the mountain forest, the islands, the
+  layouts riverbank and hairpin and the Igel), and the host only rolls the
+  newer ones when everybody in the room has at least that (`roomContent`).
+  A vehicle needs no gate: its index sits at the end, and an older client
+  draws an unknown one as the Keiler.
 - One host per room: a doubled host settles after three seconds. The owner
   (who opened the room) keeps the role against a stand-in, two stand-ins
   leave it to the smaller id, and so do two owners, which happens when one

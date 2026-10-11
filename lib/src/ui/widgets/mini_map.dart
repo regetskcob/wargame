@@ -9,6 +9,7 @@ import '../../game/flag_match.dart';
 import '../../game/components/soldier.dart';
 import '../../game/tank_game.dart';
 import '../../game/game_config.dart';
+import '../../game/island_shape.dart';
 import '../theme.dart';
 
 class MiniMap extends StatefulWidget {
@@ -117,6 +118,33 @@ class _MiniMapPainter extends CustomPainter {
     canvas.clipPath(
       Path()..addOval(Rect.fromCircle(center: center, radius: size.width / 2)),
     );
+    // The islands' water, so the way across is planned on the map.
+    final shores = game.mudField?.shores ?? const <Path>[];
+    if (shores.isNotEmpty) {
+      canvas.drawCircle(
+        center,
+        size.width / 2,
+        Paint()..color = const Color(0xFF1E4A5E),
+      );
+      canvas.save();
+      canvas.translate(center.dx, center.dy);
+      canvas.scale(scale);
+      for (final shore in shores) {
+        canvas.drawPath(shore, Paint()..color = GameColors.panel);
+      }
+      final plank = Paint()
+        ..color = const Color(0xFF8A6A44)
+        ..strokeWidth = IslandBridge.halfWidth * 2;
+      for (final bridge
+          in game.mudField?.islands?.bridges ?? const <IslandBridge>[]) {
+        canvas.drawLine(
+          Offset(bridge.start.x, bridge.start.y),
+          Offset(bridge.end.x, bridge.end.y),
+          plank,
+        );
+      }
+      canvas.restore();
+    }
 
     final safeRadius = round.safeRadiusAt(
       DateTime.now().millisecondsSinceEpoch,

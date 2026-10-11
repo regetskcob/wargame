@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flame/components.dart';
 
 import '../game_config.dart';
+import '../island_shape.dart';
 import 'tree.dart';
 import '../map_theme.dart';
 import 'obstacle.dart';
@@ -26,6 +27,8 @@ class CoverField extends Component {
   @override
   void onLoad() {
     final random = Random(seed);
+    // On the islands nothing stands in the water.
+    final islands = theme.islands ? IslandShape.forSeed(seed) : null;
     final taken = <(Vector2, double)>[];
 
     Vector2? spot(double clearance) {
@@ -40,6 +43,10 @@ class CoverField extends Component {
           ..scale(distance);
         // Keep the roads of a city free.
         if (theme.roads && (position.x.abs() < 70 || position.y.abs() < 70)) {
+          continue;
+        }
+        // On an island and off its beach, never on a bridge.
+        if (islands != null && islands.islandAt(position, margin: 24) < 0) {
           continue;
         }
         if (taken.every((t) => t.$1.distanceTo(position) > t.$2 + clearance)) {

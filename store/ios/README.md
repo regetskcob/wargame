@@ -74,6 +74,10 @@ ihr eigenes Bild, ohne Statusleiste und Simulator-Rahmen
 Max hochkant (4 Szenen), iPad Pro 13" quer (3), Apple TV 4K (2), Mac im
 Fenster mit 1440 × 900 Punkten (3), je Deutsch und Englisch. Nur einzelne
 Geräte: `tool/store_shots.sh /tmp/raw ios ipad tv mac` mit einer Auswahl.
+Für Einzelbilder nimmt ein Screenshot-Build außerdem `-SHOT_MAP <n>`
+(Gelände, Index in `MapTheme.all`, 4 = Bergwald, 5 = Inseln),
+`-SHOT_TANK <n>` (Fahrzeug, Index in `TankType`, 8 = Igel, auch gesperrt)
+und `-SHOT_LAYOUT <n>` (Verteidigungskarte, 4 = Flussufer, 5 = Haarnadel).
 Die Simulatoren („Store iPhone 6.9“, „Store iPad 13“, „Store Apple TV“)
 legt das Skript bei Bedarf selbst an; flutter-tvos erwartet es unter
 `~/development/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr

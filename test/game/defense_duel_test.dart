@@ -32,8 +32,10 @@ void main() {
   });
 
   test('both roads join the two bases, red on the left', () {
-    for (var seed = 0; seed < 4 * DefenseMap.layoutCount; seed += 4) {
-      final map = DefenseMap.duelForSeed(seed);
+    for (var layout = 0; layout < DefenseMap.layoutCount; layout++) {
+      final map = DefenseMap.duelForSeed(
+        DefenseMap.seedForLayout(layout * 4, layout),
+      );
       expect(map.duel, isTrue);
       final [left, right] = map.lanes;
       expect(left.base.x, lessThan(right.base.x));

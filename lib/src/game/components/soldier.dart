@@ -554,10 +554,15 @@ class SoldierField extends Component {
         }
         final a = random.nextDouble() * 2 * pi;
         final candidate = Vector2(cos(a), sin(a))..scale(distance);
-        final blocked = solids.any(
-          (o) =>
-              o.toRect().inflate(60).contains(Offset(candidate.x, candidate.y)),
-        );
+        // Off the land too, where there is water (the islands).
+        final blocked =
+            !walkable(candidate) ||
+            solids.any(
+              (o) => o
+                  .toRect()
+                  .inflate(60)
+                  .contains(Offset(candidate.x, candidate.y)),
+            );
         if (!blocked) {
           centre = candidate;
         }
@@ -608,10 +613,14 @@ class SoldierField extends Component {
         final distance = sqrt(random.nextDouble()) * (safe - 90).clamp(40, 650);
         final a = random.nextDouble() * 2 * pi;
         final candidate = Vector2(cos(a), sin(a))..scale(distance);
-        final blocked = solids.any(
-          (o) =>
-              o.toRect().inflate(40).contains(Offset(candidate.x, candidate.y)),
-        );
+        final blocked =
+            !walkable(candidate) ||
+            solids.any(
+              (o) => o
+                  .toRect()
+                  .inflate(40)
+                  .contains(Offset(candidate.x, candidate.y)),
+            );
         if (!blocked) {
           centre = candidate;
         }

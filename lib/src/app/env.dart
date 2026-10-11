@@ -105,6 +105,14 @@ class Env {
   /// Where the finished frame goes, a path the app may write to.
   static String? shotOut;
 
+  /// The ground (`MapTheme.all` index) and the vehicle (`TankType` index)
+  /// for the scene, a random ground and the Hermelin otherwise.
+  static int? shotMap;
+  static int? shotTank;
+
+  /// The defense layout (`DefenseMap` index) for the scene.
+  static int? shotLayout;
+
   /// Reads the launch arguments of a screenshot build, see [shotScene].
   static Future<void> loadShots() async {
     if (!shots || kIsWeb) {
@@ -114,6 +122,9 @@ class Env {
     shotScene = await prefs.getString('SHOT_SCENE');
     shotLang = await prefs.getString('SHOT_LANG');
     shotOut = await prefs.getString('SHOT_OUT');
+    shotMap = int.tryParse(await prefs.getString('SHOT_MAP') ?? '');
+    shotTank = int.tryParse(await prefs.getString('SHOT_TANK') ?? '');
+    shotLayout = int.tryParse(await prefs.getString('SHOT_LAYOUT') ?? '');
   }
 
   static const maxPilots = int.fromEnvironment('MAX_PILOTS', defaultValue: 4);

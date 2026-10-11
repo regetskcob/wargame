@@ -62,6 +62,12 @@ class GameConfig {
   /// [Env.maxPilots].
   static const maxPilots = Env.maxPilots;
 
+  /// What this version brings beyond the first maps: 1 adds the mountain
+  /// forest and the islands, the defense layouts riverbank and hairpin and
+  /// the Igel. Raise it with the next content that older clients would
+  /// read differently out of a round seed, and gate that content on it.
+  static const contentLevel = 1;
+
   /// Realtime messages a second for the whole project, kept by `RoomSlots`.
   /// See [Env.realtimeBudget].
   static const realtimeBudget = Env.realtimeBudget;

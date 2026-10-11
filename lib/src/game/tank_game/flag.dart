@@ -20,7 +20,8 @@ extension TankGameFlag on TankGame {
     final k = max(0, mates.indexOf(id));
     final base = FlagMatch.baseOf(team == 0 ? 1 : team);
     final inward = base.x < 0 ? 1.0 : -1.0;
-    final at = Vector2(base.x + inward * 30, (k - (n - 1) / 2) * 70);
+    final wanted = Vector2(base.x + inward * 30, (k - (n - 1) / 2) * 70);
+    final at = mudField?.islands?.onLand(wanted, margin: 40) ?? wanted;
     return (at, TankGame._headingFrom(at, Vector2(0, at.y)));
   }
 

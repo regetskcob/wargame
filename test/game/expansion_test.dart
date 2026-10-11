@@ -21,17 +21,18 @@ import 'package:wargame/src/net/payloads/special_payload.dart';
 
 /// Seeds that pick each of the layouts.
 Iterable<int> get _layoutSeeds => [
-  for (var i = 0; i < DefenseMap.layoutCount; i++) i * 4,
+  for (var i = 0; i < DefenseMap.layoutCount; i++)
+    DefenseMap.seedForLayout(i * 4, i),
 ];
 
 void main() {
   group('river and bridges', () {
-    test('there are four layouts, each with a river and bridges', () {
-      expect(DefenseMap.layoutCount, 4);
+    test('there are six layouts, each with a river and bridges', () {
+      expect(DefenseMap.layoutCount, 6);
       final layouts = {
         for (final seed in _layoutSeeds) DefenseMap.layoutFor(seed),
       };
-      expect(layouts, hasLength(4));
+      expect(layouts, hasLength(6));
       for (final seed in _layoutSeeds) {
         final map = DefenseMap.forSeed(seed);
         expect(map.river.length, greaterThanOrEqualTo(2));

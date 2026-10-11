@@ -179,6 +179,12 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     return false;
   }
 
+  /// The heading towards [point], over the islands' bridges when deep water
+  /// lies between.
+  double _driveTo(Vector2 point) => _headingTo(
+    gameRef.mudField?.islands?.waypoint(tank.position, point) ?? point,
+  );
+
   void _decide() {
     final round = gameRef.round;
     final target = _pickTarget();
@@ -207,7 +213,7 @@ class BotBrain extends Component with HasGameRef<TankGame> {
     );
     if (tank.position.length > safeRadius - 70) {
       // Back into the safe circle first.
-      _desiredHeading = _headingTo(Vector2.zero());
+      _desiredHeading = _driveTo(Vector2.zero());
       _wantThrust = true;
     } else if (barrage != null) {
       // Get out from under the shells.
@@ -215,7 +221,7 @@ class BotBrain extends Component with HasGameRef<TankGame> {
       _wantThrust = true;
     } else if (depot != null) {
       // Roll onto the pad and let the tank come to a stop there.
-      _desiredHeading = _headingTo(depot.position);
+      _desiredHeading = _driveTo(depot.position);
       _wantThrust =
           depot.position.distanceTo(tank.position) >
           GameConfig.depotRadius * 0.45;
@@ -223,23 +229,23 @@ class BotBrain extends Component with HasGameRef<TankGame> {
         _hasLineOfSight = _clearShot(target.position);
       }
     } else if (onTheWay) {
-      _desiredHeading = _headingTo(goal);
+      _desiredHeading = _driveTo(goal);
       _wantThrust = goal.distanceTo(tank.position) > 20;
       if (target != null) {
         _hasLineOfSight = _clearShot(target.position);
       }
     } else if (pickup != null) {
-      _desiredHeading = _headingTo(pickup.position);
+      _desiredHeading = _driveTo(pickup.position);
       _wantThrust = true;
       if (target != null) {
         _hasLineOfSight = _clearShot(target.position);
       }
     } else if (target == null) {
-      _desiredHeading = _headingTo(Vector2.zero());
+      _desiredHeading = _driveTo(Vector2.zero());
       _wantThrust = tank.position.length > 160;
     } else {
       final distance = target.position.distanceTo(tank.position);
-      final toTarget = _headingTo(target.position);
+      final toTarget = _driveTo(target.position);
       if (distance > 340) {
         _desiredHeading = toTarget;
         _wantThrust = true;
@@ -256,7 +262,10 @@ class BotBrain extends Component with HasGameRef<TankGame> {
 
     // Keep out of walls: turn away when something solid is right ahead.
     final ahead = tank.position + tank.direction * 70;
-    if (_wantThrust && _blocked(ahead, margin: 12)) {
+    final deepAhead =
+        gameRef.mudField?.islands?.deep(tank.position + tank.direction * 40) ??
+        false;
+    if (_wantThrust && (_blocked(ahead, margin: 12) || deepAhead)) {
       _desiredHeading = tank.angle + 1.4 * _strafeSide;
     }
 

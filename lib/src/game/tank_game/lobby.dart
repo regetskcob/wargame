@@ -240,6 +240,7 @@ extension TankGameLobby on TankGame {
       joinedAt: net.joinedAt,
       pad: padSteered.value,
       mode: isHost.value ? mode.value.name : null,
+      content: GameConfig.contentLevel,
       level: isHost.value ? botLevel.value.name : null,
       map: isHost.value ? mapChoice.value ?? -1 : null,
       teams: isHost.value && teamMode.value,
@@ -716,6 +717,12 @@ extension TankGameLobby on TankGame {
       return;
     }
   }
+
+  /// The newest content every pilot in the room knows (see
+  /// [GameConfig.contentLevel]); this game's own alone in a room by itself.
+  int get roomContent => roster.value
+      .where((member) => member.id != myId)
+      .fold(GameConfig.contentLevel, (low, member) => min(low, member.content));
 
   /// Pilots in the room that Realtime carries: the second player on this
   /// device talks to this game directly and costs nothing.

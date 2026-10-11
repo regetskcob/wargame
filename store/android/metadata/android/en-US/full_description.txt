@@ -6,11 +6,11 @@ FOUR WAYS TO PLAY
 • Defense: hold the base together against eight waves, then carry on if you like until it falls. Enemies roll down the road, from the second wave they also come through the air. Every kill earns coins for cannon, flak, mortar, howitzer, rockets and trenches as well as upgrades for your tank.
 • Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Destroyed tanks are back in a few seconds, three captures win.
 
-EIGHT VEHICLES
+NINE VEHICLES
 From the nimble weapon carrier to the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
 
 TERRAIN AND WEATHER
-Battlefield, desert, winter and city, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
+Battlefield, desert, winter, city, mountain forest and islands, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
 
 MADE FOR TOUCH AND CONTROLLERS
 • Two sticks that appear wherever your thumb lands

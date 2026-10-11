@@ -53,8 +53,8 @@ IOS_SHOTS = [
         "en-US": ("DEFENSE", "Build guns, hold off 8 waves"),
     }),
     ("iphone-03-fahrzeuge", "i_lobby", IPHONE, {
-        "de-DE": ("8 FAHRZEUGE", "Mit jedem Rang ein neues freigespielt"),
-        "en-US": ("8 VEHICLES", "A new one with every rank"),
+        "de-DE": ("9 FAHRZEUGE", "Mit jedem Rang ein neues freigespielt"),
+        "en-US": ("9 VEHICLES", "A new one with every rank"),
     }),
     ("iphone-04-modi", "i_menu", IPHONE, {
         "de-DE": ("VIER SPIELARTEN", "Allein, gegeneinander, im Trupp, Fahnenraub"),

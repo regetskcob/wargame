@@ -78,11 +78,13 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 ## On the battlefield
 
-- Eight vehicles with animal names instead of real model or maker names
-  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs and
+- Nine vehicles with animal names instead of real model or maker names
+  (Hermelin, Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs, Igel and
   Wolf), each with its own armour, speed and gun. Hermelin, Fuchs and
-  Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5
-  and 8, and every later one is stronger than the ones before. The lobby
+  Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5,
+  6 and 8, and every later one is stronger than the ones before. The Igel
+  (rank 6) is a rocket launcher: four rockets a salvo side by side, 12
+  damage each, a wide spread that hurts most up close. The lobby
   lists the unlocked ones first. Four free paint schemes and four more that
   come with higher ranks, for playing alone. With others every tank drives
   in its own colour, and in red against blue (teams, capture the flag) in
@@ -94,10 +96,31 @@ Everything the game does, with the numbers behind it. The short version is in th
   shows while a hit flashes the hull white. The own tank always wears its
   ring, in the team's colour or amber without sides, with a dark rim, so it
   stands out among its side.
-- Four grounds (Gefechtsplatz, Wüste, Winter, Stadt), each with weather
-  (clear, rain, snow, a sandstorm or fog) that may turn during a round, and
-  day and night taking turns at a fixed pace: 80 seconds of day, 40 of
-  night. Night, fog and sand limit the view to a circle around the tank.
+- Six grounds (Gefechtsplatz, Wüste, Winter, Stadt, Bergwald, Inseln), each
+  with weather (clear, rain, snow, a sandstorm or fog) that may turn during
+  a round, and day and night taking turns at a fixed pace: 80 seconds of
+  day, 40 of night. Night, fog and sand limit the view to a circle around
+  the tank.
+  - *Bergwald* (mountain forest): dense conifers, scree that slows and
+    hills on every difficulty, also on easy (7 gentle ones; 12 on normal,
+    17 steep ones on hard).
+  - *Inseln* (islands, `island_shape.dart`): more water than land. Seven
+    islands of organic shape (each shore a sum of a few waves of
+    different length, laid out by the seed): a middle one that takes the
+    end of the closing zone and six around it that carry the start
+    positions, the ones at 0 and 180 degrees the flag bases. Wooden
+    bridges join every island of the ring to its neighbours and the
+    middle to both flag islands, the same on the red and the blue side.
+    Along every shore runs a strip of shallow water (46 units) that tanks
+    wade through at 45 % of their speed; beyond it the water is deep and
+    blocks them like a river bank, shells fly over. CPU tanks route over
+    the bridges (`IslandShape.waypoint`, the fewest bridges to the
+    target's island). Starts, depots and crates are moved onto land,
+    soldiers keep to it, trees and houses stand only on the islands.
+  - The two newer grounds and the two newer defense maps only come up in a
+    room where every client knows them (see docs/netcode.md, "Content
+    level"); a newer ground picked for a room with an older client gives way
+    to a random one of the first four.
 - Buildings, barriers and trees that can be shot down, and soldiers on foot
   that fight: in a team round the squads are red or blue and shoot at tanks
   and at each other. They patrol and stalk enemies that come within sight.
@@ -156,7 +179,10 @@ Everything the game does, with the numbers behind it. The short version is in th
   45 s. CPU tanks drive there when they run low, top up at one close by
   and leave when an enemy comes near. Over the net a depot rides on the
   `obstacle` event (flag `d`, the shooter as `id`), no new event.
-- Defense on four maps with a river, bridges, woods and farm houses. The
+- Defense on six maps with a river, bridges, woods and farm houses (the
+  newer two: *Flussufer*, along the river bank with a crossing near the
+  top, and *Haarnadel*, in from the top with two hairpins across the
+  river). The
   waves bring tanks, soldiers on foot, attack helicopters, jets that bomb
   the base and kamikaze drones. Cannons, flak (the only thing besides the
   Habicht that hits aircraft properly), mortars and later howitzers, three
