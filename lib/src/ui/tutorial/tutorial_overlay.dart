@@ -15,12 +15,13 @@ import '../../tv/tv_input.dart';
 /// The tutorial: first the controls, one card each, acted out on a small
 /// training ground with a thumb on the sticks or with keys and mouse. Then
 /// a quick tour through everything the game has. Every card plays on by
-/// itself after a while.
+/// itself once there was time to read it.
 ///
 /// On a controls card the player can take over at any time: a thumb on the
 /// sticks, a game key or a click turns the scene into a training ground with
 /// their own tank and the game's controls. From then on the card waits for
-/// WEITER instead of moving on by itself.
+/// WEITER instead of moving on by itself, also once the task is done: the
+/// card says so, the player decides when to go on.
 ///
 /// A button opens it on the welcome page, the start page and in the
 /// waiting room, always with the controls of the device it runs on.
@@ -41,9 +42,18 @@ class TutorialOverlay extends StatefulWidget {
   /// How long a card of the quick tour stays.
   static const tourCard = Duration(milliseconds: 5000);
 
-  /// How long a controls card stays when nobody takes over: two passes of
-  /// its scene.
+  /// How long a controls card stays at least when nobody takes over: two
+  /// passes of its scene.
   static const controlsCard = Duration(milliseconds: 7200);
+
+  /// How long [step] stays by itself: its least time, longer for a long
+  /// text. Testers found the cards moving on before they had read them.
+  static Duration cardTime(TutorialStep step) {
+    final least = step.quick ? tourCard : controlsCard;
+    final words = step.text.trim().split(RegExp(r'\s+')).length;
+    final reading = Duration(milliseconds: 3000 + 320 * words);
+    return reading > least ? reading : least;
+  }
 
   /// Marks the card, for tests.
   static const cardKey = ValueKey('tutorial-card');
@@ -92,9 +102,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   /// How long this card stays by itself, null when it waits for WEITER.
   Duration? get _autoTime => _practice != null || _step.scene == DemoScene.ready
       ? null
-      : _step.quick
-      ? TutorialOverlay.tourCard
-      : TutorialOverlay.controlsCard;
+      : TutorialOverlay.cardTime(_step);
 
   @override
   void initState() {
@@ -199,12 +207,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       ..bounds = _practiceBounds
       ..tick(dt, pressed: HardwareKeyboard.instance.logicalKeysPressed);
     if (practice.done && !before) {
-      // The task is done: a moment to see it, then the next card.
-      Future<void>.delayed(const Duration(milliseconds: 1400), () {
-        if (mounted && identical(_practice, practice)) {
-          _next();
-        }
-      });
+      // The task is done: the card says so and WEITER lights up, but the
+      // player goes on when they like. Moving on by itself came while the
+      // thumb was still trying the stick; the aim assist hits in a second.
+      setState(() {});
     }
     if (practice.grenades) {
       final loadout = (SpecialWeapon.grenades, practice.charges);
@@ -341,6 +347,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                   top: _cardBottom,
                   practice: _practice,
                   invite: _canPractice && _practice == null,
+                  insets: MediaQuery.paddingOf(context),
                 ),
               ),
             ),
@@ -473,6 +480,8 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         ? '${tr('SCHNELLDURCHLAUF', 'QUICK TOUR')} · '
               '${_index - controls + 1}/${_steps.length - controls - 1}'
         : tr('ABGESCHLOSSEN', 'COMPLETE');
+    // The stage says GESCHAFFT under the card; WEITER lights up with it.
+    final done = _practice?.done ?? false;
     final heading = _practice == null
         ? kicker
         : '$kicker · ${tr('DU STEUERST', 'YOUR TURN')}';
@@ -522,7 +531,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         const SizedBox(width: 4),
         FilledButton.icon(
           onPressed: _next,
+          // Lit in amber once the task is done: on from here.
           style: FilledButton.styleFrom(
+            backgroundColor: done ? GameColors.amber : null,
+            foregroundColor: done ? GameColors.background : null,
             padding: EdgeInsets.symmetric(
               horizontal: 16,
               vertical: compact ? 6 : 10,

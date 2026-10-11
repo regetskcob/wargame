@@ -31,6 +31,7 @@ class DemoPainter extends CustomPainter {
     this.pad,
     this.practice,
     this.invite = false,
+    this.insets = EdgeInsets.zero,
   }) : super(repaint: Listenable.merge([clock, practice]));
 
   final DemoScene scene;
@@ -52,6 +53,10 @@ class DemoPainter extends CustomPainter {
   /// Whether to invite the player to take over.
   final bool invite;
 
+  /// The screen's safe-area insets, which the game's touch controls keep
+  /// clear of: the sticks and buttons are drawn where the game puts them.
+  final EdgeInsets insets;
+
   static const _hull = Color(0xFF6B7F3A);
   static const _enemyHull = Color(0xFF8B3E2B);
 
@@ -64,18 +69,53 @@ class DemoPainter extends CustomPainter {
   /// Middle of the free space under the card.
   Offset get _center => Offset(_w / 2, top + (_h - top) * 0.42);
   double get _tankSize => (min(_w, _h - top) * 0.2).clamp(36.0, 72.0);
-  double get _stickRadius => (min(_w, _h) * 0.12).clamp(40.0, 70.0);
-  Offset get _leftStick => Offset(_stickRadius + 24, _h - _stickRadius - 20);
-  Offset get _rightStick =>
-      Offset(_w - _stickRadius - 24, _h - _stickRadius - 20);
+  // The sticks and buttons sit where `TouchControls` puts them in the game,
+  // in the same size: what the card shows is what the thumb finds once the
+  // player takes over, and in the round after.
 
-  /// Where the round buttons above the right stick sit.
-  /// Where the round button of the right stick sits: up and to the left of
-  /// it, beside its label and clear of the card on a short screen. Only one
-  /// of the two is shown at a time.
-  Offset get _assistButton =>
-      _rightStick + Offset(-_stickRadius - 44, -_stickRadius - 30);
-  Offset get _specialButton => _assistButton;
+  /// The room of the touch controls: the safe area with their margin.
+  Rect get _controls => Rect.fromLTRB(
+    max(insets.left, 10),
+    max(insets.top, 8),
+    _w - max(insets.right, 10),
+    _h - max(insets.bottom, 8),
+  );
+
+  double get _stickRadius =>
+      (min(_controls.width, _controls.height) * 0.36).clamp(112.0, 160.0) / 2;
+  Offset get _leftStick => Offset(
+    _controls.left + _stickRadius + 6,
+    _controls.bottom - _stickRadius - 6,
+  );
+  Offset get _rightStick => Offset(
+    _controls.right - _stickRadius - 6,
+    _controls.bottom - _stickRadius - 6,
+  );
+
+  /// The upper edge of the buttons above the aim stick.
+  double get _buttonTop {
+    final area = _controls;
+    final upright = area.height > area.width;
+    final zoneTop = area.height * (upright ? 0.4 : 0.3);
+    return area.top + max(zoneTop, area.height - 2 * _stickRadius - 104);
+  }
+
+  /// The round button of a special weapon, at the right edge.
+  static const _specialSize = 68.0;
+  Offset get _specialButton => Offset(
+    _controls.right - 8 - _specialSize / 2,
+    _buttonTop + _specialSize / 2,
+  );
+
+  /// The aim assist's pill, right-aligned above the aim stick and level
+  /// with the lower edge of the special weapon's button.
+  static const _assistHeight = 44.0;
+  Rect _assistRect(double width) => Rect.fromLTRB(
+    _controls.right - 8 - width,
+    _buttonTop + _specialSize - _assistHeight,
+    _controls.right - 8,
+    _buttonTop + _specialSize,
+  );
 
   /// Bottom left, where the keys are drawn on a desktop.
   Offset get _keys => Offset(24, _h - 120);
@@ -139,7 +179,8 @@ class DemoPainter extends CustomPainter {
       old.pad != pad ||
       old.top != top ||
       old.practice != practice ||
-      old.invite != invite;
+      old.invite != invite ||
+      old.insets != insets;
 
   // -------------------------------------------------------------- practice
 
@@ -460,8 +501,14 @@ class DemoPainter extends CustomPainter {
   /// A tap on the assist button, then the turret finds the enemy by itself.
   void _assist(Canvas canvas) {
     final pos = Offset(_w * 0.32, _center.dy);
+    // It weaves up and down, but stays clear of the buttons above the aim
+    // stick on a short stage.
+    final swing = min(
+      (_h - top) * 0.18,
+      max(0.0, _buttonTop - 12 - _tankSize * 0.75 - _center.dy),
+    );
     Offset enemyAt(double t) =>
-        Offset(_w * 0.68, _center.dy + (_h - top) * 0.18 * sin(2 * pi * t));
+        Offset(_w * 0.68, _center.dy + swing * sin(2 * pi * t));
     final enemy = enemyAt(_t);
     final on = _t > 0.12;
     final aim = on ? _angleOf(enemy - pos) : 0.0;
@@ -478,16 +525,9 @@ class DemoPainter extends CustomPainter {
       tr('ZIELEN · FEUER', 'AIM · FIRE'),
       ring: true,
     );
-    _roundButton(
-      canvas,
-      _assistButton,
-      Icons.gps_fixed_outlined,
-      tr('ZIELHILFE', 'AIM ASSIST'),
-      on ? GameColors.amber : GameColors.textDim,
-      lit: on,
-    );
+    final toggle = _assistToggle(canvas, on: on);
     if (_t < 0.2) {
-      _finger(canvas, _assistButton, fromLeft: false, press: _seg(0.06, 0.12));
+      _finger(canvas, toggle.center, fromLeft: false, press: _seg(0.06, 0.12));
     }
   }
 
@@ -642,12 +682,11 @@ class DemoPainter extends CustomPainter {
         tr('ZIELEN · FEUER', 'AIM · FIRE'),
         ring: true,
       );
-      _roundButton(
+      _specialButtonOf(
         canvas,
-        _specialButton,
-        weapon.icon,
-        '$left',
         weapon.color,
+        tr('GRANATE', 'GRENADE'),
+        left,
         lit: _pulse(shots, width: 0.06),
       );
       final pressing = shots.any((s) => _t > s - 0.08 && _t < s + 0.08);
@@ -1194,35 +1233,111 @@ class DemoPainter extends CustomPainter {
     }
   }
 
-  void _roundButton(
-    Canvas canvas,
-    Offset at,
-    IconData icon,
-    String label,
-    Color color, {
-    bool lit = false,
-  }) {
-    canvas.drawCircle(
-      at,
-      26,
-      Paint()
-        ..color = lit ? color.withValues(alpha: 0.35) : const Color(0x88000000),
+  /// The game's aim assist toggle: a dark pill with a frame in amber when
+  /// on, dim when off, the crosshair and two lines. Returns where it lies.
+  Rect _assistToggle(Canvas canvas, {required bool on}) {
+    final color = on ? GameColors.amber : GameColors.textDim;
+    TextPainter line(String text, double size, Color color, FontWeight w) =>
+        TextPainter(
+          text: TextSpan(
+            text: text,
+            style: TextStyle(
+              fontSize: size,
+              color: color,
+              fontFamily: 'Roboto',
+              fontWeight: w,
+              letterSpacing: size < 10 ? 0.3 : 0,
+            ),
+          ),
+          textDirection: TextDirection.ltr,
+          maxLines: 1,
+        )..layout();
+    final title = line(
+      on
+          ? tr('ZIELHILFE AN', 'AIM ASSIST ON')
+          : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
+      11,
+      color,
+      FontWeight.w800,
     );
-    canvas.drawCircle(
-      at,
-      26,
+    final hint = line(
+      on
+          ? tr('feuert selbst', 'fires by itself')
+          : tr('du zielst selbst', 'you aim yourself'),
+      9,
+      GameColors.text,
+      FontWeight.w400,
+    );
+    final width = 48.0 + max(title.width, hint.width);
+    final rect = _assistRect(width);
+    final pill = RRect.fromRectAndRadius(
+      rect,
+      const Radius.circular(_assistHeight / 2),
+    );
+    canvas.drawRRect(pill, Paint()..color = const Color(0xB3141A0E));
+    canvas.drawRRect(
+      pill,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
         ..color = color,
     );
-    _icon(canvas, at, icon, 24, color);
+    _icon(
+      canvas,
+      Offset(rect.left + 12 + 9, rect.center.dy),
+      Icons.gps_fixed_outlined,
+      18,
+      color,
+    );
+    final textLeft = rect.left + 12 + 18 + 6;
+    final textTop = rect.center.dy - (title.height + hint.height) / 2;
+    title.paint(canvas, Offset(textLeft, textTop));
+    hint.paint(canvas, Offset(textLeft, textTop + title.height));
+    title.dispose();
+    hint.dispose();
+    return rect;
+  }
+
+  /// The game's round button of a special weapon: the gem, its name and
+  /// the charges left, in the weapon's colour.
+  void _specialButtonOf(
+    Canvas canvas,
+    Color color,
+    String name,
+    int charges, {
+    bool lit = false,
+  }) {
+    final at = _specialButton;
+    const radius = _specialSize / 2;
+    canvas.drawCircle(
+      at,
+      radius,
+      Paint()
+        ..color = lit ? color.withValues(alpha: 0.6) : const Color(0x88000000),
+    );
+    canvas.drawCircle(
+      at,
+      radius,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
+        ..color = color,
+    );
+    _icon(canvas, at + const Offset(0, -14), Icons.diamond_outlined, 18, color);
     _text(
       canvas,
-      at + const Offset(0, 30),
-      label,
-      size: 9,
-      color: color,
+      at + const Offset(0, -3),
+      name,
+      size: 10,
+      color: GameColors.text,
+      center: true,
+    );
+    _text(
+      canvas,
+      at + const Offset(0, 9),
+      '×$charges',
+      size: 11,
+      color: GameColors.text,
       center: true,
     );
   }

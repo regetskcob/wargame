@@ -295,13 +295,11 @@ List<TutorialStep> get _touch => [
     scene: DemoScene.assist,
     text: tr(
       'Ruht der rechte Daumen, dreht die Zielhilfe den Turm auf den '
-          'nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE über '
-          'dem Stick schaltet sie aus und wieder an. Auf Schwer gibt es keine '
-          'Zielhilfe.',
+          'nächsten Gegner in Reichweite und feuert, auf jeder Stufe. Der '
+          'Knopf ZIELHILFE über dem Stick schaltet sie aus und wieder an.',
       'While the right thumb rests, the aim assist turns the turret to the '
-          'nearest enemy in range and fires. The AIM ASSIST button above the '
-          'stick switches it off and on again. On Hard there is no aim '
-          'assist.',
+          'nearest enemy in range and fires, on every level. The AIM ASSIST '
+          'button above the stick switches it off and on again.',
     ),
   ),
   TutorialStep(

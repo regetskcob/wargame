@@ -114,7 +114,12 @@ void main() {
     final tour = tutorialSteps(touch: false)[controlSteps(touch: false)];
     expect(onCard(tour.title), findsOneWidget);
     expect(find.text(tour.chips.first.label), findsOneWidget);
+    // Not before there was time to read it.
     await tester.pump(TutorialOverlay.tourCard);
+    expect(onCard(tour.title), findsOneWidget);
+    await tester.pump(
+      TutorialOverlay.cardTime(tour) - TutorialOverlay.tourCard,
+    );
     await tester.pump(const Duration(milliseconds: 300));
     expect(onCard(tour.title), findsNothing);
   });
@@ -187,7 +192,8 @@ void main() {
   ) async {
     await pump(tester, touch: true);
     expect(onCard('FAHREN'), findsOneWidget);
-    await tester.pump(TutorialOverlay.controlsCard);
+    final drive = tutorialSteps(touch: true).first;
+    await tester.pump(TutorialOverlay.cardTime(drive));
     await tester.pump(const Duration(milliseconds: 300));
     expect(onCard('ZIELEN'), findsOneWidget);
   });
@@ -210,7 +216,9 @@ void main() {
     }
     expect(practice.pos.dx, greaterThan(start.dx));
     // Long past the card's time it still waits for WEITER.
-    await tester.pump(TutorialOverlay.controlsCard * 2);
+    await tester.pump(
+      TutorialOverlay.cardTime(tutorialSteps(touch: true).first) * 2,
+    );
     expect(onCard('FAHREN'), findsOneWidget);
     await gesture.up();
     await next(tester);

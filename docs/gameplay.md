@@ -24,14 +24,20 @@ Everything the game does, with the numbers behind it. The short version is in th
   tablets, keys and mouse on a desktop, each acted out on a small training
   ground, then plays a quick tour through modes, vehicles, crates, gems,
   weather, levels, the defense mode and what comes after the round. Every
-  card moves on by itself after a while. On a controls card the player can
+  card moves on by itself once there was time to read it (at least 7.2 s on
+  a controls card and 5 s in the tour, longer for a long text,
+  `TutorialOverlay.cardTime`). On a controls card the player can
   take over at any time: a thumb on the sticks, a game key or a click turns
   the scene into a training ground with their own tank, the game's controls
   and a task: drive into the ring on the driving card, three hits on the
   others (a few enemy tanks stand around, grenades on the special weapon
   card). The card then folds its text away and shows the task with its
-  progress; done, it says so and moves on to the next card after a moment,
-  NEXT still works at any time. The Apple TV keeps the demonstration only.
+  progress; done, it says so and NEXT lights up in amber, but the card
+  waits for the player instead of moving on (the aim assist scores its
+  hits within a second, and the card used to leave while the thumb was
+  still on the stick). The sticks and buttons of the demonstration sit
+  where and as large as the game draws them, the aim assist as the game's
+  pill above the aim stick. The Apple TV keeps the demonstration only.
 
 ## Ways to play
 
