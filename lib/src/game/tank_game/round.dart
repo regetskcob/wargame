@@ -76,7 +76,7 @@ extension TankGameRound on TankGame {
       }
       ids.sort();
     }
-    _equipBots(bots, teams, random);
+    _equipBots(ids, bots, teams, random);
     // A duel takes exactly two players, the host on the left.
     final humans = [
       for (final id in ids)
@@ -113,17 +113,22 @@ extension TankGameRound on TankGame {
     _applyRoundStart(payload);
   }
 
-  /// Gives every CPU tank of [bots] its vehicle and paint. In a round of
+  /// Gives every CPU tank of [bots] a vehicle one of the people in [ids]
+  /// drives (`GameConfig.mirrorStyle`) and a paint. In a round of
   /// red against blue the two sides get the same vehicles, the n-th CPU tank
   /// of one side the same as the n-th of the other: drawn one by one, a
   /// side could end up in three Spitzmaus (60 armour) against three
   /// Hermelin (100).
   void _equipBots(
+    List<String> ids,
     Map<String, int> bots,
     Map<String, int> teams,
     Random random,
   ) {
-    final maxLevel = botLevel.value.maxVehicleLevel;
+    final driven = [
+      for (final id in ids)
+        if (!bots.containsKey(id)) GameConfig.typeOf(_styleFor(id)),
+    ];
     int paint(TankType type) =>
         GameConfig.styleOf(type.index, random.nextInt(GameConfig.freeColors));
     final sides = [
@@ -136,15 +141,13 @@ extension TankGameRound on TankGame {
     if (!sides.every((side) => side.isNotEmpty)) {
       // Everybody for themselves, or all CPU tanks on one side.
       for (final id in bots.keys) {
-        bots[id] = GameConfig.randomStyle(random, maxLevel: maxLevel);
+        bots[id] = GameConfig.mirrorStyle(random, driven);
       }
       return;
     }
     final pairs = max(sides[0].length, sides[1].length);
     for (var i = 0; i < pairs; i++) {
-      final type = GameConfig.typeOf(
-        GameConfig.randomStyle(random, maxLevel: maxLevel),
-      );
+      final type = GameConfig.typeOf(GameConfig.mirrorStyle(random, driven));
       for (final side in sides) {
         if (i < side.length) {
           bots[side[i]] = paint(type);

@@ -162,10 +162,14 @@ Everything the game does, with the numbers behind it. The short version is in th
   the briefing) goes straight into a solo round with the tank and
   difficulty used last, and alone the countdown takes
   2 s instead of 3.
-- CPU tanks drive the vehicles a new player has (Hermelin, Spitzmaus,
-  Fuchs) on every level (`BotLevel.maxVehicleLevel`). They once came in any
-  vehicle, the Wolf and the Hirsch with three times the armour of a
-  starter. On normal and hard they take 1.6 and 1.4 times as long between
+- CPU tanks drive the vehicles the people in the round drive
+  (`GameConfig.mirrorStyle`): alone every CPU tank comes in the player's
+  vehicle, with several people each draws from theirs, and in red against
+  blue the n-th CPU tank of each side gets the same one. A new player in a
+  starter meets starters, a pilot in a Wolf meets Wolves. CPU tanks once
+  came in any vehicle, which beat new players, and then in starters only,
+  which left every higher rank with weak opponents (a player at normal CPU
+  level won 83 % on hard in a Wolf, 26 % in a starter; issue 24). On normal and hard they take 1.6 and 1.4 times as long between
   shots as a person in the same vehicle (`BotLevel.fireFactor`).
 - The aim assist is there on every level; hard once took it away, and on a
   phone hard could then hardly be won.
@@ -291,6 +295,36 @@ people on normal and hard, a larger aim error, slower reactions and a
 longer gentle start (8 s on normal, 5 s on hard). Slower fire alone barely
 changed hard: three or four accurate tanks going for the player at once
 was what decided.
+
+**CPU vehicles mirror the player (issue 24).** With CPU tanks in starters
+only, the odds hung on the player's vehicle: in a Wolf a player at normal
+CPU level won 83 % on hard, in a starter 26 %. Now CPU tanks drive what the
+people in the round drive. `--dart-define=VEHICLE=wolf` (any `TankType`
+name) puts the stand-in into that vehicle. Wins in 100 rounds per vehicle,
+October 2026, as the range over all nine vehicles and a random starter:
+
+| Level | Player | Starters only | Mirrored |
+| --- | --- | --- | --- |
+| easy | idle | 4–15 % | 0–10 % |
+| easy | aim assist only | 64–97 % | 60–79 % |
+| easy | like an easy CPU | 17–84 % | 16–32 % |
+| easy | like a normal CPU | 38–100 % | 37–67 % |
+| normal | idle | 3–16 % | 2–7 % |
+| normal | aim assist only | 42–89 % | 44–63 % |
+| normal | like an easy CPU | 12–78 % | 3–24 % |
+| normal | like a normal CPU | 28–96 % | 31–52 % |
+| hard | idle | 0–9 % | 1–7 % |
+| hard | aim assist only | 21–81 % | 18–37 % |
+| hard | like an easy CPU | 4–53 % | 2–19 % |
+| hard | like a normal CPU | 23–83 % | 15–33 % |
+
+Every level stays winnable in every vehicle, and the starter numbers barely
+moved (they mirror starters as before). The spread that is left comes from
+the vehicles themselves: a Hirsch or an Igel against its own kind fights
+differently from a Fuchs. A weak player in a heavy vehicle now meets heavy
+vehicles too (6–18 % on normal), which is what a starter player met
+before. Not simulated: a room where a new player and a veteran meet, where
+each CPU tank draws from both of their vehicles.
 
 **Defense builds.** `test/game/defense/trench_balance_sim_test.dart`
 (skipped as well, `--run-skipped --dart-define=ROUNDS=8`, `WAVE=5` for a

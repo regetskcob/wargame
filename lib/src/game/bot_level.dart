@@ -82,15 +82,6 @@ enum BotLevel {
     normal || hard => 0.5,
   };
 
-  /// Highest rank of the vehicles CPU tanks of this level drive. A
-  /// balance run found that a player as good as a CPU tank won one round
-  /// in ten on normal instead of one in three or four: the CPU tanks also
-  /// came in the Wolf and the Hirsch, with three times the armour of the
-  /// vehicles a new player starts with.
-  int get maxVehicleLevel => switch (this) {
-    BotLevel.easy || BotLevel.normal || BotLevel.hard => 1,
-  };
-
   /// How much longer a CPU tank of this level takes between shots than a
   /// person in the same vehicle. Easy has its endless ammunition for that.
   double get fireFactor => switch (this) {

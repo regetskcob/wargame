@@ -5,6 +5,8 @@ import 'package:clock/clock.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/bot_brain.dart';
 import 'package:wargame/src/game/bot_level.dart';
+import 'package:wargame/src/game/components/tank_painter.dart';
+import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -31,6 +33,10 @@ enum Player {
 ///     flutter test test/game/balance_sim_test.dart --run-skipped \
 ///       --dart-define=ROUNDS=60
 ///
+/// `--dart-define=VEHICLE=wolf` puts the player into that vehicle (a
+/// `TankType` name) instead of a random starter, `PLAYERS=assist,normal`
+/// and `LEVELS=hard` narrow the cases.
+///
 /// The round clock is faked, so the closing zone and the CPU tanks' hold
 /// fire run as in a real round, only faster. Results and what they led to
 /// are in docs/gameplay.md "Balance".
@@ -38,10 +44,15 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const rounds = int.fromEnvironment('ROUNDS', defaultValue: 20);
+  const vehicle = String.fromEnvironment('VEHICLE');
+  const players = String.fromEnvironment('PLAYERS');
+  const levels = String.fromEnvironment('LEVELS');
+  bool picked(String list, String name) =>
+      list.isEmpty || list.split(',').contains(name);
   const step = Duration(microseconds: 33333);
 
-  for (final level in BotLevel.values) {
-    for (final player in Player.values) {
+  for (final level in BotLevel.values.where((l) => picked(levels, l.name))) {
+    for (final player in Player.values.where((p) => picked(players, p.name))) {
       test('${level.name} vs ${player.name}', () async {
         var wins = 0;
         var survived = 0.0;
@@ -50,6 +61,12 @@ void main() {
           var now = clock.now();
           await withClock(Clock(() => now), () async {
             final game = await loadedGame();
+            if (vehicle.isNotEmpty) {
+              game.myColorIndex = GameConfig.styleOf(
+                TankType.values.byName(vehicle).index,
+                0,
+              );
+            }
             game
               ..chooseMode(GameMode.solo)
               ..botLevel.value = level
@@ -91,7 +108,8 @@ void main() {
         }
         // ignore: avoid_print
         print(
-          'RESULT ${level.name.padRight(6)} ${player.name.padRight(7)} '
+          'RESULT ${vehicle.isEmpty ? 'starter' : vehicle} '
+          '${level.name.padRight(6)} ${player.name.padRight(7)} '
           'win ${(100 * wins / rounds).round()}% '
           'survived ${(survived / rounds).toStringAsFixed(1)}s '
           'kills ${(kills / rounds).toStringAsFixed(2)}',

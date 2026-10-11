@@ -20,6 +20,9 @@ step, point for point.
   enemies too
 - Whenever CPU tanks come, at least as many as there are people: two on
   one screen meet 2 to 4, a room filled up gets one CPU tank per pilot
+- CPU tanks drive the vehicles the people in the round drive: a new
+  player meets starters, a pilot in a Wolf meets Wolves, instead of
+  starters for everybody
 - Comrades in a defense round drive the vehicles of the wave they roll out
   in, by the same rules as the enemy's waves
 - Red against blue: CPU tanks even out sides that the players' picks left

@@ -634,15 +634,21 @@ class GameConfig {
   /// Paint schemes everybody has from the start.
   static const freeColors = 4;
 
-  /// A vehicle up to rank [maxLevel] and one of the free paint schemes, for
-  /// a CPU tank. Any vehicle without a limit.
-  static int randomStyle(Random random, {int maxLevel = 99}) {
-    final allowed = [
-      for (final type in TankType.values)
-        if (type.level <= maxLevel) type,
-    ];
+  /// A vehicle for a CPU tank out of those the people in the round drive
+  /// ([driven]), and one of the free paint schemes. Mirrored, a round is
+  /// even by construction: a new player meets starters, a pilot in a Wolf
+  /// meets Wolves. CPU tanks used to drive starters only, which was fair for
+  /// a new player but left everybody of a higher rank with weak opponents
+  /// (issue 24). Without anybody to mirror, a starter.
+  static int mirrorStyle(Random random, List<TankType> driven) {
+    final pool = driven.isNotEmpty
+        ? driven
+        : [
+            for (final type in TankType.values)
+              if (type.level <= 1) type,
+          ];
     return styleOf(
-      allowed[random.nextInt(allowed.length)].index,
+      pool[random.nextInt(pool.length)].index,
       random.nextInt(freeColors),
     );
   }

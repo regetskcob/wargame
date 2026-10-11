@@ -66,7 +66,7 @@ All **blocker** unless marked. Runs on the release commit.
 | A4 | Realtime budget: rooms, phones, presence bursts stay within `GameConfig.roomLoad` / `padLoad` | part of A1: `message_budget_test`, `pad_budget_test`, `presence_throttle_test`, `room_capacity_test`, `pad_screen_test`, `rooms_busy_test` |
 | A5 | Hostile peers: ~14,000 bent messages and input chaos in every mode throw nothing; forged close, round start, blasts, floods, spoofed flags are refused (#12 A1–A14) | part of A1: `hostile_fuzz_test`, `hostile_room_test`, `hostile_payload_test`, `plausibility_test` |
 | A6 | Against a local stack: Broadcast, Presence, `scores`, phone controller | `supabase start`, then `flutter test --tags supabase` (**major**; skip only if Docker is missing and say so) |
-| A7 | Balance in the bands below (**major**) | `flutter test test/game/balance_sim_test.dart --run-skipped --dart-define=ROUNDS=100` |
+| A7 | Balance in the bands below (**major**), in a starter and again in the Wolf (`--dart-define=VEHICLE=wolf`): CPU tanks mirror the player's vehicle, so a rank must not change the odds much | `flutter test test/game/balance_sim_test.dart --run-skipped --dart-define=ROUNDS=100` |
 | A8 | Defense builds pay for themselves (**major**) | `flutter test test/game/defense/trench_balance_sim_test.dart --run-skipped --dart-define=ROUNDS=8`, again with `WAVE=5` |
 | A9 | Flaky tests: the suite passes three runs in a row (#23: a squad test failed once in the full suite) | `for i in 1 2 3; do flutter test --exclude-tags supabase || break; done` (**major**) |
 
@@ -130,7 +130,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F3.2 | Countdown 2 s alone, 3 s with other people, the digit sits above the own tank | #12 | auto: `quick_flow_test`; sim | m |
 | F3.3 | The aim assist exists on every level, reads "fires by itself", sits as a pill above the aim zone, and actually fires, also after a HUD rebuild on a tablet | #12 evening (high), 5bb1e56 | auto: `touch_controls_test`, `hud_overlay_test`; sim: idle iPad round deals damage | B |
 | F3.4 | CPU tanks fire at a person only within that person's sight (night 42 m, fog 52 m) | #12 hard | auto: `bot_level_test` (`BotBrain.reach`) | M |
-| F3.5 | CPU tanks drive starter vehicles on every level | #12 evening | auto: `bot_level_test` | M |
+| F3.5 | CPU tanks drive the vehicles of the people in the round (alone the player's own, in red against blue pair by pair); every vehicle stays winnable on every level | #12 evening, #24 | auto: `cpu_fairness_test`; balance sim per vehicle (`VEHICLE=`) | M |
 | F3.6 | Off-screen arrows keep 34 px apart, slide past gauges, mini map and panels, show distance in metres; the zone is in metres | #12 | auto: `enemy_indicators_test` | m |
 | F3.7 | Kill feed: a tank lost in the zone "ist ausgeschieden / is out", not "dropped out" | #23 M7 | auto: `kill_feed_view_test` | m |
 | F3.8 | End screen: NEW GAME starts a new round with the same tank and settings; alone it waits, with others it counts 15 s on its button | #12 high | auto: `quick_flow_test`; sim | B |

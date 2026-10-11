@@ -23,7 +23,9 @@ Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
 
 ## Ways to play
 
-- **Single player:** alone against 1 to 4 CPU tanks on three levels.
+- **Single player:** alone against 1 to 4 CPU tanks on three levels; the
+  CPU tanks drive what the people in the round drive, so every rank meets
+  its match.
 - **Multiplayer:** free for all or red against blue, in private rooms (link,
   code or QR code) or public ones from the room list. Late joiners watch.
 - **Defense:** together against 8 waves of tanks, helicopters, jets and
@@ -154,7 +156,7 @@ flutter run -d chrome \
 - Round results checked on the server through an Edge Function instead of
   trusting what each client reports. Until then numbers are clamped and
   bounded by the time of a server ticket taken at the round's start.
-- More tests (about 78 % of the loaded lines are covered, CI holds a floor
+- More tests (about 81 % of the loaded lines are covered, CI holds a floor
   of 75 %): the defense rules as a pure function with an injected clock,
   `record_round` and the policies with pgTAP in CI, golden tests for HUD,
   shop, lobby and leaderboards, and the app shell and Apple TV split screen,
@@ -164,7 +166,7 @@ flutter run -d chrome \
 
 - Defense: difficulty levels and a leaderboard for the extension.
 - Single player missions: escort, hold the position, take the flag.
-- Capture the flag and king of the hill for multiplayer.
+- King of the hill for multiplayer.
 - Loadouts that unlock with experience, such as ammunition types.
 - Seasons and weekly challenges on top of `round_results`.
 - Friends, clans and shared replays.
