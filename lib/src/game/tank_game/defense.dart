@@ -875,6 +875,16 @@ extension TankGameDefense on TankGame {
         t.covers(at, margin: 8),
   );
 
+  /// Whether a tank of [trench]'s side sits in it.
+  bool trenchHolds(Tower trench) =>
+      trench.kind == TowerKind.trench &&
+      _allTanks.any(
+        (tank) =>
+            tank.hp > 0 &&
+            !hurtsTower(tank.playerId, trench.ownerId) &&
+            trench.covers(tank.position, margin: 8),
+      );
+
   /// Whether a tank at [at] is crossing a trench, of either side: it
   /// crawls over the dug earth.
   bool overTrench(Vector2 at) =>
@@ -1079,9 +1089,8 @@ extension TankGameDefense on TankGame {
   /// local player's, or the enemy's on the player who runs the waves.
   void fireTower(Tower tower) {
     final owner = tower.ownerId;
-    final direction = Vector2(sin(tower.turretAngle), -cos(tower.turretAngle));
     final bulletId = '$owner-${_bulletCounter++}';
-    final start = tower.muzzle(direction);
+    final (start, direction) = tower.nextShot();
     tower.fired(direction);
     _spawnBullet(
       bulletId: bulletId,

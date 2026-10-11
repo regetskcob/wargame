@@ -135,7 +135,10 @@ class Bullet extends PositionComponent
       removeFromParent();
     } else if (other is Tower) {
       // Enemy shells wear the guns down, the defenders shoot over them.
-      if (gameRef.hurtsTower(ownerId, other.ownerId)) {
+      // A tank of the trench's side sitting in it takes the shell itself,
+      // the trench only halves it.
+      if (gameRef.hurtsTower(ownerId, other.ownerId) &&
+          !gameRef.trenchHolds(other)) {
         _impact(const Color(0xFF8A8A80));
         other.lastHitBy = ownerId;
         // The player who runs the waves keeps the score of every gun, also

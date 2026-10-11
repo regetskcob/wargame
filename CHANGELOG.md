@@ -19,8 +19,10 @@ step, point for point.
 - The replay's end button sits in the bar beside the next tank
 - Deleting the account comes last on the account page
 - Trenches are manned: three riflemen and a machine gun fire at soldiers
-  and tanks; on the road a trench lies across it from edge to edge, and
-  tanks of either side crawl over it
+  and tanks, each aiming for himself and looking out where the enemy comes
+  from; on the road a trench lies across it from edge to edge, tanks of
+  either side crawl over it, and enemy shells now wear it down
+- Guns and soldiers lead their aim on soldiers walking across their fire
 - Squads on foot patrol instead of standing on their spot and stalk enemy
   tanks and soldiers that come within sight
 

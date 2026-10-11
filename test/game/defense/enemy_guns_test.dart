@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:flame/components.dart';
@@ -136,6 +137,9 @@ void main() {
     }
     expect(game.overTrench(centre + dir * 60), isFalse);
     expect(trench.crew, Tower.trenchCrew);
+    // At rest the men look up the road, where the enemy comes from.
+    final look = Vector2(sin(trench.turretAngle), -cos(trench.turretAngle));
+    expect(look.dot(dir), lessThan(-0.99));
   });
 
   test('the men in a trench fire at soldiers marching past', () async {
@@ -152,12 +156,14 @@ void main() {
         wave: TowerKind.trench.fromWave,
       )
       ..buildTower(TowerKind.trench)
-      ..spawnEnemySquad('td-s-2-0', 2);
-    game.update(0);
+      ..update(0);
     final trench = game.towers.values.single;
     expect(trench.onRoad, isFalse, reason: game.notice.value);
-    // Beside the road it runs along it.
+    // Beside the road it runs along it, the men looking over the road.
     expect(trench.trenchAxis.dot(dir).abs(), greaterThan(0.99));
+    final look = Vector2(sin(trench.turretAngle), -cos(trench.turretAngle));
+    expect(look.dot(Vector2(-dir.y, dir.x)), lessThan(-0.99));
+    game.spawnEnemySquad('td-s-2-0', 2);
     final before = game.bullets.length;
     for (var i = 0; i < 10; i++) {
       game.update(0.2);

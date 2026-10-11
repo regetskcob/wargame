@@ -300,6 +300,9 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   static const trenchCrew = 4;
   int _shooter = 0;
 
+  /// Seconds until a trench that stopped firing looks out again.
+  double _quiet = 0;
+
   /// Along the trench: across the road when it lies on the road, else along
   /// the road it faces. Every client works it out from the same spot on
   /// the same map.
@@ -317,6 +320,21 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
       kind == TowerKind.trench &&
       (gameRef.defenseMap?.distanceToRoad(position) ?? double.infinity) <
           DefenseMap.roadHalfWidth;
+
+  /// Where the men of a trench look while nothing is in reach: on the road
+  /// up it, where the enemy comes from, beside it over the road. Without
+  /// it they all faced up the screen and so often away from the attack.
+  late final double restAngle = () {
+    final map = gameRef.defenseMap;
+    if (map == null) {
+      return 0.0;
+    }
+    final (point, dir) = map.nearestOnRoad(position);
+    final look = onRoad || point.distanceTo(position) < 1
+        ? -dir
+        : point - position;
+    return atan2(look.x, -look.y);
+  }();
 
   /// Length of a trench along [trenchAxis].
   double get trenchLength =>
@@ -338,15 +356,38 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
         across <= GameConfig.trenchHalfWidth + margin;
   }
 
-  /// Where a shot in [direction] leaves: the gun's muzzle, or for a trench
-  /// the rifle of the man whose turn it is.
-  Vector2 muzzle(Vector2 direction) {
+  /// Where the next shot leaves and where it flies: from the gun's muzzle
+  /// where the gun points, or from the rifle of the man in the trench whose
+  /// turn it is, straight at what he aims at. Aiming from the middle of a
+  /// trench across the road sent the shots of the men at its ends past
+  /// soldiers close by.
+  (Vector2, Vector2) nextShot() {
+    final pointing = Vector2(sin(turretAngle), -cos(turretAngle));
     if (kind != TowerKind.trench) {
-      return position + direction * 44;
+      return (position + pointing * 44, pointing);
     }
     final men = max(1, crew);
     _shooter = (_shooter + 1) % men;
-    return crewAt(_shooter) + direction * 8;
+    final from = crewAt(_shooter);
+    final aim = _aim;
+    final direction = aim == null || aim.distanceTo(from) < 1
+        ? pointing
+        : (aim - from).normalized();
+    return (from + direction * 8, direction);
+  }
+
+  /// What the men of a trench aim at, in the world. On the other clients a
+  /// point along the last shot.
+  Vector2? _aim;
+
+  /// Where the man [i] of a trench points his rifle.
+  double _aimOf(int i) {
+    final aim = _aim;
+    if (aim == null || _quiet == 0) {
+      return turretAngle;
+    }
+    final from = crewAt(i);
+    return atan2(aim.x - from.x, -(aim.y - from.y));
   }
 
   double turretAngle = 0;
@@ -368,7 +409,9 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   void fired(Vector2 direction, {Vector2? from}) {
     turretAngle = atan2(direction.x, -direction.y);
     _recoil = 1;
+    _quiet = 1.5;
     if (from != null && kind == TowerKind.trench) {
+      _aim = from + direction * 150;
       var best = double.infinity;
       for (var i = 0; i < trenchCrew; i++) {
         final distance = crewAt(i).distanceTo(from);
@@ -389,8 +432,31 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     }
   }
 
+  /// Turns the aim towards [wanted] at the kind's pace.
+  void _turnTo(double wanted, double dt) {
+    final diff = (wanted - turretAngle).toNormalizedAngle();
+    final turn = kind.traverse * dt;
+    turretAngle += diff.clamp(-turn, turn);
+  }
+
   @override
   void onLoad() {
+    if (kind == TowerKind.trench) {
+      turretAngle = restAngle;
+    }
+    // A manned trench is hit along its length; without that tank shells
+    // flew through it and only blasts wore it down.
+    if (kind == TowerKind.trench) {
+      add(
+        RectangleHitbox(
+          position: size / 2,
+          size: Vector2(trenchLength, GameConfig.trenchHalfWidth * 2),
+          anchor: Anchor.center,
+          angle: atan2(trenchAxis.y, trenchAxis.x),
+          collisionType: CollisionType.passive,
+        ),
+      );
+    }
     // Shells only stop at what stands up from the ground.
     if (kind.isGun && !isHq) {
       add(
@@ -409,6 +475,12 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     _recoil = max(0, _recoil - dt * 6);
     _upgraded = max(0, _upgraded - dt);
     _flash = max(0, _flash - dt);
+    _quiet = max(0, _quiet - dt);
+    // Every client: a trench that has not fired for a moment looks out
+    // where the enemy comes from again.
+    if (kind == TowerKind.trench && _quiet == 0) {
+      _turnTo(restAngle, dt);
+    }
     if (!_runs || (kind == TowerKind.trench && crew == 0)) {
       return;
     }
@@ -427,11 +499,13 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
       return;
     }
     final aim = kind.lobs ? target.position.clone() : _lead(target);
+    _aim = aim;
     final wanted = atan2(aim.x - position.x, -(aim.y - position.y));
     final diff = (wanted - turretAngle).toNormalizedAngle();
     final turn = kind.traverse * dt;
     turretAngle += diff.clamp(-turn, turn);
-    if (diff.abs() < 0.08 && _cooldown <= 0) {
+    // The men of a trench each aim for themselves.
+    if ((kind == TowerKind.trench || diff.abs() < 0.08) && _cooldown <= 0) {
       _cooldown =
           kind.cooldownAt(level) *
           (isEnemy ? GameConfig.enemyGunCooldown : 1) *
@@ -718,7 +792,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
       final man = c + Offset(at.x, at.y);
       canvas.save();
       canvas.translate(man.dx, man.dy);
-      canvas.rotate(turretAngle);
+      canvas.rotate(_aimOf(i));
       final machineGun = i == 1;
       final recoil = i == _shooter ? 3 * _recoil : 0.0;
       canvas.drawLine(

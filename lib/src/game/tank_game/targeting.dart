@@ -65,6 +65,7 @@ extension TankGameTargeting on TankGame {
     final TankBase tank => velocityOf(tank),
     final Aircraft plane => plane.velocity,
     final Drone drone => drone.velocity,
+    final Soldier soldier => soldier.velocity,
     _ => Vector2.zero(),
   };
 

@@ -246,6 +246,30 @@ longer gentle start (8 s on normal, 5 s on hard). Slower fire alone barely
 changed hard: three or four accurate tanks going for the player at once
 was what decided.
 
+**Defense builds.** `test/game/defense/trench_balance_sim_test.dart`
+(skipped as well, `--run-skipped --dart-define=ROUNDS=8`) puts one build a
+third of the way down the road and sends three squads on foot (15 men) and
+two tanks of wave 3 past it, without comrades and without the director's
+waves. Measured October 2026 after manning the trench, 8 rounds each:
+
+| Build | Cost | Bounties earned | Hits on the base | Tanks at the base | Left |
+| --- | --- | --- | --- | --- | --- |
+| nothing | 0 | 0 | 27 | 16 of 16 | |
+| trench on the road | 60 | 60 | 11 | 16 of 16 | 67 % |
+| trench beside the road | 60 | 60 | 11 | 16 of 16 | 69 % |
+| cannon | 100 | 85 | 1 | 1 of 16 | 62 % |
+| mortar | 150 | 49 | 14 | 16 of 16 | 40 % |
+
+The trench pays for itself in one wave against infantry and stops every
+soldier, but does nothing against tanks, which its crawl barely delays;
+the cannon stays the build for tanks, so the price of 60 holds. Two things
+the run found: shots aimed from the middle of a trench across the road
+flew past the men close by, so every man aims for himself, and no gun led
+its aim on soldiers (they had no speed), so shots at a soldier crossing
+the line of fire missed; both fixed. Trenches now take shells along their
+length too, they used to wear down only from blasts. The mortar earns a
+third of its price here and is worth a look of its own.
+
 ## Weapons and damage
 
 All values are hit points. They live in `lib/src/game/game_config.dart`,
@@ -387,8 +411,12 @@ cut across it (not over a bridge): on the road a trench is dug on its
 middle and lies across it from edge to edge, beside the road it runs
 along it. Four men sit in it, three with rifles and one with a machine
 gun; they take turns firing (one shot every 0.35 s for the whole trench,
-3 damage), at soldiers first and tanks after, and one of them goes with
-every quarter of its hit points, the fire slowing with him. Tanks of
+3 damage), at soldiers first and tanks after, each man aiming from where
+he sits, and one of them goes with every quarter of its hit points, the
+fire slowing with him. At rest they look where the enemy comes from: on
+the road up it, beside it over it. Enemy shells hit a trench along its
+length, unless a tank of its side sits in it: that tank takes the shell,
+halved. Tanks of
 either side crawl over a trench at 40 % of their speed and soldiers
 march on through it; only a tank of the side that dug it takes cover
 there, so an enemy rolling over a trench on the road gets none.

@@ -86,6 +86,11 @@ class Soldier extends PositionComponent {
 
   bool dead = false;
 
+  /// How fast and where the soldier walks, for guns that lead their aim: a
+  /// soldier crossing the line of fire walked out of every shot aimed where
+  /// he was.
+  final velocity = Vector2.zero();
+
   /// Seconds until the gun is ready again, kept by the owner's client.
   double cooldown = 0;
 
@@ -205,6 +210,7 @@ class Soldier extends PositionComponent {
     final ahead = _at(t + 0.1);
     position.setFrom(now);
     final delta = ahead - now;
+    velocity.setFrom(delta / 0.1);
     if (delta.length2 > 0) {
       angle = atan2(delta.x, -delta.y);
     }
