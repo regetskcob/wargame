@@ -22,6 +22,28 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 - Apple Watch: every mode alone against CPU tanks, counted for the account
   on the iPhone
 
+### Penetration and stress test ([#12](https://github.com/regetskcob/wargame/issues/12))
+
+- Rooms cap messages per sender and kind and check what comes in: forged
+  round starts, room closings, blasts, grenades, endless speeds and floods
+  of made up tanks, aircraft, drones, guns, troops or items no longer get
+  through
+- A player who drops out for up to six seconds keeps tank, guns and, as
+  host, the defense; deaths from before a rematch no longer count
+- A builder now learns when the host destroyed their gun
+- Call signs lose invisible and right to left characters
+- Migration 0018: Realtime slots capped under a budget kept in the
+  database, rated opponents only while online, kills and damage tied to
+  the time since the last round, at most 300 rounds a day, badges stamped
+  with the server's time
+- A player arriving by room link is counted against the Realtime budget
+- Long defense rounds no longer pile up fallen soldiers, craters, stains,
+  wrecks and replay positions
+- Faster drawing: on an iPad Pro 2018 a defense at wave 30 went from about
+  65 to 95 fps
+- A second phone paired during the results no longer leaves an empty half,
+  and the inventory stays clear of the defense build panel
+
 ## 1.3.0 (8) – 2026-10-10
 
 - Invite a chat into a room from iMessage, the round's result shows up there
