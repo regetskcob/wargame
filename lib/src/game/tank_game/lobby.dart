@@ -260,15 +260,30 @@ extension TankGameLobby on TankGame {
     unawaited(pushPresence());
   }
 
-  /// Teams for a round: picks are honoured, players without a pick fill up
-  /// whichever team is smaller. [force] makes teams without the switch in
-  /// the lobby, for capturing the flag.
-  Map<String, int> _assignTeams(List<String> ids, {bool force = false}) {
+  /// Teams for a round: picks are honoured, and the people on AUTO are
+  /// spread by the rank of their vehicle so a new player gets a veteran at
+  /// their side (issue 24: CPU tanks mirror the people's vehicles, so a
+  /// room of a Wolf and a starter on opposite sides was decided by the
+  /// vehicles). With CPU tanks to even out the sides ([fill]) the strongest
+  /// and the weakest go together, pair by pair, to the weaker side; without,
+  /// the sides must stay even, so each goes to the smaller side, the weaker
+  /// one on a tie. CPU tanks ([bots]) fill up whichever side is smaller.
+  /// [force] makes teams without the switch in the lobby, for capturing the
+  /// flag.
+  Map<String, int> _assignTeams(
+    List<String> ids, {
+    bool force = false,
+    bool fill = false,
+    Set<String> bots = const {},
+  }) {
     if (!teamMode.value && !force) {
       return const {};
     }
     final teams = <String, int>{};
     for (final id in ids) {
+      if (bots.contains(id)) {
+        continue;
+      }
       final pick = id == myId ? teamPick : _rosterMember(id)?.team ?? 0;
       if (pick == 1 || pick == 2) {
         teams[id] = pick;
@@ -283,13 +298,37 @@ extension TankGameLobby on TankGame {
       teams[myId] = mine;
       teams[mate] = duoTogether.value ? mine : FlagMatch.otherTeam(mine);
     }
-    for (final id in ids) {
-      if (teams.containsKey(id)) {
-        continue;
+    int strength(String id) => GameConfig.typeOf(_styleFor(id)).level;
+    int size(int team) => teams.values.where((t) => t == team).length;
+    int sum(int team) => [
+      for (final entry in teams.entries)
+        if (entry.value == team) strength(entry.key),
+    ].fold(0, (a, b) => a + b);
+    int weaker() => sum(1) <= sum(2) ? 1 : 2;
+    int smaller() =>
+        size(1) != size(2) ? (size(1) < size(2) ? 1 : 2) : weaker();
+    // Strongest first; the same vehicle keeps the room's order.
+    final auto = [
+      for (final id in ids)
+        if (!bots.contains(id) && !teams.containsKey(id)) id,
+    ]..sort((a, b) => strength(b).compareTo(strength(a)));
+    if (fill) {
+      while (auto.isNotEmpty) {
+        final team = weaker();
+        teams[auto.removeAt(0)] = team;
+        if (auto.isNotEmpty) {
+          teams[auto.removeLast()] = team;
+        }
       }
-      final red = teams.values.where((t) => t == 1).length;
-      final blue = teams.values.where((t) => t == 2).length;
-      teams[id] = red <= blue ? 1 : 2;
+    } else {
+      for (final id in auto) {
+        teams[id] = smaller();
+      }
+    }
+    for (final id in ids) {
+      if (!teams.containsKey(id)) {
+        teams[id] = size(1) <= size(2) ? 1 : 2;
+      }
     }
     return teams;
   }

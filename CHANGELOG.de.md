@@ -23,6 +23,9 @@ gepflegt.
 - CPU-Panzer fahren die Fahrzeuge der Menschen in der Runde: Neulinge
   treffen auf Startfahrzeuge, wer im Wolf sitzt, auf Wölfe, statt dass
   alle nur Startfahrzeugen begegnen
+- Rot gegen Blau: Wer auf AUTO steht, wird nach Fahrzeug verteilt, sodass
+  Neulinge mit Erfahrenen zusammen spielen, und die CPU-Panzer gegenüber
+  fahren die Fahrzeuge, denen dort ein Gegenstück fehlt
 - Kameraden in der Verteidigung fahren die Fahrzeuge der Welle, in der sie
   ausrücken, nach denselben Regeln wie die gegnerischen Wellen
 - Rot gegen Blau: CPU-Panzer gleichen Teams aus, die durch die Wahl der

@@ -299,8 +299,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             const SizedBox(height: 6),
             _hint(
               tr(
-                'AUTO füllt das kleinere Team.',
-                'AUTO fills the smaller team.',
+                'AUTO teilt nach Fahrzeug: Neulinge spielen mit Erfahrenen.',
+                'AUTO splits by vehicle: new players team up with veterans.',
               ),
             ),
           ],
@@ -309,7 +309,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
-  /// The side the host wants to play on, AUTO for the smaller one.
+  /// The side the host wants to play on, AUTO to be spread by vehicle.
   Widget _teamPickRow() {
     return ChoiceRow<int>(
       options: [

@@ -23,6 +23,9 @@ step, point for point.
 - CPU tanks drive the vehicles the people in the round drive: a new
   player meets starters, a pilot in a Wolf meets Wolves, instead of
   starters for everybody
+- Red against blue: players on AUTO are spread by their vehicle, so a new
+  player plays alongside a veteran, and the CPU tanks across drive the
+  vehicles that have no counterpart there
 - Comrades in a defense round drive the vehicles of the wave they roll out
   in, by the same rules as the enemy's waves
 - Red against blue: CPU tanks even out sides that the players' picks left

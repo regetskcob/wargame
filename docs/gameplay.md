@@ -44,9 +44,16 @@ Everything the game does, with the numbers behind it. The short version is in th
 - **Single player:** alone against 1 to 4 CPU tanks on three levels.
 - **Multiplayer:** free for all or red against blue, with CPU tanks to fill
   up the field on request: up to four tanks in all, and always at least as
-  many CPU tanks as people (6 in capture the flag, same rule). In red against blue they also even the sides
-  out when the players' picks left one short, and the two sides' CPU tanks
-  drive the same vehicles, pair by pair. Private rooms by link, code or QR code, public
+  many CPU tanks as people (6 in capture the flag, same rule). In red
+  against blue a picked side stays picked, and the people on AUTO are
+  spread by the rank of their vehicle so a new player gets a veteran at
+  their side: with CPU tanks to fill up, the strongest and the weakest go
+  together to the weaker side, pair by pair; without, each goes to the
+  smaller side, the weaker one on a tie. CPU tanks even the sides out when
+  the picks left one short; on the side with fewer people they first take
+  the vehicles of the other side's people that have no counterpart (two
+  people together meet their own two vehicles), and the rest come in
+  pairs, the same vehicle on both sides. Private rooms by link, code or QR code, public
   rooms in a room list, and late joiners can watch the running round.
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
   roll along the road to the base. CPU comrades fill the squad, and later the

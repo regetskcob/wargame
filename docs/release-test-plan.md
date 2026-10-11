@@ -151,6 +151,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F4.5 | The host leaving closes the room for everyone ("you left the round"); a guest leaving lets the others play on | #12 | auto: `leave_round_test` (solo, host and guest leaving a battle of two) | M |
 | F4.6 | Teams: frames, tags and tanks in the team colour, also on a split screen | #12 summary | auto: `round_state_teams_test`, `split_view_test` | m |
 | F4.7 | A room with a phone fills no CPU tanks; without a server the game starts offline (`ServerStatus`), a 402 shows the busy message | CLAUDE.md, #12 | auto: `server_status_test`, `rooms_busy_test` | M |
+| F4.8 | Red against blue on AUTO: a new player and a veteran play on one side (with CPU fill) or one veteran with one new player per side (four people, no fill); a picked side stays picked; the CPU tanks across drive the vehicles without a counterpart | #24 | auto: `cpu_fairness_test` | M |
 
 ### 3.5 Defense
 

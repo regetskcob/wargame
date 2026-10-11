@@ -7,25 +7,31 @@ import 'package:wargame/src/net/payloads/lobby_presence.dart';
 
 import '../helpers/fakes.dart';
 
-LobbyPresence _red(String id, [TankType type = TankType.keiler]) =>
-    LobbyPresence(
-      id: id,
-      name: id.toUpperCase(),
-      colorIndex: GameConfig.styleOf(type.index, 0),
-      phase: 'lobby',
-      team: 1,
-      content: GameConfig.contentLevel,
-    );
+LobbyPresence _red(
+  String id, [
+  TankType type = TankType.keiler,
+  int team = 1,
+]) => LobbyPresence(
+  id: id,
+  name: id.toUpperCase(),
+  colorIndex: GameConfig.styleOf(type.index, 0),
+  phase: 'lobby',
+  team: team,
+  content: GameConfig.contentLevel,
+);
 
 Future<TankGame> _host(
   List<String> others, {
   Map<String, TankType> vehicles = const {},
+  Map<String, int> picks = const {},
+  int myPick = 1,
 }) async {
   final game = await loadedGame(net: FakeNet(isHost: true));
   game.net.onRosterChanged?.call([
-    for (final id in others) _red(id, vehicles[id] ?? TankType.keiler),
+    for (final id in others)
+      _red(id, vehicles[id] ?? TankType.keiler, picks[id] ?? 1),
   ]);
-  game.setTeamPick(1);
+  game.setTeamPick(myPick);
   return game;
 }
 
@@ -144,5 +150,74 @@ void main() {
         isEmpty,
       );
     }
+  });
+
+  Future<TankGame> teamRound(
+    Map<String, TankType> others, {
+    required TankType mine,
+    bool fill = true,
+    Map<String, int> picks = const {},
+    int myPick = 0,
+  }) async {
+    final game = await _host(
+      others.keys.toList(),
+      vehicles: others,
+      picks: {for (final id in others.keys) id: picks[id] ?? 0},
+      myPick: myPick,
+    );
+    game
+      ..myColorIndex = GameConfig.styleOf(mine.index, 0)
+      ..chooseMode(GameMode.multi)
+      ..teamMode.value = true
+      ..fillWithBots.value = fill
+      ..startRound(startedAt: DateTime.now().millisecondsSinceEpoch);
+    return game;
+  }
+
+  test('a new player and a veteran on AUTO play on one side', () async {
+    final game = await teamRound({'b': TankType.wolf}, mine: TankType.fuchs);
+    final round = game.round!;
+    expect(round.teamOf('b'), round.teamOf(game.myId));
+    final other = round.teamOf(game.myId) == 1 ? 2 : 1;
+    final across = [
+      for (final id in round.bots.keys)
+        if (round.teamOf(id) == other) GameConfig.typeOf(round.bots[id]!),
+    ];
+    expect(
+      across,
+      containsAll([TankType.wolf, TankType.fuchs]),
+      reason: 'the other side meets the same two vehicles',
+    );
+  });
+
+  test('without CPU tanks four people split veteran with new player', () async {
+    final game = await teamRound(
+      {'b': TankType.wolf, 'c': TankType.keiler, 'd': TankType.spitzmaus},
+      mine: TankType.hermelin,
+      fill: false,
+    );
+    final round = game.round!;
+    expect(round.bots, isEmpty);
+    expect(round.teamOf('b'), isNot(round.teamOf('c')));
+    expect(sizes(game), {1: 2, 2: 2});
+    for (final veteran in ['b', 'c']) {
+      final mates = [
+        for (final id in round.participants)
+          if (id != veteran && round.teamOf(id) == round.teamOf(veteran)) id,
+      ];
+      expect(mates, hasLength(1));
+      expect(mates.single, isIn([game.myId, 'd']));
+    }
+  });
+
+  test('a picked side stays picked', () async {
+    final game = await teamRound(
+      {'b': TankType.wolf},
+      mine: TankType.fuchs,
+      picks: {'b': 2},
+      myPick: 1,
+    );
+    expect(game.round!.teamOf('b'), 2);
+    expect(game.round!.teamOf(game.myId), 1);
   });
 }

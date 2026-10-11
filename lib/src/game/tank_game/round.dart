@@ -55,7 +55,7 @@ extension TankGameRound on TankGame {
         ? <String, int>{}
         : together
         ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
-        : _assignTeams(ids, force: flag);
+        : _assignTeams(ids, force: flag, fill: fill, bots: bots.keys.toSet());
     if (fill && !together && teams.isNotEmpty) {
       // The people's picks are honoured, so a room where all of them took
       // one side left the other short (3 against 1 in a battle of four):
@@ -114,11 +114,13 @@ extension TankGameRound on TankGame {
   }
 
   /// Gives every CPU tank of [bots] a vehicle one of the people in [ids]
-  /// drives (`GameConfig.mirrorStyle`) and a paint. In a round of
-  /// red against blue the two sides get the same vehicles, the n-th CPU tank
-  /// of one side the same as the n-th of the other: drawn one by one, a
-  /// side could end up in three Spitzmaus (60 armour) against three
-  /// Hermelin (100).
+  /// drives (`GameConfig.mirrorStyle`) and a paint. In a round of red
+  /// against blue the side with fewer people first gets the vehicles of
+  /// the other side's people that have no counterpart, so two people on one
+  /// side meet their own two vehicles. The CPU tanks left over then come in
+  /// pairs, the n-th of one side in the same vehicle as the n-th of the
+  /// other: drawn one by one, a side could end up in three Spitzmaus (60
+  /// armour) against three Hermelin (100).
   void _equipBots(
     List<String> ids,
     Map<String, int> bots,
@@ -131,6 +133,22 @@ extension TankGameRound on TankGame {
     ];
     int paint(TankType type) =>
         GameConfig.styleOf(type.index, random.nextInt(GameConfig.freeColors));
+    TankType draw() =>
+        GameConfig.typeOf(GameConfig.mirrorStyle(random, driven));
+    if (teams.isEmpty) {
+      for (final id in bots.keys) {
+        bots[id] = paint(draw());
+      }
+      return;
+    }
+    final people = [
+      for (final team in const [1, 2])
+        [
+          for (final id in ids)
+            if (!bots.containsKey(id) && teams[id] == team)
+              GameConfig.typeOf(_styleFor(id)),
+        ]..sort((a, b) => b.level.compareTo(a.level)),
+    ];
     final sides = [
       for (final team in const [1, 2])
         [
@@ -138,16 +156,16 @@ extension TankGameRound on TankGame {
             if (teams[id] == team) id,
         ],
     ];
-    if (!sides.every((side) => side.isNotEmpty)) {
-      // Everybody for themselves, or all CPU tanks on one side.
-      for (final id in bots.keys) {
-        bots[id] = GameConfig.mirrorStyle(random, driven);
+    for (var side = 0; side < 2; side++) {
+      final other = people[1 - side];
+      var matched = people[side].length;
+      while (matched < other.length && sides[side].isNotEmpty) {
+        bots[sides[side].removeAt(0)] = paint(other[matched++]);
       }
-      return;
     }
     final pairs = max(sides[0].length, sides[1].length);
     for (var i = 0; i < pairs; i++) {
-      final type = GameConfig.typeOf(GameConfig.mirrorStyle(random, driven));
+      final type = draw();
       for (final side in sides) {
         if (i < side.length) {
           bots[side[i]] = paint(type);
