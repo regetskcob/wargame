@@ -5,7 +5,8 @@ Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/> (
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
 Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
-`platforms.md`, `tv.md`, `netcode.md`, `development.md`); diese Datei ist der
+`platforms.md`, `tv.md`, `netcode.md`, `development.md`,
+`release-test-plan.md`); diese Datei ist der
 Schnelleinstieg.
 
 Beim Sitzungsstart zeigt der Hook `tool/session_context.sh` Branch, Abstand zu
@@ -72,7 +73,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
 | Landingpage | `site/` (Hugo) vor dem Spiel unter `/wargame/`, Spiel unter `/wargame/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
-| Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell) |
+| Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight`, `play` (manuell); vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 
 ## Befehle

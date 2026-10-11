@@ -45,6 +45,10 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
 - The iOS build embeds the watch app; the watch must be signed with the same
   team.
 - Run `/ship` first, so main is green and holds the version bump.
+- Then `/release-test` on that commit (plan in
+  `docs/release-test-plan.md`). Upload only after its verdict is GO, or
+  "GO with owner rows" once the owner did or waived those rows; never
+  after NO GO.
 - Afterwards: `gh run watch` once, report the build number, and update the
   store memory entries with what is still open in the store consoles.
 - Last, once the upload is through: `tool/finish_worktree.sh` removes this
