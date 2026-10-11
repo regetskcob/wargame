@@ -22,6 +22,32 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 - Apple Watch: every mode alone against CPU tanks, counted for the account
   on the iPhone
 
+### Fixes
+
+- Account: the e-mail field offers the saved address, the keyboard no longer
+  stays up after closing the sheet, the language chip follows a tap, the
+  call sign's label is no longer cut off
+- Rooms: one host when a browser opens its room in two tabs, guests see the
+  host's mode in the waiting room, players arriving by a room link count
+  against the Realtime budget, an iPad with two paired phones no longer
+  floods the server
+- Split screen: starts only once the second player is in the round (no
+  empty half), frames in team colours, the same mode and end screen for
+  both, named second player, never offered on phones
+- HUD: the aim assist stays on when the HUD is rebuilt, a touch brings the
+  sticks back over a controller, enemy arrows no longer twitch or slide over
+  gauges, map and panels, the inventory clears the defense panel on keyboard
+  screens, notices clear the sticks
+- CPU tanks drive the vehicles of their level and attack after the gentle
+  start, so doing nothing no longer wins
+- Stats: accuracy stays at most 100 %, a rating change of zero is hidden,
+  the leaderboard hides empty and guest rows and no longer jumps
+- The start button stays in place when a replay appears, the difficulty
+  picked last is kept on the device
+- Remote repairs, rapid fire and crate pickups are checked against what is
+  possible
+- The engine sound is no longer released twice
+
 ### Penetration and stress test ([#12](https://github.com/regetskcob/wargame/issues/12))
 
 - Rooms cap messages per sender and kind and check what comes in: forged
