@@ -38,9 +38,10 @@ Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
 
 ## Highlights
 
-- Eight vehicles from Spitzmaus to Wolf, unlocked by rank,
+- Nine vehicles from Spitzmaus to Wolf, unlocked by rank,
   each with its own armour, speed and gun.
-- Four grounds with changing weather, day and night, destructible buildings
+- Six grounds, from mountain forest to islands in shallow water, with
+  changing weather, day and night, destructible buildings
   and soldiers on foot that fight.
 - Crates and gems: repair, smoke, shield, mines, artillery, a mortar, a
   kamikaze drone, paratroopers, an air strike.

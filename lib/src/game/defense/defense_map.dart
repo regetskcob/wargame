@@ -84,10 +84,36 @@ class DefenseMap {
   /// Every base on the field, one per lane.
   List<Vector2> get bases => [for (final lane in lanes) lane.base];
 
-  /// Which of the layouts a round seed picks.
-  static int layoutFor(int seed) => (seed ~/ 4).abs() % _layouts.length;
+  /// Which of the layouts a round seed picks. The [classicLayouts] that
+  /// every client knows follow from `(seed ~/ 4) % 4`, as they always did;
+  /// a mark of 6 or 7 in the bits above the map's (see `MapTheme.indexOf`)
+  /// picks one of the newer ones. Older clients would draw a classic layout
+  /// for it, so a host offers the new ones only to a room that knows them.
+  static int layoutFor(int seed) {
+    final mark = (seed.abs() ~/ _markUnit) % 8;
+    return mark >= 6 && classicLayouts + mark - 6 < _layouts.length
+        ? classicLayouts + mark - 6
+        : (seed ~/ 4).abs() % classicLayouts;
+  }
+
+  /// Rewrites [seed] so that it picks one of the newer layouts, or with
+  /// [layout] below [classicLayouts] one of the classic ones, left to the
+  /// seed's bits. The sky and the map stay as they were.
+  static int seedForLayout(int seed, int layout) {
+    final mark = (seed ~/ _markUnit) % 8;
+    final rest = seed - mark * _markUnit;
+    return rest +
+        (layout >= classicLayouts ? 6 + layout - classicLayouts : mark % 6) *
+            _markUnit;
+  }
+
+  /// Above the map's mark: `seed % 4` map, 20 skies, 8 map marks.
+  static const _markUnit = 4 * 20 * 8;
 
   static int get layoutCount => _layouts.length;
+
+  /// The layouts every client knows, also those of older versions.
+  static const classicLayouts = 4;
 
   static const halfWidth = 1100.0;
   static const halfHeight = 700.0;
@@ -188,6 +214,50 @@ class DefenseMap {
         Vector2(halfWidth + 40, -100),
       ],
       bridges: const [],
+    ),
+    // Flussufer: down the left bank in long bends, over the river near the
+    // top and along the far bank to the base, a second bridge for the
+    // defenders lower down.
+    _Layout(
+      road: [
+        Vector2(-halfWidth, 560),
+        Vector2(-150, 560),
+        Vector2(-150, -100),
+        Vector2(-850, -100),
+        Vector2(-850, -540),
+        Vector2(700, -540),
+        Vector2(700, 280),
+        Vector2(880, 280),
+      ],
+      river: [
+        Vector2(260, -halfHeight - 40),
+        Vector2(340, -200),
+        Vector2(260, 250),
+        Vector2(330, halfHeight + 40),
+      ],
+      bridges: [Vector2(280, 380)],
+    ),
+    // Haarnadel: in from the top, two hairpins across a river that runs
+    // through the middle of the field, and the base on the near bank.
+    _Layout(
+      road: [
+        Vector2(-500, -halfHeight),
+        Vector2(-500, -300),
+        Vector2(-950, -300),
+        Vector2(-950, 520),
+        Vector2(100, 520),
+        Vector2(100, -480),
+        Vector2(640, -480),
+        Vector2(640, 40),
+        Vector2(880, 40),
+      ],
+      river: [
+        Vector2(-halfWidth - 40, 250),
+        Vector2(-400, 180),
+        Vector2(300, 260),
+        Vector2(halfWidth + 40, 190),
+      ],
+      bridges: [Vector2(-650, 205)],
     ),
   ];
 

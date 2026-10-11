@@ -60,6 +60,7 @@ import 'components/effects.dart';
 import 'components/mud_field.dart';
 import 'components/squad_route.dart';
 import 'components/obstacle.dart';
+import 'island_shape.dart';
 import 'map_theme.dart';
 import 'pilot_progress.dart';
 import 'weather.dart';

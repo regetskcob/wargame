@@ -23,11 +23,23 @@ extension TankGameShots on TankGame {
     rememberTutorialSeen();
     tutorialDone.value = true;
     await _speakShotLanguage();
-    // The olive Hermelin in every picture, not a random starter.
+    // The olive Hermelin in every picture, not a random starter, unless
+    // the scene asks for another vehicle or a ground of its own.
     setPilot(
       name: myName,
-      colorIndex: GameConfig.styleOf(TankType.hermelin.index, 0),
+      colorIndex: GameConfig.styleOf(
+        Env.shotTank ?? TankType.hermelin.index,
+        0,
+      ),
     );
+    // A picture of a vehicle a fresh pilot has not unlocked yet.
+    if (Env.shotTank case final tank? when tank < TankType.values.length) {
+      myColorIndex = GameConfig.styleOf(tank, 0);
+    }
+    if (Env.shotMap case final map?
+        when map >= 0 && map < MapTheme.all.length) {
+      mapChoice.value = map;
+    }
     switch (scene) {
       case 'menu':
         choosingMode.value = true;

@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import '../../app/env.dart';
 import '../../audio/audio_service.dart';
 import '../game_config.dart';
+import '../island_shape.dart';
 import '../../l10n/l10n.dart';
 import '../../net/net_events.dart';
 import '../../net/payloads/hit_payload.dart';
@@ -258,8 +259,10 @@ class PlayerTank extends TankBase
     } else {
       _mired = max(0, _mired - dt);
     }
-    // Woods drag the tank down to about half its speed, soft ground to 60 %.
-    final soft = gameRef.mudField?.softAt(position) ?? false;
+    // Woods drag the tank down to about half its speed, soft ground to 60 %,
+    // the islands' shallow water to 45 %.
+    final mud = gameRef.mudField;
+    final soft = mud?.softAt(position) ?? false;
     // Hits cost top speed, pulling power and steering.
     final damage = this.damage;
     // Uphill slower, downhill faster, along the way the tank rolls.
@@ -279,7 +282,10 @@ class PlayerTank extends TankBase
         (usesFuel && fuel <= 0 ? GameConfig.emptyTankSpeed : 1) *
         // Over the dug earth of a trench only slowly, and a while after.
         (_mired > 0 ? GameConfig.trenchCrossSpeed : 1) *
-        min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
+        min(
+          _trees.any((t) => !t.felled) ? 0.55 : 1.0,
+          soft ? mud!.slowdown : 1.0,
+        );
     final acceleration =
         GameConfig.tankAcceleration *
         stats.acceleration *
@@ -333,6 +339,9 @@ class PlayerTank extends TankBase
       ..scale(_speed);
     final before = position.clone();
     position.add(velocity * dt);
+    if (gameRef.mudField?.islands case final islands?) {
+      _keepOutOfDeepWater(islands, before);
+    }
     final map = gameRef.defenseMap;
     if (map != null) {
       _keepOutOfWater(map, before);
@@ -378,6 +387,24 @@ class PlayerTank extends TankBase
       _warnedFuel = true;
       gameRef.showNotice(tr('TREIBSTOFF KNAPP', 'FUEL LOW'));
     }
+  }
+
+  /// Off the islands' shallows the water is deep: a tank slides along its
+  /// edge as along a river bank.
+  void _keepOutOfDeepWater(IslandShape islands, Vector2 before) {
+    if (!islands.deep(position)) {
+      return;
+    }
+    final slideX = Vector2(position.x, before.y);
+    final slideY = Vector2(before.x, position.y);
+    if (!islands.deep(slideX)) {
+      position.setFrom(slideX);
+    } else if (!islands.deep(slideY)) {
+      position.setFrom(slideY);
+    } else {
+      position.setFrom(before);
+    }
+    _speed *= 0.6;
   }
 
   /// The river can only be crossed on a bridge. A tank that drives into the

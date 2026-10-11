@@ -159,6 +159,22 @@ class TankStats {
       blurbDe: 'Hirsch: 155-mm-Rohr, lädt langsam, trifft verheerend',
       blurbEn: 'Hirsch: 155 mm gun, reloads slowly, hits devastatingly',
     ),
+    // Four rockets side by side: a wide salvo that hits hard up close and
+    // spreads its damage over a group further out.
+    TankType.igel: TankStats(
+      maxHp: 160,
+      speed: 1.1,
+      acceleration: 1.05,
+      turnRate: 1.05,
+      fireCooldown: 0.65,
+      ammo: 18,
+      damage: 12,
+      bulletSpeed: 420,
+      barrels: 4,
+      sound: 'cannon',
+      blurbDe: 'Igel: vier Raketen je Salve, breit gestreut',
+      blurbEn: 'Igel: four rockets a salvo, spread wide',
+    ),
   };
 
   static TankStats of(TankType type) => _byType[type]!;

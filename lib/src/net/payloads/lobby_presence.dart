@@ -19,6 +19,7 @@ class LobbyPresence {
     this.level,
     this.map,
     this.teams = false,
+    this.content = 0,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -43,6 +44,7 @@ class LobbyPresence {
       level: json['level'] is String ? json['level'] as String : null,
       map: json['map'] is int ? json['map'] as int : null,
       teams: json['teams'] == true,
+      content: json['content'] is int ? json['content'] as int : 0,
     );
   }
 
@@ -160,6 +162,10 @@ class LobbyPresence {
   final int? map;
   final bool teams;
 
+  /// The newest maps, layouts and vehicles this client knows, see
+  /// `GameConfig.contentLevel`; 0 for clients from before it was sent.
+  final int content;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -183,6 +189,7 @@ class LobbyPresence {
       if (level != null) 'level': level,
       if (map != null) 'map': map,
       if (teams) 'teams': true,
+      if (content > 0) 'content': content,
     };
   }
 }

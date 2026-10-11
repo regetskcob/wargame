@@ -575,12 +575,16 @@ List<TutorialStep> get _tour => [
     title: tr('GELÄNDE UND WETTER', 'TERRAIN AND WEATHER'),
     icon: Icons.terrain_outlined,
     text: tr(
-      'Vier Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
-          'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Häuser, '
+      'Sechs Gelände, auf denen Tag und Nacht sich abwechseln, mit Regen, '
+          'Schnee, Sandsturm oder Nebel, die die Sicht begrenzen. Im Bergwald '
+          'geht es auf jeder Schwierigkeit bergauf, die Inseln verbinden '
+          'Brücken, am Ufer watet der Panzer durchs Flachwasser. Häuser, '
           'Sperren und Bäume lassen sich zerschießen.',
-      'Four terrains where day and night alternate, with rain, snow, '
-          'sandstorm or fog that limit your view. Houses, barriers and trees '
-          'can be shot to pieces.',
+      'Six terrains where day and night alternate, with rain, snow, '
+          'sandstorm or fog that limit your view. The mountain forest climbs '
+          'on every difficulty, bridges join the islands and the tank wades '
+          'through the shallows along their shores. Houses, barriers and '
+          'trees can be shot to pieces.',
     ),
     chips: [
       TutorialChip(Icons.park_outlined, MapTheme.forest.name.toUpperCase()),
@@ -590,6 +594,11 @@ List<TutorialStep> get _tour => [
         Icons.location_city_outlined,
         MapTheme.city.name.toUpperCase(),
       ),
+      TutorialChip(
+        Icons.terrain_outlined,
+        MapTheme.mountainForest.name.toUpperCase(),
+      ),
+      TutorialChip(Icons.waves_outlined, MapTheme.isles.name.toUpperCase()),
       TutorialChip(Icons.water_drop_outlined, tr('REGEN', 'RAIN')),
       TutorialChip(Icons.blur_on_outlined, tr('NEBEL', 'FOG')),
       TutorialChip(Icons.nightlight_round_outlined, tr('NACHT', 'NIGHT')),

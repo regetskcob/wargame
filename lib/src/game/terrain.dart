@@ -28,11 +28,17 @@ class Terrain {
     BotLevel level, {
     required Rect area,
     Iterable<Vector2> keepClear = const [],
+    bool mountains = false,
   }) {
-    final (count, steepness) = switch (level) {
-      BotLevel.easy => (0, 0.0),
-      BotLevel.normal => (7, 1.0),
-      BotLevel.hard => (13, 1.45),
+    // The mountain forest rolls on every level, easy included, and on the
+    // others with more and steeper slopes than any other ground.
+    final (count, steepness) = switch ((level, mountains)) {
+      (BotLevel.easy, false) => (0, 0.0),
+      (BotLevel.normal, false) => (7, 1.0),
+      (BotLevel.hard, false) => (13, 1.45),
+      (BotLevel.easy, true) => (7, 0.7),
+      (BotLevel.normal, true) => (12, 1.3),
+      (BotLevel.hard, true) => (17, 1.7),
     };
     final random = Random(seed ^ 0x7e11a);
     final hills = <Hill>[];

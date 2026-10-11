@@ -7,6 +7,7 @@ import 'package:flame/components.dart';
 import '../../l10n/l10n.dart';
 import '../flag_match.dart';
 import '../game_config.dart';
+import '../island_shape.dart';
 import 'cover_field.dart';
 import 'explosion.dart';
 
@@ -301,12 +302,16 @@ class SupplyField extends Component {
       flag: flag,
       solids: [for (final o in cover.obstacles) o.toRect()],
     );
+    // On the islands every depot stands on land.
+    final islands = cover.theme.islands ? IslandShape.forSeed(seed) : null;
     for (final spot in spots) {
       final depot = SupplyDepot(
         index: depots.length,
         kind: spot.kind,
         team: spot.team,
-        position: spot.position,
+        position:
+            islands?.onLand(spot.position, margin: GameConfig.depotRadius) ??
+            spot.position,
       );
       depots.add(depot);
       add(depot);

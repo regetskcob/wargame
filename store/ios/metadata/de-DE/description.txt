@@ -7,11 +7,11 @@ SPIELARTEN
 • Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen zum eigenen Stützpunkt, solange eure eigene dort steht. Wer fällt, steigt nach wenigen Sekunden wieder ein, drei eroberte Fahnen gewinnen.
 • Zu zweit auf einem Bildschirm: Geteilter Bildschirm mit zwei Controllern oder Handys, auf dem Tablet, im Browser und bald auf dem Apple TV, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
 
-ACHT FAHRZEUGE
-Vom flinken Waffenträger über Schützenpanzer und Flugabwehr bis zum schweren Kampfpanzer. Jedes Fahrzeug hat eigene Werte für Panzerung, Tempo, Wendigkeit und Feuerkraft. Mit jedem Rang schaltest du ein neues frei, dazu Tarnmuster und zehn Abzeichen.
+NEUN FAHRZEUGE
+Vom flinken Waffenträger über Schützenpanzer, Flugabwehr und Raketenwerfer bis zum schweren Kampfpanzer. Jedes Fahrzeug hat eigene Werte für Panzerung, Tempo, Wendigkeit und Feuerkraft. Mit jedem Rang schaltest du ein neues frei, dazu Tarnmuster und zehn Abzeichen.
 
 GELÄNDE, WETTER UND WAFFEN
-Gefechtsplatz, Wüste, Winter und Stadt, bei Tag oder Nacht. Regen, Schnee, Nebel und Sandsturm nehmen die Sicht, Flüsse und Brücken lenken das Gefecht, Häuser und Bäume lassen sich zerschießen, das Sperrgebiet zieht sich langsam zu. Kisten und Gems bringen Reparatur, Nebelwerfer, Schild, Minen, Artillerie, Granatwerfer, Mörser, Kamikaze-Drohne, Fallschirmjäger und Luftschlag.
+Gefechtsplatz, Wüste, Winter, Stadt, Bergwald und Inseln, bei Tag oder Nacht. Regen, Schnee, Nebel und Sandsturm nehmen die Sicht, Flüsse und Brücken lenken das Gefecht, Häuser und Bäume lassen sich zerschießen, das Sperrgebiet zieht sich langsam zu. Kisten und Gems bringen Reparatur, Nebelwerfer, Schild, Minen, Artillerie, Granatwerfer, Mörser, Kamikaze-Drohne, Fallschirmjäger und Luftschlag.
 
 GEMACHT FÜR TOUCH UND CONTROLLER
 • Zwei Sticks, die dort erscheinen, wo dein Daumen aufsetzt

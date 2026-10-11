@@ -114,13 +114,24 @@ extension TankGameRound on TankGame {
   /// A random seed on the map the host picked, if any. The first round of a
   /// session opens by day under a clear sky: in the play test it began at
   /// night twice, which hides the field from somebody still learning it.
+  ///
+  /// The newer maps and defense layouts only come up when everybody in the
+  /// room knows them ([roomContent]): an older client reads the classic map
+  /// out of the same seed and would play on another field. A newer map
+  /// picked for such a room gives way to a random classic one.
   int _freshSeed(Random random) {
+    final fresh = roomContent >= GameConfig.contentLevel;
+    final maps = fresh ? MapTheme.all.length : MapTheme.classic;
+    final layouts = fresh ? DefenseMap.layoutCount : DefenseMap.classicLayouts;
     for (var tries = 0; ; tries++) {
-      final raw = random.nextInt(1 << 30);
-      final seed = switch (mapChoice.value) {
-        final map? => MapTheme.seedFor(raw, map),
-        null => raw,
-      };
+      final picked = mapChoice.value;
+      final map = picked != null && picked < maps
+          ? picked
+          : random.nextInt(maps);
+      final seed = DefenseMap.seedForLayout(
+        MapTheme.seedFor(random.nextInt(1 << 30), map),
+        Env.shotLayout ?? random.nextInt(layouts),
+      );
       // About one seed in eleven qualifies, so 200 tries all but never
       // run out.
       if (_roundsStarted > 0 || tries >= 200 || TankGame._gentle(seed)) {
@@ -247,7 +258,25 @@ extension TankGameRound on TankGame {
     _stormZone = activeRound.flag
         ? null
         : StormZone(startedAt: payload.startedAt);
-    _powerUpSlots = PowerUpSlot.schedule(payload.seed, activeRound.botLevel);
+    final islands = _coverField!.theme.islands
+        ? IslandShape.forSeed(payload.seed)
+        : null;
+    _powerUpSlots = [
+      for (final slot in PowerUpSlot.schedule(
+        payload.seed,
+        activeRound.botLevel,
+      ))
+        // No crate drifts on the islands' water.
+        if (islands == null)
+          slot
+        else
+          PowerUpSlot(
+            id: slot.id,
+            appearsAt: slot.appearsAt,
+            position: islands.onLand(slot.position),
+            type: slot.type,
+          ),
+    ];
     world.add(_coverField!);
     _setUpSupply(activeRound);
     _raiseTerrain(
@@ -267,7 +296,10 @@ extension TankGameRound on TankGame {
       onWave: () =>
           showNotice(tr('FALLSCHIRMJÄGER IM ANFLUG', 'PARATROOPERS INBOUND')),
       armedSides: activeRound.teamMode,
-      walkable: (point) => point.length < GameConfig.worldRadius - 80,
+      // Soldiers keep to the land of the islands map.
+      walkable: (point) =>
+          point.length < GameConfig.worldRadius - 80 &&
+          (islands?.land(point) ?? true),
     );
     _extras.add(soldierField!);
     world.add(soldierField!);
@@ -280,8 +312,10 @@ extension TankGameRound on TankGame {
     for (var i = 0; i < activeRound.participants.length; i++) {
       final id = activeRound.participants[i];
       final slotAngle = 2 * pi * i / activeRound.participants.length;
-      final ring = Vector2(cos(slotAngle), sin(slotAngle))
+      // On the islands a start in the water moves onto the nearest one.
+      final onRing = Vector2(cos(slotAngle), sin(slotAngle))
         ..scale(GameConfig.spawnRadius);
+      final ring = islands?.onLand(onRing, margin: 40) ?? onRing;
       final (spawn, facing) = activeRound.flag
           ? _flagSpawn(activeRound, id)
           : (ring, atan2(-ring.x, ring.y));
@@ -460,6 +494,7 @@ extension TankGameRound on TankGame {
     terrain = Terrain.forSeed(
       activeRound.seed,
       activeRound.botLevel,
+      mountains: theme.mountains,
       area: area,
       keepClear: keepClear,
     );

@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flame/components.dart';
 
 import '../game_config.dart';
+import '../island_shape.dart';
 import '../map_theme.dart';
 import 'static_picture.dart';
 
@@ -20,7 +21,9 @@ class MudPatch {
 /// a patch drive slower. The patches follow from the round seed, so every
 /// client agrees on them without network traffic.
 class MudField extends Component with StaticPicture {
-  MudField({required this.seed, required this.theme}) : super(priority: -18) {
+  MudField({required this.seed, required this.theme})
+    : islands = theme.islands ? IslandShape.forSeed(seed) : null,
+      super(priority: -18) {
     final random = Random(seed ^ 0x2f6b);
     var attempts = 0;
     while (patches.length < theme.mudCount && attempts < 300) {
@@ -43,6 +46,16 @@ class MudField extends Component with StaticPicture {
   final int seed;
   final MapTheme theme;
   final patches = <MudPatch>[];
+
+  /// The land of the islands map; everything else in the field is water.
+  final IslandShape? islands;
+
+  /// The shores of [islands], worked out once for the field and the map.
+  late final List<Path> shores = islands?.outlines() ?? const [];
+
+  /// Top speed in soft ground: wading through the shallows is slower than
+  /// mud.
+  double get slowdown => islands == null ? 0.6 : 0.45;
 
   static Path _blob(Random random, double radius) {
     const points = 14;
@@ -71,6 +84,9 @@ class MudField extends Component with StaticPicture {
   }
 
   bool softAt(Vector2 point) {
+    if (islands case final shape?) {
+      return shape.shallow(point);
+    }
     for (final patch in patches) {
       if (patch.centre.distanceTo(point) < patch.radius * 0.85) {
         return true;
@@ -85,6 +101,10 @@ class MudField extends Component with StaticPicture {
 
   @override
   void paintStatic(Canvas canvas) {
+    if (islands case final shape?) {
+      _paintWater(canvas, shape);
+      return;
+    }
     final rim = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 5
@@ -111,5 +131,83 @@ class MudField extends Component with StaticPicture {
       }
       canvas.restore();
     }
+  }
+
+  /// Deep water over the whole ground, the lighter shallows along the
+  /// shores, the land cut out of both with a beach of sand, the bridges
+  /// on top and a few ripples.
+  void _paintWater(Canvas canvas, IslandShape shape) {
+    Path union(Iterable<Path> paths) => paths.fold(
+      Path(),
+      (all, path) => Path.combine(PathOperation.union, all, path),
+    );
+    final land = union(shores);
+    final wade = union(shape.outlines(grow: IslandShape.shallows));
+    final sea = Path.combine(
+      PathOperation.difference,
+      Path()..addOval(
+        Rect.fromCircle(center: Offset.zero, radius: GameConfig.groundReach),
+      ),
+      wade,
+    );
+    canvas.drawPath(sea, Paint()..color = theme.mud);
+    canvas.drawPath(
+      Path.combine(PathOperation.difference, wade, land),
+      Paint()..color = Color.lerp(theme.mud, const Color(0xFFBFE3E8), 0.35)!,
+    );
+    canvas.drawPath(
+      land,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 10
+        ..color = theme.mudRim,
+    );
+    final ripple = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2
+      ..color = const Color(0x33FFFFFF);
+    final random = Random(seed ^ 0x51de);
+    for (var i = 0; i < 90; i++) {
+      final at = Vector2(
+        (random.nextDouble() * 2 - 1) * GameConfig.worldRadius,
+        (random.nextDouble() * 2 - 1) * GameConfig.worldRadius,
+      );
+      if (!shape.deep(at)) {
+        continue;
+      }
+      canvas.drawArc(
+        Rect.fromCenter(center: Offset(at.x, at.y), width: 26, height: 8),
+        pi * 1.1,
+        pi * 0.8,
+        false,
+        ripple,
+      );
+    }
+    for (final bridge in shape.bridges) {
+      _paintBridge(canvas, bridge);
+    }
+  }
+
+  /// Planks across, a rail along either side.
+  static void _paintBridge(Canvas canvas, IslandBridge bridge) {
+    canvas.save();
+    canvas.translate(bridge.start.x, bridge.start.y);
+    canvas.rotate(atan2(bridge.along.y, bridge.along.x));
+    const half = IslandBridge.halfWidth;
+    final length = bridge.length;
+    canvas.drawRect(
+      Rect.fromLTRB(0, -half, length, half),
+      Paint()..color = const Color(0xFF8A6A44),
+    );
+    final seam = Paint()
+      ..color = const Color(0xFF5E4528)
+      ..strokeWidth = 1.4;
+    for (var x = 6.0; x < length; x += 9) {
+      canvas.drawLine(Offset(x, -half), Offset(x, half), seam);
+    }
+    final rail = Paint()..color = const Color(0xFF4A3520);
+    canvas.drawRect(Rect.fromLTRB(0, -half - 3, length, -half + 1), rail);
+    canvas.drawRect(Rect.fromLTRB(0, half - 1, length, half + 3), rail);
+    canvas.restore();
   }
 }

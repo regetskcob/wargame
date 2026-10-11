@@ -9,6 +9,16 @@ step, point for point.
 
 ## Unreleased
 
+- Two new grounds: the mountain forest, with dense conifers, scree and
+  hills on every difficulty, and the islands, more water than land:
+  islands of organic shape joined by wooden bridges, shallows along the
+  shores that tanks wade through slowly and deep water beyond
+- Two new defense maps: Flussufer along the river bank and Haarnadel with
+  two hairpins across the river
+- A ninth vehicle from rank 6: the Igel, a rocket launcher that fires
+  four rockets a salvo
+- The newer grounds and maps only come up in a room where every player
+  has this version
 - A waiting room no longer closes the moment it opens after the start page
   sat in a background tab for ten minutes
 - Guests see the host's difficulty, terrain and teams in the waiting room
