@@ -994,7 +994,7 @@ class _DefensePanelState extends State<_DefensePanel> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Text(
-          '${tr('GELD', 'FUNDS')} $credits   ·   ${_buildKeys(game)}'
+          '${tr('MÜNZEN', 'COINS')} $credits   ·   ${_buildKeys(game)}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
           style: const TextStyle(
             color: GameColors.amber,
@@ -1003,10 +1003,10 @@ class _DefensePanelState extends State<_DefensePanel> {
         ),
         Text(
           tr(
-            'Geld gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
+            'Münzen gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
                 'jeder Welle weniger) und jede abgewehrte Welle '
                 '(+${GameConfig.waveBonus}).',
-            'Funds come with your own kills (a tank now +$bounty, less '
+            'Coins come with your own kills (a tank now +$bounty, less '
                 'with every wave) and every wave beaten off '
                 '(+${GameConfig.waveBonus}).',
           ),
@@ -1091,7 +1091,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         button: true,
         selected: open,
         label: label,
-        value: _affordable(shop) ? tr('Geld reicht', 'Funds suffice') : null,
+        value: _affordable(shop) ? tr('Münzen reichen', 'Enough coins') : null,
         child: ExcludeSemantics(
           child: _ready(
             shop,
@@ -1125,7 +1125,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           children: [
             Text(
               '$credits',
-              semanticsLabel: tr('Geld $credits', 'Funds $credits'),
+              semanticsLabel: tr('Münzen $credits', 'Coins $credits'),
               style: const TextStyle(
                 color: GameColors.amber,
                 fontSize: 12,

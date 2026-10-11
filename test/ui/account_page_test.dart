@@ -126,4 +126,48 @@ void main() {
     final close = tester.element(find.byIcon(Icons.close_outlined));
     expect(Focus.of(close).hasFocus, isTrue);
   });
+
+  // Issue 21: deleting the account sat between the account and the
+  // settings. It belongs below everything one comes to the page for, only
+  // the legal links follow it.
+  for (final size in const [Size(390, 844), Size(1024, 1366)]) {
+    testWidgets('deleting the account comes last on the page ($size)', (
+      tester,
+    ) async {
+      addTearDown(tester.view.reset);
+      tester.view
+        ..physicalSize = size
+        ..devicePixelRatio = 1;
+      final game = offlineGame();
+      await pumpRouterApp(tester, game, AccountButton(game: game));
+      await tester.tap(find.byType(AccountButton));
+      await tester.pumpAndSettle();
+
+      final delete = tester.getRect(
+        find.widgetWithText(OutlinedButton, 'KONTO LÖSCHEN'),
+      );
+      final legal = tester.getRect(find.byType(LegalLinks));
+      expect(legal.top, greaterThanOrEqualTo(delete.bottom));
+      final controls = find.descendant(
+        of: find.byType(AccountPage),
+        matching: find.byWidgetPredicate(
+          (w) => w is ButtonStyleButton || w is TextField || w is Switch,
+        ),
+      );
+      expect(controls.evaluate().length, greaterThan(3));
+      for (final element in controls.evaluate()) {
+        final box = element.renderObject! as RenderBox;
+        final rect = box.localToGlobal(Offset.zero) & box.size;
+        // In two columns only the column of the button counts.
+        if (rect.right <= delete.left || rect.overlaps(legal)) {
+          continue;
+        }
+        expect(
+          rect.top,
+          lessThanOrEqualTo(delete.top),
+          reason: '${element.widget} below the delete button',
+        );
+      }
+    });
+  }
 }

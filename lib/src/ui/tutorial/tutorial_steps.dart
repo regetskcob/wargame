@@ -147,10 +147,10 @@ List<TutorialStep> get _gamepad => [
     icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
-      'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
+      'Im Modus Verteidigung bringen Abschüsse Münzen. R1 baut ein Geschütz '
           'neben deinem Panzer oder rüstet das auf, an dem er steht, L1 '
           'wechselt die Art.',
-      'In defense mode kills bring funds. R1 builds a gun next to your '
+      'In defense mode kills bring coins. R1 builds a gun next to your '
           'tank or upgrades the one it stands at, L1 switches the kind.',
     ),
   ),
@@ -242,10 +242,10 @@ List<TutorialStep> get _remote => [
     icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
-      'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
+      'Im Modus Verteidigung bringen Abschüsse Münzen. Ist das Inventar leer, '
           'baut $_playDe ein Geschütz neben deinem Panzer oder rüstet das '
           'auf, an dem er steht. Mehr Auswahl gibt ein Controller.',
-      'In defense mode kills bring funds. With an empty inventory, '
+      'In defense mode kills bring coins. With an empty inventory, '
           '$_playEn builds a gun next to your tank or upgrades the one it '
           'stands at. A controller gives more choice.',
     ),
@@ -333,10 +333,10 @@ List<TutorialStep> get _touch => [
     icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
-      'Im Modus Verteidigung bringen Abschüsse Geld. Ein Tipp auf ein '
+      'Im Modus Verteidigung bringen Abschüsse Münzen. Ein Tipp auf ein '
           'Geschütz baut es neben deinem Panzer, steht er an einem Geschütz, '
           'rüstest du es dort auf.',
-      'In defense mode kills bring funds. A tap on a gun builds it next '
+      'In defense mode kills bring coins. A tap on a gun builds it next '
           'to your tank, and when it stands at a gun you upgrade that '
           'one.',
     ),
@@ -475,9 +475,9 @@ List<TutorialStep> get _desktop => [
     icon: Icons.shield_outlined,
     scene: DemoScene.defense,
     text: tr(
-      'Im Modus Verteidigung bringen Abschüsse Geld. B baut ein Geschütz '
+      'Im Modus Verteidigung bringen Abschüsse Münzen. B baut ein Geschütz '
           'neben deinem Panzer, V wechselt den Typ.',
-      'In defense mode kills bring funds. B builds a gun next to your '
+      'In defense mode kills bring coins. B builds a gun next to your '
           'tank, V switches the type.',
     ),
   ),

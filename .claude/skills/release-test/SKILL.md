@@ -17,9 +17,12 @@ each case with an id, where it comes from (#12, #21, #23), how it is checked
 2. **Build identity (section 1)** and the **automated gate (section 2)**:
    run them yourself, in this order, and stop at the first blocker:
    `tool/verify.sh` (full), the three-run flake check, the balance and
-   trench simulations with the bands of the plan, `--tags supabase` when
-   Docker is there. Long runs go to the background; do the sim cases
-   meanwhile.
+   trench simulations with the bands of the plan, the long defense
+   benchmark (L3, tag `benchmark`), `--tags supabase` when Docker is there.
+   L4 runs `integration_test/frame_timing_test.dart` through
+   `flutter drive --profile` on the BoPad once the owner has it unlocked;
+   on the Mac (`-d macos`) it only proves the scenes still run. Long runs
+   go to the background; do the sim cases meanwhile.
 3. **Function, load, reliability (sections 3–5), the sim rows.** Use
    `/play-local`: the web build in the built-in browser or headless Chrome
    (two browser profiles for two players), the iPhone 18 Pro, iPad Pro 13",

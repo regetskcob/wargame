@@ -21,7 +21,7 @@ extension TankGameItems on TankGame {
     }
     final cost = kind.costFrom(level);
     if (credits.value < cost) {
-      showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
+      showNotice(tr('ZU WENIG MÜNZEN', 'NOT ENOUGH COINS'));
       return;
     }
     credits.value -= cost;

@@ -3,7 +3,7 @@ Panzergefecht ist ein schnelles Panzerduell von oben. Du fährst mit dem linken 
 VIER SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer auf drei Schwierigkeitsstufen, jede Runde neu ausgewürfelt.
 • Mehrspieler: Triff andere Spieler im gemeinsamen Raum, alle gegen alle oder Rot gegen Blau. CPU-Panzer füllen auf Wunsch auf.
-• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen, danach geht es auf Wunsch weiter, bis er fällt. Feinde rollen über die Straße, ab der zweiten Welle kommen sie auch aus der Luft. Mit jedem Abschuss verdienst du Geld für Kanone, Flak, Mörser, Haubitze, Raketen und Gräben sowie für die Aufrüstung deines Panzers.
+• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen, danach geht es auf Wunsch weiter, bis er fällt. Feinde rollen über die Straße, ab der zweiten Welle kommen sie auch aus der Luft. Mit jedem Abschuss verdienst du Münzen für Kanone, Flak, Mörser, Haubitze, Raketen und Gräben sowie für die Aufrüstung deines Panzers.
 • Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen zum eigenen Stützpunkt, solange eure eigene dort steht. Wer fällt, steigt nach wenigen Sekunden wieder ein, drei eroberte Fahnen gewinnen.
 
 ACHT FAHRZEUGE

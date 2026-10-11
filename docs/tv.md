@@ -67,7 +67,7 @@ Open:
   (`_TvFirstFocus` in `lobby_overlay.dart`), so OK starts right away and up
   reaches the tanks and colours. In a round the d-pad drives, OK fires with
   the aim assist, menu builds a gun in defense and play/pause tries to
-  (short of funds it says so), the defense HUD names those buttons, and the
+  (short of coins it says so), the defense HUD names those buttons, and the
   window keeps the screen on (`FLAG_KEEP_SCREEN_ON`).
 - Still to try: a game controller (the emulator has none; it is the path
   Android phones and tablets already use) and a real Fire TV or Google TV.

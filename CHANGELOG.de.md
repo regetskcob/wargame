@@ -22,6 +22,8 @@ gepflegt.
 - Ein Name für den Laden der Verteidigung überall (Geschütze und
   Aufrüstung), "Stufe" heißt nicht mehr die Schwierigkeit, und Abschuss-
   Marke, Ton-Knopf und iMessage-Einladung sprechen auch Englisch
+- Die Währung der Verteidigung heißt überall Münzen statt Geld (auf
+  Englisch coins)
 - Die Mac-App hat einen Ton-Schalter wie der Browser
 - Der Handy-Controller zeigt die Munition mit der Kiste des HUD, ein
   Panzer ohne Schützen "ist ausgeschieden" statt "ausgefallen"

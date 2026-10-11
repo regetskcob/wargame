@@ -21,6 +21,8 @@ step, point for point.
 - One name for the defense shop everywhere (guns and upgrades), "Stufe" no
   longer means the difficulty, and the kill marker, the sound button and
   the iMessage invitation speak English too
+- The currency of a defense round is called coins everywhere (in German
+  Münzen instead of Geld)
 - The Mac app has a sound switch like the browser
 - The phone controller shows ammunition with the HUD's crate, a tank lost
   without a shooter "is out" instead of "dropped out"

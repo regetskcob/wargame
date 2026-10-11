@@ -664,7 +664,7 @@ class _Funds extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: tr('Geld $credits', 'Funds $credits'),
+      label: tr('Münzen $credits', 'Coins $credits'),
       child: ExcludeSemantics(
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -718,7 +718,7 @@ class _Chip extends StatelessWidget {
       enabled: enabled,
       selected: selected,
       label: label,
-      value: dot ? tr('Geld reicht', 'Funds suffice') : null,
+      value: dot ? tr('Münzen reichen', 'Enough coins') : null,
       child: ExcludeSemantics(
         child: Badge(
           isLabelVisible: dot,

@@ -536,7 +536,7 @@ extension TankGameDefense on TankGame {
     final reason = locked != null
         ? '${build.label} $locked'
         : credits.value < cost
-        ? tr('Zu wenig Geld', 'Not enough funds')
+        ? tr('Zu wenig Münzen', 'Not enough coins')
         : mine >= limit
         ? build.isGun
               ? tr('Höchstens $limit Geschütze', 'At most $limit guns')
@@ -582,8 +582,8 @@ extension TankGameDefense on TankGame {
     if (reach && !_fundsReached) {
       showNotice(
         tr(
-          'GELD REICHT: BAUEN ODER AUFRÜSTEN',
-          'FUNDS SUFFICE: BUILD OR UPGRADE',
+          'MÜNZEN REICHEN: BAUEN ODER AUFRÜSTEN',
+          'ENOUGH COINS: BUILD OR UPGRADE',
         ),
       );
     }
@@ -600,7 +600,7 @@ extension TankGameDefense on TankGame {
       return;
     }
     if (credits.value < GameConfig.troopCost) {
-      showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
+      showNotice(tr('ZU WENIG MÜNZEN', 'NOT ENOUGH COINS'));
       return;
     }
     // The host lets one order a sender through per gap; a tap faster than
@@ -931,7 +931,7 @@ extension TankGameDefense on TankGame {
     }
     final cost = tower.kind.upgradeCost(tower.level);
     if (credits.value < cost) {
-      showNotice(tr('ZU WENIG GELD', 'NOT ENOUGH FUNDS'));
+      showNotice(tr('ZU WENIG MÜNZEN', 'NOT ENOUGH COINS'));
       return;
     }
     credits.value -= cost;

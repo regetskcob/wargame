@@ -5,3 +5,7 @@ tags:
   # flutter test test/game/balance_sim_test.dart --run-skipped
   balance:
     skip: "Balance run, start it by hand (see docs/gameplay.md)."
+  # Plays a long defense session up to wave 50 and checks nothing piles up,
+  # a few minutes: see docs/release-test-plan.md (L3).
+  benchmark:
+    skip: "Benchmark, start it by hand (see docs/release-test-plan.md)."

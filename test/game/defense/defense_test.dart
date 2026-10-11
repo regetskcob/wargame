@@ -5,6 +5,7 @@ import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/defense/defense_map.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/upgrades.dart';
+import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/game/round_state.dart';
 import 'package:wargame/src/net/payloads/defense_payload.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
@@ -231,6 +232,32 @@ void main() {
     expect(TowerKind.howitzer.lobs, isTrue);
     expect(TowerKind.trench.isGun, isFalse);
     expect(TowerKind.trench.upgradable, isFalse);
+  });
+
+  // Issues 21 and 23 (W6): testers took the trench for something that does
+  // nothing, and its notice said nothing of the rocket it carries later.
+  test('the trench says what it does, the rocket from its wave included', () {
+    addTearDown(() => L10n.lang.value = AppLang.de);
+    const wave = '${GameConfig.trenchRocketFromWave}';
+    expect(
+      TowerKind.trench.hint,
+      allOf(
+        contains('Infanterie'),
+        contains('Panzerabwehrrakete'),
+        contains('Welle $wave'),
+        contains('halber Schaden'),
+      ),
+    );
+    L10n.lang.value = AppLang.en;
+    expect(
+      TowerKind.trench.hint,
+      allOf(
+        contains('infantry'),
+        contains('anti-tank rocket'),
+        contains('wave $wave'),
+        contains('half damage'),
+      ),
+    );
   });
 
   test('the extension unlocks the rockets and higher steps', () {

@@ -42,7 +42,7 @@ Everything the game does, with the numbers behind it. The short version is in th
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
   roll along the road to the base. CPU comrades fill the squad, and later the
   base sends aircraft of its own. The host may call the next wave before
-  the break is over (WAVE NOW, key N). Kills bring money for guns (key B), the
+  the break is over (WAVE NOW, key N). Kills bring coins for guns (key B), the
   base hands out ammunition, and destroyed tanks return after a short time.
   A base that holds well grows from a watchtower to barracks to a fortress.
   After wave 8 the win is safe and the host may extend by 4 waves at a
@@ -187,11 +187,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   phone scans it (Account, Use as controller). The phone then
   shows the two sticks, armour, shells and fuel, the items in the game's
   slots (down the left edge upright, between the thumbs sideways) and, in a
-  defense round, the funds beside the name and the shop in two groups,
+  defense round, the coins beside the name and the shop in two groups,
   *Build* and *Round*: the guns to build where the tank stands, the
   upgrade of the gun next to it, the tank's upgrades, the host's *Wave now*
   and, after each stretch of waves, *+4 waves* or *End*. A dot on *Guns*
-  and *Upgrades* (on the screen's buttons as well) says the funds reach for
+  and *Upgrades* (on the screen's buttons as well) says the coins reach for
   something behind them. Hits are felt as a buzz. Only the app on a phone
   becomes a controller (shorter side under 600 points): a tablet offers no
   *Use as controller*, and a pairing link opened on a tablet or in any
@@ -419,7 +419,7 @@ kind gets dear. The buttons show the current price and are only bright
 (affordable) or faint, never marked: the kind built last is what B, R1 or
 the remote's button builds, and the key hint above the list names it.
 Building says what the gun or trench is for in a notice, and when the
-funds start to reach for a gun or an upgrade a notice says so once.
+coins start to reach for a gun or an upgrade a notice says so once.
 
 Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones

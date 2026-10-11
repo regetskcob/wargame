@@ -108,7 +108,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F1.7 | The difficulty survives a restart and LAST PLAYED names it | #12 hard | auto: `gentle_start_test` (`chooseLevel`) | M |
 | F1.8 | Guests and 0-0-0 rows are not in the leaderboard, ranking is by points | #12 low, 1.3.0 | auto: `leaderboard_test` | M |
 | F1.9 | Web: loading bar, "Das Spiel lädt …" and a tip until Flutter draws; the hint leaves the DOM afterwards | #12 low | auto: `loading_view_test`; sim | m |
-| F1.10 | "VIER WEGE ZU SPIELEN" above four modes | #23 W5 | sim | m |
+| F1.10 | "VIER WEGE ZU SPIELEN" above four modes | #23 W5 | auto: `glossary_test` | m |
 
 ### 3.2 Waiting room and settings
 
@@ -120,7 +120,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F2.4 | Camouflage in rows of even length (4 + 4 or one row) on phone and iPad | #23 M3 | sim | m |
 | F2.5 | Settings end in the full-width pair Change mode · Done | #23 L2 | sim | m |
 | F2.6 | The waiting room does not jump when the first replay appears | #12 evening | sim: play a round, come back | m |
-| F2.7 | Phones offer neither duel nor split screen when they see a controller | #12 1.3.0 | sim: iPhone sim with a controller (no test yet) | M |
+| F2.7 | Phones offer neither duel nor split screen when they see a controller | #12 1.3.0 | auto: `controller_section_test` (`splitScreenFits`) | M |
 
 ### 3.3 Solo round
 
@@ -135,7 +135,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F3.7 | Kill feed: a tank lost in the zone "ist ausgeschieden / is out", not "dropped out" | #23 M7 | auto: `kill_feed_view_test` | m |
 | F3.8 | End screen: NEW GAME starts a new round with the same tank and settings; alone it waits, with others it counts 15 s on its button | #12 high | auto: `quick_flow_test`; sim | B |
 | F3.9 | End screen buttons share one width (≤ 320) on every size | #23 M4 | auto: `overlays_smoke_test` | m |
-| F3.10 | Replay: END REPLAY sits in the top bar next to NEXT TANK, Esc leaves it, the end is in the bar | #21 4 | sim (no test yet) | m |
+| F3.10 | Replay: END REPLAY sits in the top bar next to NEXT TANK, Esc leaves it, the end is in the bar | #21 4 | auto: `replay_bar_test` | m |
 | F3.11 | Leave asks first ("Leave the round?") and the round goes on behind the dialog | #12 | sim | M |
 | F3.12 | Own call sign readable on snow and sand (halo), leave button visible (dark disc) | #12 evening | sim: winter map screenshot | m |
 | F3.13 | Inventory shows filled slots only; items 1–6 work | #12 | auto: `smoke_test`, `special_weapons_test` | m |
@@ -148,7 +148,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F4.2 | Join by code, by link and from the room list; a public room shows in the list within ~5 s | #12 1.3.0 | sim | B |
 | F4.3 | Two owners of one room (second tab) leave the host role to one | #12 1.3.0 | auto: `room_host_test` | M |
 | F4.4 | A fifth pilot is turned away with "Der Raum ist voll: höchstens 4 Piloten.", the four play on | #12 D | auto: `room_capacity_test`; sim with five profiles | M |
-| F4.5 | The host leaving closes the room for everyone ("you left the round"); a guest leaving lets the others play on | #12 | auto: `leave_round_test` (solo); sim for the host and guest case | M |
+| F4.5 | The host leaving closes the room for everyone ("you left the round"); a guest leaving lets the others play on | #12 | auto: `leave_round_test` (solo, host and guest leaving a battle of two) | M |
 | F4.6 | Teams: frames, tags and tanks in the team colour, also on a split screen | #12 summary | auto: `round_state_teams_test`, `split_view_test` | m |
 | F4.7 | A room with a phone fills no CPU tanks; without a server the game starts offline (`ServerStatus`), a 402 shows the busy message | CLAUDE.md, #12 | auto: `server_status_test`, `rooms_busy_test` | M |
 
@@ -157,10 +157,10 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F5.1 | A round reaches wave 3 (aircraft) with guns built; WAVE NOW / key N calls the next wave early | #12 next 3 | sim; auto: `defense_test` | B |
-| F5.2 | The build menu leaves no mark on the last gun; too expensive guns are disabled, nothing else | #21 1 | auto: `hud_overlay_test`; sim with funds below 120 | M |
-| F5.3 | A line says what earns money, "+20" rises from own kills, a notice says when funds reach a gun or an upgrade | #12 medium, #21 2 | sim | m |
-| F5.4 | The trench notice names halved damage and the anti-tank rocket from wave 4 | #21 2, #23 W6 | sim: dig a trench in wave 1 and 4 | m |
-| F5.5 | The last helicopter of a wave comes in to the base; tank shells hurt it | #21 3 | auto: `defense_test` / `extension_test` | M |
+| F5.2 | The build menu leaves no mark on the last gun; too expensive guns are disabled, nothing else | #21 1 | auto: `hud_overlay_test`; sim with coins below 120 | M |
+| F5.3 | A line says what earns coins, "+20" rises from own kills, a notice says when the coins reach for a gun or an upgrade | #12 medium, #21 2 | sim | m |
+| F5.4 | The trench notice names halved damage and the anti-tank rocket from wave 4 | #21 2, #23 W6 | auto: `defense_test`; sim: dig a trench | m |
+| F5.5 | The last helicopter of a wave comes in to the base; tank shells hurt it | #21 3 | auto: `last_helicopter_test` | M |
 | F5.6 | Desktop 1280×800: wave banner above the middle, panel ≤ 540 px with tabs GUNS / UPGRADES, the mini map not over the base, inventory clears the panel | #12 medium, next 6, #12 C | sim at 1280×800 | m |
 | F5.7 | A gun the host destroys disappears on its builder's screen too | #12 A7 | auto: `hostile_room_test` / `two_player_smoke_test` | M |
 | F5.8 | Extension after wave 8, defense duel on lanes | gameplay | auto: `extension_test`, `defense_duel_test` | M |
@@ -170,14 +170,14 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F6.1 | Red against blue across two devices (iPhone sim + browser), CPU tanks fill to 3 against 3, respawn, the host carries the flags | #12 1.3.0 | sim; auto: `flag_round_test`, `flag_match_test`, `flag_duo_test` | B |
-| F6.2 | Flag banners in one form of address ("Hol eure Fahne zurück!") | #23 W5 | sim: flag round in German | m |
+| F6.2 | Flag banners in one form of address ("Hol eure Fahne zurück!") | #23 W5 | auto: `glossary_test` | m |
 
 ### 3.7 Phone controller and split screen
 
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F7.1 | The app on a phone pairs by QR or link and drives a round of the screen (browser, iPad) | #23 | sim: iPhone simulator as pad of the browser game | B |
-| F7.2 | The phone's gauges match the HUD (crate for ammo, `100 %`) | #23 M6 | sim: pad next to the HUD (no test yet) | m |
+| F7.2 | The phone's gauges match the HUD (crate for ammo, `100 %`) | #23 M6 | auto: `controller_view_test` | m |
 | F7.3 | A touch brings the sticks back over a connected controller; using the controller hides them again | #12 next 5 | auto: `touch_controls_test`; owner with a real controller | M |
 | F7.4 | Two phones on an iPad: split screen, player two named after the phone, same plates, own survival time on each end screen, team colours | #12 1.3.0, summary | sim: iPad sim + two phones; auto: `split_view_test` | M |
 | F7.5 | A second phone paired during the results joins at the next round, its half not empty | #12 C | auto: `pad_screen_test` | m |
@@ -190,7 +190,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | --- | --- | --- | --- | --- |
 | F8.1 | Register, confirm by e-mail, sign in, sign out, sign in on a second device | #12 (deferred) | owner: a real address | B for releases that touch `lib/src/db/` or auth, else M |
 | F8.2 | A signed-in round raises rating and XP once; the rank bar counts each rank from zero; unlocks move with the rank | #21 6 | auto: `progress_test`, `score_points_test`; owner after F8.1 | M |
-| F8.3 | The account is a page of its own, delete account at the very bottom, delete leaves nothing behind | #21 5 | sim (no test for the order yet); `delete_account` in R2 | M |
+| F8.3 | The account is a page of its own, delete account at the very bottom, delete leaves nothing behind | #21 5 | auto: `account_page_test` (phone and tablet); `delete_account` in R2 | M |
 | F8.4 | A call sign change shows live on the other device; control characters and RTL overrides are cleaned | #12 1.3.0, A13 | auto: `call_sign_test` | m |
 
 ### 3.9 Words in two languages
@@ -198,13 +198,13 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F9.1 | Switching the language rebuilds everything, mode cards and footer links included | #21 | auto: `l10n_test`; sim | M |
-| F9.2 | One word per thing everywhere (game, tutorial, watch, iMessage, Live Activity, store, landing page) | #23 W1–W5, W7 | sim: grep the glossary below in `lib/`, `store/`, `site/`, `ios/` | m |
+| F9.2 | One word per thing everywhere (game, tutorial, watch, iMessage, Live Activity, store, landing page) | #23 W1–W5, W7 | auto: `glossary_test` reads every `tr()` in Dart and Swift, the store texts and the landing page | m |
 
 Glossary (DE / EN) to grep for strays: GESCHÜTZE / GUNS (never Türme,
 turret), AUFRÜSTUNG / UPGRADES, LEICHT · MITTEL · SCHWER / EASY · NORMAL ·
 HARD (never "Normal" in German), Schwierigkeit / difficulty (Stufe only for
 the pilot's level and gun levels), Stützpunkt / base (never Basis, Lager),
-Geld / funds (never Mittel), NEUES SPIEL / NEW GAME (never Nochmal,
+Münzen / coins (never Geld, Mittel, funds, money; Mittel is only the difficulty), NEUES SPIEL / NEW GAME (never Nochmal,
 Revanche), Gastgeber / host, "Einsatzbereit in … s" / "Ready in … s",
 Beobachte / watching, Raumcode / room code, Gefechtsplatz / Battlefield,
 Warteraum · Bereitstellung, WIEDERHOLUNG / REPLAY, ABSCHUSS / KILL, e-mail.
@@ -214,7 +214,7 @@ Warteraum · Bereitstellung, WIEDERHOLUNG / REPLAY, ABSCHUSS / KILL, e-mail.
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F10.1 | Practice cards set a task (drive into the ring, 3 hits), show progress and move on | #12 low | auto: `practice_test`, `tutorial_test` | m |
-| F10.2 | The tutorial says what the game says (MITTEL, DREI SCHWIERIGKEITEN, aim assist on every level, also on TV) | #23 W2, W5 | sim: read the tutorial cards in DE and EN | m |
+| F10.2 | The tutorial says what the game says (MITTEL, DREI SCHWIERIGKEITEN, aim assist on every level, also on TV) | #23 W2, W5 | auto: `glossary_test`; sim: read the tutorial cards | m |
 
 ### 3.11 Platforms
 
@@ -247,8 +247,8 @@ Per platform the smoke path S1–S6 where the platform has it, plus:
 | --- | --- | --- | --- | --- |
 | L1 | Messages per room on the wire, 4 pilots + CPU tanks, and per phone | within `GameConfig.roomLoad` / `padLoad`; alone in a room nothing is sent | auto: A4 | B |
 | L2 | Web load time to a readable start page, live page, headless Chrome, CPU ×4 | first visit fast ≤ 3.5 s, 4G ≤ 6 s, 3G ≤ 20 s; again ≤ 2.5 s (#23: 3.2 / 5.1 / 17.3, again 2.1–2.5) | sim, after the deploy of the release commit | M |
-| L3 | Long defense session headless: waves 1 → 20, then forced 20, 30, 40, 50 | live entities capped, no fallen soldiers left in squads, splats ≤ 60, `update` and `render` time flat over the session, replay buffer bounded | sim: a throwaway test that forces waves (as in #12 E; not committed) | M |
-| L4 | Frame time on the BoPad (A12X, profile build), forced defense wave 30 with 14–17 guns | raster p95 ≤ 15 ms, 90+ fps at 120 Hz; solo 120 fps, raster p95 ≤ 9 ms | owner: BoPad unlocked, auto-lock off; measuring scene from #12 E | M |
+| L3 | Long defense session headless: forced waves 20, 30, 40, 50, then 30 twice more | live entities capped, no fallen soldiers left in squads, splats ≤ 60, `update` and `render` time flat over the session, replay buffer bounded | auto (by hand): `flutter test test/game/defense/long_session_bench_test.dart --run-skipped --dart-define=SECONDS=60` (tag `benchmark`), prints a table for the release issue | M |
+| L4 | Frame time on the BoPad (A12X, profile build), forced defense wave 30 with up to 14 guns | raster p90 ≤ 15 ms at wave 30, solo raster p90 ≤ 9 ms, few missed frames; capture the flag measured alongside | owner: BoPad unlocked, auto-lock off; then Claude runs `flutter drive --profile -d <device> --driver=test_driver/perf_driver.dart --target=integration_test/frame_timing_test.dart` (scenes solo, defense wave 30, flag) | M |
 | L5 | Four game instances on one Mac in one room | 45–60 fps in the round, heap 30–85 MB without growth | sim | m |
 | L6 | Input storm: start hammered five times, 2,000 random keys in 10 s, 150 taps in 5 s on the phone controller plus erratic drags, item keys held | one round starts, no stuck key, no error | sim | M |
 | L7 | Sound and haptics late in a defense wave (wave 12, six comrades) | no stutter, own shot always heard, field blasts at most twice a second as taps | auto: `sound_mixer_test`, `haptics_test`; owner by ear on a phone | M |
