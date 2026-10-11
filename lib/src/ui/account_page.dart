@@ -1,20 +1,22 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
-import '../../app/env.dart';
-import '../../game/tank_game.dart';
-import '../../haptics.dart';
-import '../../net/room.dart';
-import '../theme.dart';
-import 'account_panel.dart';
-import 'choice_row.dart';
-import 'fit_or_scroll.dart';
-import 'legal.dart';
-import 'pad_pairing.dart';
-import 'panel.dart';
-import '../../l10n/l10n.dart';
-import '../../tv/tv_input.dart';
+import '../app/env.dart';
+import '../app/routes.dart';
+import '../game/tank_game.dart';
+import '../haptics.dart';
+import '../net/room.dart';
+import 'theme.dart';
+import 'widgets/account_panel.dart';
+import 'widgets/choice_row.dart';
+import 'widgets/fit_or_scroll.dart';
+import 'widgets/legal.dart';
+import 'widgets/pad_pairing.dart';
+import 'widgets/tablet_scale.dart';
+import '../l10n/l10n.dart';
+import '../tv/tv_input.dart';
 
 /// Round profile button in the corner of the start page and the waiting
 /// room. Opens the account: who you play as, securing or signing in, and
@@ -28,50 +30,30 @@ class AccountButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return IconButton(
       tooltip: tr('Konto', 'Account'),
-      onPressed: () => AccountSheet.show(context, game),
+      onPressed: () => AccountPage.open(context),
       icon: const Icon(Icons.account_circle_outlined),
     );
   }
 }
 
-class AccountSheet extends StatefulWidget {
-  const AccountSheet({required this.game, super.key});
+/// The account as a page of its own over the game: the call sign, the
+/// account it belongs to, then the settings of this device and the
+/// controllers. A page instead of a dialog, so a large tablet shows all of
+/// it side by side instead of a narrow sheet that scrolls.
+class AccountPage extends StatefulWidget {
+  const AccountPage({required this.game, super.key});
 
   final TankGame game;
 
-  static Future<void> show(BuildContext context, TankGame game) {
-    return showDialog<void>(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: onTv ? 1100 : 560,
-            maxHeight: 760,
-          ),
-          // Lets go of the keyboard before the sheet goes, however it is
-          // closed: a field that keeps the focus past its route leaves the
-          // keyboard standing over the page below.
-          child: PopScope(
-            onPopInvokedWithResult: (_, _) =>
-                FocusManager.instance.primaryFocus?.unfocus(),
-            // Picking another language redraws the whole sheet in it.
-            child: ValueListenableBuilder<AppLang>(
-              valueListenable: L10n.lang,
-              builder: (context, _, _) => AccountSheet(game: game),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  /// Shows the page over the game.
+  static void open(BuildContext context) =>
+      unawaited(context.push<void>(Routes.account));
 
   @override
-  State<AccountSheet> createState() => _AccountSheetState();
+  State<AccountPage> createState() => _AccountPageState();
 }
 
-class _AccountSheetState extends State<AccountSheet> {
+class _AccountPageState extends State<AccountPage> {
   var _busy = false;
   String? _error;
 
@@ -81,6 +63,8 @@ class _AccountSheetState extends State<AccountSheet> {
   late final _name = TextEditingController(text: widget.game.myName);
 
   TankGame get _game => widget.game;
+
+  static bool get _vibrates => Haptics.onPhone && deviceIsPhone;
 
   @override
   void initState() {
@@ -328,7 +312,9 @@ class _AccountSheetState extends State<AccountSheet> {
       ),
     ];
     final right = <Widget>[
-      if (Haptics.onPhone)
+      // Only phones: iPads and most Android tablets have no motor, the
+      // switch would do nothing there.
+      if (_vibrates)
         // A plain row: a ListTile would paint its ink behind the panel.
         ValueListenableBuilder<bool>(
           valueListenable: Haptics.on,
@@ -358,74 +344,116 @@ class _AccountSheetState extends State<AccountSheet> {
             ],
           ),
         ),
-      const SizedBox(height: 24),
+      if (_vibrates) const SizedBox(height: 24),
       _ControllerBox(game: _game),
       const SizedBox(height: 12),
       const LegalLinks(),
     ];
-    return Panel(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
-      child: Column(
-        // As tall as its content, scrolling only once that is too much.
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          // The language sits in the title line, on a narrow phone on a
-          // line of its own right below it.
-          LayoutBuilder(
-            builder: (context, box) {
-              final narrow = box.maxWidth < 420;
-              final title = Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      tr('KONTO', 'ACCOUNT'),
-                      style: Theme.of(context).textTheme.titleLarge,
+    // Lets go of the keyboard before the page goes, however it is closed:
+    // a field that keeps the focus past its route leaves the keyboard
+    // standing over the page below.
+    return PopScope(
+      onPopInvokedWithResult: (_, _) =>
+          FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
+        backgroundColor: GameColors.background,
+        // The same shade as the menus over the dark field.
+        body: ColoredBox(
+          color: GameColors.panel,
+          child: MenuScale(
+            child: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, box) {
+                  // From a tablet up the account and this device sit side by
+                  // side, so the page fits without scrolling.
+                  final columns = onTv || box.maxWidth >= 760;
+                  return Align(
+                    alignment: Alignment.topCenter,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 1100),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
+                            child: _title(context, narrow: box.maxWidth < 420),
+                          ),
+                          Expanded(
+                            child: FitOrScroll(
+                              // The call sign's label floats over its field
+                              // and needs the room above it.
+                              padding: const EdgeInsets.fromLTRB(
+                                20,
+                                10,
+                                20,
+                                20,
+                              ),
+                              child: columns
+                                  ? Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: FocusTraversalGroup(
+                                            child: _column(left),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 32),
+                                        Expanded(
+                                          child: FocusTraversalGroup(
+                                            child: _column(right),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : _column([
+                                      ...left,
+                                      const SizedBox(height: 20),
+                                      ...right,
+                                    ]),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  if (!narrow) const _Language(),
-                  const SizedBox(width: 4),
-                  IconButton(
-                    tooltip: tr('Schließen', 'Close'),
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_outlined),
-                  ),
-                ],
-              );
-              if (!narrow) {
-                return title;
-              }
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  title,
-                  const _Language(),
-                  const SizedBox(height: 12),
-                ],
-              );
-            },
-          ),
-          Flexible(
-            child: FitOrScroll(
-              // The room above lies inside the scrolling, where the call
-              // sign's label floats over its field: outside, a sheet that
-              // scrolls cut the label off at the top.
-              padding: const EdgeInsets.only(top: 10, right: 8),
-              // The television has the width for two columns.
-              child: onTv
-                  ? Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(child: _column(left)),
-                        const SizedBox(width: 28),
-                        Expanded(child: _column(right)),
-                      ],
-                    )
-                  : _column([...left, const SizedBox(height: 20), ...right]),
+                  );
+                },
+              ),
             ),
           ),
-        ],
+        ),
       ),
+    );
+  }
+
+  /// The title with the language and the one way out. The language sits in
+  /// the title line, on a narrow phone on a line of its own right below.
+  Widget _title(BuildContext context, {required bool narrow}) {
+    final title = Row(
+      children: [
+        Expanded(
+          child: Text(
+            tr('KONTO', 'ACCOUNT'),
+            style: Theme.of(context).textTheme.headlineLarge,
+          ),
+        ),
+        if (!narrow) const _Language(),
+        const SizedBox(width: 4),
+        IconButton(
+          tooltip: tr('Schließen', 'Close'),
+          // The remote starts on the page instead of the game below it.
+          autofocus: onTv,
+          onPressed: () => Navigator.of(context).pop(),
+          icon: const Icon(Icons.close_outlined),
+        ),
+      ],
+    );
+    if (!narrow) {
+      return title;
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [title, const _Language(), const SizedBox(height: 4)],
     );
   }
 

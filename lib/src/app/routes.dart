@@ -13,6 +13,9 @@ abstract final class Routes {
   /// (`?room=CODE`), before the `#`, so links shared so far keep working.
   static const game = '/';
 
+  /// The account and the settings of this device, over the game.
+  static const account = '/account';
+
   /// The camera that reads a room's QR code and returns its code.
   static const scanRoom = '/scan/room';
 
@@ -29,36 +32,50 @@ abstract final class Routes {
 
 /// The router of the game app. [game] builds the page with the game, which
 /// stays mounted below everything pushed over it, so a round goes on while
-/// the camera or the controller is open.
-GoRouter buildRouter({required WidgetBuilder game}) => GoRouter(
-  routes: [
-    GoRoute(
-      path: Routes.game,
-      builder: (context, _) => game(context),
+/// the camera or the controller is open. [account] builds the account page
+/// for the game shown right now.
+GoRouter buildRouter({required WidgetBuilder game, WidgetBuilder? account}) =>
+    GoRouter(
       routes: [
         GoRoute(
-          path: 'pad/:code',
-          pageBuilder: (context, state) => MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: ControllerView(
-              code: state.pathParameters['code']!,
-              name: state.uri.queryParameters['name'] ?? tr('Handy', 'Phone'),
+          path: Routes.game,
+          builder: (context, _) => game(context),
+          routes: [
+            GoRoute(
+              path: 'pad/:code',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                fullscreenDialog: true,
+                child: ControllerView(
+                  code: state.pathParameters['code']!,
+                  name:
+                      state.uri.queryParameters['name'] ?? tr('Handy', 'Phone'),
+                ),
+              ),
             ),
-          ),
-        ),
-        GoRoute(
-          path: 'scan/:kind',
-          pageBuilder: (context, state) => MaterialPage(
-            key: state.pageKey,
-            fullscreenDialog: true,
-            child: RoomScanner(pad: state.pathParameters['kind'] == 'pad'),
-          ),
+            GoRoute(
+              path: 'account',
+              // Without a page for it, as in tests of the router alone, the
+              // address shows the game.
+              redirect: (_, _) => account == null ? Routes.game : null,
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                fullscreenDialog: true,
+                child: account!(context),
+              ),
+            ),
+            GoRoute(
+              path: 'scan/:kind',
+              pageBuilder: (context, state) => MaterialPage(
+                key: state.pageKey,
+                fullscreenDialog: true,
+                child: RoomScanner(pad: state.pathParameters['kind'] == 'pad'),
+              ),
+            ),
+          ],
         ),
       ],
-    ),
-  ],
-  // An unknown address, say an old bookmark with a stale fragment, simply
-  // shows the game.
-  onException: (_, _, router) => router.go(Routes.game),
-);
+      // An unknown address, say an old bookmark with a stale fragment, simply
+      // shows the game.
+      onException: (_, _, router) => router.go(Routes.game),
+    );

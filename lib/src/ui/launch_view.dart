@@ -17,7 +17,7 @@ import '../tv/tv_input.dart';
 import 'theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
-import 'widgets/account_sheet.dart';
+import 'account_page.dart';
 import 'widgets/call_sign.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/pilot_card.dart';
@@ -35,8 +35,10 @@ class LaunchView extends StatelessWidget {
   final TankGame game;
 
   /// From this width the leaderboard moves into a column of its own, as on
-  /// the television, so the page fits without scrolling.
-  static const _twoColumns = 1100.0;
+  /// the television, so the page fits without scrolling. A tablet held
+  /// sideways reaches it, the browser's menu of 1040 at most stays one
+  /// column.
+  static const _twoColumns = 1000.0;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,11 @@ class LaunchView extends StatelessWidget {
         if (box.maxWidth < _twoColumns) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [..._main(context), ..._ranking()],
+            children: [
+              ..._main(context),
+              if (!onTv) _rooms(top: 28),
+              ..._ranking(),
+            ],
           );
         }
         return Row(
@@ -66,8 +72,18 @@ class LaunchView extends StatelessWidget {
               child: FocusTraversalGroup(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  // Level with the call sign row.
-                  children: [const SizedBox(height: 4), ..._ranking(top: 0)],
+                  // Level with the call sign row. Outside the television
+                  // the open rooms lead this column: the left one holds the
+                  // ways to play, the right one the others.
+                  children: [
+                    const SizedBox(height: 4),
+                    if (onTv)
+                      ..._ranking(top: 0)
+                    else ...[
+                      _rooms(top: 0),
+                      ..._ranking(),
+                    ],
+                  ],
                 ),
               ),
             ),
@@ -191,18 +207,21 @@ class LaunchView extends StatelessWidget {
         ),
         const LocalDuoPanel(),
       ],
-      ValueListenableBuilder<bool>(
-        valueListenable: ServerStatus.available,
-        builder: (context, online, _) =>
-            online && roomLink(game.net.room).isNotEmpty
-            ? Padding(
-                padding: const EdgeInsets.only(top: 28),
-                child: RoomList(game: game),
-              )
-            : const SizedBox.shrink(),
-      ),
+      if (onTv) _rooms(top: 28),
     ];
   }
+
+  /// The open rooms, while there is a server to find them on.
+  Widget _rooms({required double top}) => ValueListenableBuilder<bool>(
+    valueListenable: ServerStatus.available,
+    builder: (context, online, _) =>
+        online && roomLink(game.net.room).isNotEmpty
+        ? Padding(
+            padding: EdgeInsets.only(top: top),
+            child: RoomList(game: game),
+          )
+        : const SizedBox.shrink(),
+  );
 
   /// Playing with others needs the server; alone the game goes on without.
   Widget _modes(bool online) {
@@ -312,7 +331,7 @@ class _GuestCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(10),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
-        onTap: () => AccountSheet.show(context, game),
+        onTap: () => AccountPage.open(context),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
           child: Row(
@@ -358,7 +377,7 @@ class _GuestCard extends StatelessWidget {
               ),
               IconButton(
                 tooltip: tr('Anmelden', 'Sign in'),
-                onPressed: () => AccountSheet.show(context, game),
+                onPressed: () => AccountPage.open(context),
                 icon: const Icon(
                   Icons.chevron_right_outlined,
                   color: GameColors.sand,

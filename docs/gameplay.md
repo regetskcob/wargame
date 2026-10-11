@@ -6,10 +6,10 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 - The game opens right on the start page that picks single player,
   multiplayer or defense, with the call sign at the top. It is changed in
-  the account sheet and only taken with the tick or Enter, which then says
+  the account page and only taken with the tick or Enter, which then says
   "Saved". Everybody starts as a guest; instead of the rank card a guest
   sees a card that invites them to sign in, and it and the account button
-  open the sheet that signs in or registers with an e-mail address. Signing in with an address that has
+  open the account page that signs in or registers with an e-mail address. Signing in with an address that has
   no account yet creates one. Only a mail link that fails to sign in in
   this tab shows a welcome page first, which explains why and takes the
   code from the mail instead.
@@ -182,7 +182,7 @@ Everything the game does, with the numbers behind it. The short version is in th
   right thumb rests. Upright phones look 20 % closer
   (`GameConfig.uprightPhoneZoom`), outside defense rounds.
 - The phone as a controller for the game on a computer or tablet: the
-  account sheet in the browser shows a pairing QR code, the app on the
+  account page in the browser shows a pairing QR code, the app on the
   phone scans it (Account, Use as controller). The phone then
   shows the two sticks, armour, shells and fuel, the items in the game's
   slots (down the left edge upright, between the thumbs sideways) and, in a

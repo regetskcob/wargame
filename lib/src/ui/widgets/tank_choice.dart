@@ -27,6 +27,9 @@ class TankChoice extends StatelessWidget {
   /// The pilot's rank is too low for it yet.
   final bool locked;
 
+  /// The widest a card grows on a large screen.
+  static const maxWidth = 168.0;
+
   /// One line of text [height] high, shrunk to fit instead of wrapping.
   static Widget _line(String text, TextStyle style, double height) => Padding(
     padding: const EdgeInsets.symmetric(horizontal: 6),
@@ -38,6 +41,8 @@ class TankChoice extends StatelessWidget {
       ),
     ),
   );
+
+  double get _grow => (width / 112).clamp(1.0, maxWidth / 112);
 
   @override
   Widget build(BuildContext context) {
@@ -58,10 +63,14 @@ class TankChoice extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // The tank grows with a card wider than the default, so a wide
+            // card is not a small tank in a lot of air.
             SizedBox(
-              width: 96,
-              height: 92,
-              child: CustomPaint(painter: TankPreviewPainter(type, color)),
+              width: 96 * _grow,
+              height: 92 * _grow,
+              child: CustomPaint(
+                painter: TankPreviewPainter(type, color, scale: _grow),
+              ),
             ),
             const SizedBox(height: 4),
             // One line each, shrunk to fit, so every card has the same
@@ -112,21 +121,24 @@ class TankChoice extends StatelessWidget {
 }
 
 class TankPreviewPainter extends CustomPainter {
-  const TankPreviewPainter(this.type, this.color);
+  const TankPreviewPainter(this.type, this.color, {this.scale = 1});
 
   final TankType type;
   final Color color;
 
+  /// How much larger than the default 62 the tank is drawn.
+  final double scale;
+
   @override
   void paint(Canvas canvas, Size size) {
-    const tank = 62.0;
+    final tank = 62.0 * scale;
     canvas.translate((size.width - tank) / 2, size.height - tank - 4);
     paintTank(canvas, tank, type, color);
   }
 
   @override
   bool shouldRepaint(TankPreviewPainter old) =>
-      old.type != type || old.color != color;
+      old.type != type || old.color != color || old.scale != scale;
 }
 
 /// Bars that compare the selected vehicle with the strongest of each stat.

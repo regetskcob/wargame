@@ -22,6 +22,7 @@ import 'package:wargame/src/game/kill_feed.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/room.dart';
+import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/closed_overlay.dart';
 import 'package:wargame/src/ui/countdown_overlay.dart';
 import 'package:wargame/src/ui/hud_overlay.dart';
@@ -46,8 +47,8 @@ Widget _overlay(String id, TankGame game) => switch (id) {
   OverlayIds.countdown => CountdownOverlay(game: game),
   OverlayIds.hud => TabletScale(child: HudOverlay(game: game)),
   OverlayIds.spectator => SpectatorOverlay(game: game),
-  OverlayIds.roundOver => RoundOverOverlay(game: game),
-  OverlayIds.closed => ClosedOverlay(game: game),
+  OverlayIds.roundOver => MenuScale(child: RoundOverOverlay(game: game)),
+  OverlayIds.closed => MenuScale(child: ClosedOverlay(game: game)),
   _ => const SizedBox.shrink(),
 };
 
@@ -59,6 +60,11 @@ const _screens = {
   'phone': Size(844, 390),
   // Most of the play test's pictures were taken upright.
   'upright': Size(390, 844),
+  // Issue 18: the 13" iPad both ways, which scales the menus, and the 11"
+  // held sideways.
+  'tablet 13 upright': Size(1024, 1366),
+  'tablet 13 sideways': Size(1366, 1024),
+  'tablet 11 sideways': Size(1194, 834),
 };
 
 /// Shows what the game has open right now, as the GameWidget would.
@@ -175,6 +181,31 @@ Future<void> _loadFonts() async {
   await roboto.load();
 }
 
+/// The start page for a guest who has not chosen yet, choosing the mode,
+/// its settings, then the room of each mode.
+Future<void> _everyLobbyPage(WidgetTester tester, Size size) async {
+  final game = await _game(tester);
+  expect(game.overlays.isActive(OverlayIds.lobby), isTrue);
+  game.welcomed.value = false;
+  await _show(tester, game, size);
+  expect(find.byType(WelcomeView), findsOneWidget);
+  game
+    ..welcomed.value = true
+    ..choosingMode.value = true;
+  await _show(tester, game, size);
+  game
+    ..choosingMode.value = false
+    ..configuring.value = true;
+  await _show(tester, game, size);
+  game.configuring.value = false;
+  for (final mode in GameMode.values) {
+    game.chooseMode(mode);
+    await _show(tester, game, size);
+    expect(find.byType(LobbyOverlay), findsOneWidget, reason: '$mode');
+  }
+  await tester.pumpWidget(const SizedBox());
+}
+
 void main() {
   setUpAll(_loadFonts);
 
@@ -187,6 +218,18 @@ void main() {
   tearDown(() => L10n.lang.value = AppLang.de);
 
   for (final lang in AppLang.values) {
+    // The television lays the menus out on 1371 points, see tvScaleFor.
+    testWidgets('every page of the waiting room lays out on a television '
+        '(${lang.code})', (tester) async {
+      L10n.lang.value = lang;
+      onAndroidTvForTesting = true;
+      addTearDown(() => onAndroidTvForTesting = false);
+      addTearDown(tester.view.reset);
+      await _everyLobbyPage(tester, const Size(1371, 771));
+    });
+  }
+
+  for (final lang in AppLang.values) {
     for (final MapEntry(key: screen, value: size) in _screens.entries) {
       final where = '${lang.code}, $screen';
 
@@ -195,27 +238,7 @@ void main() {
       ) async {
         L10n.lang.value = lang;
         addTearDown(tester.view.reset);
-        final game = await _game(tester);
-        expect(game.overlays.isActive(OverlayIds.lobby), isTrue);
-        // The start page for a guest who has not chosen yet.
-        game.welcomed.value = false;
-        await _show(tester, game, size);
-        expect(find.byType(WelcomeView), findsOneWidget);
-        game.welcomed.value = true;
-        // Choosing the mode, its settings, then the room of each mode.
-        game.choosingMode.value = true;
-        await _show(tester, game, size);
-        game
-          ..choosingMode.value = false
-          ..configuring.value = true;
-        await _show(tester, game, size);
-        game.configuring.value = false;
-        for (final mode in GameMode.values) {
-          game.chooseMode(mode);
-          await _show(tester, game, size);
-          expect(find.byType(LobbyOverlay), findsOneWidget, reason: '$mode');
-        }
-        await tester.pumpWidget(const SizedBox());
+        await _everyLobbyPage(tester, size);
       });
 
       testWidgets('the countdown lays out ($where)', (tester) async {

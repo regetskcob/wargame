@@ -19,11 +19,35 @@ keys, and mix with music from other apps. Phones vibrate with the game
 iPhone, the vibration motor on Android): a light tap for a blast close by, a
 hard knock for a heavy hit, the own tank destroyed and the end of a round, a
 click per second of the countdown and a firm tap at the start. A switch in the
-account sheet turns it off, Android also follows the system setting for touch
-vibration. iPads and most Android tablets have no motor and stay still.
+account page turns it off, Android also follows the system setting for touch
+vibration. iPads and most Android tablets have no motor and stay still, and
+their account page shows no switch.
 The player's own moments always tap; blasts out on the field only when
 strong enough, at most twice a second and never right after an own tap, so
 a late defense wave does not buzz without a pause (`Haptics.admits`).
+
+Tablets use their screen for the menus (issue 18). Everything is decided by
+size, not platform: a tablet is a shorter side of 600 points or more
+(`tabletShortSide`). The start page and the waiting room start at the top
+and take the whole width. Held sideways, the start page puts the ways to play
+on the left and the open rooms and the leaderboard on the right, from 1000
+points of width. The waiting room puts the invite and the crews beside the
+tank, and from 720 points upright it uses two columns where a phone held
+sideways at that width stacks them. The vehicle cards grow into the free
+width up to 168 points, the bars and the paint stand beside them, and
+cards that do not fit in one row are split evenly (two by two instead of
+three and one). Large tablets also draw the menus larger, as they draw the
+HUD: `MenuScale`, up to 1.25 on a 13" iPad (`menuScaleFor`), while the 11"
+iPad, phones and a browser of 1280 by 800 keep 1. The browser and the
+desktop keep their centred menu of 1040 at most, and the television keeps
+its layout.
+
+The account is a page of its own over the game (route `/account`,
+`lib/src/ui/account_page.dart`), not a dialog. From 760 points of width
+the account sits on the left and this device (vibration, controllers,
+legal links) on the right, so a tablet shows all of it without scrolling.
+The cross in the title is the only way to close it, besides the system
+back gesture and Menu on the remote.
 
 Sounds work the same way (`lib/src/audio/sound_mixer.dart`): the player's
 own play at once on voices of their own; sounds on the field fall off with
@@ -368,7 +392,7 @@ icon (`store/tool/tv_icons.py`). State: tried in the Apple TV Simulator only.
 
 Nothing scrolls on the television. The menus use its width: the start page puts
 the controllers, the phone pairing and the leaderboard in a column beside the
-four ways to play, the account sheet has two columns, and a page that is still
+four ways to play, the account page has two columns, and a page that is still
 too tall shrinks to fit (`FitOrScroll`) instead of scrolling. Only the legal
 texts scroll.
 

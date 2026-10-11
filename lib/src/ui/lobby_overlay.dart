@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +14,7 @@ import '../game/components/tank_painter.dart';
 import 'theme.dart';
 import 'launch_view.dart';
 import 'welcome_view.dart';
-import 'widgets/account_sheet.dart';
+import 'account_page.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
@@ -374,92 +375,129 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return _Section(
       icon: Icons.shield_outlined,
       title: tr('DEIN PANZER', 'YOUR TANK'),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ListenableBuilder(
-            listenable: Listenable.merge([
-              game.roster,
-              game.mode,
-              game.teamMode,
-              game.progress.rank,
-            ]),
-            builder: (context, _) => LayoutBuilder(
-              builder: (context, box) {
-                final columns = (((box.maxWidth + 8) / 104).floor()).clamp(
-                  2,
-                  TankType.values.length,
-                );
-                final width = (box.maxWidth - 8 * (columns - 1)) / columns;
-                // A last card alone on its row sits in the middle, not at
-                // the left edge under the others.
-                return Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    for (final type in _offeredVehicles())
-                      TankChoice(
-                        type: type,
-                        width: width.floorToDouble(),
-                        color: game.lobbyColorOf(game.myId, _colorIndex),
-                        selected: type == GameConfig.typeOf(_colorIndex),
-                        locked: !game.progress.vehicleUnlocked(type),
-                        onTap: () => _pick(type: type.index),
+      // Wide, the bars and the paint stand beside the vehicles instead of
+      // stretching across the whole width below them.
+      child: LayoutBuilder(
+        builder: (context, box) {
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              StatBars(type: GameConfig.typeOf(_colorIndex)),
+              const SizedBox(height: 14),
+              ListenableBuilder(
+                listenable: Listenable.merge([game.mode, game.teamMode]),
+                // With others every tank drives in its own colour, in red
+                // against blue in its team's.
+                builder: (context, _) =>
+                    game.mode.value.withOthers || game.teamsAhead
+                    ? const SizedBox.shrink()
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
+                          ValueListenableBuilder(
+                            valueListenable: game.progress.rank,
+                            builder: (context, rank, _) => Wrap(
+                              spacing: 8,
+                              runSpacing: 8,
+                              children: [
+                                for (
+                                  var i = 0;
+                                  i < GameConfig.tankColors.length;
+                                  i++
+                                )
+                                  Tooltip(
+                                    message: game.progress.unlocked(i)
+                                        ? GameConfig.colorName(i)
+                                        : '${GameConfig.colorName(i)}: '
+                                              '${tr('ab Stufe', 'from level')} '
+                                              '${GameConfig.colorLevels[i]}',
+                                    child: ColorSwatchButton(
+                                      color: GameConfig.tankColors[i],
+                                      selected:
+                                          i ==
+                                          _colorIndex %
+                                              GameConfig.tankColors.length,
+                                      locked: !game.progress.unlocked(i),
+                                      onTap: () => _pick(color: i),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                  ],
-                );
-              },
-            ),
-          ),
-          const SizedBox(height: 12),
-          StatBars(type: GameConfig.typeOf(_colorIndex)),
-          const SizedBox(height: 14),
-          ListenableBuilder(
-            listenable: Listenable.merge([game.mode, game.teamMode]),
-            // With others every tank drives in its own colour, in red
-            // against blue in its team's.
-            builder: (context, _) =>
-                game.mode.value.withOthers || game.teamsAhead
-                ? const SizedBox.shrink()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
-                      ValueListenableBuilder(
-                        valueListenable: game.progress.rank,
-                        builder: (context, rank, _) => Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            for (
-                              var i = 0;
-                              i < GameConfig.tankColors.length;
-                              i++
-                            )
-                              Tooltip(
-                                message: game.progress.unlocked(i)
-                                    ? GameConfig.colorName(i)
-                                    : '${GameConfig.colorName(i)}: '
-                                          '${tr('ab Stufe', 'from level')} '
-                                          '${GameConfig.colorLevels[i]}',
-                                child: ColorSwatchButton(
-                                  color: GameConfig.tankColors[i],
-                                  selected:
-                                      i ==
-                                      _colorIndex %
-                                          GameConfig.tankColors.length,
-                                  locked: !game.progress.unlocked(i),
-                                  onTap: () => _pick(color: i),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
+              ),
+            ],
+          );
+          if (box.maxWidth < 640) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [_vehicles(), const SizedBox(height: 12), details],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: _vehicles()),
+              const SizedBox(width: 24),
+              Expanded(flex: 2, child: details),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  /// The vehicle cards, as many side by side as fit, growing into the free
+  /// width up to a size where they still read as cards.
+  Widget _vehicles() {
+    final game = widget.game;
+    return ListenableBuilder(
+      listenable: Listenable.merge([
+        game.roster,
+        game.mode,
+        game.teamMode,
+        game.progress.rank,
+      ]),
+      builder: (context, _) => LayoutBuilder(
+        builder: (context, box) {
+          final offered = _offeredVehicles();
+          final fit = (((box.maxWidth + 8) / 104).floor()).clamp(
+            2,
+            max(2, offered.length),
+          );
+          // As many on each row as the rows need, so four cards that do
+          // not fit in one row stand two by two instead of three and one.
+          final rows = (offered.length / fit).ceil();
+          final columns = max(2, (offered.length / max(1, rows)).ceil());
+          // Phones keep the cards as tall as ever, so the start stays in
+          // reach below them.
+          final width = min(
+            (box.maxWidth - 8 * (columns - 1)) / columns,
+            MediaQuery.sizeOf(context).shortestSide >= tabletShortSide
+                ? TankChoice.maxWidth
+                : 112.0,
+          );
+          // A last card alone on its row sits in the middle, not at the
+          // left edge under the others.
+          return Wrap(
+            alignment: WrapAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              for (final type in offered)
+                TankChoice(
+                  type: type,
+                  width: width.floorToDouble(),
+                  color: game.lobbyColorOf(game.myId, _colorIndex),
+                  selected: type == GameConfig.typeOf(_colorIndex),
+                  locked: !game.progress.vehicleUnlocked(type),
+                  onTap: () => _pick(type: type.index),
+                ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -932,7 +970,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         widget.game.configuring,
         widget.game.welcomed,
       ]),
-      builder: (context, _) => ColoredBox(
+      // Large tablets draw the menus larger, as the HUD.
+      builder: (context, _) => MenuScale(child: _page(context)),
+    );
+  }
+
+  Widget _page(BuildContext context) {
+    return Builder(
+      builder: (context) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
         color: _frameless(context) ? GameColors.panel : const Color(0xAA000000),
         // Keeps the menu clear of the notch and the Dynamic Island on
@@ -943,7 +988,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           bottom: !_frameless(context),
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final narrow = constraints.maxWidth < 820;
+              // A tablet held upright has the room for two columns, which
+              // a phone held sideways at about the same width has not: its
+              // columns would be as short as the screen is low.
+              final narrow =
+                  constraints.maxWidth <
+                  (MediaQuery.sizeOf(context).shortestSide >= tabletShortSide
+                      ? 720
+                      : 820);
               final phone = _frameless(context);
               final host = widget.game.isHost.value;
               final page = !widget.game.welcomed.value
@@ -953,14 +1005,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Only phones start at the top: short pages leave the room
-              // below them instead of floating in the middle of a screen
-              // held in the hand. Tablets, the browser and the television
-              // have the room to show every page in the middle.
-              final handheld =
-                  MediaQuery.sizeOf(context).shortestSide < tabletShortSide;
+              // Phones and tablets start at the top: short pages leave the
+              // room below them instead of floating in the middle of a
+              // screen held in the hand, where a tall tablet left a band
+              // above the title. The browser and the television show every
+              // page in the middle.
               return Align(
-                alignment: handheld ? Alignment.topCenter : Alignment.center,
+                alignment: phone ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
@@ -975,8 +1026,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       : EdgeInsets.all(narrow ? 8 : 16),
                   child: ConstrainedBox(
                     // The television is wide: two columns where a browser
-                    // stacks, so the pages need no scrolling there.
-                    constraints: BoxConstraints(maxWidth: onTv ? 1320 : 1040),
+                    // stacks, so the pages need no scrolling there. Tablets
+                    // use their whole width, the browser keeps the menu
+                    // together in the middle of a wide window.
+                    constraints: BoxConstraints(
+                      maxWidth: onTv
+                          ? 1320
+                          : phone
+                          ? 1400
+                          : 1040,
+                    ),
                     child: _frame(
                       // Phones show the menu without the outer plate: the
                       // screen edge already frames it.

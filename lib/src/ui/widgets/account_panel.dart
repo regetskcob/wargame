@@ -340,19 +340,17 @@ class _AccountPanelState extends State<AccountPanel> {
                           ),
                         ],
                       ),
-                      if (guest)
+                      // Opens, but does not close again: the page around
+                      // it has its own way out, and two ways to close one
+                      // level apart confused the testers.
+                      if (guest && !_open)
                         TextButton(
-                          onPressed: () => setState(() => _open = !_open),
+                          onPressed: () => setState(() => _open = true),
                           child: Text(
-                            _open
-                                ? tr('SCHLIESSEN', 'CLOSE')
-                                : tr(
-                                    'REGISTRIEREN / ANMELDEN',
-                                    'REGISTER / SIGN IN',
-                                  ),
+                            tr('REGISTRIEREN / ANMELDEN', 'REGISTER / SIGN IN'),
                           ),
                         )
-                      else
+                      else if (!guest)
                         TextButton(
                           onPressed: _busy ? null : _signOut,
                           child: Text(tr('ABMELDEN', 'SIGN OUT')),

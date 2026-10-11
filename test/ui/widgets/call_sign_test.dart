@@ -1,25 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:wargame/src/ui/widgets/account_sheet.dart';
+import 'package:wargame/src/ui/account_page.dart';
 import 'package:wargame/src/ui/widgets/call_sign.dart';
 
 import '../../helpers/fakes.dart';
+import '../../helpers/router_app.dart';
 
 void main() {
-  testWidgets('the call sign is saved in the account sheet with the tick or '
+  testWidgets('the call sign is saved in the account page with the tick or '
       'Enter, the page behind only shows it', (tester) async {
     final profiles = FakeProfiles();
     final game = offlineGame(profiles: profiles)..myName = 'Panzer-1234';
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(
-          body: Column(
-            children: [
-              CallSign(game: game),
-              AccountButton(game: game),
-            ],
-          ),
-        ),
+    await pumpRouterApp(
+      tester,
+      game,
+      Column(
+        children: [
+          CallSign(game: game),
+          AccountButton(game: game),
+        ],
       ),
     );
     expect(find.byType(TextField), findsNothing);
@@ -41,9 +40,11 @@ void main() {
     expect(game.myName, 'Peter Maffay');
     expect(find.text('Gespeichert'), findsOneWidget);
     expect(
+      // The page behind lies offstage under the account page.
       find.descendant(
-        of: find.byType(CallSign),
-        matching: find.text('Peter Maffay'),
+        of: find.byType(CallSign, skipOffstage: false),
+        matching: find.text('Peter Maffay', skipOffstage: false),
+        skipOffstage: false,
       ),
       findsOneWidget,
     );
@@ -70,15 +71,11 @@ void main() {
     expect(find.text('Udo'), findsOneWidget);
   });
 
-  testWidgets('a name loaded after signing in shows up in the sheet', (
+  testWidgets('a name loaded after signing in shows up on the page', (
     tester,
   ) async {
     final game = offlineGame()..myName = 'Panzer-1234';
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: AccountButton(game: game)),
-      ),
-    );
+    await pumpRouterApp(tester, game, AccountButton(game: game));
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
 
@@ -94,15 +91,11 @@ void main() {
     );
   });
 
-  testWidgets('closing the sheet while typing lets go of the keyboard', (
+  testWidgets('closing the page while typing lets go of the keyboard', (
     tester,
   ) async {
     final game = offlineGame()..myName = 'Panzer-1234';
-    await tester.pumpWidget(
-      MaterialApp(
-        home: Scaffold(body: AccountButton(game: game)),
-      ),
-    );
+    await pumpRouterApp(tester, game, AccountButton(game: game));
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(TextField, 'RUFNAME'));

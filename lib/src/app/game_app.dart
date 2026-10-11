@@ -24,6 +24,7 @@ import '../net/room.dart';
 import '../watch/account_link.dart';
 import '../watch/linked_services.dart';
 import '../ui/theme.dart';
+import '../ui/account_page.dart';
 import '../ui/closed_overlay.dart';
 import '../ui/controller_view.dart';
 import '../ui/countdown_overlay.dart';
@@ -38,6 +39,7 @@ import '../tv/second_player.dart';
 import '../tv/split_view.dart';
 import '../tv/tv_focus_frame.dart';
 import '../tv/tv_input.dart';
+import '../ui/widgets/language_rebuild.dart';
 import '../ui/widgets/tablet_scale.dart';
 import '../watch/watch_lobby.dart';
 import '../watch/watch_overlays.dart';
@@ -58,7 +60,10 @@ class _GameAppState extends State<GameApp> {
   late TankGame game;
   late LiveActivityBridge _liveActivity;
   final _gameFocus = FocusNode(debugLabel: 'game');
-  late final GoRouter _router = buildRouter(game: _gamePage);
+  late final GoRouter _router = buildRouter(
+    game: _gamePage,
+    account: (_) => AccountPage(game: game),
+  );
 
   /// Counts the games, so the page with the game is built anew when a room
   /// switch brings another one. The router builds its pages on its own.
@@ -220,30 +225,33 @@ class _GameAppState extends State<GameApp> {
       supportedLocales: [for (final l in AppLang.values) l.locale],
       debugShowCheckedModeBanner: false,
       theme: buildGameTheme(),
+      // Picking another language redraws every page and overlay in it.
       // Seen from the sofa: everything a good deal larger.
-      builder: onTv
-          ? (context, child) => TvFocusFrame(
-              holdFocus: () =>
-                  game.phase.value == GamePhase.countdown ||
-                  game.phase.value == GamePhase.playing,
-              // Up and down walk the menus in reading order, so a swipe
-              // never skips a button that is not straight below. Set in
-              // here, below the text editing keys, so a text field lets go
-              // of them too.
-              child: Shortcuts(
-                shortcuts: const {
-                  SingleActivator(LogicalKeyboardKey.arrowDown):
-                      NextFocusIntent(),
-                  SingleActivator(LogicalKeyboardKey.arrowUp):
-                      PreviousFocusIntent(),
-                },
-                child: FixedScale(
-                  scale: tvScaleFor(MediaQuery.sizeOf(context)),
-                  child: child!,
+      builder: (context, child) => LanguageRebuild(
+        child: onTv
+            ? TvFocusFrame(
+                holdFocus: () =>
+                    game.phase.value == GamePhase.countdown ||
+                    game.phase.value == GamePhase.playing,
+                // Up and down walk the menus in reading order, so a swipe
+                // never skips a button that is not straight below. Set in
+                // here, below the text editing keys, so a text field lets go
+                // of them too.
+                child: Shortcuts(
+                  shortcuts: const {
+                    SingleActivator(LogicalKeyboardKey.arrowDown):
+                        NextFocusIntent(),
+                    SingleActivator(LogicalKeyboardKey.arrowUp):
+                        PreviousFocusIntent(),
+                  },
+                  child: FixedScale(
+                    scale: tvScaleFor(MediaQuery.sizeOf(context)),
+                    child: child!,
+                  ),
                 ),
-              ),
-            )
-          : null,
+              )
+            : child!,
+      ),
     );
   }
 
@@ -344,9 +352,9 @@ class _GameAppState extends State<GameApp> {
                       SpectatorOverlay(game: game),
                   OverlayIds.roundOver: (context, game) => game.overview.value
                       ? DuelOverviewResult(game: game)
-                      : RoundOverOverlay(game: game),
+                      : MenuScale(child: RoundOverOverlay(game: game)),
                   OverlayIds.closed: (context, game) =>
-                      ClosedOverlay(game: game),
+                      MenuScale(child: ClosedOverlay(game: game)),
                   OverlayIds.tutorial: (context, game) =>
                       // On the Apple TV the controls follow the controller
                       // in hand.
@@ -409,6 +417,7 @@ class ControllerApp extends StatelessWidget {
         supportedLocales: [for (final l in AppLang.values) l.locale],
         debugShowCheckedModeBanner: false,
         theme: buildGameTheme(),
+        builder: (context, child) => LanguageRebuild(child: child!),
         home: ControllerView(
           code: code,
           name: tr('Handy', 'Phone'),

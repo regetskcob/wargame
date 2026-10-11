@@ -28,6 +28,18 @@ double hudScaleFor(Size size) {
   return (short / 430).clamp(1.0, 1.4);
 }
 
+/// How much the menus outside the round grow on [size]. Only large tablets
+/// grow, up to 1.25 on a 13" iPad, so the menus read at arm's length as on
+/// a phone. Phones, the 11" iPad and a browser of 1280 by 800 keep 1, and
+/// the layouts and breakpoints of the menus stay those of the smaller
+/// screen.
+double menuScaleFor(Size size) {
+  final short = min(size.width, size.height);
+  final scale = (short / 820).clamp(1.0, 1.25);
+  // Barely larger is not worth a blurred edge.
+  return short < tabletShortSide || scale < 1.05 ? 1 : scale;
+}
+
 /// How much larger the Apple TV draws everything than a desktop browser on
 /// a screen of the same size, as it is seen from across the room.
 const tvScale = 1.4;
@@ -69,6 +81,22 @@ class TabletScale extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Lays a menu out on a screen smaller by [menuScaleFor] and draws it
+/// magnified. The television scales the whole app already.
+class MenuScale extends StatelessWidget {
+  const MenuScale({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => onTv
+      ? child
+      : FixedScale(
+          scale: menuScaleFor(MediaQuery.sizeOf(context)),
+          child: child,
+        );
 }
 
 /// Lays [child] out on a screen smaller by [scale] and draws it magnified.
