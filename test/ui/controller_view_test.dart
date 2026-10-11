@@ -59,12 +59,12 @@ void main() {
     await tester.pump();
 
     expect(find.text('SIEG GESICHERT'), findsOneWidget);
-    await tester.tap(find.text('TÜRME'));
+    await tester.tap(find.text('GESCHÜTZE'));
     await tester.pump();
     await tester.tap(find.text('KANONE 100'));
     // Too dear: nothing goes out.
     await tester.tap(find.text('HAUBITZE 220'), warnIfMissed: false);
-    await tester.tap(find.text('UPGRADES'));
+    await tester.tap(find.text('AUFRÜSTUNG'));
     await tester.pump();
     await tester.tap(find.textContaining('PANZERUNG'));
     await tester.tap(find.text('4 WELLEN'));

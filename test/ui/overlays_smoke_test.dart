@@ -370,6 +370,18 @@ void main() {
         expect(game.phase.value, GamePhase.roundOver);
         await _show(tester, game, size);
         expect(find.byType(RoundOverOverlay), findsOneWidget);
+        // New game, back and replay in one width, not three.
+        final widths = find
+            .descendant(
+              of: find.byType(RoundOverOverlay),
+              matching: find.byWidgetPredicate(
+                (w) => w is FilledButton || w is OutlinedButton,
+              ),
+            )
+            .evaluate()
+            .map((e) => (e.renderObject! as RenderBox).size.width.round())
+            .toSet();
+        expect(widths, hasLength(1), reason: '$widths');
         await tester.pumpWidget(const SizedBox());
       });
 

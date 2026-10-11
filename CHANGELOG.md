@@ -7,6 +7,24 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## Unreleased
+
+- A waiting room no longer closes the moment it opens after the start page
+  sat in a background tab for ten minutes
+- Guests see the host's difficulty, terrain and teams in the waiting room
+- The start page keeps its place when the leaderboard arrives with fewer
+  pilots than places
+- Vehicle cards sit in the middle of a phone instead of leaving a third
+  empty, camouflage stands in even rows, and the end screen's buttons
+  share one width
+- The settings end in the same pair of buttons as the waiting room
+- One name for the defense shop everywhere (guns and upgrades), "Stufe" no
+  longer means the difficulty, and the kill marker, the sound button and
+  the iMessage invitation speak English too
+- The Mac app has a sound switch like the browser
+- The phone controller shows ammunition with the HUD's crate, a tank lost
+  without a shooter "is out" instead of "dropped out"
+
 ## 1.5.0 (11) – 2026-10-11
 
 - Trenches are manned: three riflemen and a machine gun fire at soldiers

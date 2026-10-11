@@ -37,7 +37,7 @@ void main() {
     expect(find.text('Panzer-1'), findsOneWidget);
     expect(find.text('Panzer-2'), findsOneWidget);
     expect(find.text('Panzer-3'), findsOneWidget);
-    expect(find.text('ist ausgefallen'), findsOneWidget);
+    expect(find.text('ist ausgeschieden'), findsOneWidget);
     expect(find.text('Alt'), findsNothing);
 
     feed.value = [...feed.value, _entry(victim: 'Panzer-4')];

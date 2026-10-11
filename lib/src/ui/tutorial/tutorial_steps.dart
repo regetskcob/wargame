@@ -150,7 +150,7 @@ List<TutorialStep> get _gamepad => [
       'Im Modus Verteidigung bringen Abschüsse Geld. R1 baut ein Geschütz '
           'neben deinem Panzer oder rüstet das auf, an dem er steht, L1 '
           'wechselt die Art.',
-      'In defense mode kills bring money. R1 builds a turret next to your '
+      'In defense mode kills bring funds. R1 builds a gun next to your '
           'tank or upgrades the one it stands at, L1 switches the kind.',
     ),
   ),
@@ -189,12 +189,10 @@ List<TutorialStep> get _remote => [
     icon: Icons.track_changes_outlined,
     scene: DemoScene.aim,
     text: tr(
-      'Mit der Remote zielt die Zielhilfe: Sie dreht den Turm auf den '
-          'nächsten Gegner in Reichweite und feuert. Auf Schwer gibt es keine, '
-          'dann schaut der Turm nach vorn.',
+      'Mit der Fernbedienung zielt die Zielhilfe: Sie dreht den Turm auf den '
+          'nächsten Gegner in Reichweite und feuert.',
       'With the remote the aim assist aims: it turns the turret to the '
-          'nearest enemy in range and fires. On Hard there is none, then the '
-          'turret looks ahead.',
+          'nearest enemy in range and fires.',
     ),
   ),
   TutorialStep(
@@ -247,8 +245,8 @@ List<TutorialStep> get _remote => [
       'Im Modus Verteidigung bringen Abschüsse Geld. Ist das Inventar leer, '
           'baut $_playDe ein Geschütz neben deinem Panzer oder rüstet das '
           'auf, an dem er steht. Mehr Auswahl gibt ein Controller.',
-      'In defense mode kills bring money. With an empty inventory, '
-          '$_playEn builds a turret next to your tank or upgrades the one it '
+      'In defense mode kills bring funds. With an empty inventory, '
+          '$_playEn builds a gun next to your tank or upgrades the one it '
           'stands at. A controller gives more choice.',
     ),
   ),
@@ -338,8 +336,8 @@ List<TutorialStep> get _touch => [
       'Im Modus Verteidigung bringen Abschüsse Geld. Ein Tipp auf ein '
           'Geschütz baut es neben deinem Panzer, steht er an einem Geschütz, '
           'rüstest du es dort auf.',
-      'In defense mode kills bring money. A tap on a turret builds it next '
-          'to your tank, and when it stands at a turret you upgrade that '
+      'In defense mode kills bring funds. A tap on a gun builds it next '
+          'to your tank, and when it stands at a gun you upgrade that '
           'one.',
     ),
   ),
@@ -389,8 +387,8 @@ List<TutorialStep> get _vision => [
     icon: Icons.gps_fixed,
     scene: DemoScene.assist,
     text: tr(
-      'Ohne Pinch dreht die Zielhilfe den Turm auf den nächsten Gegner in '
-          'Reichweite und feuert. Der Knopf ZIELHILFE unten rechts schaltet '
+      'Solange du die Finger nicht zusammenführst, dreht die Zielhilfe den '
+          'Turm auf den nächsten Gegner in Reichweite und feuert. Der Knopf ZIELHILFE unten rechts schaltet '
           'sie aus und wieder an.',
       'Without a pinch the aim assist turns the turret to the nearest enemy '
           'in range and fires. The AIM ASSIST button at the lower right '
@@ -479,7 +477,7 @@ List<TutorialStep> get _desktop => [
     text: tr(
       'Im Modus Verteidigung bringen Abschüsse Geld. B baut ein Geschütz '
           'neben deinem Panzer, V wechselt den Typ.',
-      'In defense mode kills bring money. B builds a turret next to your '
+      'In defense mode kills bring funds. B builds a gun next to your '
           'tank, V switches the type.',
     ),
   ),
@@ -487,20 +485,22 @@ List<TutorialStep> get _desktop => [
 
 List<TutorialStep> get _tour => [
   TutorialStep(
-    title: tr('DREI WEGE ZU SPIELEN', 'THREE WAYS TO PLAY'),
+    title: tr('VIER WEGE ZU SPIELEN', 'FOUR WAYS TO PLAY'),
     icon: Icons.flag_outlined,
     text: tr(
       'Allein gegen CPU-Panzer, mit anderen per Link, Code oder Raumliste, '
-          'oder gemeinsam gegen ${GameConfig.defenseWaves} Wellen.',
+          'Rot gegen Blau um die Fahnen oder gemeinsam gegen '
+          '${GameConfig.defenseWaves} Wellen.',
       'Alone against CPU tanks, with others by link, code or room list, '
-          'or together against ${GameConfig.defenseWaves} waves.',
+          'red against blue for the flags or together against '
+          '${GameConfig.defenseWaves} waves.',
     ),
     chips: [
       TutorialChip(Icons.person_outlined, tr('EINZELSPIELER', 'SINGLE PLAYER')),
       TutorialChip(Icons.groups_outlined, tr('MEHRSPIELER', 'MULTIPLAYER')),
       TutorialChip(
         Icons.compare_arrows_outlined,
-        tr('ROT GEGEN BLAU', 'RED VS BLUE'),
+        tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
       ),
       TutorialChip(Icons.shield_outlined, tr('VERTEIDIGUNG', 'DEFENSE')),
     ],
@@ -549,11 +549,11 @@ List<TutorialStep> get _tour => [
     title: tr('NACHSCHUB', 'SUPPLIES'),
     icon: Icons.local_gas_station_outlined,
     text: tr(
-      'Ab Stufe Normal stehen Tankstellen und Munitionsdepots auf der Karte. '
+      'Ab Mittel stehen Tankstellen und Munitionsdepots auf der Karte. '
           'Halte darauf an, um aufzufüllen. Beschuss lässt sie in die Luft '
           'fliegen und reißt Panzer in der Nähe mit, nach einer Weile stehen '
-          'sie wieder. Bei Capture the Flag hat jedes Team eigene hinter '
-          'seiner Basis, die nur der Gegner zerstören kann.',
+          'sie wieder. Beim Fahnenraub hat jedes Team eigene hinter '
+          'seinem Stützpunkt, die nur der Gegner zerstören kann.',
       'From the normal level on, fuel stations and ammo depots stand on the '
           'map. Stop on one to fill up. Shells blow them up, taking nearby '
           'tanks along, and after a while they stand again. In capture the '
@@ -596,11 +596,11 @@ List<TutorialStep> get _tour => [
     ],
   ),
   TutorialStep(
-    title: tr('DREI STUFEN', 'THREE LEVELS'),
+    title: tr('DREI SCHWIERIGKEITEN', 'THREE DIFFICULTIES'),
     icon: Icons.signal_cellular_alt_outlined,
     text: tr(
       'Leicht: flaches Land, Treibstoff und Munition gehen nie aus. '
-          'Normal: Hügel und Nachschub, der gesucht werden muss. Schwer: '
+          'Mittel: Hügel und Nachschub, der gesucht werden muss. Schwer: '
           'steile Hügel und Luftschläge.',
       'Easy: flat land, fuel and ammunition never run out. Normal: hills '
           'and supplies that have to be found. Hard: steep hills and air '
@@ -639,16 +639,16 @@ List<TutorialStep> get _tour => [
     chips: [
       for (final kind in TowerKind.values)
         TutorialChip(_towerIcon(kind), kind.label),
-      TutorialChip(Icons.upgrade_outlined, 'UPGRADES'),
+      TutorialChip(Icons.upgrade_outlined, tr('AUFRÜSTUNG', 'UPGRADES')),
     ],
   ),
   TutorialStep(
     title: tr('NACH DER RUNDE', 'AFTER THE ROUND'),
     icon: Icons.emoji_events_outlined,
     text: tr(
-      'Revanche auf Knopfdruck, die letzte Runde als Wiederholung, dazu '
+      'Ein neues Spiel auf Knopfdruck, die letzte Runde als Wiederholung, dazu '
           'Ränge, Wertung, Abzeichen und Bestenlisten.',
-      'A rematch at the push of a button, the last round as a replay, plus '
+      'A new game at the push of a button, the last round as a replay, plus '
           'ranks, rating, badges and leaderboards.',
     ),
     chips: [

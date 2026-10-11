@@ -146,7 +146,7 @@ private struct Bars: View {
         Bar(label: tr("Panzerung", "Armour"), value: state.hp, color: state.hp > 0.3 ? WidgetPalette.olive : WidgetPalette.danger)
       }
       if state.defending(attributes) {
-        Bar(label: tr("Basis", "Base"), value: state.baseHp, color: state.baseHp > 0.3 ? WidgetPalette.sand : WidgetPalette.danger)
+        Bar(label: tr("Stützpunkt", "Base"), value: state.baseHp, color: state.baseHp > 0.3 ? WidgetPalette.sand : WidgetPalette.danger)
       }
     }
   }
@@ -204,7 +204,7 @@ extension MatchActivityAttributes.ContentState {
     case "countdown":
       return tr("Gleich geht's los", "Starting soon")
     case "roundOver":
-      return outcome == "won" ? tr("Sieg!", "Victory!") : (defending(attributes) ? tr("Basis gefallen", "Base fell") : tr("Vernichtet", "Destroyed"))
+      return outcome == "won" ? tr("Sieg!", "Victory!") : (defending(attributes) ? tr("Stützpunkt gefallen", "Base fell") : tr("Vernichtet", "Destroyed"))
     case "spectating":
       return tr("Abgeschossen", "Knocked out")
     default:
@@ -225,7 +225,7 @@ extension MatchActivityAttributes.ContentState {
     default:
       switch attributes.mode {
       case "solo": return tr("\(attributes.pilot) gegen CPU-Panzer", "\(attributes.pilot) against CPU tanks")
-      case "defense": return nextWaveAt != nil ? tr("Nächste Welle rollt an", "Next wave incoming") : tr("Haltet die Basis", "Hold the base")
+      case "defense": return nextWaveAt != nil ? tr("Nächste Welle rollt an", "Next wave incoming") : tr("Haltet den Stützpunkt", "Hold the base")
       default: return "\(attributes.pilot) · \(tr("Raum", "Room")) \(attributes.room)"
       }
     }

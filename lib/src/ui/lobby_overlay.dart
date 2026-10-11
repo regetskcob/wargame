@@ -397,9 +397,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
                           ValueListenableBuilder(
                             valueListenable: game.progress.rank,
-                            builder: (context, rank, _) => Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
+                            builder: (context, rank, _) => _balanced(
                               children: [
                                 for (
                                   var i = 0;
@@ -480,22 +478,27 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 : 112.0,
           );
           // A last card alone on its row sits in the middle, not at the
-          // left edge under the others.
-          return Wrap(
-            alignment: WrapAlignment.center,
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              for (final type in offered)
-                TankChoice(
-                  type: type,
-                  width: width.floorToDouble(),
-                  color: game.lobbyColorOf(game.myId, _colorIndex),
-                  selected: type == GameConfig.typeOf(_colorIndex),
-                  locked: !game.progress.vehicleUnlocked(type),
-                  onTap: () => _pick(type: type.index),
-                ),
-            ],
+          // left edge under the others. The full width, so the rows sit in
+          // the middle of the box too: on phones, where the cards keep
+          // their size, they stood at the left with a third left empty.
+          return SizedBox(
+            width: double.infinity,
+            child: Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final type in offered)
+                  TankChoice(
+                    type: type,
+                    width: width.floorToDouble(),
+                    color: game.lobbyColorOf(game.myId, _colorIndex),
+                    selected: type == GameConfig.typeOf(_colorIndex),
+                    locked: !game.progress.vehicleUnlocked(type),
+                    onTap: () => _pick(type: type.index),
+                  ),
+              ],
+            ),
           );
         },
       ),
@@ -675,7 +678,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       'R2 or A fires, L2 fires weapons such as grenade '
                       'launcher, mortar and drone. X, Y and the d-pad use the '
                       'inventory on the left edge. In defense, R1 builds a '
-                      'turret and L1 switches the type. '
+                      'gun and L1 switches the type. '
                       '${_remoteControls()}',
                 )
               : touch
@@ -706,7 +709,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                       'click. Crates and gems go to the inventory on the '
                       'left edge, use them with 1 to 6 or a click. '
                       'Weapons are then fired with F. In defense, B builds '
-                      'a turret and V switches the type.',
+                      'a gun and V switches the type.',
                 ),
         ),
         actions: [
@@ -726,6 +729,21 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       ),
     );
   }
+
+  /// The camouflage dabs in rows of even length: eight that do not fit in
+  /// one row stand four and four, not seven and a lone one.
+  Widget _balanced({required List<Widget> children}) => LayoutBuilder(
+    builder: (context, box) {
+      const step = 34.0 + 8;
+      final fit = max(1, ((box.maxWidth + 8) / step).floor());
+      final rows = (children.length / fit).ceil();
+      final perRow = (children.length / max(1, rows)).ceil();
+      return SizedBox(
+        width: min(box.maxWidth, perRow * step - 8),
+        child: Wrap(spacing: 8, runSpacing: 8, children: children),
+      );
+    },
+  );
 
   Widget _label(BuildContext context, String text) => Padding(
     padding: const EdgeInsets.only(top: 4, bottom: 8),
@@ -815,19 +833,24 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           narrow: narrow,
         ),
         const SizedBox(height: 18),
-        Wrap(
-          spacing: 12,
-          runSpacing: 12,
+        // The same pair as below the waiting room: the way aside on the
+        // left, the way on to the right, both as wide.
+        Row(
           children: [
-            FilledButton.icon(
-              onPressed: game.closeSettings,
-              icon: const Icon(Icons.check_outlined),
-              label: Text(tr('FERTIG', 'DONE')),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: game.changeMode,
+                icon: const Icon(Icons.swap_horiz_outlined),
+                label: _oneLine(tr('MODUS WECHSELN', 'CHANGE MODE')),
+              ),
             ),
-            OutlinedButton.icon(
-              onPressed: game.changeMode,
-              icon: const Icon(Icons.swap_horiz_outlined),
-              label: Text(tr('MODUS WECHSELN', 'CHANGE MODE')),
+            const SizedBox(width: 12),
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: game.closeSettings,
+                icon: const Icon(Icons.check_outlined),
+                label: _oneLine(tr('FERTIG', 'DONE')),
+              ),
             ),
           ],
         ),
@@ -845,26 +868,35 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         game.mapChoice,
         game.teamMode,
         game.mode,
+        game.hostSettings,
+        game.isHost,
       ]),
       builder: (context, _) {
-        final map = game.mapChoice.value;
+        // A guest reads the host's settings and cannot change them.
+        final host = game.isHost.value;
+        final theirs = game.hostSettings.value;
+        if (!host && theirs == null) {
+          return const SizedBox.shrink();
+        }
+        final map = host ? game.mapChoice.value : theirs!.map;
         final mode = game.mode.value;
         final parts = [
-          game.botLevel.value.label,
+          (host ? game.botLevel.value : theirs!.level).label,
           map == null
               ? tr('GELÄNDE ZUFÄLLIG', 'RANDOM TERRAIN')
               : MapTheme.all[map].name.toUpperCase(),
           if (mode == GameMode.solo || mode == GameMode.multi)
-            game.teamMode.value
+            (host ? game.teamMode.value : theirs!.teams)
                 ? 'TEAMS'
                 : tr('ALLE GEGEN ALLE', 'FREE FOR ALL'),
         ];
         return Align(
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
-            onPressed: game.editSettings,
+            onPressed: host ? game.editSettings : null,
             style: TextButton.styleFrom(
               foregroundColor: GameColors.amber,
+              disabledForegroundColor: GameColors.textDim,
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               visualDensity: VisualDensity.compact,
             ),
@@ -920,7 +952,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
               ],
             ),
-            if (host) ...[const SizedBox(height: 6), _settingsSummary()],
+            const SizedBox(height: 6),
+            _settingsSummary(),
             const SizedBox(height: 18),
             if (mode.withOthers) ...[
               const ServerNotice(),

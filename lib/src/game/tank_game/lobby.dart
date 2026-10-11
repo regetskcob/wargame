@@ -240,6 +240,9 @@ extension TankGameLobby on TankGame {
       joinedAt: net.joinedAt,
       pad: padSteered.value,
       mode: isHost.value ? mode.value.name : null,
+      level: isHost.value ? botLevel.value.name : null,
+      map: isHost.value ? mapChoice.value ?? -1 : null,
+      teams: isHost.value && teamMode.value,
     );
   }
 
@@ -596,13 +599,20 @@ extension TankGameLobby on TankGame {
   bool get beforeWaitingRoom =>
       !welcomed.value || (choosingMode.value && isHost.value);
 
-  /// Moving on to the waiting room joins the room again after dozing.
+  /// Moving on to the waiting room counts as activity and joins the room
+  /// again after dozing.
   void _wake() {
-    if (!dozing || beforeWaitingRoom) {
+    if (beforeWaitingRoom) {
+      return;
+    }
+    // Always, not only after dozing: a start page left in a background tab
+    // runs no frames, so it never dozed, and its old time closed the
+    // waiting room the moment it opened.
+    _lastActivity = clock.now();
+    if (!dozing) {
       return;
     }
     dozing = false;
-    _lastActivity = clock.now();
     fireAndForget(net.connect(_presencePayload()), 'Joining the room');
   }
 
@@ -687,6 +697,17 @@ extension TankGameLobby on TankGame {
       if (!member.host || member.id == myId) {
         continue;
       }
+      final level = BotLevel.values.asNameMap()[member.level];
+      final map = member.map;
+      hostSettings.value = level == null
+          ? null
+          : (
+              level: level,
+              map: map != null && map >= 0 && map < MapTheme.all.length
+                  ? map
+                  : null,
+              teams: member.teams,
+            );
       final picked = GameMode.values.asNameMap()[member.mode];
       // Guests always play together, a solo host is not waiting for them.
       if (picked != null && picked != GameMode.solo) {

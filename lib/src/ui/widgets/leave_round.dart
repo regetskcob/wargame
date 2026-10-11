@@ -64,7 +64,7 @@ class LeaveRoundPrompt extends StatelessWidget {
           );
         } else if (won) {
           note = tr(
-            'Der Sieg zählt, wenn der Host die Runde beendet. Verlassen '
+            'Der Sieg zählt, wenn der Gastgeber die Runde beendet. Verlassen '
                 'wertet sie für dich nicht.',
             'The victory counts once the host ends the round. Leaving does '
                 'not record it for you.',

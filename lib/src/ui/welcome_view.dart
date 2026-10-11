@@ -48,7 +48,7 @@ class WelcomeView extends StatelessWidget {
               'Sofort los, ohne E-Mail, aber ohne Wertung: EP, Rang, '
                   'Abzeichen und neue Fahrzeuge gibt es nur mit Konto. Im '
                   'Warteraum kannst du jederzeit eins anlegen.',
-              'Jump right in, no email, but no ranking: XP, rank, badges '
+              'Jump right in, no e-mail, but no ranking: XP, rank, badges '
                   'and new vehicles need an account. You can create one in '
                   'the waiting room at any time.',
             ),
@@ -109,11 +109,11 @@ class WelcomeView extends StatelessWidget {
                   'bestätigt: Wechsle zurück in den Tab, in dem du die Mail '
                   'angefordert hast, dort geht es von selbst weiter. Sonst melde '
                   'dich hier an und gib den Code aus der Mail ein.',
-              'The link from the email could not be completed in this tab. '
+              'The link from the e-mail could not be completed in this tab. '
                   'If you just registered, your address is confirmed anyway: '
-                  'switch back to the tab where you requested the email and '
+                  'switch back to the tab where you requested the e-mail and '
                   'it will carry on by itself. Otherwise sign in here and '
-                  'enter the code from the email.',
+                  'enter the code from the e-mail.',
             ),
           ),
         ],

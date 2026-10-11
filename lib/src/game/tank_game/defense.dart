@@ -536,10 +536,10 @@ extension TankGameDefense on TankGame {
     final reason = locked != null
         ? '${build.label} $locked'
         : credits.value < cost
-        ? tr('Zu wenig Mittel', 'Not enough funds')
+        ? tr('Zu wenig Geld', 'Not enough funds')
         : mine >= limit
         ? build.isGun
-              ? tr('Höchstens $limit Geschütze', 'At most $limit turrets')
+              ? tr('Höchstens $limit Geschütze', 'At most $limit guns')
               : tr('Höchstens $limit Gräben', 'At most $limit trenches')
         : map.whyNotBuild(
             tank.position,

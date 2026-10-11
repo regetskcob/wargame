@@ -123,7 +123,7 @@ class _RoomScannerState extends State<RoomScanner> {
                     'Point the camera at the QR code in the waiting room.',
                   ),
                   (false, false) => tr(
-                    'Das ist kein Raum-Code von Panzergefecht.',
+                    'Das ist kein Raumcode von Panzergefecht.',
                     'This is not a Panzergefecht room code.',
                   ),
                   (true, true) => tr(

@@ -13,8 +13,9 @@ and tablets the game plays upright or sideways, hides the system bars, and
 shows the on-screen touch controls. The camera shows the same stretch of the
 world along the shorter side, so upright shows more of the field above and
 below; in a defense round the field's height fills an upright screen. The
-apps have no mute button: the sounds follow the silent switch and the volume
-keys, and mix with music from other apps. Phones vibrate with the game
+phone and tablet apps have no mute button: the sounds follow the silent
+switch and the volume keys, and mix with music from other apps. The browser
+and the Mac app have one beside the account. Phones vibrate with the game
 (`lib/src/haptics.dart`, Flutter's `HapticFeedback`: the Taptic Engine on the
 iPhone, the vibration motor on Android): a light tap for a blast close by, a
 hard knock for a heavy hit, the own tank destroyed and the end of a round, a

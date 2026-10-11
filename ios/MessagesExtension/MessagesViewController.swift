@@ -155,10 +155,11 @@ struct Invite {
 
     var title: String {
       switch self {
-      case .multi: "Last Tank Standing"
-      case .flag: "Capture the Flag"
-      case .defense: tr("Tower Defense zu zweit", "Tower defense together")
-      case .duel: tr("Stützpunkt-Duell", "Base duel")
+      // The names the game's start page gives the modes.
+      case .multi: tr("Mehrspieler", "Multiplayer")
+      case .flag: tr("Fahnenraub", "Capture the flag")
+      case .defense: tr("Verteidigung", "Defense")
+      case .duel: tr("Duell", "Duel")
       }
     }
 

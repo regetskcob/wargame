@@ -413,7 +413,8 @@ class _ControllerViewState extends State<ControllerView> {
         '${(status.hp * 100).round()} %',
       ),
       bar(
-        Icons.circle_outlined,
+        // The crate of the HUD's plate, so both read the same.
+        Icons.inventory_2_outlined,
         ammo,
         ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
         '${status.ammo}',
@@ -528,7 +529,7 @@ class _ControllerViewState extends State<ControllerView> {
           _Chip(
             icon: Icons.fort_outlined,
             color: GameColors.oliveLight,
-            label: tr('TÜRME', 'TOWERS'),
+            label: tr('GESCHÜTZE', 'GUNS'),
             selected: open == _Shop.towers,
             dot: status.towerReady,
             onTap: () => _toggle(_Shop.towers),
@@ -536,7 +537,7 @@ class _ControllerViewState extends State<ControllerView> {
           _Chip(
             icon: Icons.upgrade_outlined,
             color: GameColors.oliveLight,
-            label: 'UPGRADES',
+            label: tr('AUFRÜSTUNG', 'UPGRADES'),
             selected: open == _Shop.upgrades,
             dot: status.upgradeReady,
             onTap: () => _toggle(_Shop.upgrades),
@@ -643,7 +644,7 @@ class _ControllerViewState extends State<ControllerView> {
       else
         Text(
           tr(
-            'Der Host entscheidet, ob es weitergeht.',
+            'Der Gastgeber entscheidet, ob es weitergeht.',
             'The host decides whether it goes on.',
           ),
           style: const TextStyle(color: GameColors.textDim, fontSize: 12),

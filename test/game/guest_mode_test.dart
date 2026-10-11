@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/bot_level.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -56,5 +57,39 @@ void main() {
     final guest = await loadedGame(net: guestNet);
     guest.chooseMode(GameMode.defense);
     expect(guestNet.presence?.mode, isNull);
+  });
+
+  test("a guest reads the host's difficulty, terrain and teams", () async {
+    final hostNet = FakeNet(isHost: true);
+    final hostGame = await loadedGame(net: hostNet);
+    hostGame
+      ..chooseMode(GameMode.multi)
+      ..botLevel.value = BotLevel.hard
+      ..mapChoice.value = 2
+      ..teamMode.value = true;
+    final sent = hostNet.presence!;
+    expect(sent.level, BotLevel.hard.name);
+    expect(sent.map, 2);
+    expect(sent.teams, isTrue);
+
+    final guest = await loadedGame(net: FakeNet(isHost: false));
+    // Both fakes share one id; the host's must differ from the guest's.
+    LobbyPresence asHost(LobbyPresence p) =>
+        LobbyPresence.fromJson({...p.toJson(), 'id': 'host'});
+    final received = asHost(sent);
+    guest.net.onRosterChanged?.call([received, guestOf(guest)]);
+    final theirs = guest.hostSettings.value!;
+    expect(theirs.level, BotLevel.hard);
+    expect(theirs.map, 2);
+    expect(theirs.teams, isTrue);
+    // The guest's own choice on this device stays as it was.
+    expect(guest.botLevel.value, isNot(BotLevel.hard));
+
+    hostGame.mapChoice.value = null;
+    guest.net.onRosterChanged?.call([
+      asHost(hostNet.presence!),
+      guestOf(guest),
+    ]);
+    expect(guest.hostSettings.value!.map, isNull, reason: 'random terrain');
   });
 }

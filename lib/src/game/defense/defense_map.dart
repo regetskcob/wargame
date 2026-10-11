@@ -381,7 +381,7 @@ class DefenseMap {
       return tr('Zu nah am Stützpunkt', 'Too close to the base');
     }
     if (towers.any((t) => t.distanceTo(point) < GameConfig.towerSpacing)) {
-      return tr('Zu nah am nächsten Geschütz', 'Too close to the next turret');
+      return tr('Zu nah am nächsten Geschütz', 'Too close to the nearest gun');
     }
     return null;
   }

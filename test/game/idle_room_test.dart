@@ -34,6 +34,19 @@ void main() {
     expect(game.phase.value, GamePhase.lobby);
   });
 
+  test('a waiting room opened after a long pause on the start page stays '
+      'open', () {
+    // A background tab runs no frames, so the start page never dozed.
+    final net = FakeNet();
+    final game = offlineGame(net: net)..onGameResize(Vector2(1280, 720));
+    game.overlays.addEntry(OverlayIds.closed, (_, _) => const SizedBox());
+    withClock(Clock.fixed(later), () => game.chooseMode(GameMode.multi));
+
+    game.closeWhenIdle(now: later.add(const Duration(seconds: 1)));
+    expect(game.phase.value, GamePhase.lobby);
+    expect(game.closedReason.value, isNull);
+  });
+
   test('a waiting room left alone too long closes and says so', () {
     final net = FakeNet();
     final game = offlineGame(net: net)

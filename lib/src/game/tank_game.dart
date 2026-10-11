@@ -511,6 +511,12 @@ class TankGame extends FlameGame
   /// Map picked in the lobby, null for a random one.
   final mapChoice = ValueNotifier<int?>(null);
 
+  /// What the host of this room set, as a guest reads it from the host's
+  /// presence; null for the host itself and before the host said.
+  final hostSettings = ValueNotifier<({BotLevel level, int? map, bool teams})?>(
+    null,
+  );
+
   /// Rounds this game started as host, to open the first one gently.
   var _roundsStarted = 0;
 
@@ -625,8 +631,10 @@ class TankGame extends FlameGame
     net.recorder = _recorder;
     padSteered.addListener(_onPadSteered);
     credits.addListener(_onFunds);
-    // Guests read the host's mode from its presence.
-    mode.addListener(_pushModeAsHost);
+    // Guests read the host's mode and settings from its presence.
+    for (final setting in <Listenable>[mode, botLevel, mapChoice, teamMode]) {
+      setting.addListener(_pushModeAsHost);
+    }
     await net.connect(_presencePayload());
     directory.connect();
     for (final notifier in <Listenable>[

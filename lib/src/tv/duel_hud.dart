@@ -183,10 +183,7 @@ class _PlayerPanel extends StatelessWidget {
                   const SizedBox(height: 6),
                   if (respawn > 0)
                     Text(
-                      tr(
-                        'Neuer Panzer in $respawn s',
-                        'New tank in $respawn s',
-                      ),
+                      tr('Einsatzbereit in $respawn s', 'Ready in $respawn s'),
                       style: const TextStyle(color: GameColors.amber),
                     )
                   else

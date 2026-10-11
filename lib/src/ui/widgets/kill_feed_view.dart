@@ -129,7 +129,9 @@ class _KillFeedViewState extends State<KillFeedView> {
             if (entry.killer == null) ...[
               const SizedBox(width: 8),
               Text(
-                tr('ist ausgefallen', 'dropped out'),
+                // No shooter: the zone, a mine or a lost connection, so
+                // not "dropped out", which read as a connection lost.
+                tr('ist ausgeschieden', 'is out'),
                 style: const TextStyle(fontSize: 12, color: GameColors.textDim),
               ),
             ],

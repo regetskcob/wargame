@@ -190,7 +190,7 @@ Everything the game does, with the numbers behind it. The short version is in th
   defense round, the funds beside the name and the shop in two groups,
   *Build* and *Round*: the guns to build where the tank stands, the
   upgrade of the gun next to it, the tank's upgrades, the host's *Wave now*
-  and, after each stretch of waves, *+4 waves* or *End*. A dot on *Towers*
+  and, after each stretch of waves, *+4 waves* or *End*. A dot on *Guns*
   and *Upgrades* (on the screen's buttons as well) says the funds reach for
   something behind them. Hits are felt as a buzz. Only the app on a phone
   becomes a controller (shorter side under 600 points): a tablet offers no

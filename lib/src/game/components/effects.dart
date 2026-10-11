@@ -6,6 +6,8 @@ import 'package:flame/components.dart';
 import 'package:flame/particles.dart';
 import 'package:flutter/painting.dart' show FontWeight, Shadow, TextStyle;
 
+import '../../l10n/l10n.dart';
+
 /// Churned up ground behind the tanks. One component paints all the marks, so
 /// a busy arena costs a single draw loop.
 class TrackLayer extends Component {
@@ -289,7 +291,7 @@ class KillMarker extends PositionComponent {
     );
     _label.render(
       canvas,
-      'ABSCHUSS',
+      tr('ABSCHUSS', 'KILL'),
       Vector2(0, -arm - 12),
       anchor: Anchor.bottomCenter,
     );

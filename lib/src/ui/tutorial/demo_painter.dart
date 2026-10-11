@@ -737,7 +737,7 @@ class DemoPainter extends CustomPainter {
     _caption(
       canvas,
       Offset(barLeft + kinds.length * 112 + 6, barTop + 11),
-      tr('GELD $money', 'MONEY $money'),
+      tr('GELD $money', 'FUNDS $money'),
     );
     for (final (i, (label, cost)) in kinds.indexed) {
       final chosen = flak ? i == 1 : i == 0;

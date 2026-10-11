@@ -9,6 +9,7 @@ import '../l10n/l10n.dart';
 import '../net/room.dart';
 import '../net/room_directory.dart';
 import '../ui/theme.dart';
+import 'wear_crown.dart';
 import '../ui/widgets/tank_choice.dart';
 import 'account_link.dart';
 import 'watch_widgets.dart';
@@ -91,6 +92,9 @@ class _WatchLobbyState extends State<WatchLobby> {
                       'Konto vom iPhone, wird gewertet',
                       'iPhone account, ranked',
                     )
+                  // Only the Apple Watch borrows the phone's account.
+                  : onWear
+                  ? tr('Gast, ohne Wertung', 'Guest, unranked')
                   : tr(
                       'Gast. Melde dich in der iPhone-App an.',
                       'Guest. Sign in in the iPhone app.',

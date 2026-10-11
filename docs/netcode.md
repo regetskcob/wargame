@@ -76,8 +76,11 @@
   out.
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate. The
-  host also names the way to play it picked (`mode`), so a guest's waiting
-  room describes the host's mode before the round brings it.
+  host also names the way to play it picked (`mode`) and its settings
+  (`level`, `map` with -1 for a random terrain, `teams`), so a guest's
+  waiting room describes the host's mode and shows what will be played
+  before the round brings it. Older hosts send neither; their guests show
+  no settings line.
 - One host per room: a doubled host settles after three seconds. The owner
   (who opened the room) keeps the role against a stand-in, two stand-ins
   leave it to the smaller id, and so do two owners, which happens when one

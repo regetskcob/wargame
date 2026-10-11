@@ -365,7 +365,7 @@ class _GuestCard extends StatelessWidget {
                             'schaltest Fahrzeuge frei und spielst auf jedem '
                             'Gerät weiter.',
                         'With an account you collect XP, rank and badges, '
-                            'unlock vehicles and carry on on every device.',
+                            'unlock vehicles and keep playing on any device.',
                       ),
                       style: const TextStyle(
                         fontSize: 13,

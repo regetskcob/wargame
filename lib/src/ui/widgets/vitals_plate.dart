@@ -71,7 +71,7 @@ class VitalsPlate extends StatelessWidget {
                     : tank <= GameConfig.fuelLowShare
                     ? GameColors.amber
                     : const Color(0xFFFF9100),
-                '${(tank * 100).ceil()}%',
+                '${(tank * 100).ceil()} %',
               ),
           ],
         ),

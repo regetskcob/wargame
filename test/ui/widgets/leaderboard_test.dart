@@ -80,4 +80,30 @@ void main() {
       lessThan(tester.getTopLeft(find.text('Neuling')).dy),
     );
   });
+
+  testWidgets('the table keeps its height when fewer pilots arrive than it '
+      'has places', (tester) async {
+    final scores = FakeScores(
+      top: const [
+        ScoresRow({'id': 'a', 'name': 'Einzige', 'wins': 1, 'kills': 2}),
+      ],
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Align(
+            alignment: Alignment.topCenter,
+            child: Leaderboard(game: offlineGame(scores: scores)),
+          ),
+        ),
+      ),
+    );
+    final loading = tester.getSize(find.byType(Leaderboard)).height;
+    await tester.pumpAndSettle();
+    expect(find.text('Einzige'), findsOneWidget);
+    expect(
+      tester.getSize(find.byType(Leaderboard)).height,
+      closeTo(loading, 1),
+    );
+  });
 }

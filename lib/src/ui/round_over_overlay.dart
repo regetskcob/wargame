@@ -212,33 +212,39 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
             const SizedBox(height: 24),
             ValueListenableBuilder<bool>(
               valueListenable: game.isHost,
-              builder: (context, host, _) => Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 12,
-                runSpacing: 12,
-                children: [
-                  FilledButton.icon(
-                    onPressed: host ? game.rematch : null,
-                    icon: const Icon(Icons.replay_outlined),
-                    label: Text(
-                      host
-                          ? tr('NEUES SPIEL', 'NEW GAME')
-                          : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
-                    ),
+              // One under the other in one width: side by side they broke
+              // into rows of their own lengths, three widths on one screen.
+              builder: (context, host, _) => LayoutBuilder(
+                builder: (context, box) => SizedBox(
+                  width: min(box.maxWidth, 320),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    spacing: 12,
+                    children: [
+                      FilledButton.icon(
+                        onPressed: host ? game.rematch : null,
+                        icon: const Icon(Icons.replay_outlined),
+                        label: Text(
+                          host
+                              ? tr('NEUES SPIEL', 'NEW GAME')
+                              : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
+                        ),
+                      ),
+                      OutlinedButton(
+                        onPressed: game.backToLobby,
+                        child: _LobbyLabel(
+                          lobbyAt: game.lobbyAt.value,
+                          withOthers: game.mode.value.withOthers,
+                        ),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: game.watchReplay,
+                        icon: const Icon(Icons.movie_outlined),
+                        label: Text(tr('WIEDERHOLUNG', 'REPLAY')),
+                      ),
+                    ],
                   ),
-                  OutlinedButton(
-                    onPressed: game.backToLobby,
-                    child: _LobbyLabel(
-                      lobbyAt: game.lobbyAt.value,
-                      withOthers: game.mode.value.withOthers,
-                    ),
-                  ),
-                  OutlinedButton.icon(
-                    onPressed: game.watchReplay,
-                    icon: const Icon(Icons.movie_outlined),
-                    label: Text(tr('WIEDERHOLUNG', 'REPLAY')),
-                  ),
-                ],
+                ),
               ),
             ),
           ],

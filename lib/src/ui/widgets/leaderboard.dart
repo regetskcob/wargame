@@ -194,9 +194,16 @@ class _LeaderboardState extends State<Leaderboard> {
         if (scores.isEmpty) {
           return _empty;
         }
-        return _table(_labels, [
+        final shown = [
           for (final (rank, row) in _shown(scores, (r) => r.id == me))
             _row(rank, row, mine: row.id == me),
+        ];
+        // Fewer pilots than places: empty rows keep the table as tall as
+        // its placeholders were, or the start page, centred in the browser,
+        // moves under the pointer the moment the list arrives.
+        return _table(_labels, [
+          ...shown,
+          for (var i = shown.length; i < widget.rows; i++) _blankRow(),
         ]);
       },
     );
@@ -269,6 +276,9 @@ class _LeaderboardState extends State<Leaderboard> {
       ],
     );
   }
+
+  TableRow _blankRow() =>
+      TableRow(children: [for (var i = 0; i < 5; i++) _cell(' ')]);
 
   TableRow _row(int rank, ScoresRow row, {required bool mine}) {
     final medal = rank <= 3 ? _medals[rank - 1] : null;

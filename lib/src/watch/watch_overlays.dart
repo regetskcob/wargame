@@ -113,7 +113,7 @@ class _WatchHudState extends State<WatchHud> {
     valueListenable: game.respawnSeconds,
     builder: (context, seconds, _) => seconds > 0
         ? Text(
-            tr('Zurück in $seconds s', 'Back in $seconds s'),
+            tr('Einsatzbereit in $seconds s', 'Ready in $seconds s'),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontWeight: FontWeight.w900,
@@ -501,7 +501,7 @@ class WatchRoundOver extends StatelessWidget {
                 ValueListenableBuilder<bool>(
                   valueListenable: game.isHost,
                   builder: (context, host, _) => WatchButton(
-                    label: tr('NOCHMAL', 'REMATCH'),
+                    label: tr('NEUES SPIEL', 'NEW GAME'),
                     icon: Icons.replay,
                     primary: true,
                     onPressed: host ? game.rematch : null,
@@ -543,8 +543,8 @@ class WatchSpectator extends StatelessWidget {
               valueListenable: game.spectatingName,
               builder: (context, name, _) => Text(
                 name == null
-                    ? tr('Du schaust zu', 'You are watching')
-                    : tr('Du schaust $name zu', 'Watching $name'),
+                    ? tr('Beobachte', 'Watching')
+                    : tr('Beobachte $name', 'Watching $name'),
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   fontWeight: FontWeight.w800,

@@ -8,6 +8,24 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## Noch nicht veröffentlicht
+
+- Ein Warteraum schließt sich nicht mehr sofort, wenn die Startseite zehn
+  Minuten in einem Hintergrund-Tab lag
+- Gäste sehen im Warteraum Schwierigkeit, Gelände und Teams des Gastgebers
+- Die Startseite bleibt an ihrem Platz, wenn die Bestenliste mit weniger
+  Piloten als Plätzen ankommt
+- Die Panzerkarten stehen auf dem Handy in der Mitte statt ein Drittel
+  frei zu lassen, die Tarnfarben in gleich langen Reihen, und die Knöpfe
+  des Endbildschirms sind gleich breit
+- Die Einstellungen enden mit demselben Knopfpaar wie der Warteraum
+- Ein Name für den Laden der Verteidigung überall (Geschütze und
+  Aufrüstung), "Stufe" heißt nicht mehr die Schwierigkeit, und Abschuss-
+  Marke, Ton-Knopf und iMessage-Einladung sprechen auch Englisch
+- Die Mac-App hat einen Ton-Schalter wie der Browser
+- Der Handy-Controller zeigt die Munition mit der Kiste des HUD, ein
+  Panzer ohne Schützen "ist ausgeschieden" statt "ausgefallen"
+
 ## 1.5.0 (11) – 11.10.2026
 
 - Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und

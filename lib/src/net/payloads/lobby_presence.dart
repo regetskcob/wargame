@@ -16,6 +16,9 @@ class LobbyPresence {
     this.pad = false,
     this.flag = false,
     this.mode,
+    this.level,
+    this.map,
+    this.teams = false,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -37,6 +40,9 @@ class LobbyPresence {
       flag: json['flag'] as bool? ?? false,
       // Older clients send nothing; a wrong type must not drop the member.
       mode: json['mode'] is String ? json['mode'] as String : null,
+      level: json['level'] is String ? json['level'] as String : null,
+      map: json['map'] is int ? json['map'] as int : null,
+      teams: json['teams'] == true,
     );
   }
 
@@ -147,6 +153,13 @@ class LobbyPresence {
   /// host sends it.
   final String? mode;
 
+  /// The host's settings, so guests read what will be played: a
+  /// `BotLevel` name, the terrain's index (-1 for a random one) and
+  /// whether teams play. Only the host sends them, older hosts never.
+  final String? level;
+  final int? map;
+  final bool teams;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -167,6 +180,9 @@ class LobbyPresence {
       if (pad) 'pad': true,
       if (flag) 'flag': true,
       if (mode != null) 'mode': mode,
+      if (level != null) 'level': level,
+      if (map != null) 'map': map,
+      if (teams) 'teams': true,
     };
   }
 }

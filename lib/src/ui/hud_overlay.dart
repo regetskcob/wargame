@@ -150,7 +150,7 @@ class _HudOverlayState extends State<HudOverlay> {
     if (match.carriedBy(game.myId) != null) {
       task = tr('Bring die Fahne heim!', 'Bring the flag home!');
     } else if (mine != null && !mine.home) {
-      task = tr('Holt eure Fahne zurück!', 'Get your flag back!');
+      task = tr('Hol eure Fahne zurück!', 'Get your flag back!');
     } else {
       task = tr('Hol die Fahne der anderen', 'Steal the other side\'s flag');
     }
@@ -591,8 +591,8 @@ class _HudOverlayState extends State<HudOverlay> {
                               ),
                               Text(
                                 tr(
-                                  'Wieder einsatzbereit in $seconds s',
-                                  'Ready again in $seconds s',
+                                  'Einsatzbereit in $seconds s',
+                                  'Ready in $seconds s',
                                 ),
                                 textAlign: TextAlign.center,
                                 style: const TextStyle(
@@ -1006,7 +1006,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             'Geld gibt es für eigene Abschüsse (Panzer jetzt +$bounty, mit '
                 'jeder Welle weniger) und jede abgewehrte Welle '
                 '(+${GameConfig.waveBonus}).',
-            'Money comes with your own kills (a tank now +$bounty, less '
+            'Funds come with your own kills (a tank now +$bounty, less '
                 'with every wave) and every wave beaten off '
                 '(+${GameConfig.waveBonus}).',
           ),
@@ -1021,7 +1021,7 @@ class _DefensePanelState extends State<_DefensePanel> {
           runSpacing: 4,
           children: [
             _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
-            _deskTab('UPGRADES', _Shop.upgrades),
+            _deskTab(tr('AUFRÜSTUNG', 'UPGRADES'), _Shop.upgrades),
             if (game.canCallWave) _callWave(),
           ],
         ),
@@ -1136,12 +1136,16 @@ class _DefensePanelState extends State<_DefensePanel> {
             const Icon(Icons.paid_outlined, size: 13, color: GameColors.amber),
             const SizedBox(width: 8),
             _tab(
-              tr('Türme', 'Towers'),
+              tr('Geschütze', 'Guns'),
               Icons.construction_outlined,
               _Shop.towers,
             ),
             const SizedBox(width: 4),
-            _tab('Upgrades', Icons.upgrade_outlined, _Shop.upgrades),
+            _tab(
+              tr('Aufrüstung', 'Upgrades'),
+              Icons.upgrade_outlined,
+              _Shop.upgrades,
+            ),
             if (game.canCallWave) ...[
               const SizedBox(width: 4),
               Tooltip(
@@ -1299,7 +1303,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               else
                 Text(
                   tr(
-                    'Der Host entscheidet, ob es weitergeht.',
+                    'Der Gastgeber entscheidet, ob es weitergeht.',
                     'The host decides whether it goes on.',
                   ),
                   textAlign: align,

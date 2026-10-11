@@ -203,9 +203,12 @@ enum TowerKind {
       'area fire at long range',
     ),
     TowerKind.trench => tr(
-      'Schützen und MG gegen Infanterie, halber Schaden für den Panzer darin',
-      'riflemen and a machine gun against infantry, half damage for the tank '
-          'inside',
+      'Schützen und MG gegen Infanterie, ab Welle '
+          '${GameConfig.trenchRocketFromWave} eine Panzerabwehrrakete, '
+          'halber Schaden für den Panzer darin',
+      'riflemen and a machine gun against infantry, an anti-tank rocket '
+          'from wave ${GameConfig.trenchRocketFromWave}, half damage for the '
+          'tank inside',
     ),
     TowerKind.rockets => tr(
       'gegen Panzer und Luftziele',
