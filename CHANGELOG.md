@@ -7,72 +7,33 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## Unreleased
+## 1.6.0 (12) – 2026-10-11
 
-- Two new grounds: the mountain forest, with dense conifers, scree and
-  hills on every difficulty, and the islands, more water than land:
-  islands of organic shape joined by wooden bridges, shallows along the
-  shores that tanks wade through slowly and deep water beyond
-- Two new defense maps: Flussufer along the river bank and Haarnadel with
-  two hairpins across the river
-- A ninth vehicle from rank 6: the Igel, a rocket launcher that fires
-  four rockets a salvo, and from wave 6 of a defense round among the
-  enemies too
-- Whenever CPU tanks come, at least as many as there are people: two on
-  one screen meet 2 to 4, a room filled up gets one CPU tank per pilot
-- CPU tanks drive the vehicles the people in the round drive: a new
-  player meets starters, a pilot in a Wolf meets Wolves, instead of
-  starters for everybody
-- Red against blue: players on AUTO are spread by their vehicle, so a new
-  player plays alongside a veteran, and the CPU tanks across drive the
-  vehicles that have no counterpart there
-- Comrades in a defense round drive the vehicles of the wave they roll out
-  in, by the same rules as the enemy's waves
-- Red against blue: CPU tanks even out sides that the players' picks left
-  short, and both sides' CPU tanks drive the same vehicles
-- The newer grounds and maps only come up in a room where every player
-  has this version
-- A waiting room no longer closes the moment it opens after the start page
-  sat in a background tab for ten minutes
-- Guests see the host's difficulty, terrain and teams in the waiting room
-- The start page keeps its place when the leaderboard arrives with fewer
-  pilots than places
-- Vehicle cards sit in the middle of a phone instead of leaving a third
-  empty, camouflage stands in even rows, and the end screen's buttons
-  share one width
-- The settings end in the same pair of buttons as the waiting room
-- One name for the defense shop everywhere (guns and upgrades), "Stufe" no
-  longer means the difficulty, and the kill marker, the sound button and
-  the iMessage invitation speak English too
-- The currency of a defense round is called coins everywhere (in German
-  Münzen instead of Geld)
-- The Mac app has a sound switch like the browser
-- The phone controller shows ammunition with the HUD's crate, a tank lost
-  without a shooter "is out" instead of "dropped out"
-- Mortars and howitzers lead their shells onto where a target will be when
-  they land: a mortar now stops tanks on the road about as well as a
-  cannon instead of letting all of them through
-- Nobody can play in somebody else's name any more: every message carries
-  a tag that only its sender can make, and who hosts a room comes from the
-  server, so a player posing as the owner or the first to come no longer
-  takes the room, closes it or ends its round
+- Two new grounds: the mountain forest with dense woods, scree and hills,
+  and the islands, more water than land, joined by wooden bridges with
+  shallows that tanks wade through slowly
+- Two new defense maps, Flussufer and Haarnadel, and a ninth vehicle from
+  rank 6: the Igel, a rocket launcher with four rockets a salvo, also among
+  the enemies from wave 6
+- CPU tanks drive what the people in the round drive, so every rank meets
+  its match; in red against blue players on AUTO are spread by vehicle, so
+  a new player plays alongside a veteran
+- Whenever CPU tanks come, at least as many as there are people; they even
+  out sides left short, in the same vehicles on both sides, and comrades in
+  a defense round drive the vehicles of their wave
+- Nobody can play in somebody else's name any more: every message carries a
+  tag only its sender can make, and who hosts a room comes from the server
 - When the host of a defense round leaves for good, the next player takes
-  over waves, base and guns instead of the base falling for everybody
-- Rounds against CPU tanks earn experience and rating only for the time
-  really played, as the server measured it
-- Only the room that claimed its share of the Realtime budget can lower it
-- After the server closed every room for too many messages, games wait
-  longer and longer before rejoining instead of knocking every two seconds
-- A replay can show the whole map from above instead of following one
-  tank: *Whole map* in its bar or the key M
-- In capture the flag a host who drops out and comes back takes the flags
-  back, and a last capture made while it was cut off still ends the round
-  on every screen
-- Touch controls let go of everything when they are rebuilt under a held
-  finger, a second thumb takes over a stick, and two fingers on the
-  special weapon no longer drop it when one lifts
-- Sounds no longer come seconds late in a busy defense round: late ones are
-  left out, own shots get voices of their own
+  over waves, base and guns; rounds against CPU tanks count for the time
+  the server measured
+- Mortars and howitzers lead their shells onto where a target will be, so
+  a mortar stops tanks on the road
+- A replay can show the whole map from above (*Whole map* or the key M)
+- Guests see the host's difficulty, terrain and teams in the waiting room,
+  and things have one name everywhere: coins, guns and upgrades
+- Fixes: a waiting room no longer closes after a pause in a background
+  tab, the start page holds still, sounds no longer come late in a busy
+  defense round, and a second thumb takes over a stick
 
 ## 1.5.0 (11) – 2026-10-11
 

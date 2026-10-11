@@ -8,75 +8,37 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## Noch nicht veröffentlicht
+## 1.6.0 (12) – 11.10.2026
 
-- Zwei neue Gelände: der Bergwald mit dichtem Nadelwald, Geröll und
-  Hügeln auf jeder Schwierigkeit, und die Inseln mit mehr Wasser als Land:
-  organisch geformte Inseln, verbunden durch Holzbrücken, mit Flachwasser
-  am Ufer, durch das Panzer langsam waten, und tiefem Wasser dahinter
-- Zwei neue Karten für die Verteidigung: Flussufer am Ufer entlang und
-  Haarnadel mit zwei Kehren über den Fluss
-- Ein neuntes Fahrzeug ab Stufe 6: der Igel, ein Raketenwerfer mit vier
-  Raketen je Salve, ab Welle 6 der Verteidigung auch auf der Gegnerseite
-- Wenn CPU-Panzer mitspielen, dann mindestens so viele wie Spieler: zu
-  zweit an einem Bildschirm 2 bis 4, ein aufgefüllter Raum einen je Pilot
-- CPU-Panzer fahren die Fahrzeuge der Menschen in der Runde: Neulinge
-  treffen auf Startfahrzeuge, wer im Wolf sitzt, auf Wölfe, statt dass
-  alle nur Startfahrzeugen begegnen
-- Rot gegen Blau: Wer auf AUTO steht, wird nach Fahrzeug verteilt, sodass
-  Neulinge mit Erfahrenen zusammen spielen, und die CPU-Panzer gegenüber
-  fahren die Fahrzeuge, denen dort ein Gegenstück fehlt
-- Kameraden in der Verteidigung fahren die Fahrzeuge der Welle, in der sie
-  ausrücken, nach denselben Regeln wie die gegnerischen Wellen
-- Rot gegen Blau: CPU-Panzer gleichen Teams aus, die durch die Wahl der
-  Spieler zu klein blieben, und beide Seiten bekommen dieselben CPU-Fahrzeuge
-- Die neuen Gelände und Karten kommen nur in Räumen vor, in denen alle
-  diese Version haben
-- Ein Warteraum schließt sich nicht mehr sofort, wenn die Startseite zehn
-  Minuten in einem Hintergrund-Tab lag
-- Gäste sehen im Warteraum Schwierigkeit, Gelände und Teams des Gastgebers
-- Die Startseite bleibt an ihrem Platz, wenn die Bestenliste mit weniger
-  Piloten als Plätzen ankommt
-- Die Panzerkarten stehen auf dem Handy in der Mitte statt ein Drittel
-  frei zu lassen, die Tarnfarben in gleich langen Reihen, und die Knöpfe
-  des Endbildschirms sind gleich breit
-- Die Einstellungen enden mit demselben Knopfpaar wie der Warteraum
-- Ein Name für den Laden der Verteidigung überall (Geschütze und
-  Aufrüstung), "Stufe" heißt nicht mehr die Schwierigkeit, und Abschuss-
-  Marke, Ton-Knopf und iMessage-Einladung sprechen auch Englisch
-- Die Währung der Verteidigung heißt überall Münzen statt Geld (auf
-  Englisch coins)
-- Die Mac-App hat einen Ton-Schalter wie der Browser
-- Der Handy-Controller zeigt die Munition mit der Kiste des HUD, ein
-  Panzer ohne Schützen "ist ausgeschieden" statt "ausgefallen"
-- Mörser und Haubitzen halten ihre Granaten dorthin vor, wo das Ziel bei
-  der Landung sein wird: ein Mörser hält Panzer auf der Straße jetzt etwa
-  so gut auf wie eine Kanone, statt alle durchzulassen
+- Zwei neue Gelände: der Bergwald mit dichtem Wald, Geröll und Hügeln,
+  und die Inseln mit mehr Wasser als Land, verbunden durch Holzbrücken,
+  mit Flachwasser, durch das Panzer langsam waten
+- Zwei neue Karten für die Verteidigung, Flussufer und Haarnadel, und ein
+  neuntes Fahrzeug ab Stufe 6: der Igel, ein Raketenwerfer mit vier
+  Raketen je Salve, ab Welle 6 auch auf der Gegnerseite
+- CPU-Panzer fahren, was die Menschen in der Runde fahren, so trifft jede
+  Stufe auf ihresgleichen; bei Rot gegen Blau wird verteilt, wer auf AUTO
+  steht, sodass Neulinge mit Erfahrenen zusammen spielen
+- Wenn CPU-Panzer mitspielen, dann mindestens so viele wie Spieler; sie
+  gleichen zu kleine Teams aus, auf beiden Seiten in denselben Fahrzeugen,
+  und Kameraden in der Verteidigung fahren die Fahrzeuge ihrer Welle
 - Niemand kann mehr in fremdem Namen spielen: Jede Nachricht trägt ein
   Zeichen, das nur ihr Absender setzen kann, und wer einen Raum leitet,
-  sagt der Server; wer sich als Besitzer oder Erster ausgibt, übernimmt den
-  Raum nicht mehr, schließt ihn nicht und beendet keine Runde
+  sagt der Server
 - Verlässt der Gastgeber einer Verteidigung die Runde endgültig, übernimmt
-  der nächste Spieler Wellen, Stützpunkt und Geschütze, statt dass der
-  Stützpunkt für alle fällt
-- Runden gegen CPU-Panzer bringen Erfahrung und Wertung nur für die
-  wirklich gespielte Zeit, wie der Server sie gemessen hat
-- Den Anteil eines Raums am Realtime-Budget kann nur der Raum senken, der
-  ihn belegt hat
-- Hat der Server wegen zu vieler Nachrichten alle Räume geschlossen,
-  warten die Spiele immer länger, bevor sie wieder beitreten, statt alle
-  zwei Sekunden anzuklopfen
-- Eine Wiederholung kann die ganze Karte von oben zeigen, statt einem
-  Panzer zu folgen: *Gesamtkarte* in ihrer Leiste oder die Taste M
-- Bei Capture the Flag holt sich ein Gastgeber, der kurz weg war, die
-  Fahnen zurück, und eine letzte Eroberung während seiner Funkstille
-  beendet die Runde trotzdem auf allen Bildschirmen
-- Die Touch-Steuerung lässt alles los, wenn sie unter einem gehaltenen
-  Finger neu aufgebaut wird, ein zweiter Daumen übernimmt einen Stick, und
-  zwei Finger auf der Spezialwaffe lassen sie nicht mehr los, wenn einer
-  sich hebt
-- Töne kommen in einer vollen Verteidigungsrunde nicht mehr Sekunden zu
-  spät: verspätete fallen weg, eigene Schüsse haben eigene Stimmen
+  der nächste Spieler Wellen, Stützpunkt und Geschütze; Runden gegen
+  CPU-Panzer zählen für die Zeit, die der Server gemessen hat
+- Mörser und Haubitzen halten ihre Granaten dorthin vor, wo das Ziel sein
+  wird, so hält ein Mörser Panzer auf der Straße auf
+- Eine Wiederholung kann die ganze Karte von oben zeigen (*Gesamtkarte*
+  oder die Taste M)
+- Gäste sehen im Warteraum Schwierigkeit, Gelände und Teams des
+  Gastgebers, und alles heißt überall gleich: Münzen, Geschütze und
+  Aufrüstung
+- Korrekturen: Ein Warteraum schließt sich nach einer Pause im
+  Hintergrund-Tab nicht mehr, die Startseite bleibt ruhig, Töne kommen in
+  einer vollen Verteidigung nicht mehr zu spät, und ein zweiter Daumen
+  übernimmt einen Stick
 
 ## 1.5.0 (11) – 11.10.2026
 
