@@ -27,7 +27,7 @@ into the release issue and the next version.
 | Release | What runs |
 | --- | --- |
 | Minor or major (`x.Y.0`) | everything: sections 1 to 6 |
-| Patch (`x.y.Z`) | sections 1, 2 and 5 in full; of 3 and 4 the cases whose area the diff since the last version bump touches, plus the smoke path S1–S6 |
+| Patch (`x.y.Z`) | sections 1, 2, 3.13 (older versions) and 5 in full; of 3 and 4 the cases whose area the diff since the last version bump touches, plus the smoke path S1–S6 |
 | Store texts or screenshots only | 1, 3.12 (store and landing page) |
 
 The diff since the last release is
@@ -240,6 +240,38 @@ Per platform the smoke path S1–S6 where the platform has it, plus:
 | F12.1 | Store texts (iOS, Play) and the landing page name things as the game does (glossary above); the English and German promo say the same | #23 W7 | sim: read `store/`, `site/` | M |
 | F12.2 | Screenshots show the current build (`tool/store_shots.sh` + contact sheet), no real vehicle names, no "Bundeswehr" | memory | sim | M |
 | F12.3 | Release notes match the changelog of this version | release skill | sim | M |
+
+### 3.13 Older versions against this release
+
+The web goes live with the push, the stores follow days later and not every
+player updates, so for weeks the new release meets the last one (and older)
+in the same rooms and on the same database. Runs on **every** release, patch
+included.
+
+**The old build:** the last release is the commit of the newest "Raise the
+version" before the current one (as in section 0). Check it out with
+`git worktree add ../wargame-prev <commit>` and build it there against the
+hosted project: `flutter build web --release` with the same defines, served
+on a second port, and `flutter run` on a second simulator. The owner keeps the
+current store build on a real device and does not update it before the run
+(TestFlight can also install the previous build).
+
+| Id | Case | How | Sev |
+| --- | --- | --- | --- |
+| F13.1 | Old host, new guest **and** new host, old guest: join by code and link, the room list shows the other's room, a battle with CPU fill plays to the end screen on both, NEW GAME starts the next round on both | sim: two browser profiles, one on the old web build, one on the new | B |
+| F13.2 | The same in defense (waves, guns, base, extension) and capture the flag (flags, respawn): neither side throws, the guest sees the host's waves, guns and flags | sim: old ↔ new web build | B |
+| F13.3 | Content level: a room with an old client never rolls a newer map, defense layout or enemy (`roomContent`, `DefenseMap.freshRoom`); a new pilot's vehicle shows on the old client as the Keiler | auto: `new_maps_test`; sim: old guest in a new host's room, compare the map on both screens | B |
+| F13.4 | Presence and payloads: fields this release added are optional, an old client's presence without them works in a new room (no settings line, no `content` means level 0) | auto: `wire_format_test` (no event renamed, no field dropped); sim: F13.1 | B |
+| F13.5 | Phone controller across versions: the old app as pad of the new screen and the new app as pad of the old screen pair and drive a round; new `act` kinds are dropped by the old side without a throw | sim: old and new build on two iPhone simulators against the web | M |
+| F13.6 | Database: the old client's `record_round`, `claim_load`, heartbeat and leaderboard calls succeed against every migration of this release (no renamed parameter, no new required one) | auto: `rpc_contract_test` (functions and parameters the client calls exist); owner: a round on the old store build signed in raises XP once | B |
+| F13.7 | Watch and iMessage: the old watch app with the new iPhone app (token handover, rounds count); an iMessage bubble sent from the old version opens the new app in the right room and mode | owner: real watch and two devices in one chat | M |
+| F13.8 | Two versions back (the store build before the last one) can still start, play solo and see the leaderboard | owner: oldest TestFlight build still installable, or sim from a worktree | m |
+
+Where the two versions behave differently in one room (the old side drops a
+new message kind, or plays without a new feature), the release notes say so.
+If a case fails because the change cannot be made compatible, ship web and
+both stores together and say so in the release issue (as with migrations
+0015/0016 in `docs/netcode.md`).
 
 ## 4. Load and performance
 

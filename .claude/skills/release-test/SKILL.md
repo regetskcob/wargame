@@ -30,6 +30,10 @@ each case with an id, where it comes from (#12, #21, #23), how it is checked
    check by `read_page` and logs. Collect every unhandled error from all
    logs for R9. Never flood the hosted Realtime (L8), database attacks only
    in PGlite.
+   For 3.13 build the last release from a worktree
+   (`git worktree add ../wargame-prev <last "Raise the version" commit>`)
+   and play it against the new build in both roles (old host, new guest
+   and the other way round); remove the worktree afterwards.
 4. **Fix or file.** A blocker or major found here is fixed in this session
    with a test (the usual `/ship` path, commit message as a sentence), then
    the affected cases run again. Minors go into the issue.
