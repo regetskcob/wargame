@@ -128,9 +128,12 @@ extension TankGameRound on TankGame {
       final map = picked != null && picked < maps
           ? picked
           : random.nextInt(maps);
-      final seed = DefenseMap.seedForLayout(
-        MapTheme.seedFor(random.nextInt(1 << 30), map),
-        Env.shotLayout ?? random.nextInt(layouts),
+      final seed = DefenseMap.markFresh(
+        DefenseMap.seedForLayout(
+          MapTheme.seedFor(random.nextInt(1 << 30), map),
+          Env.shotLayout ?? random.nextInt(layouts),
+        ),
+        fresh: fresh,
       );
       // About one seed in eleven qualifies, so 200 tries all but never
       // run out.

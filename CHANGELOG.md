@@ -16,7 +16,8 @@ step, point for point.
 - Two new defense maps: Flussufer along the river bank and Haarnadel with
   two hairpins across the river
 - A ninth vehicle from rank 6: the Igel, a rocket launcher that fires
-  four rockets a salvo
+  four rockets a salvo, and from wave 6 of a defense round among the
+  enemies too
 - The newer grounds and maps only come up in a room where every player
   has this version
 - A waiting room no longer closes the moment it opens after the start page

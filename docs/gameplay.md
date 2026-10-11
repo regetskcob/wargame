@@ -90,7 +90,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   Spitzmaus are there from the start, the others come with ranks 2, 3, 4, 5,
   6 and 8, and every later one is stronger than the ones before. The Igel
   (rank 6) is a rocket launcher: four rockets a salvo side by side, 12
-  damage each, a wide spread that hurts most up close. The lobby
+  damage each, a wide spread that hurts most up close. From wave 6 of a
+  defense round it rolls in among the enemies too, in one slot of ten
+  (in place of a Fuchs), in rooms where everybody has this version. The lobby
   lists the unlocked ones first. Four free paint schemes and four more that
   come with higher ranks, for playing alone. With others every tank drives
   in its own colour, and in red against blue (teams, capture the flag) in

@@ -90,8 +90,11 @@
   `GameConfig.contentLevel`, 1 since the mountain forest, the islands, the
   layouts riverbank and hairpin and the Igel), and the host only rolls the
   newer ones when everybody in the room has at least that (`roomContent`).
-  A vehicle needs no gate: its index sits at the end, and an older client
-  draws an unknown one as the Keiler.
+  A pilot's vehicle needs no gate: its index sits at the end, and an older
+  client draws an unknown one as the Keiler. Enemies of a defense round
+  do, as every client works out each enemy's vehicle from the wave: the
+  host marks the seed of a room that knows content 1 one bit higher still
+  (`DefenseMap.freshRoom`), and only such rounds send the Igel in.
 - One host per room: a doubled host settles after three seconds. The owner
   (who opened the room) keeps the role against a stand-in, two stand-ins
   leave it to the smaller id, and so do two owners, which happens when one

@@ -110,6 +110,24 @@ class DefenseMap {
   /// Above the map's mark: `seed % 4` map, 20 skies, 8 map marks.
   static const _markUnit = 4 * 20 * 8;
 
+  /// Whether the round [seed] was rolled for a room where everybody knows
+  /// the content of `GameConfig.contentLevel` 1: then the waves bring the
+  /// Igel too. Every client reads it from the seed, so all agree on each
+  /// enemy; an older client is never in such a room.
+  static bool freshRoom(int seed) => (seed.abs() ~/ _freshUnit) % 2 == 1;
+
+  /// [seed] marked for a room that knows the newer content or not.
+  static int markFresh(int seed, {required bool fresh}) {
+    final marked = freshRoom(seed);
+    if (marked == fresh) {
+      return seed;
+    }
+    return fresh ? seed + _freshUnit : seed - _freshUnit;
+  }
+
+  /// Above the layout's mark: 8 layout marks.
+  static const _freshUnit = _markUnit * 8;
+
   static int get layoutCount => _layouts.length;
 
   /// The layouts every client knows, also those of older versions.
@@ -604,8 +622,13 @@ class DefenseMap {
   ][slot % 5];
 
   /// The enemy for slot [n] of wave [wave]: more and heavier tanks later on.
-  static TankType enemyType(int wave, int n) {
+  /// With [igel] (a room where everybody knows it, see [freshRoom]) the
+  /// rocket launcher takes one slot in ten from wave 6 on, a Fuchs's.
+  static TankType enemyType(int wave, int n, {bool igel = false}) {
     final roll = (wave * 7 + n * 13) % 10;
+    if (igel && wave >= 6 && roll == 8) {
+      return TankType.igel;
+    }
     if (wave >= 7 && roll < 2) {
       return TankType.wolf;
     }

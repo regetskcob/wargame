@@ -135,7 +135,10 @@ class RoundState {
     // The right road's units of a duel end in `b`: the same tank as the
     // left one's.
     final n = int.tryParse(parts.last.replaceAll('b', '')) ?? 0;
-    return GameConfig.styleOf(DefenseMap.enemyType(wave, n).index, 1);
+    return GameConfig.styleOf(
+      DefenseMap.enemyType(wave, n, igel: DefenseMap.freshRoom(seed)).index,
+      1,
+    );
   }
 
   /// Vehicle of a comrade, which follows from its slot. The colour is the

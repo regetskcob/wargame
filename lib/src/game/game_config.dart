@@ -64,7 +64,7 @@ class GameConfig {
 
   /// What this version brings beyond the first maps: 1 adds the mountain
   /// forest and the islands, the defense layouts riverbank and hairpin and
-  /// the Igel. Raise it with the next content that older clients would
+  /// the Igel, also among the enemies of a defense round. Raise it with the next content that older clients would
   /// read differently out of a round seed, and gate that content on it.
   static const contentLevel = 1;
 

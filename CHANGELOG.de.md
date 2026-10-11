@@ -17,7 +17,7 @@ gepflegt.
 - Zwei neue Karten für die Verteidigung: Flussufer am Ufer entlang und
   Haarnadel mit zwei Kehren über den Fluss
 - Ein neuntes Fahrzeug ab Stufe 6: der Igel, ein Raketenwerfer mit vier
-  Raketen je Salve
+  Raketen je Salve, ab Welle 6 der Verteidigung auch auf der Gegnerseite
 - Die neuen Gelände und Karten kommen nur in Räumen vor, in denen alle
   diese Version haben
 - Ein Warteraum schließt sich nicht mehr sofort, wenn die Startseite zehn

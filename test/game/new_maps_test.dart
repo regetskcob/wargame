@@ -225,6 +225,7 @@ void main() {
       game.mapChoice.value = MapTheme.all.indexOf(MapTheme.mountainForest);
       game.startRound(startedAt: DateTime.now().millisecondsSinceEpoch);
       expect(MapTheme.forSeed(game.round!.seed), MapTheme.mountainForest);
+      expect(DefenseMap.freshRoom(game.round!.seed), isTrue);
     });
 
     test('every presence says its content level', () {
@@ -258,6 +259,32 @@ void main() {
         GameConfig.typeOf(GameConfig.styleOf(TankType.igel.index, 2)),
         TankType.igel,
       );
+    });
+  });
+
+  group('Igel among the enemies', () {
+    test('the fresh mark comes back and keeps map, layout and sky', () {
+      for (final seed in seeds) {
+        for (final fresh in [true, false]) {
+          final base = DefenseMap.seedForLayout(MapTheme.seedFor(seed, 5), 4);
+          final marked = DefenseMap.markFresh(base, fresh: fresh);
+          expect(DefenseMap.freshRoom(marked), fresh);
+          expect(MapTheme.indexOf(marked), 5);
+          expect(DefenseMap.layoutFor(marked), 4);
+          expect(Conditions.forSeed(marked).sky, Conditions.forSeed(base).sky);
+        }
+      }
+    });
+
+    test('only a fresh room meets the Igel, from wave 6 on', () {
+      bool meets(bool igel, int fromWave, int toWave) => [
+        for (var wave = fromWave; wave <= toWave; wave++)
+          for (var n = 0; n < DefenseMap.waveSize(wave); n++)
+            DefenseMap.enemyType(wave, n, igel: igel),
+      ].contains(TankType.igel);
+      expect(meets(false, 1, 20), isFalse);
+      expect(meets(true, 1, 5), isFalse);
+      expect(meets(true, 6, 12), isTrue);
     });
   });
 }
