@@ -18,6 +18,8 @@ step, point for point.
 - A ninth vehicle from rank 6: the Igel, a rocket launcher that fires
   four rockets a salvo, and from wave 6 of a defense round among the
   enemies too
+- Whenever CPU tanks come, at least as many as there are people: two on
+  one screen meet 2 to 4, a room filled up gets one CPU tank per pilot
 - Comrades in a defense round drive the vehicles of the wave they roll out
   in, by the same rules as the enemy's waves
 - Red against blue: CPU tanks even out sides that the players' picks left

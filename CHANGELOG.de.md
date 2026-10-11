@@ -18,6 +18,8 @@ gepflegt.
   Haarnadel mit zwei Kehren über den Fluss
 - Ein neuntes Fahrzeug ab Stufe 6: der Igel, ein Raketenwerfer mit vier
   Raketen je Salve, ab Welle 6 der Verteidigung auch auf der Gegnerseite
+- Wenn CPU-Panzer mitspielen, dann mindestens so viele wie Spieler: zu
+  zweit an einem Bildschirm 2 bis 4, ein aufgefüllter Raum einen je Pilot
 - Kameraden in der Verteidigung fahren die Fahrzeuge der Welle, in der sie
   ausrücken, nach denselben Regeln wie die gegnerischen Wellen
 - Rot gegen Blau: CPU-Panzer gleichen Teams aus, die durch die Wahl der

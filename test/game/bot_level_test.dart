@@ -30,12 +30,36 @@ void main() {
       botsFor(solo: false, humans: 2, fill: true, teams: false),
       GameConfig.fillTo - 2,
     );
-    expect(botsFor(solo: false, humans: 6, fill: true, teams: false), 0);
+    expect(botsFor(solo: false, humans: 6, fill: true, teams: false), 6);
+  });
+
+  test('at least as many CPU tanks as people whenever they come', () {
+    final random = Random(2);
+    for (var humans = 1; humans <= 4; humans++) {
+      for (final teams in [false, true]) {
+        expect(
+          botsFor(solo: false, humans: humans, fill: true, teams: teams),
+          greaterThanOrEqualTo(humans),
+        );
+      }
+      for (var i = 0; i < 30; i++) {
+        expect(
+          botsFor(
+            solo: true,
+            humans: humans,
+            fill: false,
+            teams: false,
+            random: random,
+          ),
+          greaterThanOrEqualTo(humans),
+        );
+      }
+    }
   });
 
   test('filling up evens out the teams', () {
-    expect(botsFor(solo: false, humans: 5, fill: true, teams: true), 1);
-    expect(botsFor(solo: false, humans: 6, fill: true, teams: true), 0);
+    expect(botsFor(solo: false, humans: 5, fill: true, teams: true), 5);
+    expect(botsFor(solo: false, humans: 6, fill: true, teams: true), 6);
     expect(
       (3 + botsFor(solo: false, humans: 3, fill: true, teams: true)).isEven,
       isTrue,

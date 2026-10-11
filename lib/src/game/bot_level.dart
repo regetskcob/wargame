@@ -111,7 +111,9 @@ enum BotLevel {
 /// How many CPU tanks join a round. Alone there are always
 /// [GameConfig.minBots] to [GameConfig.maxBots]. With other people only when
 /// [fill] is on: up to [fillTo] tanks in all, and in a team round one more
-/// if that makes the teams even.
+/// if that makes the teams even. Whenever CPU tanks come, at least as many
+/// as there are people: two on one screen against a single CPU tank, or
+/// four in a room filled up to four with none, had nobody to fight.
 int botsFor({
   required bool solo,
   required int humans,
@@ -124,12 +126,12 @@ int botsFor({
     final roll = (random ?? Random()).nextInt(
       GameConfig.maxBots - GameConfig.minBots + 1,
     );
-    return GameConfig.minBots + roll;
+    return max(GameConfig.minBots + roll, humans);
   }
   if (!fill) {
     return 0;
   }
-  var bots = max(0, fillTo - humans);
+  var bots = max(fillTo - humans, humans);
   if (teams && (humans + bots).isOdd) {
     bots++;
   }

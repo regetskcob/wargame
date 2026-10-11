@@ -43,7 +43,8 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 - **Single player:** alone against 1 to 4 CPU tanks on three levels.
 - **Multiplayer:** free for all or red against blue, with CPU tanks to fill
-  up the field on request. In red against blue they also even the sides
+  up the field on request: up to four tanks in all, and always at least as
+  many CPU tanks as people (6 in capture the flag, same rule). In red against blue they also even the sides
   out when the players' picks left one short, and the two sides' CPU tanks
   drive the same vehicles, pair by pair. Private rooms by link, code or QR code, public
   rooms in a room list, and late joiners can watch the running round.
@@ -78,7 +79,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   neither the split screen nor the duel); on a computer also the keyboard and one
   controller or phone. Single player, multiplayer, defense and
   capture the flag play on a split screen, each half from its own tank;
-  single player puts both against the CPU tanks, and capture the flag
+  single player puts both against at least two CPU tanks (2 to 4), and
+  capture the flag
   puts both on one side or, as picked in the settings, against each other.
   Free of Realtime messages, see
   [Apple TV](platforms.md#apple-tv).
