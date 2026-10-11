@@ -247,28 +247,36 @@ changed hard: three or four accurate tanks going for the player at once
 was what decided.
 
 **Defense builds.** `test/game/defense/trench_balance_sim_test.dart`
-(skipped as well, `--run-skipped --dart-define=ROUNDS=8`) puts one build a
-third of the way down the road and sends three squads on foot (15 men) and
-two tanks of wave 3 past it, without comrades and without the director's
-waves. Measured October 2026 after manning the trench, 8 rounds each:
+(skipped as well, `--run-skipped --dart-define=ROUNDS=8`, `WAVE=5` for a
+later wave) puts one build a third of the way down the road and sends
+three squads on foot (15 men) and two tanks of the wave past it, without
+comrades and without the director's waves. Measured October 2026, 8 rounds
+each, with the trench's rocket man (wave 4 on) and the slowdown after
+crossing:
 
-| Build | Cost | Bounties earned | Hits on the base | Tanks at the base | Left |
-| --- | --- | --- | --- | --- | --- |
-| nothing | 0 | 0 | 27 | 16 of 16 | |
-| trench on the road | 60 | 60 | 11 | 16 of 16 | 67 % |
-| trench beside the road | 60 | 60 | 11 | 16 of 16 | 69 % |
-| cannon | 100 | 85 | 1 | 1 of 16 | 62 % |
-| mortar | 150 | 49 | 14 | 16 of 16 | 40 % |
+| Wave | Build | Cost | Bounties | Hits on the base | Tanks at the base | Arrival | Left |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 3 | nothing | 0 | 0 | 27 | 16 of 16 | 36 s | |
+| 3 | trench on the road | 60 | 60 | 11 | 16 of 16 | 38 s | 64 % |
+| 3 | trench beside the road | 60 | 60 | 11 | 16 of 16 | 35 s | 67 % |
+| 3 | cannon | 100 | 83 | 2 | 3 of 16 | 49 s | 66 % |
+| 3 | mortar | 150 | 47 | 15 | 16 of 16 | 37 s | 32 % |
+| 5 | nothing | 0 | 0 | 25 | 16 of 16 | 33 s | |
+| 5 | trench on the road | 60 | 55 | 5 | 9 of 16 | 39 s | 77 % |
+| 5 | trench beside the road | 60 | 49 | 7 | 13 of 16 | 43 s | 70 % |
+| 5 | cannon | 100 | 66 | 1 | 1 of 16 | 41 s | 77 % |
+| 5 | mortar | 150 | 34 | 13 | 16 of 16 | 34 s | 57 % |
 
 The trench pays for itself in one wave against infantry and stops every
-soldier, but does nothing against tanks, which its crawl barely delays;
-the cannon stays the build for tanks, so the price of 60 holds. Two things
-the run found: shots aimed from the middle of a trench across the road
-flew past the men close by, so every man aims for himself, and no gun led
-its aim on soldiers (they had no speed), so shots at a soldier crossing
-the line of fire missed; both fixed. Trenches now take shells along their
-length too, they used to wear down only from blasts. The mortar earns a
-third of its price here and is worth a look of its own.
+soldier. Against tanks it first only held them up; with the rocket man
+from wave 4 and tanks staying slow after crossing it stops some and keeps
+most of the damage off the base, while the cannon stays the build for
+tanks, so the price of 60 holds. What the runs found on the way: shots
+aimed from the middle of a trench across the road flew past the men close
+by, so every man aims for himself; no gun led its aim on soldiers (they
+had no speed), so shots at a soldier crossing the line of fire missed;
+trenches took no shells, only blasts. All three are fixed. The mortar
+earns a third of its price here and is worth a look of its own.
 
 ## Weapons and damage
 
@@ -391,7 +399,7 @@ same, but the guns get dearer.
 | Flak | 120 | 1 | 200 | aircraft and drones |
 | Mortar | 150 | 1 | 200 | area fire up to 620 |
 | Howitzer | 220 | 4 | 300 | heavy area fire up to 1050 |
-| Trench | 60 | 2 | 360 | 3 riflemen and a machine gun against infantry (range 260); a tank in it takes half damage |
+| Trench | 60 | 2 | 360 | 3 riflemen and a machine gun against infantry (range 260), from wave 4 one with an anti-tank rocket launcher; a tank in it takes half damage |
 | Rockets | 260 | extension | 260 | tanks and aircraft, range 640 |
 
 The price is for the first of a kind; every further one of the same kind a
@@ -413,11 +421,14 @@ along it. Four men sit in it, three with rifles and one with a machine
 gun; they take turns firing (one shot every 0.35 s for the whole trench,
 3 damage), at soldiers first and tanks after, each man aiming from where
 he sits, and one of them goes with every quarter of its hit points, the
-fire slowing with him. At rest they look where the enemy comes from: on
-the road up it, beside it over it. Enemy shells hit a trench along its
+fire slowing with him. From wave 4 the first man, the last to fall,
+also carries an anti-tank rocket launcher: 30 damage every 3 seconds at
+the nearest enemy tank within 300, led like the rifles. At rest they look
+where the enemy comes from: on the road up it, beside it over it. Enemy shells hit a trench along its
 length, unless a tank of its side sits in it: that tank takes the shell,
 halved. Tanks of
-either side crawl over a trench at 40 % of their speed and soldiers
+either side crawl over a trench at a quarter of their speed and stay that
+slow for 1.5 seconds after, their tracks clogged with earth; soldiers
 march on through it; only a tank of the side that dug it takes cover
 there, so an enemy rolling over a trench on the road gets none.
 

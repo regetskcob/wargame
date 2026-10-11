@@ -59,6 +59,9 @@ class PlayerTank extends TankBase
 
   /// Enemies of a defense round drive slower, shoot less often and report
   /// their state less often than a player's tank.
+  /// Seconds the tank still crawls after crossing a trench.
+  double _mired = 0;
+
   double speedFactor = 1;
   double fireFactor = 1;
 
@@ -250,6 +253,11 @@ class PlayerTank extends TankBase
       thrusting = sqrt(dx * dx + dy * dy) > 0.3 && diff.abs() < 1.0;
       braking = false;
     }
+    if (gameRef.overTrench(position)) {
+      _mired = GameConfig.trenchMireSeconds;
+    } else {
+      _mired = max(0, _mired - dt);
+    }
     // Woods drag the tank down to about half its speed, soft ground to 60 %.
     final soft = gameRef.mudField?.softAt(position) ?? false;
     // Hits cost top speed, pulling power and steering.
@@ -269,8 +277,8 @@ class PlayerTank extends TankBase
         damage.speedFactor *
         slope *
         (usesFuel && fuel <= 0 ? GameConfig.emptyTankSpeed : 1) *
-        // Over the dug earth of a trench only slowly.
-        (gameRef.overTrench(position) ? GameConfig.trenchCrossSpeed : 1) *
+        // Over the dug earth of a trench only slowly, and a while after.
+        (_mired > 0 ? GameConfig.trenchCrossSpeed : 1) *
         min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration =
         GameConfig.tankAcceleration *

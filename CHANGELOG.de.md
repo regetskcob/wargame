@@ -11,9 +11,10 @@ gepflegt.
 ## 1.5.0 (11) – 11.10.2026
 
 - Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und
-  Panzer, jeder zielt selbst und blickt dorthin, woher der Feind kommt; auf
-  der Straße liegt ein Graben quer von Rand zu Rand, Panzer beider Seiten
-  kriechen langsam darüber, und feindliche Granaten setzen ihm jetzt zu
+  Panzer, jeder zielt selbst und blickt dorthin, woher der Feind kommt, und
+  ab Welle 4 trägt einer eine Panzerfaust; auf der Straße liegt ein Graben
+  quer von Rand zu Rand, Panzer beider Seiten kriechen darüber und bleiben
+  danach kurz langsam, und feindliche Granaten setzen ihm jetzt zu
 - Fußgruppen patrouillieren, statt auf ihrem Platz zu stehen, und pirschen
   sich an feindliche Panzer und Soldaten heran, die in Sicht kommen
 - Stufen dauern länger: jede Stufe beginnt bei 0 und braucht den Schritt,

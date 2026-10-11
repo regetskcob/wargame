@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flame/components.dart';
 
 import 'components/tank_base.dart';
@@ -91,14 +93,33 @@ class InfantryCommand extends Component with HasGameRef<TankGame> {
       final away = here - prey.position;
       final goal = away.length <= reach
           ? here
-          : prey.position + away.normalized() * reach;
+          : _approach(route, prey.position, away, reach);
       final current = route.goal;
       if (calm &&
-          route.walkable(goal) &&
+          goal != null &&
           (current == null || current.distanceTo(goal) > 60)) {
         gameRef.orderSquad(route, goal);
       }
     }
+  }
+
+  /// A spot [reach] from [prey] on the squad's side of it, or a little
+  /// round it where a house or the water is in the way.
+  Vector2? _approach(
+    SquadRoute route,
+    Vector2 prey,
+    Vector2 away,
+    double reach,
+  ) {
+    final heading = atan2(away.y, away.x);
+    for (final turn in const [0.0, 0.4, -0.4, 0.8, -0.8, 1.2, -1.2]) {
+      final goal =
+          prey + Vector2(cos(heading + turn), sin(heading + turn)) * reach;
+      if (route.walkable(goal)) {
+        return goal;
+      }
+    }
+    return null;
   }
 
   /// The nearest enemy within sight of a squad of [owner] at [here]: a tank

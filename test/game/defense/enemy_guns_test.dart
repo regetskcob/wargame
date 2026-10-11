@@ -171,6 +171,42 @@ void main() {
     expect(game.bullets.length, greaterThan(before));
   });
 
+  test('from wave 4 the rocket man of a trench fires at tanks', () async {
+    final game = await defenseRound(playing: true);
+    final map = game.defenseMap!;
+    final (point, dir) = map.alongRoad(160);
+    game.myTank!.position.setFrom(
+      point + Vector2(-dir.y, dir.x) * (DefenseMap.roadHalfWidth + 40),
+    );
+    game
+      ..credits.value = 1000
+      ..defense.value = game.defense.value!.copyWith(
+        wave: GameConfig.trenchRocketFromWave - 1,
+      )
+      ..buildTower(TowerKind.trench)
+      ..update(0);
+    final trench = game.towers.values.single;
+    expect(trench.antiTank, isFalse);
+    game.spawnEnemy('td-3-0');
+    bool rocketFlying() => game.bullets.values.any(
+      (b) => b.damage == GameConfig.trenchRocketDamage,
+    );
+    for (var i = 0; i < 10; i++) {
+      game.update(0.2);
+    }
+    expect(rocketFlying(), isFalse);
+    game.defense.value = game.defense.value!.copyWith(
+      wave: GameConfig.trenchRocketFromWave,
+    );
+    expect(trench.antiTank, isTrue);
+    var fired = false;
+    for (var i = 0; i < 10 && !fired; i++) {
+      game.update(0.2);
+      fired = rocketFlying();
+    }
+    expect(fired, isTrue);
+  });
+
   test(
     'a flak shell bursts next to a jet, a cannon shell flies past',
     () async {

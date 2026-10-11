@@ -494,6 +494,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
       _think = 0.2;
       _target = gameRef.towerTarget(this);
     }
+    _fireRocket(dt);
     final target = _target;
     if (target == null || !target.isMounted) {
       return;
@@ -517,6 +518,43 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
         gameRef.fireTower(this);
       }
     }
+  }
+
+  /// From [GameConfig.trenchRocketFromWave] on the first man of a trench,
+  /// the last to fall, carries an anti-tank rocket launcher.
+  bool get antiTank =>
+      kind == TowerKind.trench &&
+      (gameRef.defense.value?.wave ?? 0) >= GameConfig.trenchRocketFromWave;
+
+  double _rocketCooldown = 0;
+
+  /// The rocket man fires at the nearest enemy tank in his reach, leading
+  /// it as the rifles do.
+  void _fireRocket(double dt) {
+    if (!antiTank) {
+      return;
+    }
+    _rocketCooldown -= dt;
+    if (_rocketCooldown > 0) {
+      return;
+    }
+    final own = gameRef.round?.teamOf(ownerId) ?? 1;
+    final from = crewAt(0);
+    final tank = gameRef.nearestHostile(from, GameConfig.rocketRange, own);
+    if (tank == null) {
+      _rocketCooldown = 0.3;
+      return;
+    }
+    _rocketCooldown = GameConfig.trenchRocketCooldown;
+    var aim = tank.position.clone();
+    final velocity = gameRef.velocityOfTarget(tank);
+    for (var i = 0; i < 3; i++) {
+      aim =
+          tank.position +
+          velocity * (aim.distanceTo(from) / GameConfig.rocketSpeed);
+    }
+    _aim = aim;
+    gameRef.fireTrenchRocket(this, (aim - from).normalized());
   }
 
   /// Where to aim so a shell meets [target]: the flight time to where it
@@ -744,6 +782,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     ..strokeCap = StrokeCap.round
     ..color = const Color(0xFF1E1E1C);
   static final _flashPaint = Paint()..color = const Color(0xCCFFD27A);
+  static final _rocketTip = Paint()..color = const Color(0xFFD1492E);
 
   /// A zigzag of dug earth with sandbags on the rim, across the road or
   /// along it, and the men in it with their rifles and the machine gun,
@@ -795,6 +834,15 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
       canvas.rotate(_aimOf(i));
       final machineGun = i == 1;
       final recoil = i == _shooter ? 3 * _recoil : 0.0;
+      if (i == 0 && antiTank) {
+        // The launch tube over the shoulder, its rocket's tip showing.
+        canvas.drawLine(
+          const Offset(4, 6),
+          const Offset(4, -13),
+          _gun..strokeWidth = 3.5,
+        );
+        canvas.drawCircle(const Offset(4, -13), 2.2, _rocketTip);
+      }
       canvas.drawLine(
         Offset(machineGun ? 0 : 3, recoil),
         Offset(machineGun ? 0 : 3, (machineGun ? -16 : -11) + recoil),

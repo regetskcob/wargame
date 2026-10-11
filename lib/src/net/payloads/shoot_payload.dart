@@ -10,6 +10,7 @@ class ShootPayload {
     this.air = false,
     this.soldier,
     this.damage,
+    this.rocket = false,
   });
 
   factory ShootPayload.fromJson(Map<String, dynamic> json) {
@@ -24,6 +25,7 @@ class ShootPayload {
       air: json['air'] as bool? ?? false,
       soldier: json['sol'] as String?,
       damage: (json['dmg'] as num?)?.toDouble(),
+      rocket: json['rkt'] == true,
     );
   }
 
@@ -46,6 +48,9 @@ class ShootPayload {
   /// Damage of the shell when the tank's gun was upgraded.
   final double? damage;
 
+  /// With [tower]: the anti-tank rocket of a trench, not a rifle shot.
+  final bool rocket;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -58,6 +63,7 @@ class ShootPayload {
       if (air) 'air': true,
       if (soldier != null) 'sol': soldier,
       if (damage != null) 'dmg': damage,
+      if (rocket) 'rkt': true,
     };
   }
 }

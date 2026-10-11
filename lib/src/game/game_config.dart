@@ -302,7 +302,18 @@ class GameConfig {
   static const trenchLength = 76.0;
   static const trenchHalfWidth = 16.0;
   static const trenchCover = 0.5;
-  static const trenchCrossSpeed = 0.4;
+  static const trenchCrossSpeed = 0.25;
+
+  /// A tank that crossed a trench stays this slow a while longer, its
+  /// tracks still clogged with earth: the trench alone is too narrow to
+  /// hold anything up.
+  static const trenchMireSeconds = 1.5;
+
+  /// From this wave on one man of every trench carries an anti-tank rocket
+  /// launcher: without it a trench could do nothing against tanks.
+  static const trenchRocketFromWave = 4;
+  static const trenchRocketDamage = 30.0;
+  static const trenchRocketCooldown = 3.0;
   static const towerSpacing = 60.0;
   static const towerRange = 420.0;
   static const towerCooldown = 0.45;

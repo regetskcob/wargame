@@ -11,8 +11,10 @@ step, point for point.
 
 - Trenches are manned: three riflemen and a machine gun fire at soldiers
   and tanks, each aiming for himself and looking out where the enemy comes
-  from; on the road a trench lies across it from edge to edge, tanks of
-  either side crawl over it, and enemy shells now wear it down
+  from, and from wave 4 one with an anti-tank rocket launcher; on the
+  road a trench lies across it from edge to edge, tanks of either side
+  crawl over it and stay slow a moment after, and enemy shells now wear
+  it down
 - Squads on foot patrol instead of standing on their spot and stalk enemy
   tanks and soldiers that come within sight
 - Ranks take longer: every rank starts from 0 and needs the step the card

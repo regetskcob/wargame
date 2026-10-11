@@ -25,7 +25,7 @@ enum Build {
 }
 
 /// Puts one gun or trench a third of the way down the road and sends three
-/// squads on foot and two tanks of wave 3 past it, without the waves of
+/// squads on foot and two tanks of wave 3 (or `WAVE`) past it, without the waves of
 /// the director. Prints what it earned in bounties against what it cost,
 /// how many soldiers reached the base, when the tanks got there and how
 /// much of it was left. Skipped in the normal run, start it by hand:
@@ -38,6 +38,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   const rounds = int.fromEnvironment('ROUNDS', defaultValue: 3);
+  const wave = int.fromEnvironment('WAVE', defaultValue: 3);
   const step = Duration(microseconds: 33333);
   const seconds = 90.0;
 
@@ -58,9 +59,9 @@ void main() {
             ..startRound(startedAt: now.millisecondsSinceEpoch - 4000);
           await Future<void>.delayed(Duration.zero);
           game.update(0);
-          // Wave 3 without the director's own waves.
+          // The wave without the director's own waves.
           game.defense.value = game.defense.value!.copyWith(
-            wave: 3,
+            wave: wave,
             nextWaveAt: now.millisecondsSinceEpoch + 3600 * 1000,
           );
           final map = game.defenseMap!;
@@ -101,13 +102,14 @@ void main() {
           while (t < seconds) {
             for (final (at, id) in const [(0.0, 's0'), (6.0, 's1')]) {
               if (t <= at && at < t + step.inMicroseconds / 1e6) {
-                game.spawnEnemySquad('td-i-3-$id', 3);
+                game.spawnEnemySquad('td-i-$wave-$id', wave);
               }
             }
             if (t <= 12 && 12 < t + step.inMicroseconds / 1e6) {
-              game.spawnEnemySquad('td-i-3-s2', 3);
+              game.spawnEnemySquad('td-i-$wave-s2', wave);
             }
-            for (final (at, id) in const [(3.0, 'td-3-0'), (15.0, 'td-3-1')]) {
+            for (final (at, n) in const [(3.0, 0), (15.0, 1)]) {
+              final id = 'td-$wave-$n';
               if (t <= at && at < t + step.inMicroseconds / 1e6) {
                 game.spawnEnemy(id);
               }

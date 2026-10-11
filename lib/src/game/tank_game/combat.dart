@@ -364,7 +364,17 @@ extension TankGameCombat on TankGame {
         return;
       }
       final direction = Vector2(payload.dx, payload.dy);
-      tower.fired(direction, from: Vector2(payload.x, payload.y));
+      final from = Vector2(payload.x, payload.y);
+      if (payload.rocket) {
+        // Only a trench from the wave its rocket man joins.
+        if (!tower.antiTank) {
+          return;
+        }
+        tower.fired(direction, from: from);
+        _trenchRocket(tower, payload.bulletId, from, direction);
+        return;
+      }
+      tower.fired(direction, from: from);
       AudioService.play(
         'autocannon',
         volume: tower.kind == TowerKind.trench ? 0.15 : 0.5,

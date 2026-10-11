@@ -1128,6 +1128,46 @@ extension TankGameDefense on TankGame {
     );
   }
 
+  /// The rocket man of [trench] fires at a tank in [direction].
+  void fireTrenchRocket(Tower trench, Vector2 direction) {
+    final owner = trench.ownerId;
+    final bulletId = '$owner-${_bulletCounter++}';
+    final start = trench.crewAt(0) + direction * 10;
+    trench.fired(direction, from: start);
+    _trenchRocket(trench, bulletId, start, direction);
+    net.send(
+      NetEvent.shoot,
+      ShootPayload(
+        id: owner,
+        bulletId: bulletId,
+        x: start.x,
+        y: start.y,
+        dx: direction.x,
+        dy: direction.y,
+        tower: trench.index,
+        rocket: true,
+      ).toJson(),
+    );
+  }
+
+  void _trenchRocket(
+    Tower trench,
+    String bulletId,
+    Vector2 start,
+    Vector2 direction,
+  ) {
+    _spawnBullet(
+      bulletId: bulletId,
+      ownerId: trench.ownerId,
+      position: start,
+      direction: direction,
+      color: const Color(0xFFFF8A3D),
+      speed: GameConfig.rocketSpeed,
+      damage: GameConfig.trenchRocketDamage,
+    );
+    AudioService.play('cannon', volume: 0.35, distance: _distanceToView(start));
+  }
+
   /// A mortar or howitzer of the local player lobs a shell onto [at].
   void fireMortarTower(Tower tower, Vector2 at) {
     final from = tower.position.clone();
