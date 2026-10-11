@@ -339,6 +339,10 @@ class TankGame extends FlameGame
   DefenseField? _defenseField;
   final defense = ValueNotifier<DefensePayload?>(null);
   final credits = ValueNotifier<int>(0);
+
+  /// Whether the funds reached for a gun or an upgrade at the last change,
+  /// so the notice comes once when they start to.
+  bool _fundsReached = false;
   final towers = <String, Tower>{};
   int _towerCounter = 0;
 
@@ -618,6 +622,7 @@ class TankGame extends FlameGame
     L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;
     padSteered.addListener(_onPadSteered);
+    credits.addListener(_onFunds);
     // Guests read the host's mode from its presence.
     mode.addListener(_pushModeAsHost);
     await net.connect(_presencePayload());

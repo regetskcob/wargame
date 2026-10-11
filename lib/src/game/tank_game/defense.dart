@@ -558,6 +558,27 @@ extension TankGameDefense on TankGame {
     _addTower(payload);
     net.send(NetEvent.tower, payload.toJson());
     AudioService.play('go', volume: 0.5);
+    // On a phone the hint lives in a tooltip nobody opens; testers took the
+    // trench for something that does nothing.
+    showNotice('${build.label}: ${build.hint}'.toUpperCase());
+  }
+
+  /// Says so once when the funds start to reach for a gun or an upgrade:
+  /// testers never looked at the number and missed when to shop.
+  void _onFunds() {
+    final reach =
+        defenseMap != null &&
+        phase.value == GamePhase.playing &&
+        (anyTowerAffordable || anyUpgradeAffordable);
+    if (reach && !_fundsReached) {
+      showNotice(
+        tr(
+          'GELD REICHT: BAUEN ODER AUFRÜSTEN',
+          'FUNDS SUFFICE: BUILD OR UPGRADE',
+        ),
+      );
+    }
+    _fundsReached = reach;
   }
 
   /// A defense duel: pays for a tank that rolls down the other side's road

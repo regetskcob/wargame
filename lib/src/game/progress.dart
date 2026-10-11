@@ -4,12 +4,18 @@ import '../l10n/l10n.dart';
 import 'components/tank_painter.dart';
 import 'round_stats.dart';
 
-/// Experience turns into ranks: every rank needs a little more than the last.
+/// Experience turns into ranks. Every rank starts from nothing and needs
+/// [_step] times the square of its number: 120 to rank 2, 480 more to rank
+/// 3, 5880 from rank 7 to 8. The total once stood for the step itself,
+/// which made ranks come too easily.
 class Rank {
   const Rank._(this.level, this.xp);
 
   factory Rank.of(int xp) {
-    final level = 1 + sqrt(max(0, xp) / _step).floor();
+    var level = 1;
+    while (xpFor(level + 1) <= xp) {
+      level++;
+    }
     return Rank._(level, xp);
   }
 
@@ -18,14 +24,27 @@ class Rank {
   final int level;
   final int xp;
 
-  /// Experience needed to reach [level].
-  static int xpFor(int level) => _step * (level - 1) * (level - 1);
+  /// Experience needed in total to reach [level]: the sum of the steps
+  /// before it, `_step * k²` for k from 1 to level - 1.
+  static int xpFor(int level) {
+    final n = max(0, level - 1);
+    return _step * n * (n + 1) * (2 * n + 1) ~/ 6;
+  }
+
+  /// Experience needed from rank [level] to the one after it.
+  static int stepFrom(int level) => xpFor(level + 1) - xpFor(level);
 
   int get floor => xpFor(level);
   int get next => xpFor(level + 1);
 
+  /// Experience gathered within this rank, from 0 up to [step].
+  int get inRank => xp - floor;
+
+  /// Experience this rank needs in all to the next.
+  int get step => next - floor;
+
   /// How far to the next rank, 0 to 1.
-  double get progress => (xp - floor) / (next - floor);
+  double get progress => inRank / step;
 
   static const _titlesDe = [
     'Rekrut',

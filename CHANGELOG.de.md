@@ -8,6 +8,20 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## Unveröffentlicht
+
+- Stufen dauern länger: jede Stufe beginnt bei 0 und braucht den Schritt,
+  den die Karte früher als Summe zeigte, und die Karte zählt innerhalb der
+  Stufe
+- Der Verteidigungsladen markiert nach dem Kauf nichts mehr: Knöpfe sind
+  nur hell, wenn das Geld reicht, sonst blass; Bauen sagt, wofür Geschütz
+  oder Graben gut ist, und ein Hinweis meldet, sobald das Geld reicht
+- Der letzte feindliche Hubschrauber einer Welle kommt zu den Verteidigern,
+  statt weit draußen zu warten, und Panzergranaten treffen ihn etwas härter
+- Der Knopf zum Beenden der Wiederholung sitzt in der Leiste neben dem
+  nächsten Panzer
+- Konto löschen steht ganz unten auf der Kontoseite
+
 ## 1.4.1 (10) – 11.10.2026
 
 - Tablets nutzen ihren Bildschirm in den Menüs: Startseite und Warteraum

@@ -951,25 +951,23 @@ class _DefensePanelState extends State<_DefensePanel> {
                 final locked? => '${kind.hint}, $locked',
                 null => kind.hint,
               },
-              child:
-                  (kind == game.towerChoice.value
-                  ? FilledButton.new
-                  : OutlinedButton.new)(
-                    style: kind == game.towerChoice.value
-                        ? _buttonStyle
-                        : _buyStyle(GameColors.oliveLight),
-                    onPressed:
-                        credits >= game.buildCost(kind) &&
-                            kind.unlockedIn(wave, extended: extended)
-                        ? () => game.buildTower(kind)
-                        : null,
-                    child: Text(
-                      kind.unlockedIn(wave, extended: extended)
-                          ? '${kind.label} ${game.buildCost(kind)}'
-                          : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
-                      style: _small,
-                    ),
-                  ),
+              // Only bright or faint, never marked: the gun built last
+              // stayed filled and read as picked, or as the one thing the
+              // funds still reached. Which kind B builds the line above says.
+              child: OutlinedButton(
+                style: _buyStyle(GameColors.oliveLight),
+                onPressed:
+                    credits >= game.buildCost(kind) &&
+                        kind.unlockedIn(wave, extended: extended)
+                    ? () => game.buildTower(kind)
+                    : null,
+                child: Text(
+                  kind.unlockedIn(wave, extended: extended)
+                      ? '${kind.label} ${game.buildCost(kind)}'
+                      : '${kind.label} ${tr('AB W', 'FROM W')}${kind.fromWave}',
+                  style: _small,
+                ),
+              ),
             ),
       ],
     );
@@ -1531,20 +1529,27 @@ class _HudButtons extends StatelessWidget {
 /// Which buttons build and switch guns, for what steers [game]: the remote
 /// has only the one button, which builds the kind picked last.
 String _buildKeys(TankGame game) {
+  final choice = game.towerChoice.value.label;
   if (!steeredByPad(game)) {
-    return tr('B baut/rüstet auf, V wechselt', 'B builds/upgrades, V switches');
+    return tr(
+      'B baut $choice/rüstet auf, V wechselt',
+      'B builds $choice/upgrades, V switches',
+    );
   }
   if (TvInput.instance.player(game.tvPlayer).kind == TvPadKind.remote ||
       (onTv && TvInput.instance.player(game.tvPlayer).kind == TvPadKind.none)) {
     return onAppleTv
-        ? tr('Play/Pause baut/rüstet auf', 'play/pause builds/upgrades')
+        ? tr(
+            'Play/Pause baut $choice/rüstet auf',
+            'play/pause builds $choice/upgrades',
+          )
         : tr(
-            'Play/Pause oder Menü baut/rüstet auf',
-            'play/pause or menu builds/upgrades',
+            'Play/Pause oder Menü baut $choice/rüstet auf',
+            'play/pause or menu builds $choice/upgrades',
           );
   }
   return tr(
-    'R1 baut/rüstet auf, L1 wechselt',
-    'R1 builds/upgrades, L1 switches',
+    'R1 baut $choice/rüstet auf, L1 wechselt',
+    'R1 builds $choice/upgrades, L1 switches',
   );
 }

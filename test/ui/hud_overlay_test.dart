@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/payloads/defense_payload.dart';
@@ -51,5 +52,48 @@ void main() {
     );
     expect(panel.right, lessThanOrEqualTo(393));
     expect(panel.left, greaterThanOrEqualTo(gauges.right));
+  });
+
+  // TestFlight feedback: the gun built last stayed filled in the list and
+  // looked picked, or as the one thing the funds still reached.
+  testWidgets('the guns to build are only bright or faint, never marked', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(393, 852) * 3
+      ..devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+
+    final game = (await tester.runAsync(loadedGame))!;
+    game
+      ..update(0)
+      ..chooseMode(GameMode.defense)
+      ..startRound();
+    game.touchMode.value = true;
+    game.towerChoice.value = TowerKind.flak;
+    game.credits.value = 25;
+    game.defense.value = DefensePayload(id: game.myId, hp: 900, wave: 3);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: HudOverlay(game: game)),
+      ),
+    );
+    await tester.tap(find.byIcon(Icons.construction_outlined));
+    await tester.pump();
+
+    final flak = find.ancestor(
+      of: find.textContaining(TowerKind.flak.label),
+      matching: find.byType(OutlinedButton),
+    );
+    expect(flak, findsOneWidget);
+    expect(tester.widget<OutlinedButton>(flak).onPressed, isNull);
+    expect(
+      find.ancestor(
+        of: find.textContaining(TowerKind.flak.label),
+        matching: find.byType(FilledButton),
+      ),
+      findsNothing,
+    );
   });
 }

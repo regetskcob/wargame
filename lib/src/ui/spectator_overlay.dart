@@ -78,27 +78,6 @@ class SpectatorOverlay extends StatelessWidget {
                       alignment: Alignment.bottomLeft,
                       child: LeaveRoundButton(game: game),
                     ),
-                  // Always in reach, also on a phone where the bar above is
-                  // cramped.
-                  if (game.replaying.value)
-                    Align(
-                      alignment: Alignment.bottomCenter,
-                      child: Padding(
-                        padding: EdgeInsets.only(bottom: narrow ? 132 : 12),
-                        child: FilledButton.icon(
-                          onPressed: game.stopReplay,
-                          icon: const Icon(Icons.stop_circle_outlined),
-                          label: Text(
-                            game.touchMode.value
-                                ? tr('WIEDERHOLUNG BEENDEN', 'END REPLAY')
-                                : tr(
-                                    'WIEDERHOLUNG BEENDEN (ESC)',
-                                    'END REPLAY (ESC)',
-                                  ),
-                          ),
-                        ),
-                      ),
-                    ),
                 ],
               );
             },
@@ -173,6 +152,19 @@ class SpectatorOverlay extends StatelessWidget {
         },
       ),
     );
+    // The way out of a replay sits beside the next tank: on its own low in
+    // the field it floated apart from everything and over the tanks.
+    final end = game.replaying.value
+        ? TextButton.icon(
+            onPressed: game.stopReplay,
+            icon: const Icon(Icons.stop_circle_outlined, size: 18),
+            label: Text(
+              game.touchMode.value
+                  ? tr('BEENDEN', 'END')
+                  : tr('BEENDEN (ESC)', 'END (ESC)'),
+            ),
+          )
+        : null;
     return Panel(
       padding: EdgeInsets.symmetric(horizontal: narrow ? 12 : 16, vertical: 8),
       child: narrow
@@ -183,12 +175,26 @@ class SpectatorOverlay extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: title,
                 ),
-                next,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Flexible(child: next),
+                    if (end != null) ...[
+                      const SizedBox(width: 8),
+                      Flexible(child: end),
+                    ],
+                  ],
+                ),
               ],
             )
           : Row(
               mainAxisSize: MainAxisSize.min,
-              children: [...title, const SizedBox(width: 12), next],
+              children: [
+                ...title,
+                const SizedBox(width: 12),
+                next,
+                if (end != null) ...[const SizedBox(width: 8), end],
+              ],
             ),
     );
   }

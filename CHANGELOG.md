@@ -7,6 +7,18 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## Unreleased
+
+- Ranks take longer: every rank starts from 0 and needs the step the card
+  used to show as the total, and the card counts within the rank
+- The defense shop marks nothing after use: buttons are only bright when
+  affordable or faint; building says what a gun or trench is for, and a
+  notice says when the funds start to reach
+- The last enemy helicopter of a wave comes in to the defenders instead of
+  hanging back far out, and tank shells hurt it a little more
+- The replay's end button sits in the bar beside the next tank
+- Deleting the account comes last on the account page
+
 ## 1.4.1 (10) – 2026-10-11
 
 - Tablets use their screen in the menus: the start page and the waiting

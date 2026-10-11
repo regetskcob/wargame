@@ -383,6 +383,10 @@ class GameConfig {
   static const helicopterHp = 120.0;
   static const helicopterSpeed = 110.0;
   static const helicopterHover = 260.0;
+
+  /// How far the last enemy of a wave keeps off: within sight of the tank
+  /// it hunts on a phone.
+  static const helicopterHoverLast = 150.0;
   static const helicopterCooldown = 1.8;
   static const helicopterDamage = 10.0;
   static const helicopterRange = 420.0;
@@ -395,7 +399,7 @@ class GameConfig {
 
   /// Shells that are not built to hit aircraft only scratch a helicopter
   /// and never touch a jet. Flak and the Habicht hit them hard.
-  static const groundGunVsHelicopter = 0.25;
+  static const groundGunVsHelicopter = 0.4;
   static const antiAirFactor = 2.0;
 
   /// Enemy kamikaze drones fly longer than the ones from gems, the road is

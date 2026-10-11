@@ -219,21 +219,32 @@ class Aircraft extends PositionComponent with HasGameRef<TankGame> {
       _support(dt, map);
       return;
     }
+    // Once the tanks of the enemy are gone it is all that holds the wave
+    // open. Hanging back far out it took testers ages to find and a
+    // magazine to bring down, again and again, so it now seeks out the
+    // defenders anywhere and comes in close, into their guns and the flak.
+    final lastStand = gameRef.enemiesAlive == 0;
+    final reach = lastStand ? double.infinity : 480.0;
     _think -= dt;
     if (_think <= 0) {
       _think = 0.4;
       // Stays on its prey while it is there, instead of swinging round
       // whenever another tank comes a little closer.
-      if (!_holds(_prey, 560)) {
+      if (!_holds(_prey, lastStand ? double.infinity : 560)) {
         _prey =
-            gameRef.nearestDefender(position, 480, of: unitId) ??
-            gameRef.nearestTower(position, 480, of: unitId);
+            gameRef.nearestDefender(position, reach, of: unitId) ??
+            gameRef.nearestTower(position, reach, of: unitId);
       }
     }
     final prey = _prey;
     final base = map.lanes[lane.clamp(0, map.lanes.length - 1)].base;
     final aimAt = prey != null && prey.isMounted ? prey.position : base;
-    final diff = _fly(dt, aimAt, GameConfig.helicopterHover, face: aimAt);
+    final diff = _fly(
+      dt,
+      aimAt,
+      lastStand ? GameConfig.helicopterHoverLast : GameConfig.helicopterHover,
+      face: aimAt,
+    );
     final distance = position.distanceTo(aimAt);
     _cooldown -= dt;
     if (_cooldown <= 0 &&

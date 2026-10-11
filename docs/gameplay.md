@@ -302,7 +302,7 @@ seconds up to 300.
 **What softens a hit.** A shield lets 40 % through, every armour upgrade
 takes 15 % off and a trench halves what is left. Every gun upgrade adds 15 %
 to the tank's shells. Against aircraft, flak and the Habicht do double, other
-shells a quarter to a helicopter and nothing to a jet. On the ground flak
+shells 40 % to a helicopter and nothing to a jet. On the ground flak
 does only 30 % of its damage, about a quarter of what a cannon fires in the
 same time, so a row of flak no longer holds the road. Against the sky it
 got sharper instead: its shells burst within 30 of an aircraft or drone,
@@ -335,6 +335,11 @@ reset by a bad wave, the base only waits longer for the next step.
 even a full room. A destroyed comrade rolls out of the base again after 10
 seconds.
 
+**The last helicopter.** Once no enemy tank is left, an enemy helicopter
+holds the wave open on its own. It then seeks out the nearest defender or
+gun anywhere on the field and keeps only 150 off instead of 260, so it
+comes into view and into the flak instead of being hunted across the map.
+
 **Air support.** From wave 3 the base sends an attack helicopter every wave,
 which stays 40 seconds. From wave 5 a jet follows 14 seconds into the wave
 and bombs the enemy closest to the base.
@@ -359,7 +364,11 @@ same, but the guns get dearer.
 
 The price is for the first of a kind; every further one of the same kind a
 player already has adds 30 % of it (flak 120, 156, 192, …), so a wall of one
-kind gets dear. The buttons show the current price.
+kind gets dear. The buttons show the current price and are only bright
+(affordable) or faint, never marked: the kind built last is what B, R1 or
+the remote's button builds, and the key hint above the list names it.
+Building says what the gun or trench is for in a notice, and when the
+funds start to reach for a gun or an upgrade a notice says so once.
 
 Each upgrade adds 30 % hit points, 35 % damage and 12 % range and fires 15 %
 faster; trenches have no levels. Enemy shells, bombs, barrages and drones
@@ -408,7 +417,8 @@ still a win.
 - Alone with CPU tanks the player is straight back in the waiting room. With other people in the round the player leaves the
   room too, and the others see the tank go like a pilot who closed the tab.
 - On the end screen Escape goes back to the waiting room, in a replay it
-  ends the replay. The Apple TV keeps its Menu button from throwing anybody
+  ends the replay. The replay's end button sits in the bar at the top
+  beside *Next tank*. The Apple TV keeps its Menu button from throwing anybody
   out of a round and shows no exit button.
 
 ## After the round
@@ -417,7 +427,10 @@ still a win.
   other people in the round the end screen goes back to the waiting room
   after 15 s and counts down on its button; alone it stays until the
   player picks.
-- Ranks from experience, an Elo rating, ten badges and one leaderboard of all
+- Ranks from experience: every rank starts from 0 and rank *n* needs
+  120 × *n*² to the next (120 to rank 2, 5880 from rank 7 to 8), and the
+  card counts within the rank. The total of the old curve was the step
+  itself, so ranks came too easily. An Elo rating, ten badges and one leaderboard of all
   pilots by points.
 - Holding out counts, in a lost round too. Experience per round: 10, plus
   20 per kill, 1 per 10 damage (up to 200), 50 for the win and 10 for every

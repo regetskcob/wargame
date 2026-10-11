@@ -172,7 +172,7 @@ class _AccountPageState extends State<AccountPage> {
     final accounts = _game.accounts;
     // The call sign, the account it belongs to, then the settings of this
     // device and the controllers in a quiet box of their own, as on the
-    // start page.
+    // start page, and deleting the account at the very bottom.
     final left = <Widget>[
       ValueListenableBuilder<TextEditingValue>(
         valueListenable: _name,
@@ -255,8 +255,45 @@ class _AccountPageState extends State<AccountPage> {
             'You play as a guest, without ranking.',
           ),
         ),
-      // A guest has nothing lasting to delete, signing in or
-      // registering above is what they are offered.
+    ];
+    final right = <Widget>[
+      // Only phones: iPads and most Android tablets have no motor, the
+      // switch would do nothing there.
+      if (_vibrates)
+        // A plain row: a ListTile would paint its ink behind the panel.
+        ValueListenableBuilder<bool>(
+          valueListenable: Haptics.on,
+          builder: (context, on, _) => Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      tr('VIBRATION', 'VIBRATION'),
+                      style: Theme.of(context).textTheme.titleMedium,
+                    ),
+                    Text(
+                      tr(
+                        'Treffer, Explosionen und Rundenstart spüren',
+                        'Feel hits, blasts and the start of a round',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: on,
+                onChanged: (value) => unawaited(Haptics.set(value: value)),
+              ),
+            ],
+          ),
+        ),
+      if (_vibrates) const SizedBox(height: 24),
+      _ControllerBox(game: _game),
+      // Last on the page, below everything one comes here for, so it is
+      // never in the way. A guest has nothing lasting to delete, signing in
+      // or registering above is what they are offered.
       ValueListenableBuilder(
         valueListenable: accounts.user,
         builder: (context, _, _) => accounts.isGuest
@@ -310,42 +347,6 @@ class _AccountPageState extends State<AccountPage> {
                 ],
               ),
       ),
-    ];
-    final right = <Widget>[
-      // Only phones: iPads and most Android tablets have no motor, the
-      // switch would do nothing there.
-      if (_vibrates)
-        // A plain row: a ListTile would paint its ink behind the panel.
-        ValueListenableBuilder<bool>(
-          valueListenable: Haptics.on,
-          builder: (context, on, _) => Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      tr('VIBRATION', 'VIBRATION'),
-                      style: Theme.of(context).textTheme.titleMedium,
-                    ),
-                    Text(
-                      tr(
-                        'Treffer, Explosionen und Rundenstart spüren',
-                        'Feel hits, blasts and the start of a round',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Switch(
-                value: on,
-                onChanged: (value) => unawaited(Haptics.set(value: value)),
-              ),
-            ],
-          ),
-        ),
-      if (_vibrates) const SizedBox(height: 24),
-      _ControllerBox(game: _game),
       const SizedBox(height: 12),
       const LegalLinks(),
     ];

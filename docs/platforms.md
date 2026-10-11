@@ -45,7 +45,9 @@ its layout.
 The account is a page of its own over the game (route `/account`,
 `lib/src/ui/account_page.dart`), not a dialog. From 760 points of width
 the account sits on the left and this device (vibration, controllers,
-legal links) on the right, so a tablet shows all of it without scrolling.
+deleting the account, legal links) on the right, so a tablet shows all of
+it without scrolling. Deleting the account comes last on the page, on a
+phone too.
 The cross in the title is the only way to close it, besides the system
 back gesture and Menu on the remote.
 

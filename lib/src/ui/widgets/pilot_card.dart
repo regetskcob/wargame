@@ -75,7 +75,7 @@ class _PilotCardState extends State<PilotCard> {
                           children: [
                             Expanded(
                               child: Text(
-                                '${rank.xp} / ${rank.next} ${tr('EP', 'XP')}',
+                                '${rank.inRank} / ${rank.step} ${tr('EP', 'XP')}',
                                 maxLines: 1,
                                 softWrap: false,
                                 style: const TextStyle(

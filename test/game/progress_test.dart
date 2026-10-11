@@ -15,6 +15,20 @@ void main() {
     expect(Rank.of(1 << 30).title, isNotEmpty);
   });
 
+  test('every rank starts from nothing and needs its own step', () {
+    // The step from 7 to 8 is what the card once showed as the total.
+    expect(Rank.stepFrom(1), 120);
+    expect(Rank.stepFrom(7), 5880);
+    for (var level = 1; level < 20; level++) {
+      expect(Rank.of(Rank.xpFor(level)).level, level);
+      expect(Rank.of(Rank.xpFor(level + 1) - 1).level, level);
+    }
+    final rank = Rank.of(4342);
+    expect(rank.level, 5);
+    expect(rank.inRank, 4342 - Rank.xpFor(5));
+    expect(rank.step, Rank.stepFrom(5));
+  });
+
   RoundContext context({
     int kills = 0,
     int shots = 0,
