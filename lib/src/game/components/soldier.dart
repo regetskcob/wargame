@@ -11,6 +11,7 @@ import '../../net/payloads/soldier_payload.dart';
 import '../defense/defense_map.dart';
 import 'effects.dart';
 import 'obstacle.dart';
+import 'squad_route.dart';
 import 'storm_zone.dart';
 
 /// Infantry on foot. Every client derives the same movement from the round
@@ -37,6 +38,7 @@ class Soldier extends PositionComponent {
     this.lane = 0,
     this.back = false,
     this.hold = 0.5,
+    this.route,
   }) : tag = tag ?? '#$index',
        super(size: Vector2.all(16), anchor: Anchor.center, priority: 1);
 
@@ -74,6 +76,13 @@ class Soldier extends PositionComponent {
   /// and holds the line at [hold], the share of the road from its start.
   final bool back;
   final double hold;
+
+  /// The patrol and the orders of the squad off the road; the soldier
+  /// keeps its place in it, [home] off where the squad started.
+  final SquadRoute? route;
+  late final Vector2 _offset = route == null
+      ? Vector2.zero()
+      : home - route!.at(route!.startAt);
 
   bool dead = false;
 
@@ -119,6 +128,14 @@ class Soldier extends PositionComponent {
             )
           : road.alongRoad(min(distance, road.roadLength));
       return point + Vector2(-dir.y, dir.x) * lane;
+    }
+    final squad = route;
+    if (squad != null) {
+      // In its place in the squad, shifting a little on the spot.
+      return squad.at(t) +
+          _offset +
+          Vector2(cos(t * speed + phase), sin(t * speed * 0.8 + phase)) *
+              (reach * 0.3);
     }
     return home +
         Vector2(cos(t * speed + phase), sin(t * speed * 0.8 + phase * 1.3)) *
@@ -365,7 +382,35 @@ class SoldierField extends Component {
     this.seeded = true,
     this.armedSides = false,
     this.onArrive,
-  }) : super(priority: -12);
+    bool Function(Vector2 point)? walkable,
+  }) : walkable = walkable ?? _anywhere,
+       super(priority: -12);
+
+  static bool _anywhere(Vector2 _) => true;
+
+  /// Whether a squad may patrol to a point.
+  final bool Function(Vector2 point) walkable;
+
+  /// Squads off the road by their key: those of the seed (`seed-<n>`), the
+  /// paratroopers (`para-<n>`) and the squads that came in by message.
+  final routes = <String, SquadRoute>{};
+
+  SquadRoute _route(String key, String? owner, Vector2 start, double at) =>
+      routes[key] = SquadRoute(
+        key: key,
+        ownerId: owner,
+        start: start,
+        startAt: at,
+        walkable: (point) =>
+            walkable(point) &&
+            !_solids.any(
+              (o) => o.toRect().inflate(24).contains(point.toOffset()),
+            ),
+      );
+
+  /// Houses and walls, which a patrol walks round, not into.
+  late final List<Obstacle> _solids =
+      parent?.descendants().whereType<Obstacle>().toList() ?? const [];
 
   /// Called when a wave of paratroopers starts to fall.
   final void Function()? onWave;
@@ -446,9 +491,17 @@ class SoldierField extends Component {
     final hold =
         0.35 + Random(stableHash(payload.squad) + 1).nextDouble() * 0.25;
     final centre = Vector2(payload.x, payload.y);
+    final marching = payload.road && map != null;
+    final route = marching
+        ? null
+        : _route(
+            payload.squad,
+            payload.owner,
+            centre,
+            start + (payload.para ? GameConfig.paraFallSeconds : 0),
+          );
     for (var i = 0; i < payload.count; i++) {
       final a = random.nextDouble() * 2 * pi;
-      final marching = payload.road && map != null;
       final soldier = Soldier(
         index: -1,
         tag: '${payload.squad}/$i',
@@ -466,7 +519,9 @@ class SoldierField extends Component {
         lane: (random.nextDouble() * 2 - 1) * (DefenseMap.roadHalfWidth - 12),
         back: payload.back,
         hold: hold,
+        route: route,
       );
+      route?.members.add(soldier);
       squads[soldier.tag] = soldier;
       if (soldier.appearsAt > clock) {
         _pending.add(soldier);
@@ -505,6 +560,12 @@ class SoldierField extends Component {
         continue;
       }
       final side = 1 + squad % 2;
+      final route = _route(
+        'seed-$squad',
+        armedSides ? 'inf-$side' : null,
+        centre,
+        0,
+      );
       for (var i = 0; i < GameConfig.soldiersPerSquad; i++) {
         final a = random.nextDouble() * 2 * pi;
         final soldier = Soldier(
@@ -517,7 +578,9 @@ class SoldierField extends Component {
           speed: 0.5 + random.nextDouble() * 0.6,
           ownerId: armedSides ? 'inf-$side' : null,
           tint: armedSides ? GameConfig.teamColors[side] : null,
+          route: route,
         );
+        route.members.add(soldier);
         soldiers.add(soldier);
         add(soldier);
       }
@@ -548,6 +611,12 @@ class SoldierField extends Component {
         }
       }
       final side = 1 + wave % 2;
+      final route = _route(
+        'para-$wave',
+        armedSides ? 'inf-$side' : null,
+        centre ?? Vector2.zero(),
+        dropAt + GameConfig.paraFallSeconds,
+      );
       for (var i = 0; i < GameConfig.paraPerWave; i++) {
         final a = random.nextDouble() * 2 * pi;
         final home =
@@ -563,7 +632,9 @@ class SoldierField extends Component {
           ownerId: armedSides ? 'inf-$side' : null,
           rocket: armedSides,
           tint: armedSides ? GameConfig.teamColors[side] : null,
+          route: route,
         );
+        route.members.add(soldier);
         soldiers.add(soldier);
         _pending.add(soldier);
       }

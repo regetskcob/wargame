@@ -8,13 +8,16 @@ import 'package:flame/extensions.dart';
 import '../game_config.dart';
 import '../game_phase.dart';
 import '../tank_game.dart';
+import 'defense_map.dart';
 import '../../l10n/l10n.dart';
 
 /// What a player can put down in a defense round. Each gun has its job: the
 /// cannon for tanks, flak for helicopters, jets and drones, the mortar for
 /// tanks and soldiers bunched up on the road and, later on, the howitzer for
-/// everything far out. The trench fires nothing, it covers a tank that
-/// stands in it. The heavier pieces only come up after a few waves.
+/// everything far out. The trench holds riflemen and a machine gun against
+/// soldiers on foot and covers a tank that stands in it; on the road it
+/// lies across it and tanks crawl over it. The heavier pieces only come up
+/// after a few waves.
 enum TowerKind {
   cannon(
     'KANONE',
@@ -60,14 +63,17 @@ enum TowerKind {
     blast: 2.2,
     fromWave: 4,
   ),
+  // Its rifles and machine gun take turns: [cooldown] is the gap between
+  // two shots of the whole trench, as long as all its men are there.
   trench(
     'GRABEN',
     'TRENCH',
     cost: 60,
-    range: 0,
-    cooldown: 0,
-    damage: 0,
-    shotSpeed: 0,
+    range: 260,
+    cooldown: 0.35,
+    damage: 3,
+    shotSpeed: GameConfig.rifleSpeed,
+    traverse: 20,
     fromWave: 2,
   ),
   rockets(
@@ -197,8 +203,9 @@ enum TowerKind {
       'area fire at long range',
     ),
     TowerKind.trench => tr(
-      'halber Schaden für den Panzer darin',
-      'half damage for the tank inside',
+      'Schützen und MG gegen Infanterie, halber Schaden für den Panzer darin',
+      'riflemen and a machine gun against infantry, half damage for the tank '
+          'inside',
     ),
     TowerKind.rockets => tr(
       'gegen Panzer und Luftziele',
@@ -228,7 +235,7 @@ class TowerRanges extends Component with HasGameRef<TankGame> {
       path.reset();
     }
     for (final tower in gameRef.towers.values) {
-      if (tower.isHq || tower.kind == TowerKind.trench || !tower.isMounted) {
+      if (tower.isHq || !tower.isMounted) {
         continue;
       }
       (_areas[tower.color] ??= Path()).addOval(
@@ -288,6 +295,60 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
 
   double get range => kind.rangeAt(level);
 
+  /// The men in a trench, fewer as it takes fire, and the one that fires
+  /// next.
+  static const trenchCrew = 4;
+  int _shooter = 0;
+
+  /// Along the trench: across the road when it lies on the road, else along
+  /// the road it faces. Every client works it out from the same spot on
+  /// the same map.
+  late final Vector2 trenchAxis = () {
+    final map = gameRef.defenseMap;
+    if (map == null) {
+      return Vector2(1, 0);
+    }
+    final (_, dir) = map.nearestOnRoad(position);
+    return onRoad ? Vector2(-dir.y, dir.x) : dir;
+  }();
+
+  /// A trench dug on the road reaches from one edge of it to the other.
+  late final bool onRoad =
+      kind == TowerKind.trench &&
+      (gameRef.defenseMap?.distanceToRoad(position) ?? double.infinity) <
+          DefenseMap.roadHalfWidth;
+
+  /// Length of a trench along [trenchAxis].
+  double get trenchLength =>
+      onRoad ? DefenseMap.roadHalfWidth * 2 + 20 : GameConfig.trenchLength;
+
+  /// Men still in the trench: one goes with every quarter of its hit points.
+  int get crew => (trenchCrew * hp / maxHp).ceil().clamp(0, trenchCrew);
+
+  /// Where the man [i] of the trench stands, in the world.
+  Vector2 crewAt(int i) =>
+      position + trenchAxis * (trenchLength * ((i + 0.5) / trenchCrew - 0.5));
+
+  /// Whether [at] lies in the trench, within [margin] of its edge.
+  bool covers(Vector2 at, {double margin = 0}) {
+    final offset = at - position;
+    final along = offset.dot(trenchAxis).abs();
+    final across = (offset.x * trenchAxis.y - offset.y * trenchAxis.x).abs();
+    return along <= trenchLength / 2 + margin &&
+        across <= GameConfig.trenchHalfWidth + margin;
+  }
+
+  /// Where a shot in [direction] leaves: the gun's muzzle, or for a trench
+  /// the rifle of the man whose turn it is.
+  Vector2 muzzle(Vector2 direction) {
+    if (kind != TowerKind.trench) {
+      return position + direction * 44;
+    }
+    final men = max(1, crew);
+    _shooter = (_shooter + 1) % men;
+    return crewAt(_shooter) + direction * 8;
+  }
+
   double turretAngle = 0;
   double _cooldown = 0;
   double _recoil = 0;
@@ -302,9 +363,21 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
   bool get _runs =>
       _mine || (isEnemy && gameRef.round?.botHost == gameRef.myId);
 
-  void fired(Vector2 direction) {
+  /// A shot went off in [direction]. For a trench of another client [from]
+  /// tells which of the men fired, so the flash shows at his rifle.
+  void fired(Vector2 direction, {Vector2? from}) {
     turretAngle = atan2(direction.x, -direction.y);
     _recoil = 1;
+    if (from != null && kind == TowerKind.trench) {
+      var best = double.infinity;
+      for (var i = 0; i < trenchCrew; i++) {
+        final distance = crewAt(i).distanceTo(from);
+        if (distance < best) {
+          best = distance;
+          _shooter = i;
+        }
+      }
+    }
   }
 
   void upgradeTo(int value) {
@@ -336,7 +409,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     _recoil = max(0, _recoil - dt * 6);
     _upgraded = max(0, _upgraded - dt);
     _flash = max(0, _flash - dt);
-    if (!_runs || !kind.isGun) {
+    if (!_runs || (kind == TowerKind.trench && crew == 0)) {
       return;
     }
     final phase = gameRef.phase.value;
@@ -360,7 +433,10 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     turretAngle += diff.clamp(-turn, turn);
     if (diff.abs() < 0.08 && _cooldown <= 0) {
       _cooldown =
-          kind.cooldownAt(level) * (isEnemy ? GameConfig.enemyGunCooldown : 1);
+          kind.cooldownAt(level) *
+          (isEnemy ? GameConfig.enemyGunCooldown : 1) *
+          // A trench fires slower with every man it lost.
+          (kind == TowerKind.trench ? trenchCrew / max(1, crew) : 1);
       if (kind.lobs) {
         gameRef.fireMortarTower(this, aim);
       } else {
@@ -577,40 +653,104 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     );
   }
 
-  /// A zigzag of dug earth with sandbags on the rim, open towards the road,
-  /// in the colour of who dug it.
+  static final _earth = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeJoin = StrokeJoin.round
+    ..strokeCap = StrokeCap.round
+    ..color = const Color(0xFFB59B6B);
+  static final _pit = Paint()
+    ..style = PaintingStyle.stroke
+    ..strokeJoin = StrokeJoin.round
+    ..strokeCap = StrokeCap.round
+    ..color = const Color(0xFF3B2E20);
+  static final _helmet = Paint()..color = const Color(0xFF3E4A28);
+  // Lighter than the soldiers on the field, or they sank into the dark pit.
+  static final _shoulders = Paint()..color = const Color(0xFF8A9F55);
+  static final _gun = Paint()
+    ..strokeCap = StrokeCap.round
+    ..color = const Color(0xFF1E1E1C);
+  static final _flashPaint = Paint()..color = const Color(0xCCFFD27A);
+
+  /// A zigzag of dug earth with sandbags on the rim, across the road or
+  /// along it, and the men in it with their rifles and the machine gun,
+  /// all aiming where the trench fires. A band in the colour of who dug it.
   void _renderTrench(Canvas canvas) {
     final c = Offset(size.x / 2, size.y / 2);
-    canvas.drawCircle(c, 34, Paint()..color = color.withValues(alpha: 0.12));
-    final zigzag = Path()..moveTo(c.dx - 30, c.dy + 6);
-    for (var i = 1; i <= 6; i++) {
-      zigzag.lineTo(c.dx - 30 + i * 10, c.dy + (i.isEven ? 6 : -6));
-    }
-    canvas.drawPath(
-      zigzag,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 22
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFFB59B6B),
-    );
-    canvas.drawPath(
-      zigzag,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 12
-        ..strokeJoin = StrokeJoin.round
-        ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFF3B2E20),
-    );
+    final half = trenchLength / 2;
+    final axis = atan2(trenchAxis.y, trenchAxis.x);
     canvas.drawCircle(
       c,
-      34,
+      range,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 3
+        ..strokeWidth = 2
+        ..color = color.withValues(alpha: _mine ? 0.25 : 0.15),
+    );
+    canvas.save();
+    canvas.translate(c.dx, c.dy);
+    canvas.rotate(axis);
+    final steps = (trenchLength / 12).round();
+    final zigzag = Path()..moveTo(-half, 5);
+    for (var i = 1; i <= steps; i++) {
+      zigzag.lineTo(-half + i * trenchLength / steps, i.isEven ? 5 : -5);
+    }
+    canvas.drawPath(zigzag, _earth..strokeWidth = 24);
+    canvas.drawPath(zigzag, _pit..strokeWidth = 13);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromCenter(
+          center: Offset.zero,
+          width: trenchLength + 6,
+          height: 30,
+        ),
+        const Radius.circular(10),
+      ),
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2.5
         ..color = color,
     );
+    canvas.restore();
+    // The men, upright in the world so their rifles point at the target.
+    final men = crew;
+    for (var i = 0; i < men; i++) {
+      final at = crewAt(i) - position;
+      final man = c + Offset(at.x, at.y);
+      canvas.save();
+      canvas.translate(man.dx, man.dy);
+      canvas.rotate(turretAngle);
+      final machineGun = i == 1;
+      final recoil = i == _shooter ? 3 * _recoil : 0.0;
+      canvas.drawLine(
+        Offset(machineGun ? 0 : 3, recoil),
+        Offset(machineGun ? 0 : 3, (machineGun ? -16 : -11) + recoil),
+        _gun..strokeWidth = machineGun ? 3 : 1.6,
+      );
+      if (machineGun) {
+        // The bipod at the front.
+        canvas.drawLine(const Offset(-3, -12), const Offset(3, -12), _gun);
+      }
+      if (i == _shooter && _recoil > 0.5) {
+        canvas.drawCircle(
+          Offset(machineGun ? 0 : 3, machineGun ? -18 : -13),
+          machineGun ? 3.5 : 2.5,
+          _flashPaint,
+        );
+      }
+      canvas.drawOval(
+        Rect.fromCenter(center: Offset.zero, width: 13, height: 7),
+        _shoulders,
+      );
+      canvas.drawCircle(Offset.zero, 4, _helmet);
+      canvas.drawCircle(
+        Offset.zero,
+        4,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.3
+          ..color = color,
+      );
+      canvas.restore();
+    }
   }
 }

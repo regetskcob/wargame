@@ -103,3 +103,63 @@ class SquadPayload {
     if (lane > 0) 'lane': lane,
   };
 }
+
+/// The commander [id] of the squad [squad] sends it on from [at], in
+/// milliseconds since the epoch: to [x], [y] after an enemy, or with
+/// [patrol] back to patrolling where it stands then. Every client walks the
+/// squad the same way from these orders alone.
+class SquadOrderPayload {
+  const SquadOrderPayload({
+    required this.id,
+    required this.squad,
+    required this.at,
+    this.x = 0,
+    this.y = 0,
+    this.patrol = false,
+  });
+
+  /// Null for anything that is not a well formed order.
+  static SquadOrderPayload? tryParse(Map<String, dynamic> json) {
+    final id = json['id'];
+    final squad = json['q'];
+    final at = json['at'];
+    final x = json['x'] ?? 0;
+    final y = json['y'] ?? 0;
+    final patrol = json['p'] ?? false;
+    if (id is! String ||
+        squad is! String ||
+        squad.length > 80 ||
+        at is! int ||
+        x is! num ||
+        y is! num ||
+        !x.isFinite ||
+        !y.isFinite ||
+        patrol is! bool) {
+      return null;
+    }
+    return SquadOrderPayload(
+      id: id,
+      squad: squad,
+      at: at,
+      x: x.toDouble(),
+      y: y.toDouble(),
+      patrol: patrol,
+    );
+  }
+
+  final String id;
+  final String squad;
+  final int at;
+  final double x;
+  final double y;
+  final bool patrol;
+
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'q': squad,
+    'at': at,
+    if (!patrol) 'x': (x * 10).roundToDouble() / 10,
+    if (!patrol) 'y': (y * 10).roundToDouble() / 10,
+    if (patrol) 'p': true,
+  };
+}

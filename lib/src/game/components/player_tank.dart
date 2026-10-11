@@ -269,6 +269,8 @@ class PlayerTank extends TankBase
         damage.speedFactor *
         slope *
         (usesFuel && fuel <= 0 ? GameConfig.emptyTankSpeed : 1) *
+        // Over the dug earth of a trench only slowly.
+        (gameRef.overTrench(position) ? GameConfig.trenchCrossSpeed : 1) *
         min(_trees.any((t) => !t.felled) ? 0.55 : 1.0, soft ? 0.6 : 1.0);
     final acceleration =
         GameConfig.tankAcceleration *

@@ -21,6 +21,11 @@ gepflegt.
 - Der Knopf zum Beenden der Wiederholung sitzt in der Leiste neben dem
   nächsten Panzer
 - Konto löschen steht ganz unten auf der Kontoseite
+- Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und
+  Panzer; auf der Straße liegt ein Graben quer von Rand zu Rand, und Panzer
+  beider Seiten kriechen langsam darüber
+- Fußgruppen patrouillieren, statt auf ihrem Platz zu stehen, und pirschen
+  sich an feindliche Panzer und Soldaten heran, die in Sicht kommen
 
 ## 1.4.1 (10) – 11.10.2026
 

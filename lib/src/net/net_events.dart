@@ -29,4 +29,8 @@ enum NetEvent {
   /// The authority of a capture the flag round tells where both flags are
   /// and how the score stands.
   flag,
+
+  /// The commander of a squad on foot sends it after an enemy or back to
+  /// patrolling.
+  squadOrder,
 }

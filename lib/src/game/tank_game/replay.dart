@@ -100,6 +100,19 @@ extension TankGameReplay on TankGame {
           _onBlast(BlastPayload.fromJson(json));
         case NetEvent.squad:
           _onSquad(SquadPayload.fromJson(json));
+        case NetEvent.squadOrder:
+          if (SquadOrderPayload.tryParse(json) case final order?) {
+            _onSquadOrder(
+              SquadOrderPayload(
+                id: order.id,
+                squad: order.squad,
+                at: order.at + player.shift,
+                x: order.x,
+                y: order.y,
+                patrol: order.patrol,
+              ),
+            );
+          }
         case NetEvent.use:
           _onUse(UsePayload.fromJson(json));
         case NetEvent.flag:

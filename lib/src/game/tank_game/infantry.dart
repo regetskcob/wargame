@@ -126,6 +126,67 @@ extension TankGameInfantry on TankGame {
     _addSquad(payload);
   }
 
+  /// Who sends the orders of the squads of [owner]: the owner itself, for
+  /// CPU tanks and the enemy of a defense round the host, for the red and
+  /// blue squads of a team round the infantry host.
+  String? commanderOf(String owner) {
+    final activeRound = round;
+    if (activeRound == null) {
+      return null;
+    }
+    if (activeRound.isBot(owner)) {
+      return activeRound.botHost;
+    }
+    if (owner.startsWith('inf-')) {
+      return infantryHost;
+    }
+    return owner;
+  }
+
+  /// This client orders [route] after an enemy to [to], or with [to] null
+  /// back to patrolling, and tells the others.
+  void orderSquad(SquadRoute route, Vector2? to) {
+    final field = soldierField;
+    if (field == null) {
+      return;
+    }
+    final order = SquadOrderPayload(
+      id: myId,
+      squad: route.key,
+      at: clock.now().millisecondsSinceEpoch,
+      x: to?.x ?? 0,
+      y: to?.y ?? 0,
+      patrol: to == null,
+    );
+    // The spot as it goes over the wire, so this client walks the squad
+    // exactly as the others will.
+    _onSquadOrder(SquadOrderPayload.tryParse(order.toJson())!, own: true);
+    net.send(NetEvent.squadOrder, order.toJson());
+  }
+
+  void _onSquadOrder(SquadOrderPayload payload, {bool own = false}) {
+    final field = soldierField;
+    final route = field?.routes[payload.squad];
+    final owner = route?.ownerId;
+    if (field == null || route == null || owner == null) {
+      return;
+    }
+    // Only the squad's commander, and only about now: an order far in the
+    // past would rewrite where the squad has long been.
+    final now = clock.now().millisecondsSinceEpoch;
+    if ((!own && !replaying.value && commanderOf(owner) != payload.id) ||
+        (payload.at - now).abs() > 10000) {
+      return;
+    }
+    final to = payload.patrol ? null : Vector2(payload.x, payload.y);
+    if (to != null &&
+        to.distanceTo(route.at(field.clockAt(payload.at))) >
+            GameConfig.squadSight * 2) {
+      return;
+    }
+    route.order(field.clockAt(payload.at), to);
+  }
+
   Iterable<Soldier> get _enemySoldiers =>
       (soldierField?.all ?? const <Soldier>[]).where(
         (s) =>

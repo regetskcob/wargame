@@ -100,7 +100,8 @@ Everything the game does, with the numbers behind it. The short version is in th
   night. Night, fog and sand limit the view to a circle around the tank.
 - Buildings, barriers and trees that can be shot down, and soldiers on foot
   that fight: in a team round the squads are red or blue and shoot at tanks
-  and at each other. They can be shot or run over.
+  and at each other. They patrol and stalk enemies that come within sight.
+  They can be shot or run over.
 - Limited ammunition with blue gems to refill it, and gems for a grenade
   launcher, a mortar, a kamikaze drone, a squad on foot and a drop of
   paratroopers with rocket launchers.
@@ -283,7 +284,14 @@ seconds. In a defense round the enemy tanks fire three times slower.
 
 **Soldiers.** A rifle does 1 per shot every 1.3 seconds up to 220, which is
 deadly to soldiers and little to tanks. A rocket launcher does 18 every 4
-seconds up to 300.
+seconds up to 300. Squads off the road (from the seed, paratroopers, gems)
+patrol a round of up to 220 about where they stand at a walk (26 a
+second), keeping round houses. Once an enemy tank out of the smoke or an
+armed soldier of the other side comes within 520, they stalk it at 46 a
+second to three quarters of their reach (165 for riflemen, 225 for rocket
+launchers) and hold there while they fire; 6 seconds after losing sight
+of it they patrol again where they stand. Squads marching down the road
+of a defense round keep to the road.
 
 **Defense.**
 
@@ -359,7 +367,7 @@ same, but the guns get dearer.
 | Flak | 120 | 1 | 200 | aircraft and drones |
 | Mortar | 150 | 1 | 200 | area fire up to 620 |
 | Howitzer | 220 | 4 | 300 | heavy area fire up to 1050 |
-| Trench | 60 | 2 | 360 | a tank in it takes half damage |
+| Trench | 60 | 2 | 360 | 3 riflemen and a machine gun against infantry (range 260); a tank in it takes half damage |
 | Rockets | 260 | extension | 260 | tanks and aircraft, range 640 |
 
 The price is for the first of a kind; every further one of the same kind a
@@ -375,8 +383,14 @@ faster; trenches have no levels. Enemy shells, bombs, barrages and drones
 wear guns and trenches down, and enemy tanks and helicopters go for them
 when no tank is near. A destroyed gun frees its place. Up to 4 trenches per
 player, they do not count as guns. Guns keep off the road, trenches may
-cut across it (not over a bridge): tanks roll over a trench and soldiers
-march on through it, and only a tank of the side that dug it takes cover
+cut across it (not over a bridge): on the road a trench is dug on its
+middle and lies across it from edge to edge, beside the road it runs
+along it. Four men sit in it, three with rifles and one with a machine
+gun; they take turns firing (one shot every 0.35 s for the whole trench,
+3 damage), at soldiers first and tanks after, and one of them goes with
+every quarter of its hit points, the fire slowing with him. Tanks of
+either side crawl over a trench at 40 % of their speed and soldiers
+march on through it; only a tank of the side that dug it takes cover
 there, so an enemy rolling over a trench on the road gets none.
 
 On the easy level shells never run out, so the HUD leaves the ammunition

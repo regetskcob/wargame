@@ -41,6 +41,9 @@ extension TankGameDefense on TankGame {
       startedAt: activeRound.startedAt,
       seeded: false,
       onArrive: _soldierArrived,
+      walkable: (point) =>
+          DefenseMap.bounds.deflate(60).contains(point.toOffset()) &&
+          !map.inWater(point, margin: 20),
     );
     _extras.add(soldierField!);
     world.add(soldierField!);
@@ -548,11 +551,17 @@ extension TankGameDefense on TankGame {
       return;
     }
     credits.value -= cost;
+    // On the road a trench goes across it from edge to edge, so it is dug
+    // on the middle of the road, wherever on it the tank stands.
+    Vector2 at = tank.position;
+    if (!build.isGun && map.distanceToRoad(at) < DefenseMap.roadHalfWidth) {
+      (at, _) = map.nearestOnRoad(at);
+    }
     final payload = TowerPayload(
       id: myId,
       index: _towerCounter++,
-      x: tank.position.x,
-      y: tank.position.y,
+      x: at.x,
+      y: at.y,
       kind: build.index,
     );
     _addTower(payload);
@@ -861,9 +870,21 @@ extension TankGameDefense on TankGame {
   bool inTrench(Vector2 at, {required String of}) => towers.values.any(
     (t) =>
         t.kind == TowerKind.trench &&
+        t.isMounted &&
         !hurtsTower(of, t.ownerId) &&
-        t.position.distanceTo(at) < GameConfig.trenchReach,
+        t.covers(at, margin: 8),
   );
+
+  /// Whether a tank at [at] is crossing a trench, of either side: it
+  /// crawls over the dug earth.
+  bool overTrench(Vector2 at) =>
+      defenseMap != null &&
+      towers.values.any(
+        (t) =>
+            t.kind == TowerKind.trench &&
+            t.isMounted &&
+            t.covers(at, margin: GameConfig.tankRadius * 0.5),
+      );
 
   /// One of the local player's guns within reach of [at].
   Tower? _ownTowerAt(Vector2 at) {
@@ -1060,7 +1081,7 @@ extension TankGameDefense on TankGame {
     final owner = tower.ownerId;
     final direction = Vector2(sin(tower.turretAngle), -cos(tower.turretAngle));
     final bulletId = '$owner-${_bulletCounter++}';
-    final start = tower.position + direction * 44;
+    final start = tower.muzzle(direction);
     tower.fired(direction);
     _spawnBullet(
       bulletId: bulletId,
@@ -1073,6 +1094,7 @@ extension TankGameDefense on TankGame {
       airDamage: tower.kind.airDamageAt(tower.level),
       burst: tower.kind.burst,
       antiAir: tower.kind.antiAir,
+      small: tower.kind == TowerKind.trench,
     );
     net.send(
       NetEvent.shoot,
@@ -1088,7 +1110,11 @@ extension TankGameDefense on TankGame {
     );
     AudioService.play(
       'autocannon',
-      volume: tower.kind == TowerKind.flak ? 0.3 : 0.5,
+      volume: switch (tower.kind) {
+        TowerKind.flak => 0.3,
+        TowerKind.trench => 0.15,
+        _ => 0.5,
+      },
       distance: _distanceToView(tower.position),
     );
   }
@@ -1159,7 +1185,8 @@ extension TankGameDefense on TankGame {
       case TowerKind.rockets:
         return tanks() ?? air() ?? soldier() ?? guns();
       case TowerKind.trench:
-        return null;
+        // Riflemen and a machine gun: soldiers first, a tank only scratched.
+        return soldier() ?? tanks();
       case TowerKind.mortar || TowerKind.howitzer:
         bool outside(PositionComponent c) =>
             c.position.distanceTo(at) >= tower.kind.minRange;

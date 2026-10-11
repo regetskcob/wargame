@@ -4,6 +4,7 @@ import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/components/bullet.dart';
 import 'package:wargame/src/game/defense/aircraft.dart';
+import 'package:wargame/src/game/defense/defense_map.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -108,6 +109,60 @@ void main() {
     expect(game.inTrench(trench.position, of: 'ally-0-0'), isTrue);
     expect(game.inTrench(trench.position, of: 'td-3-1'), isFalse);
     expect(tank.position.distanceTo(trench.position), lessThan(1));
+  });
+
+  test('a trench dug on the road lies across it from edge to edge and slows '
+      'every tank over it', () async {
+    final game = await defenseRound(playing: true);
+    final map = game.defenseMap!;
+    final (centre, dir) = map.alongRoad(map.roadLength * 0.3);
+    final side = Vector2(-dir.y, dir.x);
+    game.myTank!.position.setFrom(centre + side * 25);
+    game
+      ..credits.value = 1000
+      ..defense.value = game.defense.value!.copyWith(
+        wave: TowerKind.trench.fromWave,
+      )
+      ..buildTower(TowerKind.trench);
+    game.update(0);
+    final trench = game.towers.values.single;
+    expect(trench.onRoad, isTrue, reason: game.notice.value);
+    // Dug on the middle of the road, wherever on it the tank stood.
+    expect(trench.position.distanceTo(centre), lessThan(1));
+    expect(trench.trenchAxis.dot(dir).abs(), lessThan(0.01));
+    for (final edge in [-1.0, 1.0]) {
+      final at = centre + side * (edge * (DefenseMap.roadHalfWidth - 4));
+      expect(game.overTrench(at), isTrue);
+    }
+    expect(game.overTrench(centre + dir * 60), isFalse);
+    expect(trench.crew, Tower.trenchCrew);
+  });
+
+  test('the men in a trench fire at soldiers marching past', () async {
+    final game = await defenseRound(playing: true);
+    final map = game.defenseMap!;
+    final (point, dir) = map.alongRoad(160);
+    // Beside the road, in reach of the soldiers coming in.
+    game.myTank!.position.setFrom(
+      point + Vector2(-dir.y, dir.x) * (DefenseMap.roadHalfWidth + 40),
+    );
+    game
+      ..credits.value = 1000
+      ..defense.value = game.defense.value!.copyWith(
+        wave: TowerKind.trench.fromWave,
+      )
+      ..buildTower(TowerKind.trench)
+      ..spawnEnemySquad('td-s-2-0', 2);
+    game.update(0);
+    final trench = game.towers.values.single;
+    expect(trench.onRoad, isFalse, reason: game.notice.value);
+    // Beside the road it runs along it.
+    expect(trench.trenchAxis.dot(dir).abs(), greaterThan(0.99));
+    final before = game.bullets.length;
+    for (var i = 0; i < 10; i++) {
+      game.update(0.2);
+    }
+    expect(game.bullets.length, greaterThan(before));
   });
 
   test(

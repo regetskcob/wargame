@@ -30,6 +30,8 @@ class InboundLimiter {
     NetEvent.tower: 80,
     NetEvent.defense: 60,
     NetEvent.flag: 30,
+    // A squad is ordered at most every 2.5 seconds.
+    NetEvent.squadOrder: 30,
   };
 
   /// Senders remembered; a flood of made up ids does not grow the map

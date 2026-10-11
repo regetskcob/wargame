@@ -295,11 +295,14 @@ class GameConfig {
   static const towerCost = 100;
   static const maxTowers = 6;
 
-  /// Trenches: how many a player may dig, how close a tank has to be to
-  /// sit in one and what share of a hit still gets through.
+  /// Trenches: how many a player may dig, how long one is beside the road
+  /// (on it, it spans the road) and how wide, what share of a hit still
+  /// gets through to a tank in it and how fast a tank crawls over one.
   static const maxTrenches = 4;
-  static const trenchReach = 34.0;
+  static const trenchLength = 76.0;
+  static const trenchHalfWidth = 16.0;
   static const trenchCover = 0.5;
+  static const trenchCrossSpeed = 0.4;
   static const towerSpacing = 60.0;
   static const towerRange = 420.0;
   static const towerCooldown = 0.45;
@@ -364,6 +367,23 @@ class GameConfig {
   static const rocketCooldown = 4.0;
   static const rocketDamage = 18.0;
   static const rocketSpeed = 300.0;
+
+  /// Squads on foot off the road patrol a round of [patrolReach] about
+  /// where they stand, at a walk. Their commander sends them after an enemy
+  /// within [squadSight], at a quicker pace, to [stalkStandoff] of their
+  /// weapon's range, and looks again every [squadThink] seconds, ordering
+  /// at most every [squadOrderGap].
+  static const patrolReach = 220.0;
+  static const patrolSpeed = 26.0;
+  static const stalkSpeed = 46.0;
+  static const squadSight = 520.0;
+  static const stalkStandoff = 0.75;
+  static const squadThink = 1.0;
+  static const squadOrderGap = 2.5;
+
+  /// After this long without an enemy in sight a stalking squad goes back
+  /// to patrolling where it stands.
+  static const stalkGiveUp = 6.0;
 
   /// A squad from a gem, deployed next to the tank: riflemen and one rocket.
   static const squadRifles = 4;

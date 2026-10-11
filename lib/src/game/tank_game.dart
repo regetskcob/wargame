@@ -58,6 +58,7 @@ import 'components/drone.dart';
 import 'components/grenade.dart';
 import 'components/effects.dart';
 import 'components/mud_field.dart';
+import 'components/squad_route.dart';
 import 'components/obstacle.dart';
 import 'map_theme.dart';
 import 'pilot_progress.dart';
@@ -608,6 +609,7 @@ class TankGame extends FlameGame
       ..onBlast = _onBlast
       ..onAir = _onAir
       ..onSquad = _onSquad
+      ..onSquadOrder = _onSquadOrder
       ..onUse = _onUse
       ..onRoundStart = _onRoundStart
       ..onRosterChanged = _onRosterChanged

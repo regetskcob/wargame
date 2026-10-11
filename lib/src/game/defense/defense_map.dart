@@ -214,6 +214,33 @@ class DefenseMap {
     return best;
   }
 
+  /// The point on the centre line of the nearest road closest to [point],
+  /// and the direction that road runs there.
+  (Vector2, Vector2) nearestOnRoad(Vector2 point) {
+    var best = double.infinity;
+    var at = point.clone();
+    var dir = Vector2(1, 0);
+    for (final road in roads) {
+      for (var i = 0; i < road.length - 1; i++) {
+        final a = road[i];
+        final ab = road[i + 1] - a;
+        final length2 = ab.length2;
+        if (length2 == 0) {
+          continue;
+        }
+        final t = ((point - a).dot(ab) / length2).clamp(0.0, 1.0);
+        final candidate = a + ab * t;
+        final distance = candidate.distanceTo(point);
+        if (distance < best) {
+          best = distance;
+          at = candidate;
+          dir = ab.normalized();
+        }
+      }
+    }
+    return (at, dir);
+  }
+
   /// Shortest distance from [point] to the river's centre line.
   double distanceToRiver(Vector2 point) {
     var best = double.infinity;

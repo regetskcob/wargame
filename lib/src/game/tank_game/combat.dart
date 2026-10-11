@@ -364,10 +364,10 @@ extension TankGameCombat on TankGame {
         return;
       }
       final direction = Vector2(payload.dx, payload.dy);
-      tower.fired(direction);
+      tower.fired(direction, from: Vector2(payload.x, payload.y));
       AudioService.play(
         'autocannon',
-        volume: 0.5,
+        volume: tower.kind == TowerKind.trench ? 0.15 : 0.5,
         distance: _distanceToView(Vector2(payload.x, payload.y)),
       );
       _spawnBullet(
@@ -381,6 +381,7 @@ extension TankGameCombat on TankGame {
         airDamage: tower.kind.airDamageAt(tower.level),
         burst: tower.kind.burst,
         antiAir: tower.kind.antiAir,
+        small: tower.kind == TowerKind.trench,
       );
       return;
     }

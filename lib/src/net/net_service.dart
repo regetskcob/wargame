@@ -70,6 +70,7 @@ class NetService {
   void Function(BlastPayload payload)? onBlast;
   void Function(AirPayload payload)? onAir;
   void Function(SquadPayload payload)? onSquad;
+  void Function(SquadOrderPayload payload)? onSquadOrder;
   void Function(UsePayload payload)? onUse;
   void Function(RoundStartPayload payload)? onRoundStart;
   void Function(List<LobbyPresence> roster)? onRosterChanged;
@@ -240,6 +241,11 @@ class NetService {
       NetEvent.squad,
       (json) => onSquad?.call(SquadPayload.fromJson(json)),
     );
+    _listen(channel, NetEvent.squadOrder, (json) {
+      if (SquadOrderPayload.tryParse(json) case final payload?) {
+        onSquadOrder?.call(payload);
+      }
+    });
     _listen(
       channel,
       NetEvent.use,

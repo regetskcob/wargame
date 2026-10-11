@@ -267,6 +267,7 @@ extension TankGameRound on TankGame {
       onWave: () =>
           showNotice(tr('FALLSCHIRMJÄGER IM ANFLUG', 'PARATROOPERS INBOUND')),
       armedSides: activeRound.teamMode,
+      walkable: (point) => point.length < GameConfig.worldRadius - 80,
     );
     _extras.add(soldierField!);
     world.add(soldierField!);

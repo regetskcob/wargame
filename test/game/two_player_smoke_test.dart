@@ -9,7 +9,9 @@ import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
 import 'package:wargame/src/game/tank_game.dart';
+import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
+import 'package:wargame/src/net/payloads/soldier_payload.dart';
 
 import '../helpers/fakes.dart';
 
@@ -141,5 +143,67 @@ void main() {
     expect(guest.round?.flag, isTrue);
     await _play([host, guest], seconds: 15);
     expect(guest.round?.flagHost, host.myId);
+  });
+
+  test('a squad on foot stalks the other tank, the guest walks it the same '
+      'way and nobody else can order it about', () async {
+    final (host, guest) = await _room();
+    await _start(host, guest, GameMode.multi);
+    await _play([host, guest], seconds: 1);
+    for (final game in [host, guest]) {
+      game.touch
+        ..thrust = false
+        ..right = false
+        ..fire = false;
+    }
+    final prey = host.remoteTanks[guest.myId]!;
+    // Towards the middle of the field, out of rifle reach.
+    final at =
+        prey.position -
+        prey.position.normalized() * (GameConfig.rifleRange * 1.8);
+    final squad = SquadPayload(
+      id: host.myId,
+      owner: host.myId,
+      squad: '${host.myId}-q9',
+      x: at.x,
+      y: at.y,
+      at: clock.now().millisecondsSinceEpoch,
+      rifles: 4,
+    );
+    host.soldierField!.addSquad(squad);
+    // As though the guest had seen the host pick up the gem for it.
+    guest.guard.allowSpecial(host.myId);
+    host.net.send(NetEvent.squad, squad.toJson());
+    await Future<void>.delayed(Duration.zero);
+    for (var frame = 0; frame < 90; frame++) {
+      host.update(1 / 30);
+      guest.update(1 / 30);
+      await Future<void>.delayed(Duration.zero);
+    }
+    final route = host.soldierField!.routes[squad.squad]!;
+    final copy = guest.soldierField!.routes[squad.squad]!;
+    expect(route.stalking, isTrue);
+    // Up to where their rifles reach, not onto the tank.
+    expect(
+      route.goal!.distanceTo(prey.position),
+      closeTo(GameConfig.rifleRange * GameConfig.stalkStandoff, 30),
+    );
+    expect(copy.goal, route.goal);
+    final now = host.soldierField!.clock;
+    expect(copy.at(now).distanceTo(route.at(now)), lessThan(1));
+
+    // The guest is not the squad's commander.
+    guest.net.send(
+      NetEvent.squadOrder,
+      SquadOrderPayload(
+        id: guest.myId,
+        squad: squad.squad,
+        at: clock.now().millisecondsSinceEpoch,
+        x: 0,
+        y: 0,
+      ).toJson(),
+    );
+    await Future<void>.delayed(Duration.zero);
+    expect(route.goal, copy.goal);
   });
 }

@@ -6,7 +6,19 @@
   `states`, `shoot`, `hit`, `death`, `roundStart`, `pickup`, `smoke`, `obstacle`,
   `soldier`, `mine`, `artillery`, `grenade`, `drone`, `blast`,
   `defense`, `tower`, `troops` (a duel's extra tank, sent by a player and run
-  by the host), `flag` (capture the flag, see below), and `close`.
+  by the host), `flag` (capture the flag, see below), `squadOrder` (see
+  below) and `close`.
+- Soldiers on foot cost nothing on the wire while they patrol: a squad off
+  the road walks a round of four points about where it stands, from its key
+  and the round clock (`SquadRoute`). Only when its commander (the owner,
+  the host for CPU tanks and the enemy, the infantry host for red and blue)
+  sends it after an enemy within 520, or back to patrolling 6 s after losing
+  it, does a `squadOrder` go out: the squad, the time and the spot, at most
+  every 2.5 s per squad and only when the spot moved more than 60. Every
+  client walks the squad from the same orders; orders from anybody but the
+  commander, or more than 10 s off the own clock, are dropped. A client
+  that joins late misses earlier orders and sees the squad where the next
+  one puts it.
 - The netcode is peer-authoritative: every client simulates its own player and
   bullets, and the victim of a hit applies its own damage before broadcasting
   the result. Each player has exactly one authority, so there are no conflicts.
