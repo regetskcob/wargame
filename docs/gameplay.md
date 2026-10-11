@@ -43,7 +43,9 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 - **Single player:** alone against 1 to 4 CPU tanks on three levels.
 - **Multiplayer:** free for all or red against blue, with CPU tanks to fill
-  up the field on request. Private rooms by link, code or QR code, public
+  up the field on request. In red against blue they also even the sides
+  out when the players' picks left one short, and the two sides' CPU tanks
+  drive the same vehicles, pair by pair. Private rooms by link, code or QR code, public
   rooms in a room list, and late joiners can watch the running round.
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
   roll along the road to the base. CPU comrades fill the squad, and later the
@@ -426,7 +428,13 @@ reset by a bad wave, the base only waits longer for the next step.
 
 **The squad.** CPU comrades fill the squad up to 4 tanks, at least one joins
 even a full room. A destroyed comrade rolls out of the base again after 10
-seconds.
+seconds. In a room where everybody has the current version a comrade's
+vehicle follows the wave it rolls out in, by the same rules as the
+enemy's waves (Fuchs and Hermelin early, Habicht from wave 3, Dachs from 4,
+Keiler from 5, Igel from 6, Wolf from 7); the enemy's tanks still get
+tougher armour with every wave on top. With an older client in the room
+every slot keeps its fixed vehicle (Keiler, Hermelin, Habicht, Keiler,
+Fuchs).
 
 **The last helicopter.** Once no enemy tank is left, an enemy helicopter
 holds the wave open on its own. It then seeks out the nearest defender or

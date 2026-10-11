@@ -18,6 +18,10 @@ gepflegt.
   Haarnadel mit zwei Kehren über den Fluss
 - Ein neuntes Fahrzeug ab Stufe 6: der Igel, ein Raketenwerfer mit vier
   Raketen je Salve, ab Welle 6 der Verteidigung auch auf der Gegnerseite
+- Kameraden in der Verteidigung fahren die Fahrzeuge der Welle, in der sie
+  ausrücken, nach denselben Regeln wie die gegnerischen Wellen
+- Rot gegen Blau: CPU-Panzer gleichen Teams aus, die durch die Wahl der
+  Spieler zu klein blieben, und beide Seiten bekommen dieselben CPU-Fahrzeuge
 - Die neuen Gelände und Karten kommen nur in Räumen vor, in denen alle
   diese Version haben
 - Ein Warteraum schließt sich nicht mehr sofort, wenn die Startseite zehn

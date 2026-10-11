@@ -32,30 +32,51 @@ extension TankGameRound on TankGame {
             member.id,
     }.toList();
     final random = Random();
+    // A phone in the room leaves no Realtime room for CPU tanks. Capturing
+    // the flag and a game without a room channel, as on the watch, always
+    // fill the field up with CPU tanks.
+    final fill =
+        (fillWithBots.value || flag || net.offline) &&
+        !defending &&
+        !roomHasPhone;
     final botCount = botsFor(
       solo: solo || together,
       humans: ids.length,
-      // A phone in the room leaves no Realtime room for CPU tanks.
-      // Capturing the flag and a game without a room channel, as on the
-      // watch, always fill the field up with CPU tanks.
-      fill:
-          (fillWithBots.value || flag || net.offline) &&
-          !defending &&
-          !roomHasPhone,
+      fill: fill,
       teams: teamMode.value || flag,
       fillTo: flag ? GameConfig.flagFillTo : GameConfig.fillTo,
       random: random,
     );
-    final bots = <String, int>{
-      for (var i = 1; i <= botCount; i++)
-        'cpu-$i': GameConfig.randomStyle(
-          random,
-          maxLevel: botLevel.value.maxVehicleLevel,
-        ),
-    };
+    final bots = <String, int>{for (var i = 1; i <= botCount; i++) 'cpu-$i': 0};
     ids
       ..addAll(bots.keys)
       ..sort();
+    final teams = defending
+        ? <String, int>{}
+        : together
+        ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
+        : _assignTeams(ids, force: flag);
+    if (fill && !together && teams.isNotEmpty) {
+      // The people's picks are honoured, so a room where all of them took
+      // one side left the other short (3 against 1 in a battle of four):
+      // CPU tanks even the sides out.
+      var red = teams.values.where((t) => t == 1).length;
+      var blue = teams.values.where((t) => t == 2).length;
+      while (red != blue && ids.length < RoundStartPayload.maxTanks) {
+        final id = 'cpu-${bots.length + 1}';
+        bots[id] = 0;
+        ids.add(id);
+        if (red < blue) {
+          teams[id] = 1;
+          red++;
+        } else {
+          teams[id] = 2;
+          blue++;
+        }
+      }
+      ids.sort();
+    }
+    _equipBots(bots, teams, random);
     // A duel takes exactly two players, the host on the left.
     final humans = [
       for (final id in ids)
@@ -76,11 +97,7 @@ extension TankGameRound on TankGame {
                       : GameConfig.soloCountdownSeconds) *
                   1000,
       participants: ids,
-      teams: defending
-          ? const {}
-          : together
-          ? {for (final id in ids) id: bots.containsKey(id) ? 2 : 1}
-          : _assignTeams(ids, force: flag),
+      teams: teams,
       bots: bots,
       botHost: bots.isEmpty && !defending && !flag ? null : myId,
       defense: defending,
@@ -94,6 +111,46 @@ extension TankGameRound on TankGame {
     }
     _roundsStarted++;
     _applyRoundStart(payload);
+  }
+
+  /// Gives every CPU tank of [bots] its vehicle and paint. In a round of
+  /// red against blue the two sides get the same vehicles, the n-th CPU tank
+  /// of one side the same as the n-th of the other: drawn one by one, a
+  /// side could end up in three Spitzmaus (60 armour) against three
+  /// Hermelin (100).
+  void _equipBots(
+    Map<String, int> bots,
+    Map<String, int> teams,
+    Random random,
+  ) {
+    final maxLevel = botLevel.value.maxVehicleLevel;
+    int paint(TankType type) =>
+        GameConfig.styleOf(type.index, random.nextInt(GameConfig.freeColors));
+    final sides = [
+      for (final team in const [1, 2])
+        [
+          for (final id in bots.keys.toList()..sort())
+            if (teams[id] == team) id,
+        ],
+    ];
+    if (!sides.every((side) => side.isNotEmpty)) {
+      // Everybody for themselves, or all CPU tanks on one side.
+      for (final id in bots.keys) {
+        bots[id] = GameConfig.randomStyle(random, maxLevel: maxLevel);
+      }
+      return;
+    }
+    final pairs = max(sides[0].length, sides[1].length);
+    for (var i = 0; i < pairs; i++) {
+      final type = GameConfig.typeOf(
+        GameConfig.randomStyle(random, maxLevel: maxLevel),
+      );
+      for (final side in sides) {
+        if (i < side.length) {
+          bots[side[i]] = paint(type);
+        }
+      }
+    }
   }
 
   /// The money a kill brought, rising from where it happened: the play test

@@ -144,10 +144,25 @@ class RoundState {
     );
   }
 
-  /// Vehicle of a comrade, which follows from its slot. The colour is the
-  /// defenders' red like that of every tank on their side.
+  /// Vehicle of a comrade. In a room that knows the newer content
+  /// (`ally-<slot>-<life>-w<wave>`) it follows the wave it rolled out in,
+  /// by the same rules as the enemy's waves, Igel and Wolf included; the
+  /// slot and its life take the place of the number in the wave. Else it
+  /// follows from its slot alone. The colour is the defenders' red like
+  /// that of every tank on their side.
   int allyStyle(String id) {
-    final slot = int.tryParse(id.split('-')[1]) ?? 0;
+    final parts = id.split('-');
+    final slot = int.tryParse(parts[1]) ?? 0;
+    if (DefenseMap.freshRoom(seed) &&
+        parts.length >= 4 &&
+        parts[3].startsWith('w')) {
+      final life = int.tryParse(parts[2]) ?? 0;
+      final wave = int.tryParse(parts[3].substring(1)) ?? 0;
+      return GameConfig.styleOf(
+        DefenseMap.enemyType(wave, slot + 5 * life, igel: true).index,
+        0,
+      );
+    }
     return GameConfig.styleOf(DefenseMap.allyType(slot).index, 0);
   }
 

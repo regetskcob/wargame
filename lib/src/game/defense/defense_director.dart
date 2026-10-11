@@ -179,7 +179,15 @@ class DefenseDirector extends Component with HasGameRef<TankGame> {
   }
 
   void _sendAlly(int slot) {
-    final id = 'ally-$slot-${_allyLives[slot]++}';
+    // In a room that knows the newer content the comrade's vehicle follows
+    // the wave it rolls out in, by the rules of the enemy's waves, so the
+    // wave travels in its id; elsewhere its slot alone decides, as before.
+    final seed = gameRef.round?.seed;
+    final wave = gameRef.defense.value?.wave ?? 0;
+    final life = _allyLives[slot]++;
+    final id = seed != null && DefenseMap.freshRoom(seed)
+        ? 'ally-$slot-$life-w$wave'
+        : 'ally-$slot-$life';
     _allyIds[slot] = id;
     gameRef.spawnAlly(id, slot);
   }

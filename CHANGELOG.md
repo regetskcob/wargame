@@ -18,6 +18,10 @@ step, point for point.
 - A ninth vehicle from rank 6: the Igel, a rocket launcher that fires
   four rockets a salvo, and from wave 6 of a defense round among the
   enemies too
+- Comrades in a defense round drive the vehicles of the wave they roll out
+  in, by the same rules as the enemy's waves
+- Red against blue: CPU tanks even out sides that the players' picks left
+  short, and both sides' CPU tanks drive the same vehicles
 - The newer grounds and maps only come up in a room where every player
   has this version
 - A waiting room no longer closes the moment it opens after the start page

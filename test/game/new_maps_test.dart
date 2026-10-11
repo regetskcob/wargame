@@ -287,4 +287,65 @@ void main() {
       expect(meets(true, 6, 12), isTrue);
     });
   });
+
+  group('comrades by the rules of the waves', () {
+    test('in a fresh room a comrade follows its wave, Igel included', () async {
+      final game = await loadedGame(net: FakeNet(isHost: true));
+      game
+        ..chooseMode(GameMode.defense)
+        ..startRound(startedAt: DateTime.now().millisecondsSinceEpoch);
+      await Future<void>.delayed(Duration.zero);
+      final round = game.round!;
+      expect(DefenseMap.freshRoom(round.seed), isTrue);
+      for (
+        var tries = 0;
+        tries < 20 && game.botTanks.keys.every((id) => !id.startsWith('ally-'));
+        tries++
+      ) {
+        game.update(0.5);
+        await Future<void>.delayed(Duration.zero);
+      }
+      final allies = game.botTanks.keys.where((id) => id.startsWith('ally-'));
+      expect(allies, isNotEmpty);
+      for (final id in allies) {
+        expect(id, matches(RegExp(r'^ally-\d+-\d+-w\d+$')));
+      }
+      // The same rule as the enemy's: late waves bring the heavy ones.
+      final late = [
+        for (var slot = 0; slot < 5; slot++)
+          for (var life = 0; life < 4; life++)
+            GameConfig.typeOf(round.allyStyle('ally-$slot-$life-w9')),
+      ];
+      expect(late, contains(TankType.wolf));
+      expect(late, contains(TankType.igel));
+      expect(
+        GameConfig.typeOf(round.allyStyle('ally-2-1-w7')),
+        DefenseMap.enemyType(7, 2 + 5, igel: true),
+      );
+    });
+
+    test(
+      'a room with an older client keeps the comrades of their slot',
+      () async {
+        final game = await loadedGame(net: FakeNet(isHost: true));
+        game.chooseMode(GameMode.defense);
+        game.net.onRosterChanged?.call([
+          const LobbyPresence(
+            id: 'old',
+            name: 'ALT',
+            colorIndex: 0,
+            phase: 'lobby',
+          ),
+        ]);
+        game.startRound(startedAt: DateTime.now().millisecondsSinceEpoch);
+        await Future<void>.delayed(Duration.zero);
+        final round = game.round!;
+        expect(DefenseMap.freshRoom(round.seed), isFalse);
+        expect(
+          GameConfig.typeOf(round.allyStyle('ally-0-0')),
+          DefenseMap.allyType(0),
+        );
+      },
+    );
+  });
 }
