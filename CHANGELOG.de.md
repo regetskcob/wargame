@@ -25,6 +25,9 @@ gepflegt.
 - Die Mac-App hat einen Ton-Schalter wie der Browser
 - Der Handy-Controller zeigt die Munition mit der Kiste des HUD, ein
   Panzer ohne Schützen "ist ausgeschieden" statt "ausgefallen"
+- Mörser und Haubitzen halten ihre Granaten dorthin vor, wo das Ziel bei
+  der Landung sein wird: ein Mörser hält Panzer auf der Straße jetzt etwa
+  so gut auf wie eine Kanone, statt alle durchzulassen
 
 ## 1.5.0 (11) – 11.10.2026
 

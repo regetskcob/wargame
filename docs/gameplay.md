@@ -251,21 +251,21 @@ was what decided.
 later wave) puts one build a third of the way down the road and sends
 three squads on foot (15 men) and two tanks of the wave past it, without
 comrades and without the director's waves. Measured October 2026, 8 rounds
-each, with the trench's rocket man (wave 4 on) and the slowdown after
-crossing:
+each, with the trench's rocket man (wave 4 on), the slowdown after
+crossing and the mortar leading its shells:
 
 | Wave | Build | Cost | Bounties | Hits on the base | Tanks at the base | Arrival | Left |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 3 | nothing | 0 | 0 | 27 | 16 of 16 | 36 s | |
-| 3 | trench on the road | 60 | 60 | 11 | 16 of 16 | 38 s | 64 % |
-| 3 | trench beside the road | 60 | 60 | 11 | 16 of 16 | 35 s | 67 % |
-| 3 | cannon | 100 | 83 | 2 | 3 of 16 | 49 s | 66 % |
-| 3 | mortar | 150 | 47 | 15 | 16 of 16 | 37 s | 32 % |
-| 5 | nothing | 0 | 0 | 25 | 16 of 16 | 33 s | |
-| 5 | trench on the road | 60 | 55 | 5 | 9 of 16 | 39 s | 77 % |
-| 5 | trench beside the road | 60 | 49 | 7 | 13 of 16 | 43 s | 70 % |
-| 5 | cannon | 100 | 66 | 1 | 1 of 16 | 41 s | 77 % |
-| 5 | mortar | 150 | 34 | 13 | 16 of 16 | 34 s | 57 % |
+| 3 | nothing | 0 | 0 | 27 | 16 of 16 | 35 s | |
+| 3 | trench on the road | 60 | 60 | 11 | 16 of 16 | 38 s | 62 % |
+| 3 | trench beside the road | 60 | 60 | 11 | 16 of 16 | 35 s | 74 % |
+| 3 | cannon | 100 | 86 | 1 | 1 of 16 | 54 s | 60 % |
+| 3 | mortar | 150 | 84 | 1 | 0 of 16 | | 41 % |
+| 5 | nothing | 0 | 0 | 24 | 16 of 16 | 33 s | |
+| 5 | trench on the road | 60 | 56 | 5 | 8 of 16 | 37 s | 75 % |
+| 5 | trench beside the road | 60 | 49 | 7 | 13 of 16 | 41 s | 69 % |
+| 5 | cannon | 100 | 67 | 0 | 0 of 16 | | 79 % |
+| 5 | mortar | 150 | 63 | 2 | 1 of 16 | 42 s | 69 % |
 
 The trench pays for itself in one wave against infantry and stops every
 soldier. Against tanks it first only held them up; with the rocket man
@@ -275,8 +275,19 @@ tanks, so the price of 60 holds. What the runs found on the way: shots
 aimed from the middle of a trench across the road flew past the men close
 by, so every man aims for himself; no gun led its aim on soldiers (they
 had no speed), so shots at a soldier crossing the line of fire missed;
-trenches took no shells, only blasts. All three are fixed. The mortar
-earns a third of its price here and is worth a look of its own.
+trenches took no shells, only blasts. All three are fixed.
+
+The mortar first earned a third of its price (49 in wave 3), let every
+tank through and left 14 hits on the base. It aimed at where its target
+stood, but its shell is 1.3 s in the air: a tank on the road had moved
+on by more than the blast radius of 75 when it landed, and the mortar
+goes for tanks first. Now it leads its shell by the flight time, kept
+inside its reach, like every other gun leads its aim, and stops the
+tanks as well as the cannon does. The cannon stays the cheaper answer
+to one road; the mortar's extra price pays for its reach of 620 against
+420, fire over cover and a blast that catches a whole squad, which a
+single build on one stretch does not show. The howitzer fires the same
+shell and leads it the same way.
 
 ## Weapons and damage
 

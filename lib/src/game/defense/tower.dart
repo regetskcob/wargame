@@ -7,6 +7,7 @@ import 'package:flame/extensions.dart';
 
 import '../game_config.dart';
 import '../game_phase.dart';
+import '../special_weapon.dart';
 import '../tank_game.dart';
 import 'defense_map.dart';
 import '../../l10n/l10n.dart';
@@ -502,7 +503,7 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     if (target == null || !target.isMounted) {
       return;
     }
-    final aim = kind.lobs ? target.position.clone() : _lead(target);
+    final aim = kind.lobs ? _leadLob(target) : _lead(target);
     _aim = aim;
     final wanted = atan2(aim.x - position.x, -(aim.y - position.y));
     final diff = (wanted - turretAngle).toNormalizedAngle();
@@ -569,6 +570,22 @@ class Tower extends PositionComponent with HasGameRef<TankGame> {
     for (var i = 0; i < 3; i++) {
       final flight = aim.distanceTo(position) / kind.shotSpeed;
       aim = target.position + velocity * flight;
+    }
+    return aim;
+  }
+
+  /// Where a lobbed shell has to come down to catch [target]: where it
+  /// will be once the shell lands. Aimed at where it stood, a shell in the
+  /// air for over a second burst well behind a tank on the road and the
+  /// mortar hardly ever hit one. Kept inside what the gun can reach.
+  Vector2 _leadLob(PositionComponent target) {
+    final flight = SpecialWeapon.shell.flight;
+    final aim = target.position + gameRef.velocityOfTarget(target) * flight;
+    final offset = aim - position;
+    final distance = offset.length;
+    if (distance > range || distance < kind.minRange) {
+      offset.scaleTo(distance.clamp(kind.minRange, range));
+      return position + offset;
     }
     return aim;
   }

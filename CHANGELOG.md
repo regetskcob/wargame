@@ -24,6 +24,9 @@ step, point for point.
 - The Mac app has a sound switch like the browser
 - The phone controller shows ammunition with the HUD's crate, a tank lost
   without a shooter "is out" instead of "dropped out"
+- Mortars and howitzers lead their shells onto where a target will be when
+  they land: a mortar now stops tanks on the road about as well as a
+  cannon instead of letting all of them through
 
 ## 1.5.0 (11) – 2026-10-11
 
