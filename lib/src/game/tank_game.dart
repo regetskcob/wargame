@@ -425,6 +425,10 @@ class TankGame extends FlameGame
   final replaying = ValueNotifier<bool>(false);
   ReplayPlayer? _replayPlayer;
 
+  /// A replay watched from above, the whole map at once, instead of behind
+  /// one tank. Kept for the next replay; a running round never uses it.
+  final replayMap = ValueNotifier<bool>(false);
+
   /// The public list of rooms.
   late final directory =
       _directory ?? RoomDirectory(room: net.room, offline: net.offline);
@@ -673,6 +677,12 @@ class TankGame extends FlameGame
     Set<LogicalKeyboardKey> keysPressed,
   ) {
     if (event is KeyDownEvent && handleEscape(event.logicalKey)) {
+      return KeyEventResult.handled;
+    }
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.keyM &&
+        replaying.value) {
+      toggleReplayMap();
       return KeyEventResult.handled;
     }
     // The Apple TV sends swipes and clicks as arrows and enter as well.

@@ -514,7 +514,9 @@ still a win.
   room too, and the others see the tank go like a pilot who closed the tab.
 - On the end screen Escape goes back to the waiting room, in a replay it
   ends the replay. The replay's end button sits in the bar at the top
-  beside *Next tank*. The Apple TV keeps its Menu button from throwing anybody
+  beside *Next tank*, and so does *Whole map* (key M): the camera then
+  holds still over the whole arena or defense field from above instead of
+  following a tank, and the choice stays for the next replay. The Apple TV keeps its Menu button from throwing anybody
   out of a round and shows no exit button.
 
 ## After the round

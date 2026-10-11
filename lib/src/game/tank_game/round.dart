@@ -1217,7 +1217,7 @@ extension TankGameRound on TankGame {
     _spectateIndex = index % targets.length;
     final target = targets[_spectateIndex];
     spectatingName.value = target.playerName;
-    if (!overview.value) {
+    if (!wholeMap) {
       camera.follow(target, snap: false);
     }
   }

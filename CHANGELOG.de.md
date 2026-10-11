@@ -41,6 +41,11 @@ gepflegt.
   der Landung sein wird: ein Mörser hält Panzer auf der Straße jetzt etwa
   so gut auf wie eine Kanone, statt alle durchzulassen
 
+## Unveröffentlicht
+
+- Eine Wiederholung kann die ganze Karte von oben zeigen, statt einem
+  Panzer zu folgen: *Gesamtkarte* in ihrer Leiste oder die Taste M
+
 ## 1.5.0 (11) – 11.10.2026
 
 - Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und
