@@ -7,6 +7,18 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## 1.4.1 (10) – 2026-10-11
+
+- Tablets use their screen in the menus: the start page and the waiting
+  room start at the top and take the whole width, two columns where there
+  is room, vehicle cards that grow with the bars beside them
+- Large tablets such as the 13" iPad draw the menus larger, as the HUD
+- The account is a page of its own with two columns instead of a sheet
+  that scrolled, and one way to close it
+- A change of language reaches every text at once, the legal links and the
+  pages below the account included
+- Tablets no longer show a vibration switch they have no motor for
+
 ## 1.4.0 (9) – 2026-10-10
 
 - A calmer, slimmer look: frames only on the outer panels, frameless boxes

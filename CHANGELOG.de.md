@@ -8,6 +8,19 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## 1.4.1 (10) – 11.10.2026
+
+- Tablets nutzen ihren Bildschirm in den Menüs: Startseite und Warteraum
+  beginnen oben und nehmen die ganze Breite, zwei Spalten, wo Platz ist,
+  Fahrzeugkarten wachsen mit, die Balken stehen daneben
+- Große Tablets wie das 13"-iPad zeigen die Menüs größer, wie das HUD
+- Das Konto ist eine eigene Seite mit zwei Spalten statt eines Fensters,
+  das scrollte, und hat nur einen Weg zum Schließen
+- Ein Sprachwechsel erreicht sofort jeden Text, auch die Rechtslinks und die
+  Seiten unter dem Konto
+- Tablets zeigen keinen Vibrationsschalter mehr, für den ihnen der Motor
+  fehlt
+
 ## 1.4.0 (9) – 10.10.2026
 
 - Ruhiger, schlanker Look: Rahmen nur noch an den äußeren Flächen, rahmenlose
