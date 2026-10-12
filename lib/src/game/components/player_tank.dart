@@ -766,6 +766,16 @@ class PlayerTank extends TankBase
     if (other is! Obstacle) {
       return;
     }
+    final before = position.clone();
+    _pushOutOf(other);
+    // Some buildings stand close to an island's shore, so the push out of
+    // one could shove a tank squeezed past it into deep water.
+    if (gameRef.mudField?.islands case final islands?) {
+      _keepOutOfDeepWater(islands, before);
+    }
+  }
+
+  void _pushOutOf(Obstacle other) {
     final rect = other.toRect();
     final radius = GameConfig.tankRadius * 0.85;
     final cx = position.x.clamp(rect.left, rect.right);

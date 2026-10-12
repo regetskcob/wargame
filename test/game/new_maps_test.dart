@@ -7,6 +7,7 @@ import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/components/cover_field.dart';
 import 'package:wargame/src/game/components/mud_field.dart';
+import 'package:wargame/src/game/components/obstacle.dart';
 import 'package:wargame/src/game/components/tank_painter.dart';
 import 'package:wargame/src/game/defense/defense_map.dart';
 import 'package:wargame/src/game/flag_match.dart';
@@ -156,39 +157,75 @@ void main() {
       expect(mud.slowdown, lessThan(0.6));
     });
 
-    test('CPU tanks never drive into deep water and get about', () async {
+    // Fixed isle maps, so the test does not draw a fresh map each run. On
+    // these four CPU tanks squeeze past buildings standing close to the
+    // shore, which once pushed them out into deep water. The CPU tanks'
+    // own choices still roll dice, which is why a tank counts as getting
+    // about by how far it ever got, not where it stands at the end: it may
+    // have driven back or been shot by the time the loop stops.
+    for (final seed in const [352705247, 476463309, 679699183, 586606010]) {
+      test('CPU tanks never drive into deep water and get about ($seed)', () {
+        var now = clock.now();
+        return withClock(Clock(() => now), () async {
+          final game = await loadedGame();
+          game
+            ..chooseMode(GameMode.solo)
+            ..mapChoice.value = MapTheme.all.indexOf(MapTheme.isles)
+            ..botLevel.value = BotLevel.normal
+            ..startRound(seed: seed, startedAt: now.millisecondsSinceEpoch);
+          await Future<void>.delayed(Duration.zero);
+          game.update(0);
+          expect(MapTheme.forSeed(game.round!.seed), MapTheme.isles);
+          final islands = game.mudField!.islands!;
+          final starts = {
+            for (final e in game.botTanks.entries)
+              e.key: e.value.position.clone(),
+          };
+          expect(starts, isNotEmpty);
+          var farthest = 0.0;
+          const step = Duration(microseconds: 33333);
+          for (var frame = 0; frame < 30 * 30; frame++) {
+            game.update(step.inMicroseconds / 1e6);
+            await Future<void>.delayed(Duration.zero);
+            now = now.add(step);
+            for (final MapEntry(key: id, value: tank)
+                in game.botTanks.entries) {
+              expect(islands.deep(tank.position), isFalse, reason: '$frame');
+              farthest = max(farthest, tank.position.distanceTo(starts[id]!));
+            }
+            if (game.phase.value != GamePhase.playing) {
+              break;
+            }
+          }
+          expect(farthest, greaterThan(100));
+        });
+      });
+    }
+
+    test('a building by the shore does not push a tank into deep water', () {
       var now = clock.now();
-      await withClock(Clock(() => now), () async {
+      return withClock(Clock(() => now), () async {
         final game = await loadedGame();
         game
           ..chooseMode(GameMode.solo)
           ..mapChoice.value = MapTheme.all.indexOf(MapTheme.isles)
-          ..botLevel.value = BotLevel.normal
-          ..startRound(startedAt: now.millisecondsSinceEpoch);
+          ..startRound(seed: 476463309, startedAt: now.millisecondsSinceEpoch);
         await Future<void>.delayed(Duration.zero);
         game.update(0);
         final islands = game.mudField!.islands!;
-        final starts = {
-          for (final e in game.botTanks.entries)
-            e.key: e.value.position.clone(),
-        };
-        expect(starts, isNotEmpty);
-        const step = Duration(microseconds: 33333);
-        for (var frame = 0; frame < 30 * 30; frame++) {
-          game.update(step.inMicroseconds / 1e6);
-          await Future<void>.delayed(Duration.zero);
-          now = now.add(step);
-          for (final tank in game.botTanks.values) {
-            expect(islands.deep(tank.position), isFalse, reason: '$frame');
-          }
-          if (game.phase.value != GamePhase.playing) {
-            break;
-          }
-        }
-        final moved = game.botTanks.entries.where(
-          (e) => e.value.position.distanceTo(starts[e.key]!) > 100,
-        );
-        expect(moved, isNotEmpty);
+        final tank = game.myTank!;
+        // A spot on the shallows just above this building, where the push
+        // out of it goes straight up into deep water.
+        final building = game.world
+            .descendants()
+            .whereType<Building>()
+            .firstWhere((b) => b.toRect().contains(const Offset(140, 400)));
+        final spot = Vector2(120.924, 347.705);
+        expect(islands.deep(spot), isFalse);
+        expect(islands.deep(spot - Vector2(0, 0.5)), isTrue);
+        tank.position.setFrom(spot);
+        tank.onCollision([], building);
+        expect(islands.deep(tank.position), isFalse);
       });
     });
   });
