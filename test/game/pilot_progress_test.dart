@@ -35,6 +35,8 @@ class _TicketScores implements ScoreService {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
     String? ticket,
+    int waves = 0,
+    bool wavesBaseFell = false,
   }) async {
     recordedWith.add(ticket);
     return null;
@@ -94,5 +96,19 @@ void main() {
     expect(params('abc')['p_ticket'], 'abc');
     // Old databases refuse parameters they do not know.
     expect(params(null).containsKey('p_ticket'), isFalse);
+  });
+
+  test('only a defense round sends its waves', () {
+    Map<String, dynamic> params(int waves) => ScoreService.roundParams(
+      name: 'Darwin',
+      stats: RoundStats(),
+      won: true,
+      tankType: 0,
+      waves: waves,
+      wavesBaseFell: true,
+    );
+    expect(params(14)['p_waves'], 14);
+    expect(params(14)['p_waves_base_fell'], isTrue);
+    expect(params(0).keys.where((k) => k.startsWith('p_waves')), isEmpty);
   });
 }

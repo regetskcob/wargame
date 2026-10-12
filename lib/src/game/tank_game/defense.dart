@@ -1467,6 +1467,7 @@ extension TankGameDefense on TankGame {
     respawnSeconds.value = 0;
     roundStats.finish(_secondsIntoRound);
     winnerName.value = won ? tr('Stützpunkt', 'Base') : null;
+    final state = defense.value;
     if (activeRound.participants.contains(myId)) {
       // A duel is fought by two players on one account: it counts for
       // nobody.
@@ -1482,6 +1483,10 @@ extension TankGameDefense on TankGame {
             night: false,
             beaten: const [],
             beatenBy: const [],
+            // Every wave held beyond the regular ones earns experience,
+            // half as much when the base fell in the end.
+            waves: state?.wavesHeld ?? 0,
+            wavesBaseFell: state != null && state.hp <= 0,
           ),
         );
       }
@@ -1489,7 +1494,6 @@ extension TankGameDefense on TankGame {
       AudioService.play(won ? 'win' : 'lose');
       Haptics.roundOver(won: won);
     }
-    final state = defense.value;
     final fell = state?.fell ?? -1;
     // In a duel the base that fell goes up, whoever looks at it.
     final base = activeRound.duel && fell >= 0

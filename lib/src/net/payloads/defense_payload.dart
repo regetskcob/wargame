@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import '../../game/game_config.dart';
 
 /// State of a defense round. Only the player who runs the enemies sends it,
@@ -90,6 +92,10 @@ class DefensePayload {
   /// The state with the base of [lane] changed.
   DefensePayload withBase(int lane, {double? hp, int? hq}) =>
       lane == 1 ? copyWith(hp2: hp, hq2: hq) : copyWith(hp: hp, hq: hq);
+
+  /// How many waves were beaten off: the current one too once its break
+  /// runs (or the round ended after it), not while it still rolls.
+  int get wavesHeld => max(0, nextWaveAt > 0 ? wave : wave - 1);
 
   /// The last wave of the stretch is beaten off and the host has yet to say
   /// whether to go on.

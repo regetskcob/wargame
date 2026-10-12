@@ -78,6 +78,8 @@ class LinkedScores extends ScoreService {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
     String? ticket,
+    int waves = 0,
+    bool wavesBaseFell = false,
   }) async {
     final params = ScoreService.roundParams(
       name: name,
@@ -90,6 +92,8 @@ class LinkedScores extends ScoreService {
       cpuBeatenBy: cpuBeatenBy,
       cpuRating: cpuRating,
       ticket: ticket,
+      waves: waves,
+      wavesBaseFell: wavesBaseFell,
     );
     final usable =
         (link.account.value?.usable ?? false) || await link.refresh();

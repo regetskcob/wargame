@@ -86,6 +86,8 @@ class PilotProgress {
     int cpuBeaten = 0,
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
+    int waves = 0,
+    bool wavesBaseFell = false,
   }) async {
     // Only accounts are ranked: no experience, rating or badges for guests.
     if (scores.isGuest) {
@@ -106,6 +108,8 @@ class PilotProgress {
       cpuBeatenBy: cpuBeatenBy,
       cpuRating: cpuRating,
       ticket: await ticket,
+      waves: waves,
+      wavesBaseFell: wavesBaseFell,
     );
     // A refused round earns no badges either: the database only takes
     // badges right after a recorded round.

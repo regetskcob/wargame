@@ -110,8 +110,12 @@ class ScoreService {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
     String? ticket,
+    int waves = 0,
+    bool wavesBaseFell = false,
   }) => {
     'p_ticket': ?ticket,
+    // Only a defense round sends its waves (migration 0022).
+    if (waves > 0) ...{'p_waves': waves, 'p_waves_base_fell': wavesBaseFell},
     if (cpuBeaten + cpuBeatenBy > 0) ...{
       'p_cpu_beaten': cpuBeaten,
       'p_cpu_beaten_by': cpuBeatenBy,
@@ -146,9 +150,9 @@ class ScoreService {
   /// experience and moves the rating against the human opponents the player
   /// outlasted ([beaten], by account id) or fell before ([beatenBy]). Null
   /// when the database refused the round.
-  /// Calls `record_round`. A database without migration 0019 does not know
-  /// the ticket, one without 0007 the CPU parameters: then the round goes in
-  /// without them.
+  /// Calls `record_round`. A database without migration 0022 does not know
+  /// the waves, one without 0019 the ticket, one without 0007 the CPU
+  /// parameters: then the round goes in without them.
   Future<List<dynamic>> _call(Map<String, dynamic> params) async {
     try {
       return await _client.rpc<List<dynamic>>('record_round', params: params);
@@ -157,7 +161,7 @@ class ScoreService {
         rethrow;
       }
       // The parameters of the newest migration go first.
-      final newest = ['p_ticket', 'p_cpu_']
+      final newest = ['p_waves', 'p_ticket', 'p_cpu_']
           .where((prefix) => params.keys.any((k) => k.startsWith(prefix)))
           .firstOrNull;
       if (newest == null) {
@@ -181,6 +185,8 @@ class ScoreService {
     int cpuBeatenBy = 0,
     int cpuRating = 1000,
     String? ticket,
+    int waves = 0,
+    bool wavesBaseFell = false,
   }) async {
     try {
       return await submit(
@@ -195,6 +201,8 @@ class ScoreService {
           cpuBeatenBy: cpuBeatenBy,
           cpuRating: cpuRating,
           ticket: ticket,
+          waves: waves,
+          wavesBaseFell: wavesBaseFell,
         ),
       );
     } on Object {

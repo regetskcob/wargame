@@ -68,7 +68,9 @@ Everything the game does, with the numbers behind it. The short version is in th
   After wave 8 the win is safe and the host may extend by 4 waves at a
   time, up to wave 20: tougher enemies, a fifth step for guns and tank, a
   rocket launcher and a citadel. The round ends as a win after the last
-  wave of a stretch, when the base falls or when the host ends it. When
+  wave of a stretch, when the base falls or when the host ends it. Every
+  extra wave beaten off earns experience, half as much when the base falls
+  in the end. When
   the host leaves for good, the next player in line runs the waves on
   after a few seconds, with the enemies where they were and the host's
   guns still standing.
@@ -603,7 +605,10 @@ still a win.
 - Holding out counts, in a lost round too. Experience per round: 10, plus
   20 per kill, 1 per 10 damage (up to 200), 50 for the win and 10 for every
   opponent outlasted, people and CPU tanks alike (in a team round the whole
-  beaten team). The Elo rating compares the pilot pairwise with every
+  beaten team). A defense round adds 30 for every wave beaten off beyond the
+  eighth, 15 when the base fell in the end: holding out to wave 20 brings
+  360 on top, falling in wave 20 still 165 (migration 0022; at most one
+  wave per 15 s of the round's time, only with a round ticket). The Elo rating compares the pilot pairwise with every
   opponent: won against those who went down earlier, lost against those who
   outlasted them, so the second to last loses far less than the first one
   out. A lost battle with more than two tanks shows the place on the end
