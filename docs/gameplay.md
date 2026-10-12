@@ -47,7 +47,8 @@ Everything the game does, with the numbers behind it. The short version is in th
 
 - **Single player:** alone against 1 to 4 CPU tanks on three levels.
 - **Multiplayer:** free for all or red against blue, with CPU tanks to fill
-  up the field on request: up to four tanks in all, and always at least as
+  up the field on request, and always when the host starts alone: up to
+  four tanks in all, and always at least as
   many CPU tanks as people (6 in capture the flag, same rule). In red
   against blue a picked side stays picked, and the people on AUTO are
   spread by the rank of their vehicle so a new player gets a veteran at
@@ -59,6 +60,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   people together meet their own two vehicles), and the rest come in
   pairs, the same vehicle on both sides. Private rooms by link, code or QR code, public
   rooms in a room list, and late joiners can watch the running round.
+- **Closing zone** (single player and multiplayer): after 20 seconds the
+  safe circle shrinks over 90 seconds to a radius of 120, holds there for
+  30 seconds and then draws in to nothing within a minute. Outside it a
+  tank loses 10 HP a second, half a point more for every second since the
+  zone closed, so every round comes to an end.
 - **Defense (tower defense):** together against 8 waves of enemy tanks that
   roll along the road to the base. CPU comrades fill the squad, and later the
   base sends aircraft of its own. The host may call the next wave before

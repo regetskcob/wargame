@@ -157,6 +157,9 @@ class NetService {
   /// of messages per second, which closes all channels once it is hit.
   @visibleForTesting
   bool othersPresent = false;
+
+  /// Whether this player is alone in the room, see [othersPresent].
+  bool get alone => !othersPresent;
   bool _disposed = false;
 
   /// Whether the room's channel is joined right now.

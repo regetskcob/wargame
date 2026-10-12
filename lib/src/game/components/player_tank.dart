@@ -26,6 +26,7 @@ import 'tree.dart';
 import 'mine.dart';
 import 'obstacle.dart';
 import 'soldier.dart';
+import 'storm_zone.dart';
 import 'bullet.dart';
 import 'power_up.dart';
 import 'tank_base.dart';
@@ -517,9 +518,12 @@ class PlayerTank extends TankBase
     if (round == null || round.defense) {
       return;
     }
-    final radius = round.safeRadiusAt(clock.now().millisecondsSinceEpoch);
-    if (position.length > radius) {
-      applyDamage(GameConfig.zoneDamagePerSecond * dt, killerId: null);
+    final now = clock.now().millisecondsSinceEpoch;
+    if (position.length > round.safeRadiusAt(now)) {
+      applyDamage(
+        StormZone.damageAt(round.startedAt, now) * dt,
+        killerId: null,
+      );
     }
   }
 

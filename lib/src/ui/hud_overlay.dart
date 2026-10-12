@@ -105,12 +105,22 @@ class _HudOverlayState extends State<HudOverlay> {
             );
     }
     final radius = StormZone.radiusAt(round.startedAt, now);
-    if (radius <= GameConfig.zoneMinRadius) {
+    final finalAt = round.startedAt + StormZone.finalAfter.toInt() * 1000;
+    if (now >= finalAt) {
       return compact
-          ? tr('Sperrgebiet zu', 'Zone closed')
+          ? tr('Sperrgebiet schließt ganz', 'Zone closing in')
           : tr(
-              'Sperrgebiet vollständig geschlossen',
-              'Closed zone fully shrunk',
+              'Sperrgebiet zieht sich ganz zu',
+              'Closed zone draws in to nothing',
+            );
+    }
+    if (radius <= GameConfig.zoneMinRadius) {
+      final seconds = ((finalAt - now) / 1000).ceil();
+      return compact
+          ? tr('Sperrgebiet zu · $seconds s', 'Zone closed · $seconds s')
+          : tr(
+              'Sperrgebiet zu, in $seconds s zieht es sich ganz zu',
+              'Closed zone shut, it draws in fully in $seconds s',
             );
     }
     // In metres like the arrows at the edge: the bare world units read

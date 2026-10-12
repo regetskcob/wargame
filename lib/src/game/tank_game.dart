@@ -13,7 +13,7 @@ import 'package:flame/game.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show OffsetLayer, RendererBinding;
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart' show KeyEventResult;
+import 'package:flutter/widgets.dart' show KeyEventResult, MediaQuery;
 import 'package:supabase_flutter/supabase_flutter.dart' show Supabase;
 
 import '../app/overlay_ids.dart';
@@ -825,6 +825,10 @@ class TankGame extends FlameGame
   /// Screen pixels the mini map and its padding take from the right edge,
   /// see `HudOverlay`.
   static const _hudReserve = 170.0;
+
+  /// Screen pixels the closed defense panel takes from the top on phones
+  /// and tablets, below the safe area, see `HudOverlay`.
+  static const _topHudReserve = 90.0;
 
   @override
   void onGameResize(Vector2 size) {
