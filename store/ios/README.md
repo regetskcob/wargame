@@ -119,10 +119,13 @@ voraussichtlich 12+.
 ## TestFlight per GitHub
 
 Der Workflow **testflight** (Actions > testflight > Run workflow) baut die
-signierte App, lädt sie zu TestFlight hoch und auf Wunsch die Texte und
-Screenshots zu App Store Connect. Die Build-Nummer zählt mit jedem Lauf hoch.
-Lokal geht dasselbe aus `ios/` mit `bundle exec fastlane beta`
-oder `bundle exec fastlane metadata`.
+signierte App für die gewählte Plattform (`ios`, `tvos` oder `macos`), lädt
+sie zu TestFlight hoch und auf Wunsch (nur bei `ios`) die Texte und
+Screenshots zu App Store Connect. Alle drei teilen sich Bundle-ID, Team
+(`apple/Signing.xcconfig`) und den App-Store-Eintrag. Die Build-Nummer zählt
+mit jedem Lauf hoch. Lokal geht dasselbe aus `ios/` mit
+`bundle exec fastlane ios beta`, `tvos beta`, `mac beta` oder
+`ios metadata`, jeweils nach dem Flutter-Build, der oben im `Fastfile` steht.
 
 ### Einmalig einrichten
 
@@ -143,10 +146,16 @@ oder `bundle exec fastlane metadata`.
 
    Die Variablen `SUPABASE_URL`, `SUPABASE_KEY` und `ACCOUNTS` teilt sich der
    Workflow mit dem Web-Deploy.
-4. **Nur falls das Signieren in der CI scheitert** (Fehler zu Zertifikat oder
-   Profil): das Apple-Distribution-Zertifikat aus der Schlüsselbundverwaltung
-   als `.p12` exportieren und als `IOS_DIST_P12_BASE64` samt Passwort in
-   `IOS_DIST_P12_PASSWORD` hinterlegen. Fastlane importiert es dann vorher.
+4. **Distributionszertifikat:** Für iOS und Mac nur nötig, falls das
+   Signieren in der CI scheitert (Fehler zu Zertifikat oder Profil). Für
+   **tvOS immer nötig**: flutter-tvos signiert damit die Engine, ohne
+   Signatur lehnt Apple den Build ab (ITMS-91065). Das Apple-Distribution-Zertifikat
+   aus der Schlüsselbundverwaltung als `.p12` exportieren und als
+   `IOS_DIST_P12_BASE64` samt Passwort in `IOS_DIST_P12_PASSWORD`
+   hinterlegen. Fastlane importiert es dann vor dem Build.
+5. **tvOS und Mac in App Store Connect:** Im bestehenden App-Eintrag
+   Panzergefecht unter „Plattform hinzufügen“ tvOS und macOS ergänzen, sonst
+   lehnt TestFlight die Uploads ab.
 
 Danach erscheint jeder Lauf nach der Verarbeitung durch Apple (meist 10 bis
 30 Minuten) unter TestFlight. Für externe Tester prüft Apple den ersten Build

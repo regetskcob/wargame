@@ -104,9 +104,19 @@ flutter build ios --release        # iOS, set your signing team in Xcode first
 Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
 for the web build. CI builds the iOS app without signing
 (`flutter build ios --release --no-codesign`) and the Android App Bundle with
-the debug key on every push. To sign, add your Apple ID in
-Xcode (Settings > Accounts), open `ios/Runner.xcworkspace` and pick your team
-under Signing & Capabilities. The app declares that it uses no non-exempt
+the debug key on every push. Signing for every Apple platform (iOS with its
+widget and iMessage extension, Apple TV, Mac) is set once in
+`apple/Signing.xcconfig`: team, automatic signing, the development
+certificate. Flutter keeps one Xcode project per platform, so each project's
+base xcconfig includes that file, and the `project.pbxproj` files carry no
+signing settings of their own (only `tvos/` repeats the team on the project
+level, since flutter-tvos reads it from there). To sign with another team,
+add your Apple ID in Xcode (Settings > Accounts) and put
+`DEVELOPMENT_TEAM = <id>` into `apple/Signing.local.xcconfig`, which git
+ignores and which overrides the shared file; `CODE_SIGN_IDENTITY = -` there
+signs ad hoc, as CI does for the Mac. Leave the team field in Xcode's Signing
+& Capabilities alone: it writes into the project and wins over the shared
+file. The app declares that it uses no non-exempt
 encryption, so App Store Connect skips the export compliance question. On
 iOS and Android sign-in mails are confirmed with the code from the mail, the
 link in it opens the web game. To sign the Android release, copy
@@ -213,11 +223,12 @@ flutter build macos --release \
   --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_KEY=... --dart-define=ACCOUNTS=true
 ```
 
-The build signs ad hoc, enough to run it on the Mac that built it. To hand it
-on, open `macos/Runner.xcworkspace`, pick the team under Signing &
-Capabilities and archive (Product > Archive): from the organizer either upload
-to App Store Connect or export with Developer ID, which Xcode notarizes. CI
-builds it unsigned next to the iOS app.
+The build signs with the team's development certificate from
+`apple/Signing.xcconfig`. To hand it on, run the `testflight` workflow with
+the platform `macos` (or `bundle exec fastlane mac beta` from `ios/`), or
+archive in Xcode (Product > Archive) and from the organizer either upload to
+App Store Connect or export with Developer ID, which Xcode notarizes. CI
+builds it ad hoc signed next to the iOS app.
 
 ## Apple Vision Pro
 
@@ -503,4 +514,13 @@ package (`shared_preferences_tvos`, `path_provider_tvos`, `audioplayers_tvos`,
 have none. Run `flutter-tvos` after a plain `flutter pub get` or `flutter test`
 before a hot restart: both write the Dart plugin registrant for iOS, which
 breaks the sound on the Apple TV until the next `flutter-tvos` build.
+
+Signing comes from `apple/Signing.xcconfig` like on iOS, automatic as well:
+the team has an Apple TV registered, which Xcode needs for a tvOS
+development profile. Upload with the `testflight` workflow and the platform
+`tvos` (or `bundle exec fastlane tvos beta` from `ios/` after
+`flutter-tvos build tvos --release --no-codesign`). flutter-tvos signs the
+engine with the Apple Distribution certificate (Apple rejects an unsigned one
+with ITMS-91065), so that certificate has to be in the keychain before the
+build; in CI that is the secret `IOS_DIST_P12_BASE64`.
 

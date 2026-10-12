@@ -1,0 +1,19 @@
+// Signing for every Apple target: the iOS app with its widget and iMessage
+// extension, the Apple TV app and the Mac app. Flutter keeps one Xcode project
+// per platform (ios/, tvos/, macos/), so the team lives here once instead of
+// in each project's build settings. Each platform's base xcconfig includes
+// this file; keep signing settings out of the project.pbxproj files, where
+// they would win over it.
+//
+// Automatic signing picks the development certificate for local builds and
+// the distribution one when an archive is exported, for all three platforms
+// under the same bundle id (one universal purchase).
+
+DEVELOPMENT_TEAM = 86HB5U6788
+CODE_SIGN_STYLE = Automatic
+CODE_SIGN_IDENTITY = Apple Development
+
+// A machine without this team (CI, a fork) overrides the above here, for
+// example DEVELOPMENT_TEAM = and CODE_SIGN_IDENTITY = - for an ad hoc
+// signature. The file is ignored by git.
+#include? "Signing.local.xcconfig"
