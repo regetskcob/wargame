@@ -226,7 +226,9 @@ flutter build macos --release \
 The build signs with the team's development certificate from
 `apple/Signing.xcconfig`. To hand it on, run the `testflight` workflow with
 the platform `macos` (or `bundle exec fastlane mac beta` from `ios/`), or
-archive in Xcode (Product > Archive) and from the organizer either upload to
+run `tool/archive_apple.sh macos`, which archives with the release defines,
+checks version, Supabase URL and team and puts the archive into the
+Organizer, or archive in Xcode (Product > Archive) and from the organizer either upload to
 App Store Connect or export with Developer ID, which Xcode notarizes. CI
 builds it ad hoc signed next to the iOS app.
 
@@ -519,7 +521,8 @@ Signing comes from `apple/Signing.xcconfig` like on iOS, automatic as well:
 the team has an Apple TV registered, which Xcode needs for a tvOS
 development profile. Upload with the `testflight` workflow and the platform
 `tvos` (or `bundle exec fastlane tvos beta` from `ios/` after
-`flutter-tvos build tvos --release --no-codesign`). flutter-tvos signs the
+`flutter-tvos build tvos --release --no-codesign`), or put an archive into the
+Organizer with `tool/archive_apple.sh tvos`. flutter-tvos signs the
 engine with the Apple Distribution certificate (Apple rejects an unsigned one
 with ITMS-91065), so that certificate has to be in the keychain before the
 build; in CI that is the secret `IOS_DIST_P12_BASE64`.
