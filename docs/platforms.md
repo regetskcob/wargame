@@ -526,4 +526,9 @@ Organizer with `tool/archive_apple.sh tvos`. flutter-tvos signs the
 engine with the Apple Distribution certificate (Apple rejects an unsigned one
 with ITMS-91065), so that certificate has to be in the keychain before the
 build; in CI that is the secret `IOS_DIST_P12_BASE64`.
+The archive carries a dSYM for App.framework, which the project's embed
+phase makes with `dsymutil` as upstream Flutter does for iOS. The engine has
+none: flutter-tvos publishes no dSYM for its Flutter.framework, so the upload
+warns "Upload Symbols Failed" for it, harmlessly, and engine frames in crash
+reports stay unsymbolicated.
 
