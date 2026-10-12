@@ -65,7 +65,11 @@ done
   fail "the watch app names another companion app"
 [[ " $(lipo -archs "$watch/Runner") " == *" arm64_32 "* ]] || fail "the watch executable has no arm64_32 slice"
 codesign --verify --deep --strict "$app" || fail "the archived app has a broken signature"
-echo "watch app, versions, Supabase URL, signature: ok"
+# Without them the upload warns "Upload Symbols Failed" (tool/make_dsym.sh).
+for dsym in "Watch Runner.app" "Watch App.framework" "Watch Flutter.framework"; do
+  [ -d "$archive/dSYMs/$dsym.dSYM" ] || fail "the archive has no $dsym.dSYM"
+done
+echo "watch app, versions, Supabase URL, signature, dSYMs: ok"
 
 target="$HOME/Library/Developer/Xcode/Archives/$(date +%F)/Panzergefecht $name ($number) $(date +%H.%M.%S).xcarchive"
 mkdir -p "$(dirname "$target")"

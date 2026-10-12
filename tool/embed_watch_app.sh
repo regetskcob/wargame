@@ -63,3 +63,16 @@ fi
 mkdir -p "$dst"
 cp -R "$src" "$dst/"
 echo "Embedded watchOS app $watch_name ($watch_number) from $src"
+
+# The archive only collects the iOS targets' dSYMs; Apple wants one for every
+# binary, the watch app's included, and warns on upload without. Named
+# "Watch …" next to the iOS app's own App.framework.dSYM and Flutter.framework.dSYM.
+if [ "${ACTION:-build}" = "install" ] && [ -n "${DWARF_DSYM_FOLDER_PATH:-}" ]; then
+  if [ -d "$src.dSYM" ]; then
+    rm -rf "${DWARF_DSYM_FOLDER_PATH}/Watch Runner.app.dSYM"
+    cp -R "$src.dSYM" "${DWARF_DSYM_FOLDER_PATH}/Watch Runner.app.dSYM"
+  fi
+  tool="${SRCROOT}/../tool/make_dsym.sh"
+  /bin/bash "$tool" "$src/Frameworks/App.framework/App" "${DWARF_DSYM_FOLDER_PATH}/Watch App.framework.dSYM"
+  /bin/bash "$tool" "$src/Frameworks/Flutter.framework/Flutter" "${DWARF_DSYM_FOLDER_PATH}/Watch Flutter.framework.dSYM"
+fi

@@ -67,7 +67,13 @@ plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$2"; }
 codesign --verify --deep --strict "$app" || fail "the archived app has a broken signature"
 team=$(codesign -dv "$app" 2>&1 | sed -n 's/^TeamIdentifier=//p')
 [ "$team" = "86HB5U6788" ] || fail "the archived app is signed for team '$team'"
-echo "versions, Supabase URL, signature (team $team): ok"
+if [ "$platform" = "tvos" ]; then
+  # Without them the upload warns "Upload Symbols Failed" (tool/make_dsym.sh).
+  for dsym in App.framework Flutter.framework; do
+    [ -d "$archive/dSYMs/$dsym.dSYM" ] || fail "the archive has no $dsym.dSYM"
+  done
+fi
+echo "versions, Supabase URL, signature (team $team), dSYMs: ok"
 
 target="$HOME/Library/Developer/Xcode/Archives/$(date +%F)/Panzergefecht $platform $name ($number) $(date +%H.%M.%S).xcarchive"
 mkdir -p "$(dirname "$target")"
