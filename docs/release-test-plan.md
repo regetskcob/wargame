@@ -177,7 +177,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
-| F7.1 | The app on a phone pairs by QR or link and drives a round of the screen (browser, iPad) | #23 | sim: iPhone simulator as pad of the browser game | B |
+| F7.1 | The app on a phone pairs by QR or link and drives a round of the screen (browser, iPad, Apple TV); the code scanned with the iPhone's own camera opens the app, not Safari | #23, 1.6.0 on the Apple TV | sim: iPhone simulator as pad of the browser game; `curl -s https://www.regetskcob.de/.well-known/apple-app-site-association` lists `room` and `pad`; owner: system camera on a real iPhone (simulators skip universal links) | B |
 | F7.2 | The phone's gauges match the HUD (crate for ammo, `100 %`) | #23 M6 | auto: `controller_view_test` | m |
 | F7.3 | A touch brings the sticks back over a connected controller; using the controller hides them again | #12 next 5 | auto: `touch_controls_test`; owner with a real controller | M |
 | F7.4 | Two phones on an iPad: split screen, player two named after the phone, same plates, own survival time on each end screen, team colours | #12 1.3.0, summary | sim: iPad sim + two phones; auto: `split_view_test` | M |
@@ -227,7 +227,7 @@ Per platform the smoke path S1–S6 where the platform has it, plus:
 | F11.2 | iPad | menus scaled, account page, split screen, Vision Pro compatibility (look + pinch) | sim iPad Pro 13", owner on BoPad | M |
 | F11.3 | Web | release build, semantics tree after "Enable accessibility" (13 labelled buttons), mute button | sim | B |
 | F11.4 | macOS | starts, full screen, sound button, controller | sim; owner for a look (locked screen gives black screenshots) | M |
-| F11.5 | Apple TV | focus frame, controller box, remote and controller, second player and split screen, base duel | sim Apple TV 4K; auto: `tv_input_test` | M |
+| F11.5 | Apple TV | focus frame, controller box, remote and controller, second player and split screen, base duel; swiping over every text field (room code, call sign, e-mail, code) moves the focus one step and opens no keyboard, a click opens it | sim Apple TV 4K; auto: `tv_input_test`, `select_to_type_test`; owner with the Siri Remote on a real Apple TV (the simulator gets no remote presses, and the stuck key repeat of 1.6.0 lives in the engine) | M |
 | F11.6 | Android TV / Fire TV | remote as pad | auto: `android_tv_test` | m |
 | F11.7 | Apple Watch | every mode alone against CPU tanks, no room channel, NEUES SPIEL, rounds count for the iPhone's account via WatchConnectivity, rounds after an expired token wait for the next one | auto: `watch_*`, `offline_modes_test`, `account_link_test`; sim (grant "Let Claude use it" first); owner on a real watch | M |
 | F11.8 | Wear OS | crown, round HUD, vibration, "Gast, ohne Wertung" | auto: `wear_crown_test`, `wear_haptics_test` | m |

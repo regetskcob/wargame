@@ -5,6 +5,8 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../db/account_service.dart';
 import '../../net/room.dart';
+import '../../tv/select_to_type.dart';
+import '../../tv/tv_input.dart';
 import '../theme.dart';
 import 'choice_row.dart';
 import '../../l10n/l10n.dart';
@@ -369,7 +371,27 @@ class _AccountPanelState extends State<AccountPanel> {
   }
 
   List<Widget> _status() => [
-    if (_message != null) ...[
+    // Sending the mail takes the auth service a few seconds: say that it
+    // runs, the disabled button alone looked like nothing happened.
+    if (_busy) ...[
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          const SizedBox.square(
+            dimension: 12,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              color: GameColors.sand,
+            ),
+          ),
+          const SizedBox(width: 8),
+          Text(
+            tr('Einen Moment …', 'One moment …'),
+            style: const TextStyle(fontSize: 12, color: GameColors.sand),
+          ),
+        ],
+      ),
+    ] else if (_message != null) ...[
       const SizedBox(height: 8),
       Text(
         _message!,
@@ -441,17 +463,21 @@ class _AccountPanelState extends State<AccountPanel> {
           ),
           const SizedBox(height: 8),
         ] else if (!_signIn) ...[
-          TextField(
-            controller: _name,
-            maxLength: 16,
-            autofillHints: const [AutofillHints.username],
-            decoration: InputDecoration(
-              labelText: tr('RUFNAME', 'CALL SIGN'),
-              helperText: tr(
-                'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
-                'Publicly visible, for example on the leaderboard',
+          SelectToType(
+            builder: (focusNode, readOnly) => TextField(
+              focusNode: focusNode,
+              readOnly: readOnly,
+              controller: _name,
+              maxLength: 16,
+              autofillHints: const [AutofillHints.username],
+              decoration: InputDecoration(
+                labelText: tr('RUFNAME', 'CALL SIGN'),
+                helperText: tr(
+                  'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+                  'Publicly visible, for example on the leaderboard',
+                ),
+                helperMaxLines: 2,
               ),
-              helperMaxLines: 2,
             ),
           ),
           const SizedBox(height: 4),
@@ -460,15 +486,19 @@ class _AccountPanelState extends State<AccountPanel> {
         // then do iOS and Android offer the saved address above the
         // keyboard.
         AutofillGroup(
-          child: TextField(
-            controller: _email,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.send,
-            autofillHints: const [AutofillHints.email],
-            autocorrect: false,
-            textCapitalization: TextCapitalization.none,
-            decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
-            onSubmitted: (_) => _sendMail(),
+          child: SelectToType(
+            builder: (focusNode, readOnly) => TextField(
+              focusNode: focusNode,
+              readOnly: readOnly,
+              controller: _email,
+              keyboardType: TextInputType.emailAddress,
+              textInputAction: TextInputAction.send,
+              autofillHints: const [AutofillHints.email],
+              autocorrect: false,
+              textCapitalization: TextCapitalization.none,
+              decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
+              onSubmitted: (_) => _sendMail(),
+            ),
           ),
         ),
         SizedBox(height: fresh ? 16 : 8),
@@ -502,17 +532,23 @@ class _AccountPanelState extends State<AccountPanel> {
           ],
         ),
       ] else ...[
-        TextField(
-          controller: _code,
-          keyboardType: TextInputType.number,
-          autofillHints: const [AutofillHints.oneTimeCode],
-          decoration: InputDecoration(
-            labelText: tr(
-              'CODE AUS DER MAIL (FALLS VORHANDEN)',
-              'CODE FROM THE MAIL (IF ANY)',
+        SelectToType(
+          builder: (focusNode, readOnly) => TextField(
+            focusNode: focusNode,
+            readOnly: readOnly,
+            controller: _code,
+            // The send button the remote was on is gone: start here.
+            autofocus: onTv,
+            keyboardType: TextInputType.number,
+            autofillHints: const [AutofillHints.oneTimeCode],
+            decoration: InputDecoration(
+              labelText: tr(
+                'CODE AUS DER MAIL (FALLS VORHANDEN)',
+                'CODE FROM THE MAIL (IF ANY)',
+              ),
             ),
+            onSubmitted: (_) => _verify(),
           ),
-          onSubmitted: (_) => _verify(),
         ),
         SizedBox(height: fresh ? 16 : 8),
         Wrap(

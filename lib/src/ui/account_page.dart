@@ -17,6 +17,7 @@ import 'widgets/pad_pairing.dart';
 import 'widgets/supporter_section.dart';
 import 'widgets/tablet_scale.dart';
 import '../l10n/l10n.dart';
+import '../tv/select_to_type.dart';
 import '../tv/tv_input.dart';
 
 /// Round profile button in the corner of the start page and the waiting
@@ -180,55 +181,59 @@ class _AccountPageState extends State<AccountPage> {
         builder: (context, _, _) {
           final dirty = _nameDirty;
           final saved = _nameSaved && !dirty;
-          return TextField(
-            controller: _name,
-            maxLength: 16,
-            textInputAction: TextInputAction.done,
-            decoration: InputDecoration(
-              labelText: tr('RUFNAME', 'CALL SIGN'),
-              helperText: saved
-                  ? tr('Gespeichert', 'Saved')
-                  : dirty
-                  ? tr(
-                      'Mit dem Haken oder Enter speichern',
-                      'Save with the tick or Enter',
-                    )
-                  : tr(
-                      'Öffentlich sichtbar, zum Beispiel in der '
-                          'Bestenliste',
-                      'Publicly visible, for example on the leaderboard',
-                    ),
-              helperStyle: saved
-                  ? const TextStyle(color: GameColors.amber)
-                  : null,
-              // A phone has not the width for the hint beside the counter.
-              helperMaxLines: 2,
-              // Always there, so the field does not change width when it
-              // turns into a button.
-              suffixIcon: saved
-                  ? const Icon(
-                      Icons.check_circle_outlined,
-                      color: GameColors.amber,
-                    )
-                  : IconButton(
-                      tooltip: tr('Rufnamen speichern', 'Save call sign'),
-                      onPressed: dirty && _nameValid ? _rename : null,
-                      // Dim until there is something to save.
-                      style: IconButton.styleFrom(
-                        foregroundColor: GameColors.amber,
-                        disabledForegroundColor: GameColors.textDim.withAlpha(
-                          90,
-                        ),
+          return SelectToType(
+            builder: (focusNode, readOnly) => TextField(
+              focusNode: focusNode,
+              readOnly: readOnly,
+              controller: _name,
+              maxLength: 16,
+              textInputAction: TextInputAction.done,
+              decoration: InputDecoration(
+                labelText: tr('RUFNAME', 'CALL SIGN'),
+                helperText: saved
+                    ? tr('Gespeichert', 'Saved')
+                    : dirty
+                    ? tr(
+                        'Mit dem Haken oder Enter speichern',
+                        'Save with the tick or Enter',
+                      )
+                    : tr(
+                        'Öffentlich sichtbar, zum Beispiel in der '
+                            'Bestenliste',
+                        'Publicly visible, for example on the leaderboard',
                       ),
-                      icon: const Icon(Icons.check_outlined),
-                    ),
+                helperStyle: saved
+                    ? const TextStyle(color: GameColors.amber)
+                    : null,
+                // A phone has not the width for the hint beside the counter.
+                helperMaxLines: 2,
+                // Always there, so the field does not change width when it
+                // turns into a button.
+                suffixIcon: saved
+                    ? const Icon(
+                        Icons.check_circle_outlined,
+                        color: GameColors.amber,
+                      )
+                    : IconButton(
+                        tooltip: tr('Rufnamen speichern', 'Save call sign'),
+                        onPressed: dirty && _nameValid ? _rename : null,
+                        // Dim until there is something to save.
+                        style: IconButton.styleFrom(
+                          foregroundColor: GameColors.amber,
+                          disabledForegroundColor: GameColors.textDim.withAlpha(
+                            90,
+                          ),
+                        ),
+                        icon: const Icon(Icons.check_outlined),
+                      ),
+              ),
+              onChanged: (_) {
+                if (_nameSaved) {
+                  setState(() => _nameSaved = false);
+                }
+              },
+              onSubmitted: (_) => _rename(),
             ),
-            onChanged: (_) {
-              if (_nameSaved) {
-                setState(() => _nameSaved = false);
-              }
-            },
-            onSubmitted: (_) => _rename(),
           );
         },
       ),

@@ -510,7 +510,13 @@ python3 store/tool/tv_icons.py               # icon layers, top shelf, launch im
 
 Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the
 Apple TV and Android TV), `onAppleTv` for the Apple TV alone, never
-`Platform.isIOS` alone: it is true there as well. Plugins need a `*_tvos`
+`Platform.isIOS` alone: it is true there as well. Text fields are built
+through `SelectToType` (`lib/src/tv/select_to_type.dart`): on a television
+they stay read-only until a click, so the focus passes over them without
+opening the keyboard. A focused field on the Apple TV otherwise put the
+engine's keyboard stand-in in front of the remote, which swallowed the end
+of the swipe, and the engine's key repeat walked the focus round the page
+every 80 ms. Plugins need a `*_tvos`
 package (`shared_preferences_tvos`, `path_provider_tvos`, `audioplayers_tvos`,
 `url_launcher_tvos` are in), `app_links`, `share_plus` and `mobile_scanner`
 have none. Run `flutter-tvos` after a plain `flutter pub get` or `flutter test`

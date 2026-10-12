@@ -10,6 +10,7 @@ import '../../net/room_directory.dart';
 import '../theme.dart';
 import 'room_scanner.dart';
 import '../../l10n/l10n.dart';
+import '../../tv/select_to_type.dart';
 import '../../tv/tv_input.dart';
 
 /// Public rooms to join, and a field for the code of a private one.
@@ -100,15 +101,19 @@ class _RoomListState extends State<RoomList> {
               const SizedBox(width: 4),
             ],
             Expanded(
-              child: TextField(
-                controller: _code,
-                textCapitalization: TextCapitalization.characters,
-                maxLength: 12,
-                decoration: InputDecoration(
-                  labelText: tr('RAUMCODE', 'ROOM CODE'),
-                  counterText: '',
+              child: SelectToType(
+                builder: (focusNode, readOnly) => TextField(
+                  focusNode: focusNode,
+                  readOnly: readOnly,
+                  controller: _code,
+                  textCapitalization: TextCapitalization.characters,
+                  maxLength: 12,
+                  decoration: InputDecoration(
+                    labelText: tr('RAUMCODE', 'ROOM CODE'),
+                    counterText: '',
+                  ),
+                  onSubmitted: _join,
                 ),
-                onSubmitted: _join,
               ),
             ),
             const SizedBox(width: 4),
