@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/payloads/defense_payload.dart';
+import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/hud_overlay.dart';
 import 'package:wargame/src/ui/widgets/panel.dart';
 import 'package:wargame/src/ui/widgets/vitals_plate.dart';
@@ -95,5 +97,61 @@ void main() {
       ),
       findsNothing,
     );
+  });
+
+  // Apple TV, 1.6.0: the remote reached only the first gun and upgrade and
+  // could not leave a round. Menu now hands the focus to the round menu.
+  testWidgets('on a television Menu opens the defense panel as a menu', (
+    tester,
+  ) async {
+    onAndroidTvForTesting = true;
+    addTearDown(() => onAndroidTvForTesting = false);
+    tester.view
+      ..physicalSize = const Size(1920, 1080)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final game = (await tester.runAsync(loadedGame))!;
+    game
+      ..update(0)
+      ..chooseMode(GameMode.defense)
+      ..startRound();
+    game.credits.value = 500;
+    game.defense.value = DefensePayload(id: game.myId, hp: 900, wave: 3);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(body: HudOverlay(game: game)),
+      ),
+    );
+    expect(find.text('WEITERSPIELEN'), findsNothing);
+
+    game.tvMenu.value = true;
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('WEITERSPIELEN'), findsOneWidget);
+    // The focus sits on the menu's first button, the swipes walk the guns.
+    final first = FocusManager.instance.primaryFocus!;
+    expect(
+      find.descendant(
+        of: find.byElementPredicate((e) => e == first.context),
+        matching: find.text('WEITERSPIELEN'),
+      ),
+      findsOneWidget,
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    expect(FocusManager.instance.primaryFocus, isNot(first));
+
+    // Leaving asks first, play/pause presses what has the focus.
+    first.requestFocus();
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+    await tester.pump();
+    await tester.sendKeyEvent(LogicalKeyboardKey.mediaPlayPause);
+    await tester.pump();
+    expect(game.leaveAsked.value, isTrue);
+    expect(game.tvMenu.value, isFalse);
   });
 }

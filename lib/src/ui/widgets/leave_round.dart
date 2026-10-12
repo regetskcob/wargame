@@ -48,7 +48,7 @@ class LeaveRoundPrompt extends StatelessWidget {
         if (!asked) {
           return const SizedBox.shrink();
         }
-        final keys = !game.touchMode.value;
+        final keys = !game.touchMode.value && !onTv;
         // Leaving records nothing, neither a loss nor the experience: say
         // so, and once the defense is won let the host end it as a win
         // instead, the way out the extension was missing.

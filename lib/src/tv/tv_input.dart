@@ -268,8 +268,11 @@ class TvSteering {
     }
     // A paired phone steers instead: its sticks must not be overwritten.
     final phone = PadScreen.instance.steers(game);
+    // The round menu or the question to leave take the remote.
+    final menu = game.tvMenu.value || game.leaveAsked.value;
     if (phase != GamePhase.playing ||
         game.myTank == null ||
+        menu ||
         phone ||
         (game.touchOverPad.value && !onTv) ||
         state.kind == TvPadKind.none) {
@@ -357,8 +360,20 @@ bool tvBack(TankGame game) {
     case GamePhase.countdown:
     case GamePhase.playing:
     case GamePhase.spectating:
-      // A round cannot be paused for the others: B or a stray press on
-      // Menu must not throw the player out.
+      // A round cannot be paused for the others, so Menu never leaves it
+      // straight away: it opens the round menu with the guns, the upgrades
+      // and the way out, and closes it again (first the question to leave,
+      // if that is open).
+      // The menu lives in the HUD of the own tank: not in the countdown,
+      // while watching or on the overview of a duel.
+      if (game.leaveAsked.value) {
+        game.leaveAsked.value = false;
+      } else if (game.tvMenu.value) {
+        game.tvMenu.value = false;
+      } else if (game.phase.value == GamePhase.playing &&
+          !game.overview.value) {
+        game.tvMenu.value = true;
+      }
       return true;
     case GamePhase.roundOver:
       game.backToLobby();

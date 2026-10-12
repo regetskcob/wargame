@@ -151,6 +151,8 @@ class _GameAppState extends State<GameApp> {
           )
           ..phase.addListener(_reclaimFocus)
           ..phase.addListener(_phaseChanged)
+          ..tvMenu.addListener(_menuClosed)
+          ..leaveAsked.addListener(_menuClosed)
           // Somebody from another device came or went: the second player may
           // need a connection of their own, or no longer.
           ..roster.addListener(_phaseChanged);
@@ -177,6 +179,8 @@ class _GameAppState extends State<GameApp> {
     old.phase
       ..removeListener(_reclaimFocus)
       ..removeListener(_phaseChanged);
+    old.tvMenu.removeListener(_menuClosed);
+    old.leaveAsked.removeListener(_menuClosed);
     old.roster.removeListener(_phaseChanged);
     _liveActivity.detach();
     unawaited(old.leave());
@@ -185,6 +189,14 @@ class _GameAppState extends State<GameApp> {
     PadScreen.instance.game = game;
     _liveActivity = LiveActivityBridge(game)..attach();
     _second?.followRoom();
+  }
+
+  /// On a television the round menu and the question to leave had the
+  /// focus: closed, the remote drives the tank again.
+  void _menuClosed() {
+    if (onTv && !game.tvMenu.value && !game.leaveAsked.value) {
+      _reclaimFocus();
+    }
   }
 
   // The lobby's text field and buttons own the keyboard focus. Once their
@@ -242,9 +254,13 @@ class _GameAppState extends State<GameApp> {
       builder: (context, child) => LanguageRebuild(
         child: onTv
             ? TvFocusFrame(
+                // Not while the round menu or the question to leave are
+                // open: then the remote walks their buttons.
                 holdFocus: () =>
-                    game.phase.value == GamePhase.countdown ||
-                    game.phase.value == GamePhase.playing,
+                    (game.phase.value == GamePhase.countdown ||
+                        game.phase.value == GamePhase.playing) &&
+                    !game.tvMenu.value &&
+                    !game.leaveAsked.value,
                 // Up and down walk the menus in reading order, so a swipe
                 // never skips a button that is not straight below. Set in
                 // here, below the text editing keys, so a text field lets go

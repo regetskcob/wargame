@@ -27,6 +27,7 @@ import 'widgets/touch_controls.dart';
 import 'widgets/vitals_plate.dart';
 import '../l10n/l10n.dart';
 import '../tv/tv_input.dart';
+import '../tv/tv_menu_scope.dart';
 
 class HudOverlay extends StatefulWidget {
   const HudOverlay({required this.game, super.key});
@@ -298,8 +299,13 @@ class _HudOverlayState extends State<HudOverlay> {
             touch: touch,
             counts: touch ? _waveCounts() : '',
             waveLabel: touch ? _waveLabel(compact: true) : '',
-          ),
-        LeaveRoundPrompt(game: game),
+          )
+        else if (onTv)
+          _TvRoundMenu(game: game),
+        TvMenuScope(
+          open: game.leaveAsked,
+          child: LeaveRoundPrompt(game: game),
+        ),
       ],
     );
   }
@@ -1440,6 +1446,16 @@ class _DefensePanelState extends State<_DefensePanel> {
             ),
             const SizedBox(height: 3),
           ],
+          if (onTv)
+            ValueListenableBuilder<bool>(
+              valueListenable: game.tvMenu,
+              builder: (context, open, _) => open
+                  ? Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _TvMenuButtons(game: game),
+                    )
+                  : const SizedBox.shrink(),
+            ),
           _decision(),
           _base(),
           SizedBox(height: touch ? 5 : 8),
@@ -1502,12 +1518,90 @@ class _DefensePanelState extends State<_DefensePanel> {
                       constraints: const BoxConstraints(
                         maxWidth: _deskPanelWidth,
                       ),
-                      child: KeyedSubtree(key: widget.plateKey, child: panel),
+                      child: KeyedSubtree(
+                        key: widget.plateKey,
+                        child: TvMenuScope(open: game.tvMenu, child: panel),
+                      ),
                     ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// The way back to the tank and out of the round, at the top of the round
+/// menu of a television.
+class _TvMenuButtons extends StatelessWidget {
+  const _TvMenuButtons({required this.game});
+
+  final TankGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          tr(
+            'MENÜ · Wischen wählt, Klick oder Play/Pause löst aus, Menü schließt',
+            'MENU · swipe to choose, click or play/pause to press, Menu closes',
+          ),
+          style: const TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: GameColors.amber,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Wrap(
+          spacing: 6,
+          runSpacing: 4,
+          children: [
+            FilledButton.icon(
+              onPressed: () => game.tvMenu.value = false,
+              icon: const Icon(Icons.play_arrow_outlined, size: 16),
+              label: Text(tr('WEITERSPIELEN', 'KEEP PLAYING')),
+            ),
+            OutlinedButton.icon(
+              onPressed: () {
+                game.tvMenu.value = false;
+                game.leaveAsked.value = true;
+              },
+              icon: const Icon(Icons.logout_outlined, size: 16),
+              label: Text(tr('RUNDE VERLASSEN', 'LEAVE ROUND')),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+/// The round menu of a television outside a defense round, where there is
+/// nothing to build: back to the tank, or out of the round.
+class _TvRoundMenu extends StatelessWidget {
+  const _TvRoundMenu({required this.game});
+
+  final TankGame game;
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: game.tvMenu,
+      builder: (context, open, _) => open
+          ? Center(
+              child: TvMenuScope(
+                open: game.tvMenu,
+                child: Panel(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+                  child: _TvMenuButtons(game: game),
+                ),
+              ),
+            )
+          : const SizedBox.shrink(),
     );
   }
 }
@@ -1544,8 +1638,8 @@ String _buildKeys(TankGame game) {
       (onTv && TvInput.instance.player(game.tvPlayer).kind == TvPadKind.none)) {
     return onAppleTv
         ? tr(
-            'Play/Pause baut $choice/rüstet auf',
-            'play/pause builds $choice/upgrades',
+            'Play/Pause baut $choice/rüstet auf · Menü: Auswahl, Verlassen',
+            'play/pause builds $choice/upgrades · Menu: choose, leave',
           )
         : tr(
             'Play/Pause oder Menü baut $choice/rüstet auf',

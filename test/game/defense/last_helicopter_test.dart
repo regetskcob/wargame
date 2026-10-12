@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:clock/clock.dart';
+import 'package:flame/components.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/game/defense/aircraft.dart';
 import 'package:wargame/src/game/game_config.dart';
@@ -77,4 +78,27 @@ void main() {
       expect(closest, lessThan(GameConfig.helicopterHover - 50));
     });
   });
+
+  // Apple TV, 1.6.0: the Siri Remote aims only through the assist, which
+  // went for helicopters with the Habicht alone. With no flak the last
+  // helicopter of a wave could not be shot and the wave never ended.
+  test(
+    'the aim assist takes the helicopter when nothing else is in range',
+    () async {
+      final game = await loadedGame();
+      game
+        ..chooseMode(GameMode.defense)
+        ..startRound();
+      await Future<void>.delayed(Duration.zero);
+      game.update(0);
+      final me = game.myTank!;
+      game.spawnAircraft('td-h-last', AirKind.helicopter);
+      game.update(0);
+      await Future<void>.delayed(Duration.zero);
+      final heli = game.aircraft['td-h-last']!;
+      heli.position.setFrom(me.position + Vector2(120, 0));
+      expect(game.enemiesAlive, 0);
+      expect(game.assistTarget(me), same(heli));
+    },
+  );
 }
