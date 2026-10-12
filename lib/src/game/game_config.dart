@@ -118,6 +118,12 @@ class GameConfig {
   static const zoneShrinkSeconds = 90.0;
   static const zoneMinRadius = 120.0;
   static const zoneDamagePerSecond = 10.0;
+  // Once closed the zone holds a while, then draws in to nothing while its
+  // damage keeps rising, so no round can run on for good: two tanks hiding
+  // in the last circle, or one left alone, still meet an end.
+  static const zoneHoldSeconds = 30.0;
+  static const zoneFinalSeconds = 60.0;
+  static const zoneDamageRampPerSecond = 0.5;
 
   static const treeCount = 50;
   static const soldierSquads = 6;

@@ -237,7 +237,7 @@ class _LeaderboardState extends State<Leaderboard> {
     '',
     'PILOT',
     tr('PUNKTE', 'POINTS'),
-    tr('SIEGE', 'WINS'),
+    tr('GEWONNEN', 'WINS'),
     tr('ABSCHÜSSE', 'KILLS'),
   ];
 

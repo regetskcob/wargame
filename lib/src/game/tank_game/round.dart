@@ -34,11 +34,14 @@ extension TankGameRound on TankGame {
     final random = Random();
     // A phone in the room leaves no Realtime room for CPU tanks. Capturing
     // the flag and a game without a room channel, as on the watch, always
-    // fill the field up with CPU tanks.
+    // fill the field up with CPU tanks. So does a pilot alone in the room,
+    // who would otherwise drive an empty field until the zone ends it;
+    // alone nothing is sent, so a phone costs no budget then.
+    final alone = ids.length == 1 && net.alone;
     final fill =
-        (fillWithBots.value || flag || net.offline) &&
+        (fillWithBots.value || flag || net.offline || alone) &&
         !defending &&
-        !roomHasPhone;
+        (!roomHasPhone || alone);
     final botCount = botsFor(
       solo: solo || together,
       humans: ids.length,

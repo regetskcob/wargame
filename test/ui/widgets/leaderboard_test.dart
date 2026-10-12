@@ -38,7 +38,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    for (final text in ['PUNKTE', 'ABSCHÜSSE', '345']) {
+    for (final text in ['PUNKTE', 'GEWONNEN', 'ABSCHÜSSE', '345']) {
       final right = tester.getRect(find.text(text)).right;
       expect(right, lessThanOrEqualTo(390 - 16), reason: text);
     }

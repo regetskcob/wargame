@@ -169,7 +169,17 @@ extension TankGameView on TankGame {
       1.0,
       DefenseMap.halfHeight + margin - canvasSize.y / 2 / scale,
     );
-    camera.setBounds(Rectangle.fromLTRB(-dx, -dy, dx, dy));
+    // The defense panel sits in the top right on phones and tablets and in
+    // the lower left on a desktop, next to the mini map. A tank at that edge
+    // of the field drove under it, hiding the way and the crates there, so
+    // the camera may go past the edge by the panel's height.
+    final context = buildContext;
+    final safeTop = context == null ? 0.0 : MediaQuery.paddingOf(context).top;
+    final top = touchMode.value
+        ? (safeTop + TankGame._topHudReserve) / scale
+        : 0.0;
+    final bottom = touchMode.value ? 0.0 : TankGame._hudReserve / scale;
+    camera.setBounds(Rectangle.fromLTRB(-dx, -dy - top, dx, dy + bottom));
   }
 
   /// Vision Pro: the spot the player looked at when pinching, in global

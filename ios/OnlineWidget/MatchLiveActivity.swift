@@ -53,8 +53,10 @@ struct MatchLiveActivity: Widget {
         }
       } compactTrailing: {
         if state.phase == "roundOver" {
-          Text(state.outcome == "won" ? tr("SIEG", "WIN") : tr("AUS", "OUT"))
+          Text(state.outcome == "won" ? tr("GEWONNEN", "WIN") : tr("AUS", "OUT"))
             .font(.system(size: 13, weight: .heavy))
+            .lineLimit(1)
+            .minimumScaleFactor(0.6)
             .foregroundStyle(state.headlineColor)
         } else {
           RoundClock(state: state)
@@ -204,7 +206,7 @@ extension MatchActivityAttributes.ContentState {
     case "countdown":
       return tr("Gleich geht's los", "Starting soon")
     case "roundOver":
-      return outcome == "won" ? tr("Sieg!", "Victory!") : (defending(attributes) ? tr("Stützpunkt gefallen", "Base fell") : tr("Vernichtet", "Destroyed"))
+      return outcome == "won" ? tr("Gewonnen!", "Victory!") : (defending(attributes) ? tr("Stützpunkt gefallen", "Base fell") : tr("Vernichtet", "Destroyed"))
     case "spectating":
       return tr("Abgeschossen", "Knocked out")
     default:
@@ -218,7 +220,7 @@ extension MatchActivityAttributes.ContentState {
   func subline(_ attributes: MatchActivityAttributes) -> String {
     switch phase {
     case "roundOver":
-      if let winner, outcome != "won" { return tr("Sieger: \(winner)", "Winner: \(winner)") }
+      if let winner, outcome != "won" { return tr("Gewinner: \(winner)", "Winner: \(winner)") }
       return tr("\(kills) Abschüsse in dieser Runde", "\(kills) kills this round")
     case "spectating":
       return spectating.map { tr("Du schaust \($0) zu", "You are watching \($0)") } ?? tr("Du schaust zu", "You are watching")

@@ -52,7 +52,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
             ? GameColors.danger
             : GameColors.sand;
         final title = won
-            ? tr('SIEG', 'VICTORY')
+            ? tr('GEWONNEN', 'VICTORY')
             : lost
             ? tr('NIEDERLAGE', 'DEFEAT')
             : tr('GEFECHT BEENDET', 'BATTLE OVER');
@@ -487,7 +487,7 @@ String _defenseLine(DefensePayload? state, bool won) {
   return state.hp <= 0
       ? tr(
           '$held Wellen gehalten, in Welle $wave fiel der Stützpunkt. '
-              'Der Sieg bleibt!',
+              'Gewonnen bleibt gewonnen!',
           '$held waves held, the base fell in wave $wave. '
               'The victory remains!',
         )
