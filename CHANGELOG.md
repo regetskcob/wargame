@@ -7,6 +7,20 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## 1.6.1 (13) – 2026-10-12
+
+- On the Apple TV the Menu button opens a round menu: in a defense round
+  the panel with every gun and upgrade, and always the way out, walked with
+  swipes and pressed with a click or play/pause
+- The aim assist and the comrades take on a helicopter when nothing else is
+  in range, so the last helicopter of a wave no longer holds it open for good
+- The tutorial's controls cards can be tried out with the remote and
+  controllers on a television, and a click presses the button in focus
+- Text fields on a television open the keyboard only when clicked, and the
+  account page says when the sign-in mail is on its way
+- CPU tanks squeezing past a building by an island's shore are no longer
+  pushed into deep water
+
 ## 1.6.0 (12) – 2026-10-11
 
 - Two new grounds: the mountain forest with dense woods, scree and hills,

@@ -8,6 +8,22 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## 1.6.1 (13) – 12.10.2026
+
+- Auf dem Apple TV öffnet die Menü-Taste ein Rundenmenü: in der
+  Verteidigung das Feld mit allen Geschützen und Upgrades, und immer den
+  Weg hinaus, mit Wischen gewählt und per Klick oder Play/Pause gedrückt
+- Zielhilfe und Kameraden nehmen sich einen Hubschrauber vor, wenn sonst
+  nichts in Reichweite ist, so hält der letzte Hubschrauber eine Welle
+  nicht mehr ewig offen
+- Die Steuerungskarten der Einführung lassen sich auf dem Fernseher mit
+  Fernbedienung und Controller ausprobieren, ein Klick drückt die Taste im
+  Fokus
+- Textfelder auf dem Fernseher öffnen die Tastatur erst per Klick, und die
+  Kontoseite zeigt, dass die Anmelde-Mail unterwegs ist
+- CPU-Panzer, die sich an einem Gebäude am Inselufer vorbeidrücken, werden
+  nicht mehr ins tiefe Wasser geschoben
+
 ## 1.6.0 (12) – 11.10.2026
 
 - Zwei neue Gelände: der Bergwald mit dichtem Wald, Geröll und Hügeln,
