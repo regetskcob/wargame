@@ -22,7 +22,10 @@ extension TankGameTargeting on TankGame {
 
   /// What a CPU comrade in [tank] fires at: a Habicht goes for aircraft and
   /// drones first, every comrade for tanks before soldiers and soldiers
-  /// before the enemy's guns.
+  /// before the enemy's guns. With nothing else in range a helicopter, which
+  /// shells meant for the ground still hurt: as the last enemy of a wave it
+  /// held the wave open for good where no flak stood, since the remote of
+  /// the Apple TV aims only through this assist.
   PositionComponent? allyTarget(PlayerTank tank, double range) {
     final at = tank.position;
     if (tank.tankType == TankType.habicht) {
@@ -38,7 +41,14 @@ extension TankGameTargeting on TankGame {
     }
     return nearestEnemy(at, range) ??
         _nearestEnemySoldier(at, range) ??
-        nearestTower(at, range, of: tank.playerId);
+        nearestTower(at, range, of: tank.playerId) ??
+        _nearestOf(at, range, [
+          for (final plane in aircraft.values)
+            if (plane.kind == AirKind.helicopter &&
+                plane.hp > 0 &&
+                !plane.friendly)
+              plane,
+        ]);
   }
 
   T? _nearestOf<T extends PositionComponent>(

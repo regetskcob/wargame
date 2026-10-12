@@ -1300,6 +1300,7 @@ extension TankGameRound on TankGame {
   /// reports.
   void leaveRound() {
     leaveAsked.value = false;
+    tvMenu.value = false;
     final activeRound = round;
     if (activeRound == null || !inRound) {
       return;
@@ -1445,6 +1446,7 @@ extension TankGameRound on TankGame {
     touch.reset();
     pointerOnHud = false;
     leaveAsked.value = false;
+    tvMenu.value = false;
     if (next == GamePhase.roundOver &&
         !replaying.value &&
         (round?.participants.contains(myId) ?? false)) {

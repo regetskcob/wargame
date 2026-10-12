@@ -26,12 +26,19 @@ class HealthBar extends StatelessWidget {
               children: [
                 Icon(Icons.health_and_safety_outlined, size: 16, color: color),
                 const SizedBox(width: 4),
-                Text(
-                  tr(
-                    'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
-                    'ARMOUR ${hp.ceil().clamp(0, maxHp.ceil())}',
+                // Never past the plate, whatever the font makes of a
+                // four-digit armour.
+                Flexible(
+                  child: Text(
+                    tr(
+                      'PANZERUNG ${hp.ceil().clamp(0, maxHp.ceil())}',
+                      'ARMOUR ${hp.ceil().clamp(0, maxHp.ceil())}',
+                    ),
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.fade,
+                    style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
-                  style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
               ],
             ),

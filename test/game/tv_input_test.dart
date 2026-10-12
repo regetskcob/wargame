@@ -87,10 +87,24 @@ void main() {
       expect(tvBack(game), isFalse);
     });
 
-    test('does nothing in a round', () {
+    test('opens and closes the round menu, never leaves a round', () {
       final game = host()..phase.value = GamePhase.playing;
       expect(tvBack(game), isTrue);
+      expect(game.tvMenu.value, isTrue);
+      expect(tvBack(game), isTrue);
+      expect(game.tvMenu.value, isFalse);
+      // The question to leave closes first.
+      game.leaveAsked.value = true;
+      expect(tvBack(game), isTrue);
+      expect(game.leaveAsked.value, isFalse);
+      expect(game.tvMenu.value, isFalse);
       expect(game.phase.value, GamePhase.playing);
+    });
+
+    test('opens no menu in the countdown, where there is no HUD', () {
+      final game = host()..phase.value = GamePhase.countdown;
+      expect(tvBack(game), isTrue);
+      expect(game.tvMenu.value, isFalse);
     });
   });
 }

@@ -487,6 +487,11 @@ Fuchs).
 holds the wave open on its own. It then seeks out the nearest defender or
 gun anywhere on the field and keeps only 150 off instead of 260, so it
 comes into view and into the flak instead of being hunted across the map.
+With nothing else in range the aim assist, and the comrades, take a
+helicopter on with tank shells (40 %), so the wave ends without flak too:
+on the Apple TV the remote aims only through the assist, which before went
+for aircraft only in a Habicht, and a wave whose last enemy was a
+helicopter never ended there.
 
 **Air support.** From wave 3 the base sends an attack helicopter every wave,
 which stays 40 seconds. From wave 5 a jet follows 14 seconds into the wave

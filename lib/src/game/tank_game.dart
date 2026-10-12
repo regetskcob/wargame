@@ -209,6 +209,10 @@ class TankGame extends FlameGame
   /// Escape or the exit button asked whether to leave the running round.
   final leaveAsked = ValueNotifier<bool>(false);
 
+  /// On a television the Menu button opened the round menu: the remote
+  /// walks the guns, the upgrades and the way out instead of driving.
+  final tvMenu = ValueNotifier<bool>(false);
+
   /// The second player's game on this screen, while there is one.
   TankGame? partner;
 

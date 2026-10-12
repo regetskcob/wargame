@@ -443,7 +443,14 @@ the screen saver away. The menus take the arrow keys and enter the engine makes
 of swipes and presses: up and down walk them in reading order, an amber frame
 (`lib/src/tv/tv_focus_frame.dart`) shows the focus, and Menu or B steps back
 from the settings to the waiting room to the start page and leaves the app only
-from there. In a round they do nothing. The Apple TV can also pair phones as
+from there. In a running round Menu or B open the round menu instead
+(`TankGame.tvMenu`, `lib/src/tv/tv_menu_scope.dart`): the tank stops
+taking the remote, the focus moves into the menu and stays there, swipes
+walk its buttons, the click or play/pause presses one, Menu closes it
+again. In a defense round the menu is the defense panel with KEEP PLAYING
+and LEAVE ROUND on top, so every gun, upgrade and the next wave can be
+picked; in the other modes a small panel with the two. Leaving still asks
+first. The Apple TV can also pair phones as
 controllers, like the browser: the first steers the game, a second waits for a
 duel. No camera, so no QR scanning, and no room links. The briefing explains
 the controls of what is in hand, the controller or the Siri Remote, and
