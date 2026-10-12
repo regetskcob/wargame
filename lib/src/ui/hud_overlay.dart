@@ -169,9 +169,9 @@ class _HudOverlayState extends State<HudOverlay> {
       final seconds = ((state.nextWaveAt - now) / 1000).ceil().clamp(0, 999);
       if (state.deciding) {
         return compact
-            ? tr('Sieg! Ende in $seconds s', 'Victory! End in $seconds s')
+            ? tr('Gewonnen! Ende in $seconds s', 'Victory! End in $seconds s')
             : tr(
-                'Sieg gesichert: Ende in $seconds s',
+                'Gewonnen: Ende in $seconds s',
                 'Victory secured: end in $seconds s',
               );
       }
@@ -1239,7 +1239,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             children: [
               Text(
                 tr(
-                  'WELLE ${state.wave} GEHALTEN · SIEG GESICHERT',
+                  'WELLE ${state.wave} GEHALTEN · GEWONNEN',
                   'WAVE ${state.wave} HELD · VICTORY SECURED',
                 ),
                 textAlign: align,
@@ -1261,12 +1261,12 @@ class _DefensePanelState extends State<_DefensePanel> {
                       : first
                       ? tr(
                           'Noch $more Wellen: zähere Gegner, Stufe 4 und 5, '
-                              'Raketenwerfer. Der Sieg bleibt.',
+                              'Raketenwerfer. Gewonnen bleibt gewonnen.',
                           '$more more waves: tougher enemies, levels 4 and 5, '
                               'rocket launchers. The victory stays.',
                         )
                       : tr(
-                          'Noch $more Wellen, noch zäher. Der Sieg bleibt.',
+                          'Noch $more Wellen, noch zäher. Gewonnen bleibt gewonnen.',
                           '$more more waves, tougher still. The victory stays.',
                         ),
                   textAlign: align,

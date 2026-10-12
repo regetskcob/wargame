@@ -468,7 +468,7 @@ class WatchRoundOver extends StatelessWidget {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     won
-                        ? tr('SIEG', 'VICTORY')
+                        ? tr('GEWONNEN', 'VICTORY')
                         : lost
                         ? tr('NIEDERLAGE', 'DEFEAT')
                         : tr('BEENDET', 'OVER'),

@@ -599,7 +599,7 @@ class _ControllerViewState extends State<ControllerView> {
         Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: Text(
-            tr('SIEG GESICHERT', 'VICTORY SECURED'),
+            tr('RUNDE GEWONNEN', 'VICTORY SECURED'),
             style: const TextStyle(
               color: GameColors.amber,
               fontWeight: FontWeight.w900,

@@ -57,15 +57,15 @@ class LeaveRoundPrompt extends StatelessWidget {
         final String note;
         if (won && host) {
           note = tr(
-            'Der Sieg ist gesichert. Beende die Runde, damit er zählt; '
+            'Die Runde ist gewonnen. Beende sie, damit sie zählt; '
                 'Verlassen wertet sie nicht.',
             'The victory is secured. End the round so it counts; leaving '
                 'does not record it.',
           );
         } else if (won) {
           note = tr(
-            'Der Sieg zählt, wenn der Gastgeber die Runde beendet. Verlassen '
-                'wertet sie für dich nicht.',
+            'Die gewonnene Runde zählt, wenn der Gastgeber sie beendet. '
+                'Verlassen wertet sie für dich nicht.',
             'The victory counts once the host ends the round. Leaving does '
                 'not record it for you.',
           );
@@ -126,7 +126,7 @@ class LeaveRoundPrompt extends StatelessWidget {
                             game.withdrawDefense();
                           },
                           icon: const Icon(Icons.flag_outlined),
-                          label: Text(tr('SIEG · BEENDEN', 'WIN · END')),
+                          label: Text(tr('RUNDE BEENDEN', 'WIN · END')),
                         ),
                       (won && host ? OutlinedButton.new : FilledButton.new)(
                         style: won && host

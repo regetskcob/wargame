@@ -64,7 +64,7 @@ void main() {
       );
     await tester.pump();
 
-    expect(find.text('SIEG GESICHERT'), findsOneWidget);
+    expect(find.text('RUNDE GEWONNEN'), findsOneWidget);
     await tester.tap(find.text('GESCHÜTZE'));
     await tester.pump();
     await tester.tap(find.text('KANONE 100'));

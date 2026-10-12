@@ -144,7 +144,7 @@ class Achievement {
     ),
     Achievement(
       'first_win',
-      'Erster Sieg',
+      'Erstmals gewonnen',
       'First win',
       'Ein Gefecht gewonnen',
       'Won a battle',
