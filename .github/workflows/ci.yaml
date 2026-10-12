@@ -32,8 +32,10 @@ jobs:
       - run: dart pub get
       - run: flutter build ios --release --no-codesign
       # No certificate here: sign the Mac app ad hoc instead of with the
-      # team from apple/Signing.xcconfig.
+      # team from apple/Signing.xcconfig. An ad hoc signature cannot carry
+      # associated domains, so the room links come out of this build.
       - run: printf 'DEVELOPMENT_TEAM =\nCODE_SIGN_IDENTITY = -\n' > apple/Signing.local.xcconfig
+      - run: /usr/libexec/PlistBuddy -c 'Delete :com.apple.developer.associated-domains' macos/Runner/Release.entitlements
       - run: flutter build macos --release
 
   android:

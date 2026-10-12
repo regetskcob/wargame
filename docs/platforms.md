@@ -212,8 +212,15 @@ The app is sandboxed and asks for two things in `Runner/*.entitlements`:
 outgoing connections (`network.client`, without it Supabase is out of reach
 and the app plays offline) and the camera, for the QR code button in the room
 list (`mobile_scanner`, text in `NSCameraUsageDescription`). Room links from
-the web do not open the app yet: associated domains need a signed build with
-a provisioning profile. `python3 store/tool/app_icon.py` also writes the Mac
+the web open the app as on iOS: both entitlements files carry the associated
+domain `applinks:www.regetskcob.de`, the AASA file already names the shared
+app id, and `AppDelegate.swift` hands the browsing activity to `app_links`,
+which on the Mac leaves universal links to the app. A pairing link
+(`?pad=`) opened on the Mac only says that phones are the controllers. The
+entitlement needs a development or distribution certificate, so CI, which
+signs ad hoc, takes it out before its Mac build. Links clicked in Messages,
+Mail or Notes open the app; `open` in the Terminal always goes to the
+browser. `python3 store/tool/app_icon.py` also writes the Mac
 icon set, the square on Apple's rounded plate with a shadow, since macOS does
 not round icons itself.
 

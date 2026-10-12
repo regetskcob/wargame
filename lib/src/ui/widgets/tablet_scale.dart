@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 
 import '../../tv/tv_input.dart';
@@ -10,8 +11,15 @@ const tabletShortSide = 600.0;
 /// Whether this device has a phone's screen. Only phones serve as the
 /// controller of a game elsewhere: a tablet shows the game itself and pairs
 /// a phone of its own. Read from the device, not the window, so it holds
-/// before the first frame and whichever way the device is held.
+/// before the first frame and whichever way the device is held. A Mac is
+/// never one, however small its window: it opens pairing links too.
 bool get deviceIsPhone {
+  if (defaultTargetPlatform
+      case TargetPlatform.macOS ||
+          TargetPlatform.windows ||
+          TargetPlatform.linux) {
+    return false;
+  }
   final view = WidgetsBinding.instance.platformDispatcher.views.first;
   return view.physicalSize.shortestSide / view.devicePixelRatio <
       tabletShortSide;
