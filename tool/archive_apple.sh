@@ -79,5 +79,8 @@ target="$HOME/Library/Developer/Xcode/Archives/$(date +%F)/Panzergefecht $platfo
 mkdir -p "$(dirname "$target")"
 ditto "$archive" "$target"
 echo "$target"
+# Opening the archive hands it to Xcode, which lists it in the Organizer at
+# once; an Organizer already open does not always notice a new folder.
+[ -n "${CI:-}" ] || open "$target"
 step "done"
 echo "In Xcode: Window > Organizer > Archives > Panzergefecht > Distribute App."
