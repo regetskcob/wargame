@@ -37,7 +37,11 @@ Everything the game does, with the numbers behind it. The short version is in th
   hits within a second, and the card used to leave while the thumb was
   still on the stick). The sticks and buttons of the demonstration sit
   where and as large as the game draws them, the aim assist as the game's
-  pill above the aim stick. The Apple TV keeps the demonstration only.
+  pill above the aim stick. On a television the thumb on the remote or a
+  controller's stick takes over the same way and drives as in a round (the
+  click, A or R2 fire, play/pause or L2 the special weapon); the remote's
+  swipes never turn the card there, and a click presses the button in
+  focus (while practising it fires, until the task is done).
 
 ## Ways to play
 

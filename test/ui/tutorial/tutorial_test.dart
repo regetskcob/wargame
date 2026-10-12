@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/net/room.dart';
+import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/tutorial/demo_painter.dart';
 import 'package:wargame/src/ui/tutorial/tutorial_overlay.dart';
 import 'package:wargame/src/ui/tutorial/tutorial_steps.dart';
@@ -258,5 +259,56 @@ void main() {
     await tester.sendKeyUpEvent(LogicalKeyboardKey.keyW);
     expect(painter(tester).practice, isNull);
     expect(painter(tester).invite, isFalse);
+  });
+
+  group('on a television', () {
+    setUp(() => onAndroidTvForTesting = true);
+    tearDown(() {
+      onAndroidTvForTesting = false;
+      TvInput.instance.receive({'pads': <Object?>[]});
+    });
+
+    testWidgets('swipes do not turn the card and a focused ZURÜCK goes back', (
+      tester,
+    ) async {
+      await pump(tester, touch: false);
+      await next(tester);
+      expect(onCard('ZIELEN'), findsOneWidget);
+      // The remote's touch surface sends arrows: they steer, not page.
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+      await tester.pump();
+      expect(onCard('ZIELEN'), findsOneWidget);
+      // The click arrives as enter and belongs to the button in focus.
+      Focus.of(tester.element(find.text('ZURÜCK'))).requestFocus();
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(onCard('FAHREN'), findsOneWidget);
+    });
+
+    testWidgets('a thumb on the remote takes over the practice tank', (
+      tester,
+    ) async {
+      await pump(tester, touch: false);
+      expect(painter(tester).invite, isTrue);
+      TvInput.instance.receive({
+        'pads': [
+          {'kind': 'remote', 'lx': 1.0, 'ly': 0.0},
+        ],
+      });
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.pump(const Duration(milliseconds: 50));
+      final practice = painter(tester).practice!;
+      final start = practice.pos;
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(const Duration(milliseconds: 50));
+      }
+      expect(practice.pos.dx, greaterThan(start.dx));
+      expect(find.textContaining('DU STEUERST'), findsOneWidget);
+      // The click fires while practising, it does not move on.
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(onCard('FAHREN'), findsOneWidget);
+    });
   });
 }

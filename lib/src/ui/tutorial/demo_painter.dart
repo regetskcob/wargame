@@ -158,7 +158,17 @@ class DemoPainter extends CustomPainter {
       _pill(
         canvas,
         Offset(_w / 2, _h - 22),
-        touch
+        pad == TvPadKind.remote
+            ? tr(
+                'PROBIER ES SELBST: DAUMEN AUF DIE FERNBEDIENUNG',
+                'TRY IT YOURSELF: THUMB ON THE REMOTE',
+              )
+            : pad == TvPadKind.gamepad
+            ? tr(
+                'PROBIER ES SELBST: STICKS DES CONTROLLERS',
+                'TRY IT YOURSELF: THE CONTROLLER STICKS',
+              )
+            : touch
             ? tr(
                 'PROBIER ES SELBST: DAUMEN AUF DIE STICKS',
                 'TRY IT YOURSELF: THUMBS ON THE STICKS',

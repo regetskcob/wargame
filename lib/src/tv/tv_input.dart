@@ -335,7 +335,7 @@ class TvSteering {
   }
 
   /// A stick as a screen direction, y pointing down, or null inside [zone].
-  @visibleForTesting
+  /// The tutorial's practice tank reads the remote through it too.
   static (double, double)? stick(double x, double y, double zone) {
     final length = sqrt(x * x + y * y);
     if (length < zone) {

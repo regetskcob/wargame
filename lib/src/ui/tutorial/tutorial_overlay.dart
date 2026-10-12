@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,8 +98,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   TutorialStep get _step => _steps[_index];
   bool get _last => _index == _steps.length - 1;
 
-  /// Only the controls cards can be tried out, and not with a remote.
-  bool get _canPractice => !onTv && _index < controlSteps(touch: _touch);
+  /// Only the controls cards can be tried out.
+  bool get _canPractice => _index < controlSteps(touch: _touch);
+
+  /// On a television the practice tank takes the remote or controller, as
+  /// the touch sticks drive it on a phone.
+  bool get _padPractice => onTv && _canPractice;
 
   /// How long this card stays by itself, null when it waits for WEITER.
   Duration? get _autoTime => _practice != null || _step.scene == DemoScene.ready
@@ -157,6 +163,12 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         _auto.forward();
       }
     }
+    // The remote has no touch to take over with: the ticker watches it and
+    // hands over the tank once a thumb or stick moves.
+    if (_padPractice) {
+      _lastTick = Duration.zero;
+      _ticker.start();
+    }
   }
 
   /// The player takes over: their own tank on the stage, and the card no
@@ -170,7 +182,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       ..reset();
     setState(() {
       _practice = TutorialPractice(
-        touch: _touch,
+        touch: _touch || onTv,
         bounds: _practiceBounds,
         grenades: _step.scene == DemoScene.special,
         goal: _step.scene == DemoScene.drive
@@ -179,8 +191,10 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         input: _input,
       );
     });
-    _lastTick = Duration.zero;
-    _ticker.start();
+    if (!_ticker.isActive) {
+      _lastTick = Duration.zero;
+      _ticker.start();
+    }
   }
 
   void _endPractice() {
@@ -196,6 +210,9 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       Rect.fromLTRB(0, _cardBottom, _stageSize.width, _stageSize.height);
 
   void _tick(Duration elapsed) {
+    if (_padPractice) {
+      _steerWithPad();
+    }
     final practice = _practice;
     if (practice == null) {
       return;
@@ -218,6 +235,32 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         _special.value = loadout;
       }
     }
+  }
+
+  /// Feeds the remote or controller into the practice tank, as
+  /// `TvSteering` does in a round: the thumb or left stick drives, the right
+  /// stick aims, the click, A or R2 fire, play/pause or L2 the special
+  /// weapon. Without a stick the aim assist turns the turret.
+  void _steerWithPad() {
+    final state = TvInput.instance.state;
+    final practice = _practice;
+    if (practice == null) {
+      if (state.busy) {
+        _takeOver();
+      }
+      return;
+    }
+    final gamepad = state.kind == TvPadKind.gamepad;
+    final aim = gamepad ? TvSteering.stick(state.rx, state.ry, 0.35) : null;
+    final fire = state['a'] || (gamepad && state['r2']);
+    _input
+      ..drive = TvSteering.stick(state.lx, state.ly, 0.2)
+      ..assist = true
+      // A held fire button aims where the turret points if no stick does.
+      ..aimHeld = aim != null || fire
+      ..aim = aim != null ? atan2(aim.$1, -aim.$2) : practice.turret
+      ..aimFire = fire
+      ..special = gamepad ? state['l2'] : state['x'];
   }
 
   /// The scene plays below the card, so it needs to know where it ends.
@@ -264,9 +307,30 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       return KeyEventResult.ignored;
     }
     final key = event.logicalKey;
+    final select =
+        key == LogicalKeyboardKey.enter || key == LogicalKeyboardKey.space;
+    if (onTv) {
+      // The engine turns swipes on the remote's touch surface into arrow
+      // keys: sideways they steer the practice tank, never turn the card.
+      // Up and down still walk the buttons.
+      if (key == LogicalKeyboardKey.arrowLeft ||
+          key == LogicalKeyboardKey.arrowRight) {
+        return KeyEventResult.handled;
+      }
+      // While practising the click fires; once the task is done it presses
+      // the button in focus again.
+      if (_practice case final practice? when select && !practice.done) {
+        return KeyEventResult.handled;
+      }
+    }
+    // A focused button takes its own click. On the Apple TV the click
+    // arrives as enter, and ZURÜCK moved on to the next card.
+    if (select && !_focus.hasPrimaryFocus) {
+      return KeyEventResult.ignored;
+    }
     // The game's keys take over the card. While practising, the arrow keys
     // and space drive and fire as in the game, ENTER moves on.
-    if (_canPractice && !_touch && _gameKeys.contains(key)) {
+    if (_canPractice && !_touch && !onTv && _gameKeys.contains(key)) {
       _takeOver();
       return KeyEventResult.handled;
     }
@@ -405,7 +469,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
 
   /// The mouse on the stage: a click takes over, then it aims and fires.
   Widget _mouse(Widget child) {
-    if (_touch || !_canPractice) {
+    if (_touch || onTv || !_canPractice) {
       return child;
     }
     return MouseRegion(
