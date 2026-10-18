@@ -22,7 +22,7 @@ from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
 from compose import EDGE, LANGS, ROOT, backdrop, device, font
 
-WEB_ADDRESS = "regetskcob.de/wargame/play"
+WEB_ADDRESS = "panzergefecht.de/play"
 
 
 def shot(raw_dir, lang, name):

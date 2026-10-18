@@ -19,17 +19,11 @@ void main() {
       expect(padCodeFrom('abcd efgh'), 'ABCDEFGH');
       expect(padCodeFrom('ABCD-EFGH'), 'ABCDEFGH');
       expect(padCodeFrom('ABCD\u200bEFGH\n'), 'ABCDEFGH');
-      expect(
-        padCodeFrom('https://www.regetskcob.de/wargame/?pad=ABCDEFGH'),
-        'ABCDEFGH',
-      );
+      expect(padCodeFrom('https://panzergefecht.de/?pad=ABCDEFGH'), 'ABCDEFGH');
     });
 
     test('room links, short codes and look-alike letters are refused', () {
-      expect(
-        padCodeFrom('https://www.regetskcob.de/wargame/?room=ABCDE'),
-        isNull,
-      );
+      expect(padCodeFrom('https://panzergefecht.de/?room=ABCDE'), isNull);
       expect(padCodeFrom('ABCDE'), isNull);
       // O, I, 0 and 1 are left out of the alphabet.
       expect(padCodeFrom('ABCDEFG0'), isNull);

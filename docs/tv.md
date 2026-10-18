@@ -116,7 +116,7 @@ October 2025 and the Fire TV Stick HD of 2026. Findings (October 2026):
   the Amazon Appstore. A port of the game to React Native is out of the
   question.
 - **The web build could work.** The game already runs in the browser at
-  `/wargame/play/`. A thin Vega app around a WebView that loads it, with the
+  `/play/`. A thin Vega app around a WebView that loads it, with the
   television screens switched on (a `?tv=1` parameter, since `onTv` is off
   in the browser today), would keep one code base.
 - **Unknowns for that shell:** whether Flutter web with CanvasKit and Flame

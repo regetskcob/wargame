@@ -22,9 +22,9 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      # The base path and address of the site (/wargame, served at
-      # www.regetskcob.de/wargame/). The landing page sits at its root, the
-      # game below it in play/.
+      # The base path and address of the site (empty, served at the custom
+      # domain panzergefecht.de set in the repository's Pages settings). The
+      # landing page sits at its root, the game below it in play/.
       - id: pages
         uses: actions/configure-pages@v5
       - uses: subosito/flutter-action@v2

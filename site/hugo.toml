@@ -1,7 +1,7 @@
 # The landing page in front of the browser game. The pages workflow builds it
 # into the root of the site and the Flutter game into play/ below it; the
 # base URL comes from that workflow, this one is for `hugo server`.
-baseURL = 'https://www.regetskcob.de/wargame/'
+baseURL = 'https://panzergefecht.de/'
 title = 'Panzergefecht'
 defaultContentLanguage = 'de'
 defaultContentLanguageInSubdir = false
@@ -50,6 +50,12 @@ enableRobotsTXT = false
     source = '../web'
     target = 'static'
     includeFiles = ['/favicon.png', '/favicon-32.png', '/icons/apple-touch-icon.png']
+  # Apple reads the association file of the universal links only at the root
+  # of the domain, and the site is that root.
+  [[module.mounts]]
+    source = '../store/ios'
+    target = 'static/.well-known'
+    includeFiles = ['/apple-app-site-association']
 
 [imaging]
   quality = 82

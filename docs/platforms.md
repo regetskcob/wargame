@@ -146,7 +146,7 @@ interactive bubble.
    chat has more people than `MAX_PILOTS` (later ones watch).
 2. A choice puts a bubble with a fresh room code into the input field. The
    link in it is the usual room link with the mode added,
-   `https://www.regetskcob.de/wargame/play/?room=CODE&mode=defense`, so it
+   `https://panzergefecht.de/play/?room=CODE&mode=defense`, so it
    also opens the browser game on a phone without the app.
 3. Once the player sends it, the extension opens the app at
    `panzergefecht://play?room=CODE&mode=defense&host=1`. An extension may
@@ -213,8 +213,8 @@ outgoing connections (`network.client`, without it Supabase is out of reach
 and the app plays offline) and the camera, for the QR code button in the room
 list (`mobile_scanner`, text in `NSCameraUsageDescription`). Room links from
 the web open the app as on iOS: both entitlements files carry the associated
-domain `applinks:www.regetskcob.de`, the AASA file already names the shared
-app id, and `AppDelegate.swift` hands the browsing activity to `app_links`,
+domains `applinks:panzergefecht.de` and, for links shared before the move,
+`applinks:www.regetskcob.de`; the AASA file already names the shared app id, and `AppDelegate.swift` hands the browsing activity to `app_links`,
 which on the Mac leaves universal links to the app. A pairing link
 (`?pad=`) opened on the Mac only says that phones are the controllers. The
 entitlement needs a development or distribution certificate, so CI, which

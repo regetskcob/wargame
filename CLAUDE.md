@@ -1,7 +1,7 @@
 # Panzergefecht – Leitfaden für Claude
 
 Panzerspiel in Oliv (Flutter 3.47 + Flame 2.0, Supabase als einziges
-Backend, kein eigener Server). Live unter <https://www.regetskcob.de/wargame/> (Landingpage, Spiel unter `play/`),
+Backend, kein eigener Server). Live unter <https://panzergefecht.de/> (Landingpage, Spiel unter `play/`),
 dazu iOS/Android-Apps (`de.regetskcob.wargame`) und eine Apple-Watch-App.
 Die README ist das Schaufenster für Besucher (Screenshots, Modi, Highlights,
 Schnellstart), die ausführliche Referenz liegt in `docs/` (`gameplay.md`,
@@ -72,7 +72,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
-| Landingpage | `site/` (Hugo) vor dem Spiel unter `/wargame/`, Spiel unter `/wargame/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
+| Landingpage | `site/` (Hugo) an der Wurzel von panzergefecht.de, Spiel unter `/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | In-App-Käufe | `lib/src/store/` (`Shop`, `Product`), `lib/src/db/purchase_service.dart`, Edge Function `supabase/functions/verify-purchase`, Tabelle `entitlements` (0021); vorbereitet, aus per `PURCHASES`, nur mit Konto; `docs/purchases.md` |
 | Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight` (iOS, tvOS, macOS), `play` (manuell); vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Apple-Signierung | `apple/Signing.xcconfig` für alle drei Xcode-Projekte (Team, automatisch), lokal überschreibbar per `apple/Signing.local.xcconfig`; keine Signier-Werte in die `project.pbxproj` (nur `tvos/` trägt das Team zusätzlich, flutter-tvos liest es dort) |

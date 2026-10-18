@@ -238,8 +238,8 @@ Watchers of the repository get a mail for both.
 
 ### Landing page
 
-`site/` is a small Hugo site, the page in front of the game at
-`/wargame/`. Its texts and pictures are the App Store listing: name,
+`site/` is a small Hugo site, the page in front of the game at the root
+of <https://panzergefecht.de/>. Its texts and pictures are the App Store listing: name,
 subtitle, promotional text and description come from
 `store/ios/metadata/<lang>/`, screenshots and the device artwork from
 `store/ios/screenshots/` (Hugo mounts in `site/hugo.toml`, resized to WebP
@@ -270,14 +270,14 @@ switch does not flash, and pointing at the button already prefetches the
 game's scripts. Links that used to open the game at the old address (room
 and pairing links of older apps, sign-in mails with `?code=`, home screen
 shortcuts) are passed on to `play/` before the page draws, so they keep
-working. The Impressum, privacy and licence pages stay at
-`/wargame/impressum/`, `/wargame/datenschutz/` and `/wargame/lizenzen/`; the
+working. The Impressum, privacy and licence pages sit at
+`/impressum/`, `/datenschutz/` and `/lizenzen/`; the
 licence page links the `NOTICES` file of the web build, which holds the
 licences of every package and the engine, and adds Roboto in full. The game
 shows the same under "Lizenzen" with Flutter's licence page, where
 `LegalLinks` registers the Roboto licence as well.
 
-`/wargame/support/` (and `en/support/`) is the support URL of the store
+`/support/` (and `en/support/`) is the support URL of the store
 listings. Without a server of its own its form sends nothing: it writes
 topic, device, call sign and message into a mail to `params.supportMail`
 in `site/hugo.toml` and opens it in the visitor's mail app, so no form
@@ -285,15 +285,15 @@ service sees what people type. Real sending would need a Supabase Edge
 Function with an SMTP account.
 
 ```sh
-hugo server --source site          # http://localhost:1313/wargame/
+hugo server --source site          # http://localhost:1313/
 ```
 
 The play button needs the game next to it; for the whole site as deployed:
 
 ```sh
-flutter build web --base-href /wargame/play/
-hugo --source site --baseURL http://localhost:8000/wargame/ -d /tmp/site/wargame
-cp -R build/web /tmp/site/wargame/play
+flutter build web --base-href /play/
+hugo --source site --baseURL http://localhost:8000/ -d /tmp/site
+cp -R build/web /tmp/site/play
 python3 -m http.server -d /tmp/site 8000
 ```
 
