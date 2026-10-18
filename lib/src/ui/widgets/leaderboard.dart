@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../app/env.dart';
 import '../../db/score_points.dart';
 import '../../db/supabase_schema.g.dart';
 import '../../game/tank_game.dart';
@@ -49,7 +50,56 @@ class _LeaderboardState extends State<Leaderboard> {
     super.dispose();
   }
 
+  /// Made-up pilots for the store pictures, which would otherwise show
+  /// whatever call signs real players chose that day.
+  static const _shotRows = [
+    ScoresRow({
+      'id': 's1',
+      'name': 'Nordwind',
+      'wins': 41,
+      'kills': 352,
+      'rounds': 180,
+      'updated_at': '2026-10-01T00:00:00Z',
+    }),
+    ScoresRow({
+      'id': 's2',
+      'name': 'Feldlerche',
+      'wins': 33,
+      'kills': 297,
+      'rounds': 166,
+      'updated_at': '2026-10-01T00:00:00Z',
+    }),
+    ScoresRow({
+      'id': 's3',
+      'name': 'Kiesel',
+      'wins': 25,
+      'kills': 210,
+      'rounds': 131,
+      'updated_at': '2026-10-01T00:00:00Z',
+    }),
+    ScoresRow({
+      'id': 's4',
+      'name': 'Graupel',
+      'wins': 12,
+      'kills': 96,
+      'rounds': 74,
+      'updated_at': '2026-10-01T00:00:00Z',
+    }),
+    ScoresRow({
+      'id': 's5',
+      'name': 'Moosbeere',
+      'wins': 6,
+      'kills': 41,
+      'rounds': 38,
+      'updated_at': '2026-10-01T00:00:00Z',
+    }),
+  ];
+
   void _reload() {
+    if (Env.shots) {
+      _scores = Future.value(_last = _shotRows);
+      return;
+    }
     _scores = widget.game.scoreService.topScores(limit: 100).then((rows) {
       _last = rows;
       return rows;

@@ -108,7 +108,29 @@ case " $targets " in *" tv "*)
   ;;
 esac
 case " $targets " in *" mac "*)
+  # Sign ad hoc as CI does: a team-signed debug build with the associated
+  # domain needs a profile that lists this very Mac, and the pictures need
+  # neither. An ad hoc signature cannot carry the domain, so it comes out of
+  # the entitlements for the build and goes back in afterwards.
+  local_signing="$root/apple/Signing.local.xcconfig"
+  entitlements="$root/macos/Runner/DebugProfile.entitlements"
+  [ -e "$local_signing" ] && cp "$local_signing" "$local_signing.shots"
+  cp "$entitlements" "$entitlements.shots"
+  restore_mac() {
+    if [ -e "$local_signing.shots" ]; then
+      mv "$local_signing.shots" "$local_signing"
+    else
+      rm -f "$local_signing"
+    fi
+    mv "$entitlements.shots" "$entitlements"
+  }
+  trap restore_mac EXIT
+  printf 'DEVELOPMENT_TEAM =\nCODE_SIGN_IDENTITY = -\n' >"$local_signing"
+  /usr/libexec/PlistBuddy -c 'Delete :com.apple.developer.associated-domains' \
+    "$entitlements"
   flutter build macos --debug $defines
+  restore_mac
+  trap - EXIT
   app="$root/$(ls -d build/macos/Build/Products/Debug/*.app | head -1)"
   exe="$app/Contents/MacOS/$(defaults read "$app/Contents/Info" CFBundleExecutable)"
   # The sandbox lets the app write into its own container only.
