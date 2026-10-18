@@ -145,8 +145,10 @@ Kontoverwaltung:
 - App-Aktivitäten → Andere nutzergenerierte Inhalte (Rufname, Fahrzeug, Spielstände)
 - App-Aktivitäten → Interaktionen mit der App (Statistiken, Runden, Wertung)
 
-**Einstufung (IARC-Fragebogen):** Kategorie Spiel. Gewalt gegen
-nicht realistische Figuren bzw. Fahrzeuge, kein Blut. Nutzer interagieren
+**Einstufung (IARC-Fragebogen):** Kategorie Spiel. Comicartige Gewalt
+gegen Fahrzeuge und winzige Soldaten in der Draufsicht; wo ein Soldat
+überrollt wird, bleibt ein kleiner roter Fleck, der braun eintrocknet
+(`BloodSplat` in `soldier.dart`), also „Blut: ja, gering“. Nutzer interagieren
 nicht per Chat, sehen aber selbst gewählte Rufnamen in Raum und Bestenliste.
 Ergibt voraussichtlich USK 12 / PEGI 12.
 
