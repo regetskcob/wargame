@@ -144,6 +144,13 @@ Kontoverwaltung:
 - Personenbezogene Daten → Nutzer-IDs (anonyme Kennung des Gastkontos)
 - App-Aktivitäten → Andere nutzergenerierte Inhalte (Rufname, Fahrzeug, Spielstände)
 - App-Aktivitäten → Interaktionen mit der App (Statistiken, Runden, Wertung)
+- Geräte- oder andere IDs (Kennung pro Installation) und App-Info und
+  Leistung → Diagnosedaten, beide für Analysen: Googles ML Kit hinter dem
+  QR-Scanner (`mobile_scanner`) sendet sie an Google, nicht an Dritte,
+  siehe <https://developers.google.com/ml-kit/android-data-disclosure>
+
+**Werbe-ID:** Nein, das Bundle trägt keine `AD_ID`-Berechtigung und kein
+Werbe-SDK.
 
 **Einstufung (IARC-Fragebogen):** Kategorie Spiel. Comicartige Gewalt
 gegen Fahrzeuge und winzige Soldaten in der Draufsicht; wo ein Soldat
@@ -163,8 +170,9 @@ SPIELEN“). Den Text aus `../ios/metadata/review_notes.txt` als Hinweis
 Mehrspieler.
 
 **Kamera:** Die App fragt nach der Kamera nur, um den QR-Code eines
-Warteraums zu lesen. Das Bild bleibt auf dem Gerät, in der Datensicherheit
-wird dafür nichts angegeben. Die Kamera ist als optional deklariert, Geräte
+Warteraums zu lesen. Das Bild bleibt auf dem Gerät, für das Bild selbst
+wird in der Datensicherheit nichts angegeben, nur die Diagnosedaten von
+ML Kit (oben). Die Kamera ist als optional deklariert, Geräte
 ohne Kamera bleiben im Store.
 
 **Datenschutz-URL:** `https://www.regetskcob.de/wargame/datenschutz/` (wie im
