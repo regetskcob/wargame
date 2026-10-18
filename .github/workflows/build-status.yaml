@@ -25,7 +25,9 @@ jobs:
       github.event.workflow_run.event != 'pull_request' &&
       contains(fromJSON('["success", "failure", "timed_out"]'),
       github.event.workflow_run.conclusion)
-    runs-on: ubuntu-latest
+    # One gh call needs no full runner: the single-core one costs a third.
+    runs-on: ubuntu-slim
+    timeout-minutes: 5
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}

@@ -102,9 +102,9 @@ flutter build ios --release        # iOS, set your signing team in Xcode first
 ```
 
 Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
-for the web build. CI builds the iOS app without signing
-(`flutter build ios --release --no-codesign`) and the Android App Bundle with
-the debug key on every push. Signing for every Apple platform (iOS with its
+for the web build. The `ci` workflow, started by hand, builds the iOS app
+without signing (`flutter build ios --release --no-codesign`) and the Android
+App Bundle with the debug key. Signing for every Apple platform (iOS with its
 widget and iMessage extension, Apple TV, Mac) is set once in
 `apple/Signing.xcconfig`: team, automatic signing, the development
 certificate. Flutter keeps one Xcode project per platform, so each project's
@@ -344,9 +344,10 @@ stale one; `ALLOW_NO_WATCH=1` lets one through on purpose. Older watches
 (Series 4 to 8, SE 1/2, Ultra 1) get the stub slice flutter-watchos adds, which
 only says that the app needs a Series 9.
 
-CI (job `watchos` in `ci.yaml`) builds the watch app for the Simulator with
-the toolchain tag `v3.47.5-watchos.0.1.1`, which needs no account, so a
-broken watch build shows up there. Release builds need a signed-in
+CI (job `watchos` in `ci.yaml`, ticked by hand when starting the workflow)
+builds the watch app for the Simulator with the toolchain tag
+`v3.47.5-watchos.0.1.1`, which needs no account, so a broken watch build
+shows up there. Release builds need a signed-in
 `flutter-watchos` account and stay local (`tool/archive_ios.sh`); the
 `testflight` workflow cannot build the watch app.
 
@@ -399,7 +400,7 @@ manifest of the library module `android/wear/` (`android.hardware.type.watch`,
 and adds 100000 to the version code. Play takes it as a form factor of its
 own with `wear:` tracks, uploaded through the `play` workflow with
 `form_factor: wear` (see `store/android/README.md`). The phone bundle carries
-none of this. CI and `tool/verify.sh` build both.
+none of this. `tool/verify.sh` and a manual run of `ci` build both.
 
 State: tried in the Wear OS 6 emulator (small round, 384 px), not on a real
 watch yet; the Wear OS form factor still has to be added in the Play Console.

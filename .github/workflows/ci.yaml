@@ -1,34 +1,62 @@
 name: ci
 
+# Pushes to main are checked by the pages workflow, which deploys in the same
+# job. This one checks pull requests on Linux and builds the native apps
+# only when started by hand (Actions > ci > Run workflow, or
+# `gh workflow run ci`): a macOS minute costs ten Linux minutes in a private
+# repository, and tool/verify.sh builds iOS, the Mac app and Android locally
+# before a push that needs them. See "CI minutes" in docs/development.md.
 on:
-  push:
-    branches: [main]
   pull_request:
+  workflow_dispatch:
+    inputs:
+      apple:
+        description: iOS and Mac app (macOS runner, ten times the minutes)
+        type: boolean
+        default: true
+      android:
+        description: Android and Wear OS app bundles
+        type: boolean
+        default: true
+      watchos:
+        description: Apple Watch app for the Simulator (macOS runner)
+        type: boolean
+        default: false
+
+# A newer push to the same pull request replaces the run still going.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build:
+  check:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.47.0
+          cache: true
       - run: dart pub get
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test --exclude-tags supabase --coverage
       - run: dart run tool/coverage.dart --min 75
-      - run: flutter build web
 
   ios:
+    if: github.event_name == 'workflow_dispatch' && inputs.apple
     runs-on: macos-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.47.0
+          cache: true
       - run: dart pub get
       - run: flutter build ios --release --no-codesign
       # No certificate here: sign the Mac app ad hoc instead of with the
@@ -39,7 +67,9 @@ jobs:
       - run: flutter build macos --release
 
   android:
+    if: github.event_name == 'workflow_dispatch' && inputs.android
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -50,6 +80,7 @@ jobs:
         with:
           channel: stable
           flutter-version: 3.47.0
+          cache: true
       - run: dart pub get
       - run: flutter build appbundle --release
       # The same app for Wear OS watches, with the watch manifest.
@@ -59,7 +90,9 @@ jobs:
   # flutter-watchos account. Release builds for the watch stay local for now,
   # see "Apple Watch" in docs/platforms.md.
   watchos:
+    if: github.event_name == 'workflow_dispatch' && inputs.watchos
     runs-on: macos-latest
+    timeout-minutes: 20
     env:
       FLUTTER_WATCHOS_VERSION: v3.47.5-watchos.0.1.1
     steps:
