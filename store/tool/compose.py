@@ -130,8 +130,11 @@ PLAY_SHOTS = [
     ("tenInchScreenshots/" + name.removeprefix("ipad-"), raw, TABLET, text)
     for name, raw, size, text in IOS_SHOTS
 ] + [
-    ("sevenInchScreenshots/" + name.removeprefix("ipad-"), raw, SMALL_TABLET,
-     text)
+    # Named apart from the ten-inch shots, which share the base names: in the
+    # Play Console's upload dialog both sets otherwise look the same.
+    ("sevenInchScreenshots/"
+     + name.removeprefix("ipad-") + "-7inch",
+     raw, SMALL_TABLET, text)
     for name, raw, size, text in IOS_SHOTS
     if size == IPAD
 ]
