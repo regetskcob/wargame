@@ -24,6 +24,14 @@ Session _session({required String user, required String token}) => Session(
 );
 
 void main() {
+  test('only an entry longer than any mail code counts as a password', () {
+    expect(AccountService.isPassword('123456'), isFalse);
+    expect(AccountService.isPassword(' 1234567890 '), isFalse);
+    // The review account's password: digits only, so the number pad of
+    // the code field can type it.
+    expect(AccountService.isPassword('4815162342108421'), isTrue);
+  });
+
   group('token and user of a session', () {
     test('match when the token was issued for the user', () {
       final session = _session(

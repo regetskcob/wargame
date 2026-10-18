@@ -7,7 +7,7 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## 1.7.0 (14) – 2026-10-18
+## 1.7.0 (15) – 2026-10-18
 
 - The closed zone of a battle holds for 30 seconds and then draws in to
   nothing, with damage rising every second, so every round comes to an end

@@ -209,17 +209,36 @@ class AccountService {
     await _client.auth.signInWithOAuth(provider, redirectTo: authRedirect());
   }
 
-  /// Confirms an e-mail change or a sign-in with the code from the mail.
+  /// The longest code a sign-in mail carries; the auth service sends 6 to
+  /// 10 digits.
+  static const _longestCode = 10;
+
+  /// Whether [code] is longer than any code from a mail, and so the
+  /// password of an account that has one. Only the review account of the
+  /// stores does: Apple and Google need a sign-in that works again and
+  /// again without a mailbox, and their reviewers may not register.
+  static bool isPassword(String code) => code.trim().length > _longestCode;
+
+  /// Confirms an e-mail change or a sign-in with the code from the mail,
+  /// or signs in with the password typed into the same field, see
+  /// [isPassword].
   Future<void> verifyCode(
     String email,
     String code, {
     required bool signIn,
   }) async {
-    await _client.auth.verifyOTP(
-      email: email.trim(),
-      token: code.trim(),
-      type: signIn ? OtpType.email : OtpType.emailChange,
-    );
+    if (signIn && isPassword(code)) {
+      await _client.auth.signInWithPassword(
+        email: email.trim(),
+        password: code.trim(),
+      );
+    } else {
+      await _client.auth.verifyOTP(
+        email: email.trim(),
+        token: code.trim(),
+        type: signIn ? OtpType.email : OtpType.emailChange,
+      );
+    }
     user.value = _client.auth.currentUser;
   }
 

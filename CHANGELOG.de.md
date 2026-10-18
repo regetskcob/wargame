@@ -8,7 +8,7 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## 1.7.0 (14) – 18.10.2026
+## 1.7.0 (15) – 18.10.2026
 
 - Die geschlossene Zone eines Gefechts hält 30 Sekunden und zieht sich
   dann ganz zusammen, mit jeder Sekunde mehr Schaden, so endet jede Runde

@@ -1,6 +1,6 @@
 Anmeldung ist nicht nötig: Auf dem Startbildschirm „ALS GAST SPIELEN“ wählen, dann eine Spielart. Für eine kurze Runde „Einzelspieler“, Schwierigkeit „Leicht“, „ÜBUNG STARTEN“.
 
-Das freiwillige Konto mit E-Mail-Adresse wird über den Code aus der Anmeldemail bestätigt, der Link in der Mail öffnet die Webversion des Spiels.
+Das freiwillige Konto mit E-Mail-Adresse wird über den Code aus der Anmeldemail bestätigt, der Link in der Mail öffnet die Webversion des Spiels. Für die Prüfung gibt es ein Konto mit Passwort (Anmeldedaten in App Store Connect bzw. der Play Console): auf dem ersten Bildschirm „ANMELDEN“, die E-Mail eingeben, „ANMELDELINK SENDEN“, dann das Passwort in das Feld „CODE AUS DER MAIL“ eingeben und „BESTÄTIGEN“. Die Mail selbst wird nicht gebraucht.
 
 Mehrspieler läuft über Supabase Realtime. Mit nur einem Gerät füllt die Option „Mit CPU auffüllen“ das Feld mit CPU-Panzern.
 
@@ -10,7 +10,7 @@ Lizenzen: Spiel und Quelltext gehören Daniel Bocksteger, alle Rechte vorbehalte
 
 English: No sign-in is needed. On the start screen choose "PLAY AS GUEST" (the game follows the device language, English or German), then a game mode. For a short round choose "Single player", difficulty "Easy", start the battle.
 
-The optional account with an e-mail address is confirmed with the code from the sign-in mail, the link in the mail opens the web version of the game.
+The optional account with an e-mail address is confirmed with the code from the sign-in mail, the link in the mail opens the web version of the game. For the review there is an account with a password (sign-in information in App Store Connect or the Play Console): on the first screen choose "SIGN IN", enter the e-mail, tap "SEND SIGN-IN LINK", then type the password into the field "CODE FROM THE MAIL" and tap "CONFIRM". The mail itself is not needed.
 
 Multiplayer runs on Supabase Realtime. With only one device, the option "Fill with CPU" fills the field with CPU tanks.
 
