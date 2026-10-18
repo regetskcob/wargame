@@ -98,7 +98,10 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   Doku: `tool/verify.sh --quick` reicht (den Web-Build macht `pages`).
   Voller Lauf (`tool/verify.sh`: Web, iOS, Android) bei `pubspec.*`,
   `ios/`, `android/`, `tvos/`, Watch, Assets, Plugins, Versionsnummer,
-  größeren Umbauten und vor Store-Releases.
+  größeren Umbauten und vor Store-Releases. Auf `main` prüft nur der
+  Workflow `pages` (Linux, ein Job); native Builds in CI nur von Hand
+  (`gh workflow run ci`), weil macOS-Minuten im privaten Repo zehnfach
+  zählen (`docs/development.md` „CI minutes“).
 - Code, Kommentare, Commit-Messages, README und `docs/` auf **Englisch**; Commits als
   ganzer Satz im Imperativ ohne Präfix ("Put leave on the left …").
   Mit dem Nutzer auf Deutsch sprechen.

@@ -48,7 +48,7 @@ All **blocker**.
 | --- | --- | --- |
 | B1 | `pubspec.yaml` carries the new `x.y.z+build`, the build number is above every earlier upload to either store | auto: `grep version pubspec.yaml`, compare with the last "Raise the version" commit |
 | B2 | `CHANGELOG.md` and `CHANGELOG.de.md` have the same version, sections and number of points | auto: diff the headings and bullet counts |
-| B3 | `main` is clean and equal to `origin/main`, CI, Pages and build-status green on that commit | auto: `git status`, `gh run list --branch main --limit 5` |
+| B3 | `main` is clean and equal to `origin/main`, Pages and build-status green on that commit (the native builds are A1, locally) | auto: `git status`, `gh run list --branch main --limit 5` |
 | B4 | Every migration in `supabase/migrations` is live | auto: `supabase migration list` shows each on both sides |
 | B5 | The archive was built with the right defines: `tool/check_dart_defines.sh` passed in the Xcode build, `Env` points at the live project (build 4 shipped with all defines glued into `SUPABASE_URL`) | auto: `tool/archive_ios.sh` checks URL, versions, watch app and signature |
 | B6 | The iOS archive contains the watch app (build 5 went out without one) | auto: `tool/archive_ios.sh`; after processing App Store Connect → TestFlight → "Apple Watch: yes" (owner) |

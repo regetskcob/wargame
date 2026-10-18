@@ -1,5 +1,10 @@
 name: pages
 
+# The one workflow every push to main starts: checks, then the deploy, in a
+# single Linux job. In a private repository every runner minute counts
+# against the plan (see "CI minutes" in docs/development.md), so the checks
+# and the build share one checkout and one Flutter setup instead of running
+# twice in ci and pages, and the native builds wait for a manual run of ci.
 on:
   push:
     branches: [main]
@@ -10,6 +15,8 @@ permissions:
   pages: write
   id-token: write
 
+# A newer push replaces the run still going: only the newest commit is
+# deployed, and the cancelled minutes are no longer billed.
 concurrency:
   group: pages
   cancel-in-progress: true
@@ -17,6 +24,8 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    # A hung step would otherwise bill up to six hours.
+    timeout-minutes: 25
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -27,10 +36,13 @@ jobs:
       # game below it in play/.
       - id: pages
         uses: actions/configure-pages@v5
+      # The cache keeps the SDK and the pub packages between runs, which
+      # saves about a minute per push.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           flutter-version: 3.47.0
+          cache: true
       # Hugo straight from its releases: the repository only allows GitHub's
       # own actions and the Flutter one.
       - name: Install Hugo
@@ -42,8 +54,12 @@ jobs:
         env:
           HUGO_VERSION: 0.154.5
       - run: dart pub get
-      # Red tests stop the deploy.
-      - run: flutter test --exclude-tags supabase
+      # The same checks as tool/verify.sh --quick. Anything red stops the
+      # deploy.
+      - run: dart format --set-exit-if-changed .
+      - run: flutter analyze
+      - run: flutter test --exclude-tags supabase --coverage
+      - run: dart run tool/coverage.dart --min 75
       - name: Build the game
         run: |
           args=()
@@ -69,8 +85,10 @@ jobs:
         run: cp -R build/web build/site/play
       - name: Write the Impressum and privacy pages
         run: dart run tool/legal_pages.dart build/site
+      # Kept one day only: artifact storage beyond the plan's 1 GB is billed.
       - uses: actions/upload-pages-artifact@v3
         with:
           path: build/site
+          retention-days: 1
       - id: deployment
         uses: actions/deploy-pages@v4

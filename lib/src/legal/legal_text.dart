@@ -307,11 +307,9 @@ const licenses = [
   ),
   LegalBlock(
     'Quelltext',
-    'Der Quelltext ist auf GitHub öffentlich einsehbar. Das ist keine '
-        'Open-Source-Lizenz: Es wird kein Recht eingeräumt, ihn ganz oder in '
-        'Teilen zu nutzen, zu kopieren, zu verändern oder zu verbreiten. '
-        'Erlaubt ist nur, was die Nutzungsbedingungen von GitHub zwingend '
-        'vorsehen, also das Ansehen und Forken auf GitHub selbst.',
+    'Der Quelltext ist nicht Open Source: Es wird kein Recht eingeräumt, '
+        'ihn ganz oder in Teilen zu nutzen, zu kopieren, zu verändern oder zu '
+        'verbreiten.',
   ),
   LegalBlock(
     'Komponenten von Dritten',
@@ -347,11 +345,8 @@ const licensesEn = [
   ),
   LegalBlock(
     'Source code',
-    'The source code is publicly visible on GitHub. This is not an open '
-        'source licence: no right is granted to use, copy, modify or '
-        'distribute it in whole or in part. Only what the GitHub terms of '
-        'service require is allowed, that is viewing and forking on GitHub '
-        'itself.',
+    'The source code is not open source: no right is granted to use, '
+        'copy, modify or distribute it in whole or in part.',
   ),
   LegalBlock(
     'Third-party components',

@@ -51,7 +51,7 @@ asynchronously and only mount if the test yields between frames
 (`await Future<void>.delayed(Duration.zero)`); and inside `testWidgets`
 game changes that start timers belong in `tester.runAsync`.
 
-CI and `tool/verify.sh` run the tests with `--coverage` and
+The `pages` workflow and `tool/verify.sh` run the tests with `--coverage` and
 `dart run tool/coverage.dart --min 75` fails below 75 % of the lines.
 It leaves generated code out, prints the files with the most uncovered
 lines, and lists the files no test loads at all (the app shell, the
@@ -235,6 +235,44 @@ GitHub only mails when a workflow fails, not when it recovers. The
 `main`, it opens an issue labelled `build-failed` (one per workflow, later
 failures add a comment), and the next green run closes it with a comment.
 Watchers of the repository get a mail for both.
+
+### CI minutes
+
+In a private repository GitHub Actions bills every runner minute against
+the plan: GitHub Pro includes 3,000 minutes and 1 GB of artifact storage a
+month, a macOS minute counts about ten Linux minutes (US$0.062 against
+US$0.006), and each job is rounded up to the whole minute. Before the
+change a push to `main` cost about 165 of those minutes (ci with iOS, Mac,
+watch and Android builds, then pages testing and building again), at some
+85 pushes a month far beyond the plan. The workflows now keep a push near
+ten Linux minutes:
+
+| Workflow | Runs | Runner |
+| --- | --- | --- |
+| `pages` | every push to `main`: format, analyze, tests with coverage, web and landing page build, deploy, all in one job | Linux |
+| `build-status` | after `pages` (and a manual `ci`) on `main` | Linux, single core (`ubuntu-slim`) |
+| `ci` | pull requests: the checks only; by hand (`gh workflow run ci -f apple=true -f android=true -f watchos=false`): the native builds | Linux, macOS for Apple |
+| `testflight`, `play` | by hand for a release | macOS, Linux |
+
+The rest of the savings: a newer push cancels the run still going
+(`cancel-in-progress`), the Flutter SDK and pub packages come from the
+Actions cache, every job has a `timeout-minutes` (the default would bill
+six hours of a hung macOS job), and artifacts are kept for a day (the
+site) or a week (store builds, which live on in TestFlight and Play).
+
+The native builds are checked locally instead, by the full
+`tool/verify.sh` before a push that touches `pubspec.*`, `ios/`,
+`android/`, `tvos/`, the watch, assets or plugins. A TestFlight upload
+costs some 250 minutes per platform; archiving locally
+(`tool/archive_ios.sh`) costs none. A self-hosted runner on the Mac would
+be free too, but runs every workflow's code on that machine.
+
+Keep the Actions budget of the account (Settings, Billing and licensing,
+Budgets and alerts) at US$0 with "Stop usage when budget limit is
+reached": then a month that runs out of minutes stops the workflows
+instead of billing, and GitHub mails at 90 and 100 % of the included
+minutes. The Pages site itself stays public and free when the repository
+is private.
 
 ### Landing page
 

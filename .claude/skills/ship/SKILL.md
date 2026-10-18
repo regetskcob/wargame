@@ -29,12 +29,17 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    client must never call functions the database lacks.
 5. `git push origin HEAD:main`. If main moved meanwhile, merge again and
    repeat from 3.
-6. `gh run list --branch main --limit 3` and `gh run watch <id>` for `ci` and
-   `pages` once, without polling loops.
+6. `gh run list --branch main --limit 3` and `gh run watch <id>` for `pages`
+   once, without polling loops. `pages` is the only check on `main` (format,
+   analyze, tests, build, deploy in one Linux job); `ci` builds the native
+   apps only when started by hand, because macOS minutes cost ten times as
+   much in the private repository (docs/development.md "CI minutes"). Start
+   it (`gh workflow run ci --ref main`) only when the user asks or a release
+   needs it, never as a routine.
 7. Report: commit hash on main, which builds ran, CI result, and anything
    the user still has to do by hand (dashboard settings, store uploads).
    The outcome is the first line of the reply, bold with a symbol, so it
-   is not lost in the text: **✅ Auf main: `<hash>`, CI und Pages grün**,
+   is not lost in the text: **✅ Auf main: `<hash>`, Pages grün**,
    or **❌ …** with what failed.
    Update the matching memory entry if a roadmap item moved.
 8. Free the disk. When the session's task is done with this ship (nothing
