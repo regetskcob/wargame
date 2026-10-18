@@ -74,7 +74,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
 | Landingpage | `site/` (Hugo) an der Wurzel von panzergefecht.de, Spiel unter `/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | In-App-Käufe | `lib/src/store/` (`Shop`, `Product`), `lib/src/db/purchase_service.dart`, Edge Function `supabase/functions/verify-purchase`, Tabelle `entitlements` (0021); vorbereitet, aus per `PURCHASES`, nur mit Konto; `docs/purchases.md` |
-| Store/Release | `store/ios`, `store/android` (je README), Workflows `testflight` (iOS, tvOS, macOS), `play` (manuell); vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
+| Store/Release | `store/ios`, `store/android` (je README), Release-Builds nur lokal (`tool/archive_ios.sh`, `tool/archive_apple.sh`, `tool/release_android.sh`, je `--upload`), CI validiert nur; vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Apple-Signierung | `apple/Signing.xcconfig` für alle drei Xcode-Projekte (Team, automatisch), lokal überschreibbar per `apple/Signing.local.xcconfig`; keine Signier-Werte in die `project.pbxproj` (nur `tvos/` trägt das Team zusätzlich, flutter-tvos liest es dort) |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 

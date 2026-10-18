@@ -4,20 +4,29 @@
 # The tvOS and macOS counterpart of tool/archive_ios.sh, with the same defines
 # and the same checks; signing comes from apple/Signing.xcconfig.
 #
-# Usage: tool/archive_apple.sh tvos|macos   (from the repository root, on an
-# up to date main)
+# Usage: tool/archive_apple.sh tvos|macos [--upload]   (from the repository
+# root, on an up to date main)
 #
-# Upload the archive from the Organizer (Distribute App). The tvOS engine has
+# --upload sends the checked archive to App Store Connect
+# (tool/upload_archive.sh); without it, upload it from the Organizer
+# (Distribute App) or not at all. The tvOS engine has
 # to carry an Apple Distribution signature for the App Store (ITMS-91065):
 # flutter-tvos signs it when that certificate is in the keychain and warns
 # otherwise.
 
 set -euo pipefail
 
+usage() { printf 'usage: %s tvos|macos [--upload]\n' "$0" >&2; exit 2; }
 platform="${1:-}"
 case "$platform" in
   tvos | macos) ;;
-  *) printf 'usage: %s tvos|macos\n' "$0" >&2; exit 2 ;;
+  *) usage ;;
+esac
+upload=0
+case "${2:-}" in
+  "") ;;
+  --upload) upload=1 ;;
+  *) usage ;;
 esac
 
 cd "$(dirname "$0")/.."
@@ -82,5 +91,13 @@ echo "$target"
 # Opening the archive hands it to Xcode, which lists it in the Organizer at
 # once; an Organizer already open does not always notice a new folder.
 [ -n "${CI:-}" ] || open "$target"
+if [ "$upload" = "0" ]; then
+  step "done"
+  echo "Upload it with --upload, or in Xcode: Window > Organizer > Archives > Panzergefecht > Distribute App."
+  exit 0
+fi
+
+step "upload $platform $name ($number) to App Store Connect"
+tool/upload_archive.sh "$target"
 step "done"
-echo "In Xcode: Window > Organizer > Archives > Panzergefecht > Distribute App."
+echo "Uploaded. App Store Connect lists it under TestFlight once processed."

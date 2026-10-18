@@ -1,8 +1,8 @@
 # Google Play
 
 Alles, was die Play Console für Panzergefecht braucht. Die Ordner folgen dem
-Aufbau von `fastlane supply`: Der Workflow `play` lädt Bundle, Texte und
-Bilder hoch (siehe [Deployment](#deployment)). Von Hand lassen sie sich genauso
+Aufbau von `fastlane supply`: `tool/release_android.sh` lädt Bundle, Texte
+und Bilder vom Mac hoch (siehe [Deployment](#deployment)). Von Hand lassen sie sich genauso
 in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
 
 | Feld in der Play Console | Datei |
@@ -47,26 +47,35 @@ nach dem ersten Upload nie mehr ändern.
    Ergebnis: `build/app/outputs/bundle/release/app-release.aab`.
 3. In der Play Console **Play App Signing** aktiv lassen: Google hält den
    App-Signaturschlüssel, wir nur den Upload-Schlüssel.
-4. Der versionCode muss mit jedem Upload steigen. Der Workflow setzt ihn auf
-   die Laufnummer plus eins, für sichtbare Versionen `version:` in
-   `pubspec.yaml` hochzählen (der Teil vor dem `+` ist der versionName).
+4. Der versionCode muss mit jedem Upload steigen. Er ist die Build-Nummer
+   hinter dem `+` in `version:` in `pubspec.yaml`, der Teil davor der
+   versionName.
 
-Ohne `key.properties` signiert Gradle mit dem Debug-Schlüssel. So baut CI,
-Play nimmt ein solches Bundle aber nicht an.
+Ohne `key.properties` signiert Gradle mit dem Debug-Schlüssel. So baut ein
+Hand-Lauf von `ci`, Play nimmt ein solches Bundle aber nicht an.
 
 ## Deployment
 
-Hochgeladen wird mit `fastlane supply` aus `android/fastlane`, in CI über den
-Workflow **play** (Actions > play > Run workflow). Er baut das signierte
-Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
-`ACCOUNTS` wie die Webversion und lädt es in den gewählten Track:
+Gebaut und hochgeladen wird nur lokal, nie in der CI (siehe
+`docs/development.md` „CI minutes“): `tool/release_android.sh` baut das
+signierte Bundle mit `--dart-define=ACCOUNTS=true` (URL und Schlüssel von
+Supabase sind die Vorgaben in `Env`), prüft Signatur und Supabase-URL, legt
+eine Kopie in `build/release/` ab und lädt es mit `--upload` per
+`fastlane supply` aus `android/fastlane` hoch:
 
-| Eingabe | Bedeutung |
+```sh
+tool/release_android.sh phone                          # nur bauen und prüfen
+tool/release_android.sh phone --upload internal         # Entwurf im internen Test
+tool/release_android.sh phone --upload internal --metadata --completed
+tool/release_android.sh wear --upload internal          # Wear OS, eigener Track
+```
+
+| Option | Bedeutung |
 | --- | --- |
-| `form_factor` | `phone` (Handy und Tablet) oder `wear` (Wear-OS-Uhren, siehe [Wear OS](#wear-os)) |
-| `track` | `internal` (interner Test), `alpha` (geschlossen), `beta` (offen), `production` |
-| `release_status` | `draft`, solange Store-Eintrag und Fragebögen unvollständig sind, danach `completed` |
-| `metadata` | Texte, Icon, Vorstellungsgrafik und Screenshots mit hochladen |
+| `phone` / `wear` | Handy und Tablet oder Wear-OS-Uhren, siehe [Wear OS](#wear-os) |
+| `--upload <track>` | `internal` (interner Test), `alpha` (geschlossen), `beta` (offen), `production` |
+| `--completed` | sofort freigeben statt als Entwurf, erst wenn Store-Eintrag und Fragebögen vollständig sind |
+| `--metadata` | Texte, Icon, Vorstellungsgrafik und Screenshots mit hochladen |
 
 ### Einmalig einrichten
 
@@ -81,17 +90,7 @@ Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
    und einen JSON-Schlüssel erzeugen. In der Play Console unter Nutzer und
    Berechtigungen das Dienstkonto einladen, für Panzergefecht mit „Releases
    verwalten“ und „Store-Präsenz verwalten“.
-4. **GitHub-Secrets** (Settings > Secrets and variables > Actions):
-
-   | Secret | Inhalt |
-   | --- | --- |
-   | `ANDROID_KEYSTORE_BASE64` | `base64 -i upload-keystore.jks \| pbcopy` |
-   | `ANDROID_KEYSTORE_PASSWORD` | Passwort des Keystores |
-   | `ANDROID_KEY_PASSWORD` | Passwort des Schlüssels |
-   | `ANDROID_KEY_ALIAS` | `upload` |
-   | `PLAY_SERVICE_ACCOUNT_JSON` | Inhalt der JSON-Datei des Dienstkontos |
-
-5. **Prüfen:** Lokal die JSON-Datei als `android/play-service-account.json`
+4. **Prüfen:** Lokal die JSON-Datei als `android/play-service-account.json`
    ablegen (git ignoriert sie), dann in `android/`:
 
    ```sh
@@ -101,15 +100,15 @@ Bundle mit den Repository-Variablen `SUPABASE_URL`, `SUPABASE_KEY` und
 
 ### Lokal hochladen
 
+Bundles baut `tool/release_android.sh` (oben). Die übrigen Lanes laufen in
+`android/` von Hand:
+
 ```sh
-flutter build appbundle --release --build-number=<versionCode> --dart-define=ACCOUNTS=true
-cd android
-bundle exec fastlane deploy track:internal metadata:true
 bundle exec fastlane metadata                      # nur Texte und Bilder
 bundle exec fastlane promote from:internal to:alpha
 ```
 
-Ohne `release_status:completed` landet das Release als Entwurf und muss in
+Ohne `--completed` landet das Release als Entwurf und muss in
 der Play Console freigegeben werden. Solange die App noch nie freigegeben
 wurde, nimmt die API ohnehin nur Entwürfe an.
 
@@ -124,8 +123,7 @@ als eigenen Formfaktor mit eigenen Tracks (`wear:internal`,
   das Manifest aus `android/wear/` an (`android.hardware.type.watch`,
   standalone, Vibration), setzt minSdk 30 (Wear OS 3) und schlägt 100000 auf den
   versionCode, damit er sich nie mit dem Handy-Bundle überschneidet.
-- Workflow **play** mit `form_factor: wear`, lokal
-  `bundle exec fastlane deploy form_factor:wear track:internal`, genauso
+- `tool/release_android.sh wear --upload internal`, genauso in `android/`
   `promote form_factor:wear from:internal to:production`.
 
 Einmalig in der Play Console: Test und Release > Einstellungen > Formfaktoren

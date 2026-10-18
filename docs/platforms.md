@@ -124,9 +124,9 @@ link in it opens the web game. To sign the Android release, copy
 your upload key; without it Gradle signs with the debug key, which Google Play
 rejects. Store texts, icons and screenshots for both stores live in
 `store/ios` and `store/android`, each with a README of what goes where. The
-`play` workflow (run by hand) builds the signed bundle and uploads it to a
-Google Play track with fastlane, see `store/android/README.md` for the
-secrets. To play
+release bundle is built, checked and uploaded to a Google Play track on
+this machine with `tool/release_android.sh` (fastlane underneath), see
+`store/android/README.md`. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
 
@@ -187,7 +187,7 @@ two pictures of the bubble: tanks of three colours on the battle ground for
 Last Tank Standing and capture the flag, the red defence holding its base
 on a sandy road against blue tanks for the defense and the duel. Both app
 and extension carry the app group in their entitlements; signing in the
-`testflight` workflow registers it with `-allowProvisioningUpdates`.
+archive with `-allowProvisioningUpdates` registers it.
 
 ## Mac
 
@@ -231,13 +231,12 @@ flutter build macos --release \
 ```
 
 The build signs with the team's development certificate from
-`apple/Signing.xcconfig`. To hand it on, run the `testflight` workflow with
-the platform `macos` (or `bundle exec fastlane mac beta` from `ios/`), or
-run `tool/archive_apple.sh macos`, which archives with the release defines,
-checks version, Supabase URL and team and puts the archive into the
-Organizer, or archive in Xcode (Product > Archive) and from the organizer either upload to
-App Store Connect or export with Developer ID, which Xcode notarizes. CI
-builds it ad hoc signed next to the iOS app.
+`apple/Signing.xcconfig`. To hand it on, run
+`tool/archive_apple.sh macos [--upload]`, which archives with the release
+defines, checks version, Supabase URL and team, puts the archive into the
+Organizer and with `--upload` sends it to TestFlight, or archive in Xcode (Product > Archive) and from the organizer either upload to
+App Store Connect or export with Developer ID, which Xcode notarizes. A
+manual run of `ci` builds it ad hoc signed next to the iOS app.
 
 ## Apple Vision Pro
 
@@ -348,8 +347,8 @@ CI (job `watchos` in `ci.yaml`, ticked by hand when starting the workflow)
 builds the watch app for the Simulator with the toolchain tag
 `v3.47.5-watchos.0.1.1`, which needs no account, so a broken watch build
 shows up there. Release builds need a signed-in
-`flutter-watchos` account and stay local (`tool/archive_ios.sh`); the
-`testflight` workflow cannot build the watch app.
+`flutter-watchos` account and stay local, like every release build
+(`tool/archive_ios.sh`).
 
 Use `onWatch` from `lib/src/watch/watch_support.dart` to branch for a watch
 (the Apple Watch or Wear OS), `FlutterWatchosPlatform.isWatch` only for what
@@ -398,8 +397,8 @@ The Wear OS build is the Android app with `-P wear=true`: it merges the
 manifest of the library module `android/wear/` (`android.hardware.type.watch`,
 `com.google.android.wearable.standalone`, `VIBRATE`), raises minSdk to 30 (Wear OS 3)
 and adds 100000 to the version code. Play takes it as a form factor of its
-own with `wear:` tracks, uploaded through the `play` workflow with
-`form_factor: wear` (see `store/android/README.md`). The phone bundle carries
+own with `wear:` tracks, uploaded with `tool/release_android.sh wear`
+(see `store/android/README.md`). The phone bundle carries
 none of this. `tool/verify.sh` and a manual run of `ci` build both.
 
 State: tried in the Wear OS 6 emulator (small round, 384 px), not on a real
@@ -540,13 +539,11 @@ breaks the sound on the Apple TV until the next `flutter-tvos` build.
 
 Signing comes from `apple/Signing.xcconfig` like on iOS, automatic as well:
 the team has an Apple TV registered, which Xcode needs for a tvOS
-development profile. Upload with the `testflight` workflow and the platform
-`tvos` (or `bundle exec fastlane tvos beta` from `ios/` after
-`flutter-tvos build tvos --release --no-codesign`), or put an archive into the
-Organizer with `tool/archive_apple.sh tvos`. flutter-tvos signs the
-engine with the Apple Distribution certificate (Apple rejects an unsigned one
-with ITMS-91065), so that certificate has to be in the keychain before the
-build; in CI that is the secret `IOS_DIST_P12_BASE64`.
+development profile. `tool/archive_apple.sh tvos [--upload]` puts a checked
+archive into the Organizer and with `--upload` sends it to TestFlight.
+flutter-tvos signs the engine with the Apple Distribution certificate (Apple
+rejects an unsigned one with ITMS-91065), so that certificate has to be in
+the keychain of this Mac before the build.
 Neither flutter-tvos nor flutter-watchos ships dSYMs for App.framework and
 the engine, and an upload without them warns "Upload Symbols Failed".
 `tool/make_dsym.sh` makes them while archiving, from the tvOS project's embed

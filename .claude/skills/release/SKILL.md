@@ -1,6 +1,6 @@
 ---
 name: release
-description: Prepare a store release of Panzergefecht - version bump, TestFlight and Google Play uploads through the manual GitHub workflows, store texts and screenshots. Use when the user talks about TestFlight, App Store, Play Store, a new version or store assets.
+description: Prepare a store release of Panzergefecht - version bump, local TestFlight and Google Play builds and uploads, store texts and screenshots. Use when the user talks about TestFlight, App Store, Play Store, a new version or store assets.
 ---
 
 # Store release
@@ -13,16 +13,25 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
   sections and points; every change to one goes into the other in the same
   commit.
 - **Store texts, icons, screenshots**: `store/ios` and `store/android`, each
-  with a README of what goes where and which secrets the workflows need.
-- **TestFlight**: workflow `testflight` (manual, `workflow_dispatch`, inputs
-  `build`, `metadata`). Start with
-  `gh workflow run testflight -f build=true -f metadata=false` only after the
-  user says so; it uploads to App Store Connect.
-- **Google Play**: workflow `play` (inputs `track`, `status`, `metadata`),
-  e.g. `gh workflow run play -f track=internal -f status=draft`, again only
-  on the user's word.
-- **Archive for the Organizer** (manual upload, while the workflow lacks
-  its secrets): from an up to date main checkout run `tool/archive_ios.sh`.
+  with a README of what goes where and which keys the uploads need.
+- **Builds only on this Mac, never in CI**: a macOS runner minute costs ten
+  Linux minutes of the private repository's plan, so there are no release
+  workflows (docs/development.md "CI minutes"). Every script below checks
+  its result and uploads only with its flag; pass the flag only on the
+  user's word.
+- **Apple TV, Mac**: `tool/archive_apple.sh tvos|macos [--upload]`, same
+  checks and Organizer copy as for iOS.
+- **Google Play**: `tool/release_android.sh phone|wear [--upload internal]
+  [--metadata] [--completed]` builds with `android/key.properties`, refuses
+  a debug-signed bundle or a glued Supabase URL, keeps a copy in
+  `build/release/` and uploads through fastlane with
+  `android/play-service-account.json`. The versionCode is the pubspec build
+  number (plus 100000 for Wear OS).
+- **App Store texts and screenshots**: `bundle exec fastlane ios metadata`
+  in `ios/` with an App Store Connect API key in `ASC_KEY_ID`,
+  `ASC_ISSUER_ID`, `ASC_KEY_PATH`.
+- **iOS with the watch app**: from an up to date main checkout run
+  `tool/archive_ios.sh`.
   It builds the watch app, then `flutter build ipa` (both with
   `--dart-define=ACCOUNTS=true`), checks watch app, versions, Supabase URL
   and signature, and copies the archive to the Organizer as
@@ -49,7 +58,7 @@ description: Prepare a store release of Panzergefecht - version bump, TestFlight
   `docs/release-test-plan.md`). Upload only after its verdict is GO, or
   "GO with owner rows" once the owner did or waived those rows; never
   after NO GO.
-- Afterwards: `gh run watch` once, report the build number, and update the
+- Afterwards: report the build number, and update the
   store memory entries with what is still open in the store consoles.
 - Last, once the upload is through: `tool/finish_worktree.sh` removes this
   session's worktree with its DerivedData and scratchpad, as at the end

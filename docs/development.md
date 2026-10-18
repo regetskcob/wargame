@@ -252,7 +252,6 @@ ten Linux minutes:
 | `pages` | every push to `main`: format, analyze, tests with coverage, web and landing page build, deploy, all in one job | Linux |
 | `build-status` | after `pages` (and a manual `ci`) on `main` | Linux, single core (`ubuntu-slim`) |
 | `ci` | pull requests: the checks only; by hand (`gh workflow run ci -f apple=true -f android=true -f watchos=false`): the native builds | Linux, macOS for Apple |
-| `testflight`, `play` | by hand for a release | macOS, Linux |
 
 The rest of the savings: a newer push cancels the run still going
 (`cancel-in-progress`), the Flutter SDK and pub packages come from the
@@ -260,12 +259,25 @@ Actions cache, every job has a `timeout-minutes` (the default would bill
 six hours of a hung macOS job), and artifacts are kept for a day (the
 site) or a week (store builds, which live on in TestFlight and Play).
 
-The native builds are checked locally instead, by the full
-`tool/verify.sh` before a push that touches `pubspec.*`, `ios/`,
-`android/`, `tvos/`, the watch, assets or plugins. A TestFlight upload
-costs some 250 minutes per platform; archiving locally
-(`tool/archive_ios.sh`) costs none. A self-hosted runner on the Mac would
-be free too, but runs every workflow's code on that machine.
+CI only validates; nothing is released from it. The native builds are
+checked locally, by the full `tool/verify.sh` before a push that touches
+`pubspec.*`, `ios/`, `android/`, `tvos/`, the watch, assets or plugins, and
+store builds are made and uploaded on the Mac (a TestFlight run on a macOS
+runner would cost some 250 minutes per platform):
+
+| Store | Script |
+| --- | --- |
+| TestFlight, iOS with the watch app | `tool/archive_ios.sh [--upload]` |
+| TestFlight, Apple TV or Mac | `tool/archive_apple.sh tvos\|macos [--upload]` |
+| App Store texts and screenshots | `bundle exec fastlane ios metadata` in `ios/` |
+| Google Play, phone or Wear OS | `tool/release_android.sh phone\|wear [--upload <track>] [--metadata] [--completed]` |
+
+Each builds with the release defines, checks the result (versions,
+Supabase URL, signature) and uploads only with its flag. The keys stay on
+the Mac and out of the repository: the Apple account signed in to Xcode,
+`android/key.properties` with the upload key, the Play service account in
+`android/play-service-account.json` and, for the store texts, an App Store
+Connect API key. The repository holds no Actions secrets.
 
 Keep the Actions budget of the account (Settings, Billing and licensing,
 Budgets and alerts) at US$0 with "Stop usage when budget limit is
