@@ -58,3 +58,11 @@ enableRobotsTXT = false
   # Where support requests go. The page has no server of its own, so the
   # form opens a written mail in the visitor's mail app.
   supportMail = 'regetskcob@icloud.com'
+
+  # Ways into the betas of the apps until they are in the stores. Android
+  # testers join the Google Group first: the closed test on Google Play only
+  # lets in the group's members.
+  [params.beta]
+    testflight = 'https://testflight.apple.com/join/dzuEgCY3'
+    testerGroup = 'https://groups.google.com/g/panzergefecht-tester'
+    playTest = 'https://play.google.com/store/apps/details?id=de.regetskcob.wargame'

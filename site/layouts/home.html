@@ -77,6 +77,32 @@
     </div>
   </section>
 
+  {{- /* The apps' betas, until the stores have them: TestFlight for iPhone
+     and iPad, the closed test of Google Play behind its tester group. */}}
+  {{- with site.Params.beta }}
+  <section class="section" id="beta">
+    <h2 class="section-title">{{ i18n "betaTitle" }}</h2>
+    <p class="lead">{{ i18n "betaLead" }}</p>
+    <div class="beta">
+      <article class="mode">
+        {{ partial "icon.html" "phone" }}
+        <h3>{{ upper (i18n "beta-ios") }}</h3>
+        <p>{{ i18n "beta-ios-text" }}</p>
+        <a class="ghost" href="{{ .testflight }}">{{ i18n "beta-ios-link" }}</a>
+      </article>
+      <article class="mode">
+        {{ partial "icon.html" "phone" }}
+        <h3>{{ upper (i18n "beta-android") }}</h3>
+        <p>{{ i18n "beta-android-text" }}</p>
+        <ol class="steps">
+          <li><a class="ghost" href="{{ .testerGroup }}">{{ i18n "beta-android-step1" }}</a></li>
+          <li><a class="ghost" href="{{ .playTest }}">{{ i18n "beta-android-step2" }}</a></li>
+        </ol>
+      </article>
+    </div>
+  </section>
+  {{- end }}
+
   <section class="section" id="screens">
     <div class="shots" tabindex="0">
       {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-fahrzeuge" "04-modi" }}
