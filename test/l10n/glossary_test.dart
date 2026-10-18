@@ -30,6 +30,8 @@ const _german = <String, String>{
   r'Luftangriff': 'Luftschlag',
   r'DREI WEGE': 'VIER WEGE',
   r'\bHolt eure\b': 'Hol eure',
+  // The word carries too much history in German (c99d069).
+  r'\b(Sieg|SIEG|Siege|SIEGE)\b': 'Gewonnen',
 };
 
 const _english = <String, String>{

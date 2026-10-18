@@ -208,7 +208,7 @@ the pilot's level and gun levels), Stützpunkt / base (never Basis, Lager),
 Münzen / coins (never Geld, Mittel, funds, money; Mittel is only the difficulty), NEUES SPIEL / NEW GAME (never Nochmal,
 Revanche), Gastgeber / host, "Einsatzbereit in … s" / "Ready in … s",
 Beobachte / watching, Raumcode / room code, Gefechtsplatz / Battlefield,
-Warteraum · Bereitstellung, WIEDERHOLUNG / REPLAY, ABSCHUSS / KILL, e-mail.
+Warteraum · Bereitstellung, WIEDERHOLUNG / REPLAY, ABSCHUSS / KILL, e-mail, Gewonnen (never Sieg).
 
 ### 3.10 Tutorial
 
