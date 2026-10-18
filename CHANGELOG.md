@@ -7,6 +7,21 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## 1.7.0 (14) – 2026-10-18
+
+- The closed zone of a battle holds for 30 seconds and then draws in to
+  nothing, with damage rising every second, so every round comes to an end
+- A battle started alone in the room fills up with CPU tanks instead of
+  running on with nobody to fight
+- Every wave beaten off beyond the eighth in a defense round earns 30
+  experience, 15 when the base falls in the end
+- The camera goes past the edge of the defense field, so the panel no
+  longer covers the tank and the crates at the top
+- The German texts say "Gewonnen" instead of "Sieg" everywhere, from the
+  round's end to the leaderboard, the watch and the Live Activity
+- Room links from the web open the Mac app, and a Mac never counts as a
+  phone, however small its window
+
 ## 1.6.1 (13) – 2026-10-12
 
 - On the Apple TV the Menu button opens a round menu: in a defense round

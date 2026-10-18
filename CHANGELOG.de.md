@@ -8,6 +8,21 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## 1.7.0 (14) – 18.10.2026
+
+- Die geschlossene Zone eines Gefechts hält 30 Sekunden und zieht sich
+  dann ganz zusammen, mit jeder Sekunde mehr Schaden, so endet jede Runde
+- Ein Gefecht, das allein im Raum beginnt, füllt sich mit CPU-Panzern auf,
+  statt ohne Gegner weiterzulaufen
+- Jede abgewehrte Welle nach der achten bringt in der Verteidigung 30
+  Erfahrung, 15, wenn der Stützpunkt am Ende fällt
+- Die Kamera fährt über den Rand des Verteidigungsfelds hinaus, so
+  verdeckt das Feld oben weder Panzer noch Kisten
+- Die deutschen Texte sagen überall „Gewonnen“ statt „Sieg“, vom
+  Rundenende über die Bestenliste bis zur Uhr und zur Live-Aktivität
+- Raum-Links aus dem Web öffnen die Mac-App, und ein Mac zählt nie als
+  Handy, wie klein sein Fenster auch ist
+
 ## 1.6.1 (13) – 12.10.2026
 
 - Auf dem Apple TV öffnet die Menü-Taste ein Rundenmenü: in der
