@@ -107,5 +107,6 @@ Then Claude:
 3. A TestFlight build with `PURCHASES=true`, buy with a sandbox tester,
    check the row in `entitlements`, restore on a second device with the same
    account, delete the account and see the row go.
-4. Switch `PURCHASES` on in `tool/archive_ios.sh` and the workflows, add
+4. Switch `PURCHASES` on in `tool/archive_ios.sh`, `tool/archive_apple.sh`
+   and `tool/release_android.sh`, add
    "In-app purchases" to the store texts and the changelog.

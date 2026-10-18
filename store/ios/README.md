@@ -116,16 +116,22 @@ voraussichtlich 12+.
 
 **Kategorie:** Spiele, Unterkategorien Action und Strategie.
 
-## TestFlight per GitHub
+## TestFlight vom Mac
 
-Der Workflow **testflight** (Actions > testflight > Run workflow) baut die
-signierte App für die gewählte Plattform (`ios`, `tvos` oder `macos`), lädt
-sie zu TestFlight hoch und auf Wunsch (nur bei `ios`) die Texte und
-Screenshots zu App Store Connect. Alle drei teilen sich Bundle-ID, Team
-(`apple/Signing.xcconfig`) und den App-Store-Eintrag. Die Build-Nummer zählt
-mit jedem Lauf hoch. Lokal geht dasselbe aus `ios/` mit
-`bundle exec fastlane ios beta`, `tvos beta`, `mac beta` oder
-`ios metadata`, jeweils nach dem Flutter-Build, der oben im `Fastfile` steht.
+Gebaut und hochgeladen wird nur lokal, nie in der CI (eine macOS-Minute zählt
+im privaten Repo zehn Linux-Minuten, siehe `docs/development.md` „CI
+minutes“). Alle drei Plattformen teilen sich Bundle-ID, Team
+(`apple/Signing.xcconfig`) und den App-Store-Eintrag; die Build-Nummer ist
+die aus `pubspec.yaml`.
+
+| Was | Befehl |
+| --- | --- |
+| iOS samt Watch-App | `tool/archive_ios.sh --upload` |
+| Apple TV / Mac | `tool/archive_apple.sh tvos --upload` bzw. `macos --upload` |
+| Texte und Screenshots | in `ios/`: `bundle exec fastlane ios metadata` |
+
+Ohne `--upload` landet das geprüfte Archiv nur im Organizer. Signiert wird
+mit dem in Xcode angemeldeten Apple-Account.
 
 ### Einmalig einrichten
 
@@ -136,35 +142,25 @@ mit jedem Lauf hoch. Lokal geht dasselbe aus `ios/` mit
    Integrationen > App Store Connect API > Schlüssel erzeugen, Rolle
    **Admin** (nur damit darf Xcode Zertifikat und Profil selbst holen). Die
    `.p8`-Datei lässt sich nur einmal laden.
-3. **Secrets im Repository** (Settings > Secrets and variables > Actions):
-
-   | Secret | Inhalt |
-   | --- | --- |
-   | `ASC_KEY_ID` | Schlüssel-ID, steht neben dem Schlüssel |
-   | `ASC_ISSUER_ID` | Issuer-ID, steht über der Schlüsselliste |
-   | `ASC_KEY_P8_BASE64` | `base64 -i AuthKey_XXXX.p8 \| pbcopy` |
-
-   Die Variablen `SUPABASE_URL`, `SUPABASE_KEY` und `ACCOUNTS` teilt sich der
-   Workflow mit dem Web-Deploy.
-4. **Distributionszertifikat:** Für iOS und Mac nur nötig, falls das
-   Signieren in der CI scheitert (Fehler zu Zertifikat oder Profil). Für
-   **tvOS immer nötig**: flutter-tvos signiert damit die Engine, ohne
-   Signatur lehnt Apple den Build ab (ITMS-91065). Das Apple-Distribution-Zertifikat
-   aus der Schlüsselbundverwaltung als `.p12` exportieren und als
-   `IOS_DIST_P12_BASE64` samt Passwort in `IOS_DIST_P12_PASSWORD`
-   hinterlegen. Fastlane importiert es dann vor dem Build.
+3. **Schlüssel lokal** (nur für `fastlane ios metadata`, nie ins Repo):
+   die `.p8` etwa nach `~/.appstoreconnect/private_keys/`, dann
+   `ASC_KEY_ID` (Schlüssel-ID), `ASC_ISSUER_ID` (Issuer-ID über der
+   Schlüsselliste) und `ASC_KEY_PATH` (Pfad zur `.p8`) setzen.
+4. **Distributionszertifikat** im Schlüsselbund des Macs: für **tvOS immer
+   nötig**, flutter-tvos signiert damit die Engine, ohne Signatur lehnt
+   Apple den Build ab (ITMS-91065). Xcode legt es unter Settings > Accounts
+   > Manage Certificates an.
 5. **tvOS und Mac in App Store Connect:** Im bestehenden App-Eintrag
    Panzergefecht unter „Plattform hinzufügen“ tvOS und macOS ergänzen, sonst
    lehnt TestFlight die Uploads ab.
 
-Danach erscheint jeder Lauf nach der Verarbeitung durch Apple (meist 10 bis
+Danach erscheint jeder Upload nach der Verarbeitung durch Apple (meist 10 bis
 30 Minuten) unter TestFlight. Für externe Tester prüft Apple den ersten Build
 einmal, die Texte dafür stehen in `metadata/de-DE/testflight.txt`.
 
 ## Vor der Einreichung offen
 
-1. **Einrichten wie oben**, dann den Workflow mit „Upload the store texts
-   and screenshots“ laufen lassen.
+1. **Einrichten wie oben**, dann in `ios/` `bundle exec fastlane ios metadata`.
 2. **In App Store Connect von Hand:** App Privacy (siehe oben),
    Altersfreigabe, Preis (kostenlos), danach zur Prüfung einreichen.
 3. **Den TestFlight-Build auf einem echten iPhone spielen:** Der Simulator

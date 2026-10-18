@@ -11,10 +11,8 @@
 # Usage: tool/archive_ios.sh [--upload]   (from the repository root, on an
 # up to date main)
 #
-# --upload also sends the checked archive to App Store Connect, the way the
-# Organizer's "Distribute App" does: xcodebuild signs with the Apple account
-# signed in to Xcode and may fetch the App Store profiles itself. Without the
-# flag nothing leaves the machine.
+# --upload also sends the checked archive to App Store Connect
+# (tool/upload_archive.sh). Without the flag nothing leaves the machine.
 
 set -euo pipefail
 
@@ -86,33 +84,6 @@ if [ "$upload" = "0" ]; then
 fi
 
 step "upload $name ($number) to App Store Connect"
-work=$(mktemp -d)
-trap 'rm -rf "$work"' EXIT
-cat > "$work/ExportOptions.plist" <<'PLIST'
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-  <key>method</key><string>app-store-connect</string>
-  <key>destination</key><string>upload</string>
-  <key>teamID</key><string>86HB5U6788</string>
-  <key>signingStyle</key><string>automatic</string>
-  <key>uploadSymbols</key><true/>
-  <key>manageAppVersionAndBuildNumber</key><false/>
-</dict>
-</plist>
-PLIST
-export_archive() {
-  xcodebuild -exportArchive -archivePath "$target" \
-    -exportOptionsPlist "$work/ExportOptions.plist" \
-    -exportPath "$work/export" -allowProvisioningUpdates
-}
-# The first upload of 1.2.0 (6) broke off with "The network connection was
-# lost" and went through on the second try. A rejected build (say, a build
-# number already taken) fails the same way twice.
-if ! export_archive; then
-  echo "Upload failed, trying once more."
-  export_archive || fail "the upload failed twice; the archive is in the Organizer"
-fi
+tool/upload_archive.sh "$target"
 step "done"
 echo "Uploaded. Once App Store Connect has processed it, TestFlight > build $number must say Apple Watch: yes."

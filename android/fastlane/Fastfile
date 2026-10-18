@@ -1,5 +1,6 @@
-# Uploads Panzergefecht to Google Play. Run from android/ after
-# `flutter build appbundle --release`, see store/android/README.md.
+# Uploads Panzergefecht to Google Play. tool/release_android.sh builds and
+# checks the bundle and calls the lane deploy; the other lanes run from
+# android/ by hand, see store/android/README.md.
 
 default_platform(:android)
 

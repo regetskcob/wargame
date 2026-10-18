@@ -387,9 +387,11 @@ reserve:
 | Pro, many small rooms | 2 | 400 | five rooms of two with CPU tanks |
 | Free | 2 | 80 | one room of two, or a room of two and a phone |
 
-Set them as repository variables next to `ACCOUNTS`; the `pages`, `play`
-and `testflight` workflows hand them to the build. Every client of one
-release should be built with the same values. Rooms count with their CPU
+Set them as repository variables next to `ACCOUNTS`; the `pages` workflow
+hands them to the web build. The store builds are made locally
+(`tool/archive_ios.sh`, `tool/archive_apple.sh`, `tool/release_android.sh`)
+with the defaults, so add the same `--dart-define`s there when the plan
+changes. Every client of one release should be built with the same values. Rooms count with their CPU
 tanks unless a phone is in them, as only the host knows whether it fills
 up. Solo rounds and two players on one screen cost nothing and always fit.
 

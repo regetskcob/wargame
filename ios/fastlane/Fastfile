@@ -1,17 +1,12 @@
-# Uploads Panzergefecht to TestFlight and the store texts to App Store
-# Connect. Run from ios/, see store/ios/README.md. The GitHub workflow
-# testflight.yaml does both, for every Apple platform:
+# Uploads the store texts and screenshots of Panzergefecht to App Store
+# Connect. Run from ios/ with an App Store Connect API key in ASC_KEY_ID,
+# ASC_ISSUER_ID and ASC_KEY_PATH, see store/ios/README.md:
 #
-#   bundle exec fastlane ios beta    after `flutter build ios --config-only`
-#   bundle exec fastlane tvos beta   after `flutter-tvos build tvos --no-codesign`
-#   bundle exec fastlane mac beta    after `flutter build macos --release`
+#   bundle exec fastlane ios metadata
 #
-# All three share the bundle id and the team (apple/Signing.xcconfig), so they
-# land in the same App Store record. Signing runs through the App Store Connect
-# API key: Xcode fetches the certificates and profiles itself (cloud signing,
-# the key needs the Admin role). Only when IOS_DIST_P12_BASE64 is set, that
-# certificate is imported into a temporary keychain first, by the lane
-# certificate.
+# The builds themselves are archived and uploaded on this Mac by
+# tool/archive_ios.sh and tool/archive_apple.sh (--upload), signed with the
+# Apple account in Xcode; nothing is built in CI.
 
 default_platform(:ios)
 
@@ -26,59 +21,7 @@ def api_key
   )
 end
 
-# Lets xcodebuild sign with the API key instead of a signed-in Apple ID.
-def signing_args
-  "-allowProvisioningUpdates " \
-    "-authenticationKeyPath #{ENV.fetch("ASC_KEY_PATH")} " \
-    "-authenticationKeyID #{ENV.fetch("ASC_KEY_ID")} " \
-    "-authenticationKeyIssuerID #{ENV.fetch("ASC_ISSUER_ID")}"
-end
-
-# Archives one platform's Runner and uploads it to TestFlight. Automatic
-# signing archives with a development signature, which needs a development
-# profile and so a device of that platform registered with the team, and signs
-# for the store on export.
-def archive_and_upload(project:, app_platform:, output:, wait:)
-  path = build_app(
-    workspace: File.join(ROOT, project, "Runner.xcworkspace"),
-    scheme: "Runner",
-    configuration: "Release",
-    export_method: "app-store",
-    output_directory: File.join(ROOT, output),
-    xcargs: signing_args,
-    export_xcargs: signing_args
-  )
-  upload_to_testflight(
-    api_key: api_key,
-    app_platform: app_platform,
-    ipa: (path if path.end_with?(".ipa")),
-    pkg: (path if path.end_with?(".pkg")),
-    changelog: File.read(File.join(STORE, "metadata/de-DE/release_notes.txt")),
-    skip_waiting_for_build_processing: !wait
-  )
-end
-
-desc "Imports the distribution certificate from IOS_DIST_P12_BASE64, if set"
-lane :certificate do
-  next if ENV["IOS_DIST_P12_BASE64"].to_s == ""
-
-  setup_ci
-  p12 = File.join(Dir.tmpdir, "distribution.p12")
-  File.binwrite(p12, Base64.decode64(ENV["IOS_DIST_P12_BASE64"]))
-  import_certificate(
-    certificate_path: p12,
-    certificate_password: ENV.fetch("IOS_DIST_P12_PASSWORD", ""),
-    keychain_name: ENV.fetch("MATCH_KEYCHAIN_NAME", "fastlane_tmp_keychain"),
-    keychain_password: ""
-  )
-end
-
 platform :ios do
-  desc "Builds the signed iOS app and uploads it to TestFlight"
-  lane :beta do |options|
-    archive_and_upload(project: "ios", app_platform: "ios", output: "build/ios/ipa", wait: options[:wait])
-  end
-
   desc "Uploads the store texts and screenshots, without a build or review"
   lane :metadata do
     deliver(
@@ -91,23 +34,5 @@ platform :ios do
       force: true,
       precheck_include_in_app_purchases: false
     )
-  end
-end
-
-platform :tvos do
-  # flutter-tvos signs the engine with the Apple Distribution certificate
-  # during its build (Apple rejects an unsigned one with ITMS-91065), so the
-  # certificate has to be in the keychain before that, see the lane
-  # certificate.
-  desc "Builds the signed Apple TV app and uploads it to TestFlight"
-  lane :beta do |options|
-    archive_and_upload(project: "tvos", app_platform: "appletvos", output: "build/tvos/ipa", wait: options[:wait])
-  end
-end
-
-platform :mac do
-  desc "Builds the signed Mac app and uploads it to TestFlight"
-  lane :beta do |options|
-    archive_and_upload(project: "macos", app_platform: "osx", output: "build/macos/pkg", wait: options[:wait])
   end
 end
