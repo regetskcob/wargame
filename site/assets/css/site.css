@@ -33,8 +33,10 @@ img { max-width: 100%; }
   padding: 0 var(--s-32) var(--s-48) calc(var(--s-32) + 180px + var(--s-32));
   border-bottom: var(--line-hairline) solid var(--line);
 }
+/* Frames line up at the top: at the bottom, a one-line caption under one
+   phone would push its frame below the others. */
 .pz-shots {
-  display: flex; gap: var(--s-24); align-items: flex-end;
+  display: flex; gap: var(--s-24); align-items: flex-start;
   overflow-x: auto; scroll-snap-type: x proximity;
   padding-top: var(--s-4);
 }
