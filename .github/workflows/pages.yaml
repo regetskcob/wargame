@@ -44,13 +44,16 @@ jobs:
           flutter-version: 3.47.0
           cache: true
       # Hugo straight from its releases: the repository only allows GitHub's
-      # own actions and the Flutter one.
+      # own actions and the Flutter one. The landing page imports Horizont,
+      # the design system, as a Hugo module (site/go.mod); Hugo fetches it
+      # with the Go the runner image already has, so no setup-go.
       - name: Install Hugo
         run: |
           curl -fsSL -o "$RUNNER_TEMP/hugo.deb" \
             "https://github.com/gohugoio/hugo/releases/download/v${HUGO_VERSION}/hugo_extended_${HUGO_VERSION}_linux-amd64.deb"
           sudo dpkg -i "$RUNNER_TEMP/hugo.deb"
           hugo version
+          go version
         env:
           HUGO_VERSION: 0.154.5
       - run: dart pub get

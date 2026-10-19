@@ -19,7 +19,8 @@
         document.head.appendChild(l);
       });
     }
-    document.querySelectorAll('[data-play]').forEach(function (a) {
+    // Every link into the game, the hero's "Play now" first among them.
+    document.querySelectorAll('a[href="' + game + '"]').forEach(function (a) {
       a.addEventListener('pointerenter', warm);
       a.addEventListener('pointerdown', warm);
       a.addEventListener('focus', warm);

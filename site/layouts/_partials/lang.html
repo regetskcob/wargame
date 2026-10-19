@@ -1,0 +1,27 @@
+{{- /*
+  The game speaks the language of the browser, and so does the address
+  without a language on a first visit. A language picked by hand sticks,
+  and a link to the English page stays English. Takes the other language's
+  page.
+*/ -}}
+{{- with . }}
+<script>
+  (function () {
+    var key = 'panzergefecht.site.lang';
+    var other = {{ .RelPermalink }}, otherLang = {{ .Language.Lang }};
+    var here = document.documentElement.lang.slice(0, 2);
+    document.querySelectorAll('.hz-feld-head nav a').forEach(function (a) {
+      if (a.getAttribute('href') !== other) return;
+      a.hreflang = otherLang;
+      a.addEventListener('click', function () {
+        try { localStorage.setItem(key, otherLang); } catch (e) {}
+      });
+    });
+    if (here !== {{ site.Sites.Default.Language.Lang }}) return;
+    var chosen = null;
+    try { chosen = localStorage.getItem(key); } catch (e) {}
+    var wanted = chosen || ((navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');
+    if (wanted === otherLang) location.replace(other);
+  })();
+</script>
+{{- end }}

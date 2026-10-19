@@ -1,5 +1,34 @@
+{{- /*
+  Every page is a "Feldseite" of Horizont (docs/web.md in the design
+  system): the head with the lockup and a quiet nav, the page, the foot with
+  the sender and the legal links. The partials come from the Horizont module
+  (layouts/_partials/horizont/). Panzergefecht stays dark on its "Gelände"
+  neutrals; the signal yellow belongs to the one button that starts the game.
+*/ -}}
+{{- $home := site.Home.RelPermalink -}}
+{{- $anchor := cond .IsHome "" $home -}}
+{{- $nav := slice
+  (dict "name" (i18n "nav-modes") "url" (printf "%s#modes" $anchor))
+  (dict "name" (i18n "nav-devices") "url" (printf "%s#devices" $anchor))
+  (dict "name" (i18n "nav-beta") "url" (printf "%s#beta" $anchor)) -}}
+{{- with site.GetPage "/support" }}
+  {{- $nav = $nav | append (dict "name" (i18n "support") "url" .RelPermalink "current" (eq .RelPermalink $.RelPermalink)) }}
+{{- end }}
+{{- /* The other language last: it is the one item kept on phones. A page
+       without a translation (404) switches to the other home. */}}
+{{- $other := "" }}
+{{- range .Translations }}{{ $other = . }}{{ end }}
+{{- if not $other }}{{ range site.Home.Translations }}{{ $other = . }}{{ end }}{{ end }}
+{{- with $other }}{{ $nav = $nav | append (dict "name" (i18n "otherLanguage") "url" .RelPermalink) }}{{ end -}}
+{{- /* Impressum, privacy and licences are written by tool/legal_pages.dart
+       at the root of the site, in German for both languages. */}}
+{{- $links := slice
+  (dict "name" (i18n "imprint") "url" ("impressum/" | relURL))
+  (dict "name" (i18n "privacy") "url" ("datenschutz/" | relURL))
+  (dict "name" (i18n "licenses") "url" ("lizenzen/" | relURL))
+  (dict "name" (i18n "support") "url" ("support/" | relLangURL)) -}}
 <!doctype html>
-<html lang="{{ site.Language.LanguageCode }}">
+<html lang="{{ site.Language.LanguageCode }}" data-product="panzergefecht" data-theme="dark">
 <head>
   {{- /* The game used to live right here, so links into it still arrive at
      this address: room and pairing links (?room=, ?pad=, from apps that
@@ -22,8 +51,22 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   {{ partial "head.html" . }}
 </head>
-<body>
-  {{ block "main" . }}{{ end }}
-  {{ partial "launch.html" . }}
+<body class="hz">
+<a class="pz-skip" href="#main">{{ i18n "skip" }}</a>
+<div class="hz-feld">
+{{ partial "horizont/feld/head.html" (dict "product" "panzergefecht" "label" (partial "store.html" "name") "href" ("" | relLangURL) "nav" $nav "navLabel" (i18n "menu")) }}
+<main id="main">
+{{ block "main" . }}{{ end }}
+</main>
+{{ partial "horizont/feld/foot.html" (dict "links" $links "sender" (i18n "sender")) }}
+{{- /* The closing lines of the App Store description after the pledge and
+       the disclaimer, then the copyright. */}}
+<div class="pz-note t-caption">
+  {{- range after 2 (partial "notes.html") }}<p>{{ . | markdownify }}</p>{{ end }}
+  <p>{{ (resources.Get "store/metadata/copyright.txt").Content | strings.TrimSpace }}</p>
+</div>
+</div>
+{{ if ne .Kind "404" }}{{ partial "lang.html" $other }}{{ end }}
+{{ partial "launch.html" . }}
 </body>
 </html>

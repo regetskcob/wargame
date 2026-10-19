@@ -1,41 +1,49 @@
 {{ define "main" }}
 {{- $mail := site.Params.supportMail -}}
-{{ partial "bar.html" . }}
+{{ partial "horizont/feld/hero.html" (dict
+  "kennung" (printf "%s · %s" (partial "store.html" "name") (i18n "supportTitle"))
+  "title" (i18n "supportHeadline")
+  "text" (i18n "supportLead")) }}
 
-<main class="section support">
-  <h1>{{ upper (i18n "supportTitle") }}</h1>
-  <p class="lead">{{ i18n "supportLead" }}</p>
-
-  {{- /* Hugo serves static pages only, so the form sends nothing itself: it
-     writes the request into a mail and opens it in the visitor's mail app.
-     No server and no form service sees what is typed here. */}}
-  <form class="card form" id="support" action="mailto:{{ $mail }}" method="get">
-    <label>{{ i18n "supportTopic" }}
-      <select name="topic">
-        {{- range split (i18n "supportTopics") "|" }}<option>{{ . }}</option>{{ end }}
-      </select>
-    </label>
-    <label>{{ i18n "supportDevice" }}
-      <select name="device">
-        {{- range split (i18n "supportDevices") "|" }}<option>{{ . }}</option>{{ end }}
-      </select>
-    </label>
-    <label>{{ i18n "supportCallSign" }}
-      <input name="callsign" maxlength="40" autocomplete="nickname">
-    </label>
-    <label>{{ i18n "supportMessage" }}
-      <textarea name="message" rows="7" required aria-describedby="message-hint"></textarea>
-      <small id="message-hint">{{ i18n "supportMessageHint" }}</small>
-    </label>
-    <button class="play" type="submit">{{ i18n "supportSend" }}</button>
-    <p class="sent" role="status" hidden>{{ i18n "supportSent" }}</p>
-  </form>
-
-  <p class="aside">{{ i18n "supportDirect" }} <a href="mailto:{{ $mail }}">{{ $mail }}</a>.</p>
-  <p class="aside">{{ i18n "supportAccount" }}</p>
-</main>
-
-{{ partial "foot.html" . }}
+{{- /* Hugo serves static pages only, so the form sends nothing itself: it
+   writes the request into a mail and opens it in the visitor's mail app.
+   No server and no form service sees what is typed here. */}}
+<section class="pz-page" aria-labelledby="support-form-title">
+  {{ partial "horizont/kennung.html" (dict "text" (i18n "support-kennung") "tag" "p") }}
+  <div>
+    <h2 id="support-form-title">{{ i18n "supportFormTitle" }}</h2>
+    <form class="pz-form" id="support" action="mailto:{{ $mail }}" method="get">
+      <div class="hz-field">
+        <label for="topic">{{ i18n "supportTopic" }}</label>
+        <select class="hz-input" id="topic" name="topic">
+          {{- range split (i18n "supportTopics") "|" }}<option>{{ . }}</option>{{ end }}
+        </select>
+      </div>
+      <div class="hz-field">
+        <label for="device">{{ i18n "supportDevice" }}</label>
+        <select class="hz-input" id="device" name="device">
+          {{- range split (i18n "supportDevices") "|" }}<option>{{ . }}</option>{{ end }}
+        </select>
+      </div>
+      <div class="hz-field">
+        <label for="callsign">{{ i18n "supportCallSign" }}</label>
+        <input class="hz-input" id="callsign" name="callsign" maxlength="40" autocomplete="nickname">
+      </div>
+      <div class="hz-field">
+        <label for="message">{{ i18n "supportMessage" }}</label>
+        <textarea class="hz-input" id="message" name="message" rows="7" required aria-describedby="message-hint"></textarea>
+        <span class="hz-help" id="message-hint">{{ i18n "supportMessageHint" }}</span>
+      </div>
+      <div>
+        <button class="hz-button hz-button--primary" type="submit">{{ i18n "supportSend" }}{{ partial "horizont/symbol.html" "arrow_forward" }}</button>
+      </div>
+      <p class="pz-sent" role="status" hidden>{{ partial "horizont/badge.html" (dict "status" "positive" "label" (i18n "supportSentShort")) }} {{ i18n "supportSent" }}</p>
+    </form>
+  </div>
+  {{ partial "horizont/facts.html" (dict "items" (slice
+    (dict "term" (i18n "supportMailTerm") "value" (printf "%s [%s](mailto:%s)" (i18n "supportDirect") $mail $mail))
+    (dict "term" (i18n "supportAccountTerm") "value" (i18n "supportAccount")))) }}
+</section>
 
 <script>
   (function () {
@@ -57,7 +65,7 @@
       var subject = {{ i18n "supportMailSubject" }} + ': ' + f.topic.value;
       location.href = 'mailto:{{ $mail }}?subject=' + encodeURIComponent(subject) +
         '&body=' + encodeURIComponent(lines.join('\n'));
-      form.querySelector('.sent').hidden = false;
+      form.querySelector('.pz-sent').hidden = false;
     });
   })();
 </script>

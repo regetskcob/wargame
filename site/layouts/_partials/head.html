@@ -1,3 +1,5 @@
+{{- $hz := site.Data.horizont -}}
+{{- $pz := $hz.color.product.panzergefecht -}}
 {{- $name := partial "store.html" "name" -}}
 {{- $subtitle := partial "store.html" "subtitle" -}}
 {{- $promo := partial "store.html" "promotional_text" -}}
@@ -5,7 +7,8 @@
 {{- $og := $header.Fill "1200x630 jpg Center" -}}
 <title>{{ if .IsHome }}{{ $name }} – {{ $subtitle }}{{ else }}{{ .Title }} · {{ $name }}{{ end }}</title>
 <meta name="description" content="{{ $promo }}">
-<meta name="theme-color" content="#161c0f">
+{{- /* Browser chrome in the page's ground, the Gelände of the tokens. */}}
+<meta name="theme-color" content="{{ $pz.neutralDark.bg }}">
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ $name }} – {{ $subtitle }}">
@@ -16,17 +19,18 @@
 {{- range .AllTranslations }}
 <link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}">
 {{- end }}
-<link rel="icon" type="image/png" sizes="16x16" href="{{ "favicon.png" | relURL }}">
+{{- /* The icons of the web game (web/), drawn from Horizont's glyph: one
+       set for the landing page and the game. */}}
+<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
 <link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32.png" | relURL }}">
 <link rel="apple-touch-icon" href="{{ "icons/apple-touch-icon.png" | relURL }}">
-{{- /* The fonts of the game, served from here: no font service, no tracking. */}}
-<style>
-{{- range slice (slice "Regular" 400) (slice "Medium" 500) (slice "Bold" 700) (slice "Black" 900) }}
-{{- $f := resources.Get (printf "fonts/Roboto-%s.ttf" (index . 0)) | fingerprint }}
-@font-face { font-family: Roboto; font-weight: {{ index . 1 }}; font-display: swap;
-  src: url({{ $f.RelPermalink }}) format("truetype"); }
-{{- end }}
-</style>
+{{- /* Tokens, components, own rules (docs/web.md of Horizont). The CSS lands
+       in css/, one level below fonts/, so components.css finds ../fonts/.
+       site.css is a template for the launch screen's ground. */}}
 {{- $ground := resources.Get "game/launch_ground.jpg" | fingerprint }}
-{{- $css := resources.Get "css/site.css" | resources.ExecuteAsTemplate "css/site.css" (dict "ground" $ground.RelPermalink) | minify | fingerprint }}
+{{- $css := slice
+  (resources.Get "css/horizont/tokens.css" | resources.ExecuteAsTemplate "css/horizont-tokens.css" $hz)
+  (resources.Get "css/horizont/components.css")
+  (resources.Get "css/site.css" | resources.ExecuteAsTemplate "css/site-own.css" (dict "ground" $ground.RelPermalink))
+  | resources.Concat "css/site.css" | minify | fingerprint }}
 <link rel="stylesheet" href="{{ $css.RelPermalink }}" integrity="{{ $css.Data.Integrity }}">
