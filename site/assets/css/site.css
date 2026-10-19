@@ -31,6 +31,9 @@ img { max-width: 100%; }
 .hz-feld-section:has(+ .pz-extend) { border-bottom: 0; padding-bottom: var(--s-24); }
 .pz-extend {
   padding: 0 var(--s-32) var(--s-48) calc(var(--s-32) + 180px + var(--s-32));
+  /* The same inset for scroll snapping, or the first phone snaps flush to
+     the edge and loses its side buttons. */
+  scroll-padding-inline: calc(var(--s-32) + 180px + var(--s-32)) var(--s-32);
   border-bottom: var(--line-hairline) solid var(--line);
 }
 /* Frames line up at the top: at the bottom, a one-line caption under one
@@ -70,7 +73,9 @@ img { max-width: 100%; }
 @container (max-width: 720px) {
   .hz-feld-head nav { display: flex; }
   .hz-feld-head nav a:not(:last-child) { display: none; }
-  .pz-extend { padding: 0 var(--s-16) var(--s-32); }
+  /* No top padding here: the phone row keeps its own, or the scroller
+     clips the frames' edge. */
+  .pz-extend { padding-inline: var(--s-16); padding-bottom: var(--s-32); scroll-padding-inline: var(--s-16); }
   /* Room on the right for the MacBook's base, which juts out of its frame. */
   .pz-shots--devices { padding-right: var(--s-24); }
   .pz-page { grid-template-columns: 1fr; gap: var(--s-12); padding: var(--s-32) var(--s-16); }
