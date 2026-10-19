@@ -1,34 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../theme.dart';
 
-/// The one shape of every box in the game: beveled corners and a light olive
-/// edge. Cards use the large bevel, chips and slots the small one.
+/// The shapes of every box in the game, Horizont's: no bevels, no shadows,
+/// one hairline in the outline colour. A free-standing card or plate takes
+/// radius 10, whatever stands in a row with buttons and fields (a slot, a
+/// chip, a plate inside a panel) takes their radius 6.
 class GameShapes {
-  static BeveledRectangleBorder card({
-    Color edge = GameColors.oliveLight,
-    double width = 1.5,
-  }) => BeveledRectangleBorder(
-    borderRadius: BorderRadius.circular(8),
+  static RoundedRectangleBorder card({
+    Color edge = GameColors.lineStrong,
+    double width = HzLine.hairline,
+  }) => RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(HzRadius.r10),
     side: BorderSide(color: edge, width: width),
   );
 
-  static BeveledRectangleBorder chip({
-    Color edge = GameColors.oliveLight,
-    double width = 1.5,
-  }) => BeveledRectangleBorder(
-    borderRadius: BorderRadius.circular(6),
+  static RoundedRectangleBorder chip({
+    Color edge = GameColors.lineStrong,
+    double width = HzLine.hairline,
+  }) => RoundedRectangleBorder(
+    borderRadius: BorderRadius.circular(HzRadius.r6),
     side: BorderSide(color: edge, width: width),
   );
 }
 
-/// A card inside a page or panel: darker ground, the same shape as the rest.
+/// A box inside a page or panel: sunken ground, the radius of the buttons
+/// beside it.
 class Plate extends StatelessWidget {
   const Plate({
     required this.child,
-    this.padding = const EdgeInsets.all(14),
-    this.color = const Color(0x44000000),
-    this.edge = GameColors.oliveLight,
+    this.padding = const EdgeInsets.all(HzSpace.s12),
+    this.color = GameColors.sunken,
+    this.edge = GameColors.lineStrong,
     super.key,
   });
 
@@ -42,18 +46,19 @@ class Plate extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: color,
-        shape: GameShapes.card(edge: edge),
+        shape: GameShapes.chip(edge: edge),
       ),
       child: Padding(padding: padding, child: child),
     );
   }
 }
 
-/// Dark olive plate with a sand coloured edge, the base of every HUD element.
+/// The plate of every HUD element and floating menu: the surface, a little
+/// see-through over the round, with the one outline.
 class Panel extends StatelessWidget {
   const Panel({
     required this.child,
-    this.padding = const EdgeInsets.all(14),
+    this.padding = const EdgeInsets.all(HzSpace.s16),
     super.key,
   });
 

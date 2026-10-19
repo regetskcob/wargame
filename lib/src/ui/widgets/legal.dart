@@ -1,6 +1,5 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../legal/legal_text.dart';
 import '../theme.dart';
@@ -14,7 +13,7 @@ class LegalLinks extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const style = TextStyle(fontSize: 12, color: GameColors.textDim);
+    final style = GameType.caption;
     return Center(
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
@@ -27,7 +26,7 @@ class LegalLinks extends StatelessWidget {
             ),
             child: Text(tr('Impressum', 'Legal notice'), style: style),
           ),
-          const Text('·', style: style),
+          Text('·', style: style),
           TextButton(
             onPressed: () => _show(
               context,
@@ -36,7 +35,7 @@ class LegalLinks extends StatelessWidget {
             ),
             child: Text(tr('Datenschutz', 'Privacy'), style: style),
           ),
-          const Text('·', style: style),
+          Text('·', style: style),
           TextButton(
             onPressed: () => _show(
               context,
@@ -57,23 +56,11 @@ class LegalLinks extends StatelessWidget {
     );
   }
 
-  static var _fontRegistered = false;
-
   /// Flutter collects the licences of all packages and the engine by itself,
-  /// but not of the bundled Roboto, which Apache 2.0 asks to pass on too.
+  /// but not of the fonts and symbols Horizont bundles, whose OFL 1.1 and
+  /// Apache 2.0 ask to pass them on too. Registering twice does nothing.
   static void _showComponentLicenses(BuildContext context) {
-    if (!_fontRegistered) {
-      _fontRegistered = true;
-      LicenseRegistry.addLicense(() async* {
-        final text = await rootBundle.loadString(
-          'assets/fonts/Roboto_LICENSE.txt',
-        );
-        yield LicenseEntryWithLineBreaks(
-          const ['Roboto'],
-          'Roboto, Copyright 2011 Google Inc. Cut down to Latin letters for this game.\n\n$text',
-        );
-      });
-    }
+    registerHorizontLicenses();
     showLicensePage(
       context: context,
       applicationName: 'Panzergefecht',
@@ -91,22 +78,22 @@ class LegalLinks extends StatelessWidget {
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
+        insetPadding: const EdgeInsets.all(HzSpace.s16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 680, maxHeight: 720),
           child: Panel(
-            padding: const EdgeInsets.fromLTRB(20, 16, 12, 12),
+            padding: const EdgeInsets.fromLTRB(
+              HzSpace.s24,
+              HzSpace.s16,
+              HzSpace.s12,
+              HzSpace.s12,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Row(
                   children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                    ),
+                    Expanded(child: Text(title, style: GameType.title)),
                     IconButton(
                       tooltip: tr('Schließen', 'Close'),
                       onPressed: () => Navigator.of(context).pop(),
@@ -114,10 +101,10 @@ class LegalLinks extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: HzSpace.s8),
                 Flexible(
                   child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.only(right: HzSpace.s8),
                     child: SelectionArea(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -126,25 +113,13 @@ class LegalLinks extends StatelessWidget {
                             if (block.heading != null)
                               Padding(
                                 padding: const EdgeInsets.only(
-                                  top: 14,
-                                  bottom: 4,
+                                  top: HzSpace.s16,
+                                  bottom: HzSpace.s4,
                                 ),
-                                child: Text(
-                                  block.heading!,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w800,
-                                    color: GameColors.sand,
-                                    letterSpacing: 1,
-                                  ),
-                                ),
+                                child: Kennung(block.heading!),
                               ),
-                            Text(
-                              block.body,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                height: 1.45,
-                              ),
-                            ),
+                            // Long text to read: Literata.
+                            Text(block.body, style: GameType.reading),
                           ],
                         ],
                       ),
@@ -153,7 +128,7 @@ class LegalLinks extends StatelessWidget {
                 ),
                 if (action != null)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: HzSpace.s8),
                     child: Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(

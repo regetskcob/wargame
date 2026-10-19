@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -39,6 +40,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(body: HudOverlay(game: game)),
       ),
     );
@@ -78,6 +80,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(body: HudOverlay(game: game)),
       ),
     );
@@ -121,6 +124,7 @@ void main() {
 
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(body: HudOverlay(game: game)),
       ),
     );

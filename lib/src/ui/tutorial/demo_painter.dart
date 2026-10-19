@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/components/power_up.dart';
 import '../../game/components/tank_painter.dart';
@@ -58,6 +59,10 @@ class DemoPainter extends CustomPainter {
   final EdgeInsets insets;
 
   static const _hull = Color(0xFF6B7F3A);
+
+  /// The ground of the drawn HUD plates over the training ground: sunken,
+  /// a little see-through, like the game's plates over a round.
+  static final _plate = GameColors.sunken.withValues(alpha: 0.7);
   static const _enemyHull = Color(0xFF8B3E2B);
 
   late Size _size;
@@ -177,7 +182,7 @@ class DemoPainter extends CustomPainter {
                 'PROBIER ES SELBST: W A S D UND MAUS',
                 'TRY IT YOURSELF: W A S D AND MOUSE',
               ),
-        color: GameColors.amber,
+        color: GameColors.accentText,
       );
     }
   }
@@ -263,12 +268,12 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
-          ..color = GameColors.amber,
+          ..color = GameColors.accentText,
       );
       canvas.drawCircle(
         ring,
         p.ringRadius,
-        Paint()..color = GameColors.amber.withValues(alpha: 0.15),
+        Paint()..color = GameColors.accentText.withValues(alpha: 0.15),
       );
     }
     _pill(
@@ -289,6 +294,8 @@ class DemoPainter extends CustomPainter {
         if (p.grenades && !touch)
           tr('GRANATEN ${p.charges} (F)', 'GRENADES ${p.charges} (F)'),
       ].join('  ·  '),
+      // Done is a status: word, tick and the positive colour.
+      color: p.done ? GameColors.positive : GameColors.text,
     );
     if (!touch) {
       bool held(LogicalKeyboardKey a, [LogicalKeyboardKey? b]) =>
@@ -742,14 +749,14 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = GameColors.sand,
+        ..color = GameColors.text,
     );
     _icon(
       canvas,
       base.center,
       Icons.fort_outlined,
       _tankSize * 0.6,
-      GameColors.sand,
+      GameColors.text,
     );
 
     final pos = Offset(_w * 0.34, roadY + _tankSize * 1.1);
@@ -872,7 +879,7 @@ class DemoPainter extends CustomPainter {
         at + Offset(0, size * 0.75),
         type.label,
         size: 10,
-        color: GameColors.sand,
+        color: GameColors.text,
         center: true,
         maxWidth: cell - 4,
       );
@@ -883,7 +890,7 @@ class DemoPainter extends CustomPainter {
             ? tr('AB START', 'FROM START')
             : tr('AB STUFE ${type.level}', 'FROM LEVEL ${type.level}'),
         size: 9,
-        color: type.level == 1 ? GameColors.textDim : GameColors.amber,
+        color: GameColors.textMuted,
         center: true,
         maxWidth: cell - 4,
       );
@@ -1054,14 +1061,14 @@ class DemoPainter extends CustomPainter {
       );
     }
     canvas.restore();
-    canvas.drawCircle(at, r, Paint()..color = GameColors.olive);
+    canvas.drawCircle(at, r, Paint()..color = GameColors.accent);
     canvas.drawCircle(
       at,
       r,
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = GameColors.sand,
+        ..color = GameColors.text,
     );
   }
 
@@ -1085,13 +1092,17 @@ class DemoPainter extends CustomPainter {
 
   void _inventorySlot(Canvas canvas, PowerUpType? held) {
     final rect = Rect.fromCenter(center: _slot, width: 48, height: 48);
-    canvas.drawRect(rect, Paint()..color = const Color(0x99000000));
-    canvas.drawRect(
+    final slot = RRect.fromRectAndRadius(
       rect,
+      const Radius.circular(HzRadius.r6),
+    );
+    canvas.drawRRect(slot, Paint()..color = _plate);
+    canvas.drawRRect(
+      slot,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = held == null ? GameColors.oliveLight : held.color,
+        ..strokeWidth = held == null ? HzLine.hairline : HzLine.selection
+        ..color = held == null ? GameColors.lineStrong : held.color,
     );
     if (held != null) {
       _icon(canvas, rect.center, held.icon, 26, held.color);
@@ -1102,7 +1113,8 @@ class DemoPainter extends CustomPainter {
         rect.topLeft + const Offset(4, 2),
         _gamepad ? 'X' : '1',
         size: 10,
-        color: GameColors.textDim,
+        color: GameColors.textMuted,
+        mono: true,
       );
     }
     _text(
@@ -1110,7 +1122,7 @@ class DemoPainter extends CustomPainter {
       rect.bottomCenter + const Offset(0, 4),
       tr('INVENTAR', 'INVENTORY'),
       size: 9,
-      color: GameColors.textDim,
+      color: GameColors.textMuted,
       center: true,
     );
   }
@@ -1130,7 +1142,7 @@ class DemoPainter extends CustomPainter {
     canvas.drawCircle(
       base,
       r,
-      Paint()..color = Color(idle ? 0x22000000 : 0x44000000),
+      Paint()..color = GameColors.sunken.withValues(alpha: idle ? 0.15 : 0.3),
     );
     canvas.drawCircle(
       base,
@@ -1138,7 +1150,7 @@ class DemoPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 2
-        ..color = Color(idle ? 0x33FFFFFF : 0x88FFFFFF),
+        ..color = GameColors.text.withValues(alpha: idle ? 0.2 : 0.55),
     );
     if (ring) {
       canvas.drawCircle(
@@ -1147,9 +1159,8 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = firing ? 3 : 1.5
-          ..color = (firing ? GameColors.danger : GameColors.amber).withValues(
-            alpha: idle ? 0.3 : 0.8,
-          ),
+          ..color = (firing ? GameColors.critical : GameColors.accentText)
+              .withValues(alpha: idle ? 0.3 : 0.8),
       );
     }
     if (knob != null) {
@@ -1157,26 +1168,27 @@ class DemoPainter extends CustomPainter {
         base,
         knob,
         Paint()
-          ..color = const Color(0x55FFFFFF)
+          ..color = GameColors.text.withValues(alpha: 0.35)
           ..strokeWidth = 4,
       );
       canvas.drawCircle(
         knob,
         r * 0.38,
-        Paint()..color = (firing ? GameColors.danger : GameColors.sand),
+        Paint()..color = (firing ? GameColors.critical : GameColors.text),
       );
     }
-    // Above the ring on a dark pill like the game's sticks, readable on any
+    // Above the ring on a dark plate like the game's sticks, readable on any
     // ground and kept on screen.
     _pill(canvas, base - Offset(0, r + 16), label);
   }
 
-  /// [text] on a dark pill centred on [at], shifted back inside the stage.
+  /// [text] on a dark plate centred on [at], shifted back inside the stage:
+  /// sunken, a little see-through, with the one outline.
   void _pill(
     Canvas canvas,
     Offset at,
     String text, {
-    Color color = GameColors.sand,
+    Color color = GameColors.text,
   }) {
     final painter = TextPainter(
       text: TextSpan(
@@ -1184,9 +1196,10 @@ class DemoPainter extends CustomPainter {
         style: TextStyle(
           fontSize: 11,
           color: color,
-          fontFamily: 'Roboto',
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.2,
+          fontFamily: HzFont.sans,
+          package: HzFont.package,
+          fontWeight: FontWeight.w600,
+          letterSpacing: 0.5,
         ),
       ),
       textDirection: TextDirection.ltr,
@@ -1198,9 +1211,17 @@ class DemoPainter extends CustomPainter {
         .clamp(8.0, max(8.0, _w - 8 - width))
         .toDouble();
     final rect = Rect.fromLTWH(left, at.dy - height / 2, width, height);
+    final plate = RRect.fromRectAndRadius(
+      rect,
+      const Radius.circular(HzRadius.r6),
+    );
+    canvas.drawRRect(plate, Paint()..color = _plate);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(rect, Radius.circular(height / 2)),
-      Paint()..color = const Color(0x99000000),
+      plate,
+      Paint()
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = HzLine.hairline
+        ..color = GameColors.lineStrong,
     );
     painter.paint(canvas, rect.topLeft + const Offset(8, 3));
     painter.dispose();
@@ -1238,15 +1259,16 @@ class DemoPainter extends CustomPainter {
         Paint()
           ..style = PaintingStyle.stroke
           ..strokeWidth = 3
-          ..color = GameColors.amber.withValues(alpha: 1 - press),
+          ..color = GameColors.accentText.withValues(alpha: 1 - press),
       );
     }
   }
 
-  /// The game's aim assist toggle: a dark pill with a frame in amber when
-  /// on, dim when off, the crosshair and two lines. Returns where it lies.
+  /// The game's aim assist toggle: a dark plate, framed by the selection
+  /// line in the accent when on and by the hairline when off, the crosshair
+  /// and two lines. Returns where it lies.
   Rect _assistToggle(Canvas canvas, {required bool on}) {
-    final color = on ? GameColors.amber : GameColors.textDim;
+    final color = on ? GameColors.accentText : GameColors.textMuted;
     TextPainter line(String text, double size, Color color, FontWeight w) =>
         TextPainter(
           text: TextSpan(
@@ -1254,7 +1276,8 @@ class DemoPainter extends CustomPainter {
             style: TextStyle(
               fontSize: size,
               color: color,
-              fontFamily: 'Roboto',
+              fontFamily: HzFont.sans,
+              package: HzFont.package,
               fontWeight: w,
               letterSpacing: size < 10 ? 0.3 : 0,
             ),
@@ -1268,7 +1291,7 @@ class DemoPainter extends CustomPainter {
           : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
       11,
       color,
-      FontWeight.w800,
+      FontWeight.w600,
     );
     final hint = line(
       on
@@ -1280,17 +1303,17 @@ class DemoPainter extends CustomPainter {
     );
     final width = 48.0 + max(title.width, hint.width);
     final rect = _assistRect(width);
-    final pill = RRect.fromRectAndRadius(
+    final plate = RRect.fromRectAndRadius(
       rect,
-      const Radius.circular(_assistHeight / 2),
+      const Radius.circular(HzRadius.r6),
     );
-    canvas.drawRRect(pill, Paint()..color = const Color(0xB3141A0E));
+    canvas.drawRRect(plate, Paint()..color = _plate);
     canvas.drawRRect(
-      pill,
+      plate,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = color,
+        ..strokeWidth = on ? HzLine.selection : HzLine.hairline
+        ..color = on ? GameColors.accentText : GameColors.lineStrong,
     );
     _icon(
       canvas,
@@ -1322,8 +1345,7 @@ class DemoPainter extends CustomPainter {
     canvas.drawCircle(
       at,
       radius,
-      Paint()
-        ..color = lit ? color.withValues(alpha: 0.6) : const Color(0x88000000),
+      Paint()..color = lit ? color.withValues(alpha: 0.6) : _plate,
     );
     canvas.drawCircle(
       at,
@@ -1349,6 +1371,7 @@ class DemoPainter extends CustomPainter {
       size: 11,
       color: GameColors.text,
       center: true,
+      mono: true,
     );
   }
 
@@ -1375,32 +1398,32 @@ class DemoPainter extends CustomPainter {
   }) {
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), width ?? 34, 34),
-      const Radius.circular(5),
+      const Radius.circular(HzRadius.r6),
     );
     if (!lit) {
       // The key's side, gone when it is pressed down.
       canvas.drawRRect(
         rect.shift(const Offset(0, 3)),
-        Paint()..color = const Color(0xFF0E120A),
+        Paint()..color = GameColors.sunken,
       );
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.accent : GameColors.surface,
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = lit ? GameColors.amber : GameColors.sand,
+        ..strokeWidth = HzLine.hairline
+        ..color = lit ? GameColors.accent : GameColors.lineStrong,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 8),
       label,
       size: 14,
-      color: lit ? Colors.black : GameColors.text,
+      color: lit ? GameColors.onAccent : GameColors.text,
       center: true,
       bold: true,
     );
@@ -1409,31 +1432,31 @@ class DemoPainter extends CustomPainter {
   void _spaceBar(Canvas canvas, Offset at, {bool lit = false}) {
     final rect = RRect.fromRectAndRadius(
       Rect.fromLTWH(at.dx, at.dy + (lit ? 2 : 0), 154, 34),
-      const Radius.circular(5),
+      const Radius.circular(HzRadius.r6),
     );
     if (!lit) {
       canvas.drawRRect(
         rect.shift(const Offset(0, 3)),
-        Paint()..color = const Color(0xFF0E120A),
+        Paint()..color = GameColors.sunken,
       );
     }
     canvas.drawRRect(
       rect,
-      Paint()..color = lit ? GameColors.amber : const Color(0xFF2A3520),
+      Paint()..color = lit ? GameColors.accent : GameColors.surface,
     );
     canvas.drawRRect(
       rect,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = lit ? GameColors.amber : GameColors.sand,
+        ..strokeWidth = HzLine.hairline
+        ..color = lit ? GameColors.accent : GameColors.lineStrong,
     );
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       tr('LEERTASTE', 'SPACE'),
       size: 11,
-      color: lit ? Colors.black : GameColors.text,
+      color: lit ? GameColors.onAccent : GameColors.text,
       center: true,
       bold: true,
     );
@@ -1469,7 +1492,7 @@ class DemoPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 3
-            ..color = GameColors.amber.withValues(alpha: 1 - p),
+            ..color = GameColors.accentText.withValues(alpha: 1 - p),
         );
       }
     }
@@ -1482,7 +1505,7 @@ class DemoPainter extends CustomPainter {
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 2
-      ..color = GameColors.amber;
+      ..color = GameColors.accentText;
     for (final (sx, sy) in const [(-1, -1), (1, -1), (-1, 1), (1, 1)]) {
       final corner = at + Offset(sx * r, sy * r);
       canvas.drawLine(corner, corner - Offset(sx * r * 0.35, 0), paint);
@@ -1492,7 +1515,7 @@ class DemoPainter extends CustomPainter {
 
   void _dashes(Canvas canvas, Offset from, Offset to) {
     final paint = Paint()
-      ..color = const Color(0x66FFB300)
+      ..color = GameColors.accentText.withValues(alpha: 0.4)
       ..strokeWidth = 2;
     final length = (to - from).distance;
     final dir = (to - from) / length;
@@ -1501,31 +1524,39 @@ class DemoPainter extends CustomPainter {
     }
   }
 
+  /// A button of the game as Horizont draws it: the one primary action
+  /// filled in the accent, every other on the plate with the hairline.
   void _button(Canvas canvas, Rect rect, String label, {bool filled = false}) {
-    canvas.drawRect(
+    final shape = RRect.fromRectAndRadius(
       rect,
-      Paint()..color = filled ? GameColors.olive : const Color(0x88000000),
+      const Radius.circular(HzRadius.r6),
     );
-    canvas.drawRect(
-      rect,
-      Paint()
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5
-        ..color = GameColors.sand,
+    canvas.drawRRect(
+      shape,
+      Paint()..color = filled ? GameColors.accent : _plate,
     );
+    if (!filled) {
+      canvas.drawRRect(
+        shape,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = HzLine.hairline
+          ..color = GameColors.lineStrong,
+      );
+    }
     _text(
       canvas,
       rect.center - const Offset(0, 7),
       label,
       size: 11,
-      color: GameColors.text,
+      color: filled ? GameColors.onAccent : GameColors.text,
       center: true,
       bold: true,
     );
   }
 
   void _caption(Canvas canvas, Offset at, String text) =>
-      _text(canvas, at, text, size: 10, color: GameColors.textDim);
+      _text(canvas, at, text, size: 10, color: GameColors.textMuted);
 
   void _text(
     Canvas canvas,
@@ -1535,17 +1566,22 @@ class DemoPainter extends CustomPainter {
     required Color color,
     bool center = false,
     bool bold = false,
+    bool mono = false,
     double? maxWidth,
   }) {
+    // Mona Sans for the labels of the chrome, Monaspace with tabular
+    // figures for a counted value, as in the game's HUD.
     final painter = TextPainter(
       text: TextSpan(
         text: text,
         style: TextStyle(
           fontSize: size,
           color: color,
-          fontFamily: 'Roboto',
-          fontWeight: bold ? FontWeight.w900 : FontWeight.w800,
-          letterSpacing: 1,
+          fontFamily: mono ? HzFont.mono : HzFont.sans,
+          package: HzFont.package,
+          fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
+          letterSpacing: mono ? 0 : 0.5,
+          fontFeatures: mono ? const [FontFeature.tabularFigures()] : null,
         ),
       ),
       textDirection: TextDirection.ltr,

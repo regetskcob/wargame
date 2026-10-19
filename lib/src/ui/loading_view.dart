@@ -4,6 +4,8 @@ import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import 'theme.dart';
+
 /// Shown from the first frame until the game has loaded: the tank of the
 /// launch screen on its ground, with a spinner below. Without it the screen
 /// stayed dark while the app reached the server, between the launch screen
@@ -20,10 +22,9 @@ class LoadingView extends StatelessWidget {
   /// (`TANK_WIDTH` in `launch_screen.py`).
   static const tankWidth = 160.0;
 
-  /// The middle colour of the ground, behind it while it loads.
+  /// The middle colour of the ground, behind it while it loads: the
+  /// picture's own, not a colour of the interface.
   static const groundColor = Color(0xFF68733F);
-
-  static const _spinnerColor = Color(0xFFE8DCB4);
 
   static Future<void> loadImages() async {
     ground = await _decode('assets/images/launch_ground.jpg');
@@ -71,7 +72,7 @@ class LoadingView extends StatelessWidget {
                 dimension: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,
-                  color: _spinnerColor,
+                  color: GameColors.text,
                 ),
               ),
             ),

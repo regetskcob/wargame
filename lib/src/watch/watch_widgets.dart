@@ -2,8 +2,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_watchos/flutter_watchos.dart';
+import 'package:horizont/horizont.dart';
 
+import '../game/game_config.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/health_bar.dart';
 import 'watch_support.dart';
 
 /// How far the watch screens keep their content from the edge: the system's
@@ -23,7 +26,7 @@ EdgeInsets watchInsets(BuildContext context) {
   );
 }
 
-/// The page behind every watch menu: the plate colour, a list that the
+/// The page behind every watch menu: the Gelände ground, a list that the
 /// crown scrolls, and room around the corners and under the clock, or
 /// inside the circle of a round watch.
 class WatchPage extends StatelessWidget {
@@ -36,17 +39,17 @@ class WatchPage extends StatelessWidget {
     final padding = MediaQuery.paddingOf(context);
     final insets = watchInsets(context);
     return ColoredBox(
-      color: GameColors.background,
+      color: GameColors.bg,
       child: ListView(
         padding: watchRound
             // The first and last entries scroll fully into the circle.
             ? insets
             : EdgeInsets.fromLTRB(
-                12 + padding.left,
+                HzSpace.s12 + padding.left,
                 // Under the clock, which watchOS draws over the app.
-                WatchStatusBar.heightOf(context) + 4,
-                12 + padding.right,
-                16 + padding.bottom,
+                WatchStatusBar.heightOf(context) + HzSpace.s4,
+                HzSpace.s12 + padding.right,
+                HzSpace.s16 + padding.bottom,
               ),
         children: children,
       ),
@@ -73,11 +76,12 @@ class WatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = danger ? GameColors.danger : GameColors.amber;
-    final style = ButtonStyle(
-      minimumSize: const WidgetStatePropertyAll(Size.fromHeight(44)),
-      padding: const WidgetStatePropertyAll(
-        EdgeInsets.symmetric(horizontal: 10),
+    // The one action of a screen in the accent, every other in ink on
+    // the hairline, an irreversible one in critical.
+    const style = ButtonStyle(
+      minimumSize: WidgetStatePropertyAll(Size.fromHeight(HzSize.touch)),
+      padding: WidgetStatePropertyAll(
+        EdgeInsets.symmetric(horizontal: HzSpace.s8),
       ),
     );
     final text = FittedBox(
@@ -85,33 +89,47 @@ class WatchButton extends StatelessWidget {
       child: Text(
         label,
         maxLines: 1,
-        style: const TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1),
+        // The button's own colour, the label's size and weight.
+        style: TextStyle(
+          fontSize: GameType.label.fontSize,
+          height: GameType.label.height,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
     final child = Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (icon != null) ...[Icon(icon, size: 18), const SizedBox(width: 6)],
+        if (icon != null) ...[
+          Icon(icon, size: HzIconSize.row),
+          const SizedBox(width: HzSpace.s8),
+        ],
         Flexible(child: text),
       ],
     );
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: HzSpace.s8),
       child: primary
           ? FilledButton(onPressed: onPressed, style: style, child: child)
           : OutlinedButton(
               onPressed: onPressed,
-              style: style.copyWith(
-                foregroundColor: WidgetStatePropertyAll(color),
-                side: WidgetStatePropertyAll(BorderSide(color: color)),
-              ),
+              style: danger
+                  ? style.copyWith(
+                      foregroundColor: const WidgetStatePropertyAll(
+                        GameColors.critical,
+                      ),
+                      side: const WidgetStatePropertyAll(
+                        BorderSide(color: GameColors.critical),
+                      ),
+                    )
+                  : style,
               child: child,
             ),
     );
   }
 }
 
-/// A small heading over a block of a menu.
+/// A small heading over a block of a menu: a Kennung.
 class WatchLabel extends StatelessWidget {
   const WatchLabel(this.text, {super.key});
 
@@ -119,16 +137,8 @@ class WatchLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.only(top: 4, bottom: 6),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 11,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.5,
-        color: GameColors.sand,
-      ),
-    ),
+    padding: const EdgeInsets.only(top: HzSpace.s4, bottom: HzSpace.s8),
+    child: Kennung(text),
   );
 }
 
@@ -162,7 +172,7 @@ class WatchRimPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
       ..strokeCap = StrokeCap.round
-      ..color = const Color(0x88000000);
+      ..color = GameColors.sunken.withValues(alpha: 0.7);
     final fill = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = width
@@ -174,7 +184,8 @@ class WatchRimPainter extends CustomPainter {
     canvas.drawArc(rect, left, sweep, false, track);
     final share = armour.clamp(0.0, 1.0);
     if (share > 0) {
-      fill.color = share > 0.3 ? GameColors.oliveLight : GameColors.danger;
+      // Ink while there is enough, warning and critical as on the HUD.
+      fill.color = stockColor(armourStatus(share));
       canvas.drawArc(rect, left, sweep * share, false, fill);
     }
     final magazine = ammo;
@@ -185,7 +196,9 @@ class WatchRimPainter extends CustomPainter {
     canvas.drawArc(rect, right, -sweep, false, track);
     final rounds = magazine.clamp(0.0, 1.0);
     if (rounds > 0) {
-      fill.color = GameColors.amber;
+      fill.color = stockColor(
+        stockStatus(rounds, low: GameConfig.ammoLowShare),
+      );
       canvas.drawArc(rect, right, -sweep * rounds, false, fill);
     }
   }

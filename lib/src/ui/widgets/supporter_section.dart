@@ -1,14 +1,16 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../l10n/l10n.dart';
 import '../../store/product.dart';
 import '../../store/shop.dart';
 import '../theme.dart';
+import 'panel.dart';
 
-/// The supporter pack on the account page, in the same quiet dark box as
-/// the controllers. Shown only where [shop] can sell (docs/purchases.md);
+/// The supporter pack on the account page, in the same sunken box as the
+/// controllers. Shown only where [shop] can sell (docs/purchases.md);
 /// a guest sees the offer and that it needs an account.
 class SupporterSection extends StatelessWidget {
   const SupporterSection({required this.shop, required this.guest, super.key});
@@ -34,12 +36,12 @@ class SupporterSection extends StatelessWidget {
         final owned = shop.owns(_product);
         final busy = shop.busy.value;
         return DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0x55000000),
-            borderRadius: BorderRadius.circular(10),
+          decoration: ShapeDecoration(
+            color: GameColors.sunken,
+            shape: GameShapes.card(),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+            padding: const EdgeInsets.all(HzSpace.s12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -47,22 +49,14 @@ class SupporterSection extends StatelessWidget {
                   children: [
                     Icon(
                       owned ? Icons.star : Icons.star_outline,
-                      color: GameColors.sand,
-                      size: 24,
+                      color: GameColors.textMuted,
+                      size: HzIconSize.row,
                     ),
-                    const SizedBox(width: 12),
-                    Text(
-                      _product.title,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                        color: GameColors.textDim,
-                      ),
-                    ),
+                    const SizedBox(width: HzSpace.s8),
+                    Kennung(_product.title),
                   ],
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: HzSpace.s8),
                 Text(
                   owned
                       ? tr(
@@ -72,18 +66,19 @@ class SupporterSection extends StatelessWidget {
                               'sits on your pilot card.',
                         )
                       : _product.benefit,
+                  style: GameType.callout,
                 ),
                 if (!owned && guest) ...[
-                  const SizedBox(height: 6),
+                  const SizedBox(height: HzSpace.s8),
                   Text(
                     tr(
                       'Käufe gibt es nur mit Konto: Melde dich oben an.',
                       'Purchases need an account: sign in above.',
                     ),
-                    style: const TextStyle(color: GameColors.textDim),
+                    style: GameType.caption,
                   ),
                 ],
-                const SizedBox(height: 12),
+                const SizedBox(height: HzSpace.s12),
                 Row(
                   children: [
                     if (!owned)
@@ -102,7 +97,7 @@ class SupporterSection extends StatelessWidget {
                           ),
                         ),
                       ),
-                    if (!owned) const SizedBox(width: 12),
+                    if (!owned) const SizedBox(width: HzSpace.s12),
                     Expanded(
                       child: OutlinedButton(
                         onPressed: busy || guest
@@ -116,8 +111,8 @@ class SupporterSection extends StatelessWidget {
                   ],
                 ),
                 if (shop.message.value case final message?) ...[
-                  const SizedBox(height: 8),
-                  Text(message),
+                  const SizedBox(height: HzSpace.s8),
+                  Text(message, style: GameType.callout),
                 ],
               ],
             ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../l10n/l10n.dart';
 import '../theme.dart';
@@ -17,14 +18,10 @@ class LanguageButton extends StatelessWidget {
           message: next.label,
           child: TextButton.icon(
             onPressed: () => L10n.set(next),
-            icon: const Icon(Icons.language_outlined, size: 20),
+            icon: const Icon(Icons.language_outlined, size: HzIconSize.bar),
             label: Text(
               lang.code,
-              style: const TextStyle(
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.5,
-                color: GameColors.sand,
-              ),
+              style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
         );

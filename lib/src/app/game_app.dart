@@ -293,7 +293,7 @@ class _GameAppState extends State<GameApp> {
     final second = _second;
     final view = _view();
     return Scaffold(
-      backgroundColor: GameColors.background,
+      backgroundColor: GameColors.bg,
       body: second == null
           ? view
           : TvSplitView(host: game, second: second, child: view),

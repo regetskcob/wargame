@@ -18,10 +18,10 @@ void main(List<String> args) {
   _write(out, 'datenschutz', 'Datenschutz', privacy);
   _write(out, 'impressum', 'Impressum', imprint);
   // The component licences: the NOTICES file of the web build holds those of
-  // every package and the engine, Roboto comes in full below it.
-  final roboto = const HtmlEscape().convert(
-    File('assets/fonts/Roboto_LICENSE.txt').readAsStringSync(),
-  );
+  // every package and the engine, the fonts of Horizont come in full below
+  // it (SIL Open Font License, Material Symbols under Apache 2.0).
+  final escape = const HtmlEscape();
+  final fonts = _horizontFonts();
   _write(
     out,
     'lizenzen',
@@ -31,11 +31,31 @@ void main(List<String> args) {
         '<h2>Lizenztexte der Komponenten</h2>\n'
         '<p><a href="../play/assets/NOTICES">Lizenztexte aller Pakete und '
         'der Flutter-Engine</a></p>\n'
-        '<h2>Roboto</h2>\n'
-        '<p>Copyright 2011 Google Inc. Für das Spiel auf lateinische Zeichen '
-        'gekürzt.</p>\n'
-        '<pre>$roboto</pre>\n',
+        '<h2>Schriften</h2>\n'
+        '<p>Mona Sans, Monaspace und Literata unter der SIL Open Font '
+        'License 1.1, Material Symbols unter der Apache-Lizenz 2.0, '
+        'gebündelt im Designsystem Horizont.</p>\n'
+        '<pre>${escape.convert(fonts.ofl)}</pre>\n'
+        '<pre>${escape.convert(fonts.symbols)}</pre>\n',
   );
+}
+
+/// The licence texts that come with the fonts of the Horizont package,
+/// found through the package config `flutter pub get` writes.
+({String ofl, String symbols}) _horizontFonts() {
+  final config = jsonDecode(
+    File('.dart_tool/package_config.json').readAsStringSync(),
+  ) as Map<String, dynamic>;
+  final horizont = (config['packages'] as List)
+      .cast<Map<String, dynamic>>()
+      .firstWhere((p) => p['name'] == 'horizont');
+  // rootUri is absolute or relative to the config file, without a slash.
+  final root = Directory.current.uri
+      .resolve('.dart_tool/')
+      .resolve('${horizont['rootUri']}/');
+  String read(String name) =>
+      File.fromUri(root.resolve('fonts/$name')).readAsStringSync();
+  return (ofl: read('OFL.txt'), symbols: read('MaterialSymbols-LICENSE.txt'));
 }
 
 void _write(
@@ -67,15 +87,28 @@ void _write(
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>$title · Panzergefecht</title>
-<link rel="icon" type="image/png" href="../favicon.png">
+<link rel="icon" type="image/svg+xml" href="../favicon.svg">
+<link rel="icon" type="image/png" sizes="32x32" href="../favicon-32.png">
 <style>
-  :root { color-scheme: dark; }
+  /* Horizont, Panzergefecht in the dark on its Gelände neutrals. The fonts
+     are the ones the landing page serves from Horizont under /fonts/. */
+  @font-face { font-family: "Mona Sans"; font-weight: 400; src: url("../fonts/MonaSans/MonaSans-Regular.woff2") format("woff2"); }
+  @font-face { font-family: "Mona Sans"; font-weight: 600; src: url("../fonts/MonaSans/MonaSans-SemiBold.woff2") format("woff2"); }
+  @font-face { font-family: "Mona Sans Display Expanded"; font-weight: 900; src: url("../fonts/MonaSans/MonaSansDisplayExpanded-Black.woff2") format("woff2"); }
+  @font-face { font-family: "Monaspace Argon"; font-weight: 400; src: url("../fonts/Monaspace/MonaspaceArgon-Regular.woff2") format("woff2"); }
+  :root {
+    color-scheme: dark;
+    --bg: #141a0e;
+    --line: #2f3a24;
+    --text: #e6e2d3;
+    --text-muted: #b4ba9e;
+    --accent-text: #ffc233;
+  }
   body {
     margin: 0;
-    background: #161c0f;
-    color: #e6e2d3;
-    font: 16px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-      Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.5 "Mona Sans", system-ui, sans-serif;
   }
   main {
     max-width: 720px;
@@ -83,21 +116,30 @@ void _write(
     padding: 32px 16px 64px;
   }
   h1 {
-    color: #c2a878;
-    letter-spacing: 0.08em;
+    font: 900 28px/34px "Mona Sans Display Expanded", "Mona Sans", sans-serif;
+    letter-spacing: 0.02em;
     text-transform: uppercase;
-    margin: 0 0 8px;
+    margin: 0 0 24px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--accent-text);
   }
   h2 {
-    color: #c2a878;
-    font-size: 1rem;
-    letter-spacing: 0.04em;
-    margin: 28px 0 6px;
+    font: 600 11px/16px "Monaspace Argon", ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin: 32px 0 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line);
   }
   p { margin: 0 0 12px; }
-  a { color: #ffb300; }
-  .back { font-size: 0.9rem; }
-  pre { font-size: 0.8rem; white-space: pre-wrap; color: #b9b5a6; }
+  a { color: var(--accent-text); }
+  .back { font-size: 14px; }
+  pre {
+    font: 12px/16px "Monaspace Argon", ui-monospace, monospace;
+    white-space: pre-wrap;
+    color: var(--text-muted);
+  }
 </style>
 </head>
 <body>

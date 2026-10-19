@@ -315,8 +315,9 @@ const licenses = [
     'Komponenten von Dritten',
     'Das Spiel baut auf quelloffenen Komponenten auf, darunter Flutter, '
         'Flame, Supabase und audioplayers, unter den Lizenzen BSD, MIT und '
-        'Apache 2.0. Die Schrift Roboto (Google) steht unter der Apache-'
-        'Lizenz 2.0 und ist für das Spiel auf lateinische Zeichen gekürzt. '
+        'Apache 2.0. Mit dem Designsystem Horizont kommen die Schriften Mona '
+        'Sans, Monaspace und Literata unter der SIL Open Font License 1.1 '
+        'und die Symbole Material Symbols unter der Apache-Lizenz 2.0. '
         'Unter Android erkennt Google ML Kit QR-Codes, nach den '
         'Nutzungsbedingungen von Google. Die vollständigen Lizenztexte '
         'zeigt die Schaltfläche unten, im Web stehen sie auch unter '
@@ -352,8 +353,9 @@ const licensesEn = [
     'Third-party components',
     'The game is built on open source components, among them Flutter, '
         'Flame, Supabase and audioplayers, under the BSD, MIT and Apache 2.0 '
-        'licences. The Roboto font (Google) is licensed under the Apache '
-        'License 2.0 and cut down to Latin letters for the game. On Android, '
+        'licences. The fonts Mona Sans, Monaspace and Literata come with the '
+        'design system Horizont under the SIL Open Font License 1.1, and the '
+        'Material Symbols under the Apache License 2.0. On Android, '
         'Google ML Kit recognises QR codes under the Google terms of '
         'service. The button below shows the full licence texts, on the web '
         'they are also at $licensesUrl.\n\n'

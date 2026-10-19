@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/net/room.dart';
 import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/tutorial/demo_painter.dart';
@@ -21,6 +22,7 @@ void main() {
     final closed = <int>[];
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: TutorialOverlay(
           key: UniqueKey(),
           touch: touch,

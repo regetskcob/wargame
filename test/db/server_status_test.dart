@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:fake_async/fake_async.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:wargame/src/db/server_status.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -142,6 +143,7 @@ void main() {
       final game = offlineGame()..changeMode();
       await tester.pumpWidget(
         MaterialApp(
+          theme: buildGameTheme(),
           home: Scaffold(
             body: SingleChildScrollView(child: LaunchView(game: game)),
           ),

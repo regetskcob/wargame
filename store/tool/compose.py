@@ -20,9 +20,10 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
 
 import app_icon
+import horizont_fonts
 
 ROOT = Path(__file__).resolve().parents[2]
-FONTS = ROOT / "assets" / "fonts"
+FONTS = horizont_fonts.fonts_dir()
 LANGS = ("de-DE", "en-US")
 
 
@@ -369,8 +370,8 @@ def compose(lang, out, raw, size, headline, subline, raw_dir):
     portrait = h > w
     canvas = backdrop(size, out.name)
     draw = ImageDraw.Draw(canvas)
-    head = font("Roboto-Black.ttf", round(w * (0.085 if portrait else 0.04)))
-    sub = font("Roboto-Medium.ttf", round(w * (0.042 if portrait else 0.02)))
+    head = font(horizont_fonts.HEADLINE, round(w * (0.085 if portrait else 0.04)))
+    sub = font(horizont_fonts.TEXT, round(w * (0.042 if portrait else 0.02)))
     top = round(h * (0.055 if portrait else 0.05))
     spaced(draw, (w / 2, top), headline, head, SAND, round(head.size * 0.08))
     sub_y = top + head.size * 1.25
@@ -405,8 +406,8 @@ def feature_graphic(lang):
     tank = layer.crop(box).resize(size, Image.LANCZOS)
     canvas.paste(tank, (70, (h - tank.height) // 2), tank)
     draw = ImageDraw.Draw(canvas)
-    head = font("Roboto-Black.ttf", 60)
-    sub = font("Roboto-Medium.ttf", 34)
+    head = font(horizont_fonts.HEADLINE, 60)
+    sub = font(horizont_fonts.TEXT, 34)
     centre = 70 + tank.width + (w - 70 - tank.width) / 2
     spaced(draw, (centre, 150), "PANZERGEFECHT", head, SAND, 5)
     line1, line2 = FEATURE[lang]

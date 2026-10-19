@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizont/horizont.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../../app/routes.dart';
 import '../../net/pad_link.dart';
 import '../../net/room_code.dart';
 import '../theme.dart';
+import 'notice.dart';
+import 'panel.dart';
 import '../../l10n/l10n.dart';
 
 /// Full screen camera that reads the QR code of a waiting room and returns
@@ -66,9 +69,9 @@ class _RoomScannerState extends State<RoomScanner> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: GameColors.sunken,
       appBar: AppBar(
-        backgroundColor: GameColors.background,
+        backgroundColor: GameColors.bg,
         title: Text(
           widget.pad
               ? tr('BILDSCHIRM KOPPELN', 'PAIR SCREEN')
@@ -83,7 +86,7 @@ class _RoomScannerState extends State<RoomScanner> {
             onDetect: _detect,
             errorBuilder: (context, error) => Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(HzSpace.s24),
                 child: Text(
                   error.errorCode == MobileScannerErrorCode.permissionDenied
                       ? tr(
@@ -103,45 +106,61 @@ class _RoomScannerState extends State<RoomScanner> {
               ),
             ),
           ),
+          // Where the code goes: the selection line in the accent.
           Center(
             child: Container(
               width: 240,
               height: 240,
               decoration: BoxDecoration(
-                border: Border.all(color: GameColors.amber, width: 3),
+                border: Border.all(
+                  color: GameColors.accentText,
+                  width: HzLine.selection,
+                ),
+                borderRadius: BorderRadius.circular(HzRadius.r10),
               ),
             ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
             child: SafeArea(
-              minimum: const EdgeInsets.all(24),
-              child: Text(
-                switch ((widget.pad, _rejected == null)) {
-                  (false, true) => tr(
-                    'Halte die Kamera auf den QR-Code im Warteraum.',
-                    'Point the camera at the QR code in the waiting room.',
-                  ),
-                  (false, false) => tr(
-                    'Das ist kein Raumcode von Panzergefecht.',
-                    'This is not a Panzergefecht room code.',
-                  ),
-                  (true, true) => tr(
-                    'Halte die Kamera auf den Kopplungscode am Bildschirm.',
-                    'Point the camera at the pairing code on the screen.',
-                  ),
-                  (true, false) => tr(
-                    'Das ist kein Kopplungscode von Panzergefecht.',
-                    'This is not a Panzergefecht pairing code.',
-                  ),
-                },
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
+              minimum: const EdgeInsets.all(HzSpace.s24),
+              child: _hint(switch ((widget.pad, _rejected == null)) {
+                (false, true) => tr(
+                  'Halte die Kamera auf den QR-Code im Warteraum.',
+                  'Point the camera at the QR code in the waiting room.',
+                ),
+                (false, false) => tr(
+                  'Das ist kein Raumcode von Panzergefecht.',
+                  'This is not a Panzergefecht room code.',
+                ),
+                (true, true) => tr(
+                  'Halte die Kamera auf den Kopplungscode am Bildschirm.',
+                  'Point the camera at the pairing code on the screen.',
+                ),
+                (true, false) => tr(
+                  'Das ist kein Kopplungscode von Panzergefecht.',
+                  'This is not a Panzergefecht pairing code.',
+                ),
+              }),
             ),
           ),
         ],
       ),
+    );
+  }
+
+  /// The line under the frame: on a plate over the camera picture, and a
+  /// code that is not the game's as a critical note with its sign.
+  Widget _hint(String text) {
+    if (_rejected != null) {
+      return Notice(HorizontStatus.critical, child: Text(text));
+    }
+    return Panel(
+      padding: const EdgeInsets.symmetric(
+        horizontal: HzSpace.s16,
+        vertical: HzSpace.s12,
+      ),
+      child: Text(text, textAlign: TextAlign.center, style: GameType.body),
     );
   }
 }

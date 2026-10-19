@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/ui/widgets/legal.dart';
 
 void main() {
   Future<void> open(WidgetTester tester, String link) async {
     await tester.pumpWidget(
-      const MaterialApp(home: Scaffold(body: LegalLinks())),
+      MaterialApp(
+        theme: buildGameTheme(),
+        home: const Scaffold(body: LegalLinks()),
+      ),
     );
     await tester.tap(find.text(link));
     await tester.pumpAndSettle();
@@ -33,11 +37,11 @@ void main() {
   ) async {
     await open(tester, 'Lizenzen');
     expect(find.textContaining('Alle Rechte vorbehalten'), findsOneWidget);
-    expect(find.textContaining('Roboto'), findsWidgets);
+    expect(find.textContaining('Mona Sans'), findsWidgets);
     await tester.tap(find.text('Lizenztexte der Komponenten'));
     await tester.pumpAndSettle();
     expect(find.byType(LicensePage), findsOneWidget);
-    // The bundled font is listed next to the packages.
-    expect(find.text('Roboto'), findsOneWidget);
+    // The fonts Horizont bundles are listed next to the packages.
+    expect(find.text('Mona Sans'), findsOneWidget);
   });
 }

@@ -8,6 +8,20 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## Unveröffentlicht
+
+- Neues Aussehen nach dem Designsystem Horizont, im Spiel und auf der
+  Landingpage: ruhige Olivflächen mit Haarlinien statt Fasen, Signalgelb
+  nur für die eine Hauptaktion und die Auswahl, Mona Sans zum Spielen,
+  breite Versalien für Überschriften und jede Zahl in Monaspace
+- Der Warteraum wie im Entwurf: der Raumcode groß, die Besatzungen im Raum
+  mit Zahl, die Fahrzeuge als Karten mit umrandeter Auswahl und ihren
+  Werten als Balken
+- Neues App-Icon auf allen Plattformen: der Panzer von der Seite auf dem
+  Horizont
+- Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
+  Screenshots in Geräterahmen, die Rechtstexte im selben Stil
+
 ## 1.7.0 (15) – 18.10.2026
 
 - Die geschlossene Zone eines Gefechts hält 30 Sekunden und zieht sich

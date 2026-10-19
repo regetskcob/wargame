@@ -1,5 +1,6 @@
 import 'package:flame/game.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../app/overlay_ids.dart';
 import '../game/game_config.dart';
@@ -116,7 +117,7 @@ class TvSplitView extends StatelessWidget {
                       child: Align(
                         alignment: Alignment.bottomCenter,
                         child: Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
+                          padding: const EdgeInsets.only(bottom: HzSpace.s12),
                           child: PlayerTag(
                             player: player,
                             color: halfColor(

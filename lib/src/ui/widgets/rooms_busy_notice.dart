@@ -1,11 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../db/room_slots.dart';
 import '../../l10n/l10n.dart';
-import '../theme.dart';
-import 'panel.dart';
+import 'notice.dart';
 
 /// Says so while the project's Realtime budget has no room for another
 /// room, and nothing otherwise. Counts now and every 20 seconds while it
@@ -69,30 +69,11 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
                     'room again.',
               );
         return Padding(
-          padding: const EdgeInsets.only(bottom: 16),
-          child: DecoratedBox(
-            decoration: ShapeDecoration(
-              color: const Color(0x66000000),
-              shape: GameShapes.card(),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.all(14),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.hourglass_top_outlined,
-                    color: GameColors.amber,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      text,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+          padding: const EdgeInsets.only(bottom: HzSpace.s16),
+          child: Notice(
+            HorizontStatus.warning,
+            icon: Icons.hourglass_top_outlined,
+            child: Text(text),
           ),
         );
       },

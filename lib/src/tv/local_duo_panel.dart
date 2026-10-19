@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../l10n/l10n.dart';
 import '../ui/theme.dart';
 import '../ui/widgets/choice_row.dart';
 import '../ui/widgets/pad_pairing.dart';
+import '../ui/widgets/panel.dart';
 import 'seats.dart';
 import 'tv_input.dart';
 
@@ -26,42 +28,39 @@ class LocalDuoPanel extends StatelessWidget {
         if (onTv || others == 0) {
           return const SizedBox.shrink();
         }
-        // A quiet dark box without a frame, an icon in front and an arrow
+        // A sunken box with the one outline, an icon in front and an arrow
         // behind: it reads as a setting of this screen, not as one more
         // mode beside the framed mode cards. The arrow opens the pairing,
         // where a phone comes in as a second seat.
         return Padding(
-          padding: const EdgeInsets.only(top: 12),
+          padding: const EdgeInsets.only(top: HzSpace.s12),
           child: Material(
-            color: const Color(0x55000000),
-            borderRadius: BorderRadius.circular(10),
+            color: GameColors.sunken,
+            shape: GameShapes.card(),
             clipBehavior: Clip.antiAlias,
             child: InkWell(
               onTap: () => PadPairingDialog.show(context),
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+                padding: const EdgeInsets.fromLTRB(
+                  HzSpace.s12,
+                  HzSpace.s12,
+                  HzSpace.s4,
+                  HzSpace.s12,
+                ),
                 child: Row(
                   children: [
                     const Icon(
                       Icons.sports_esports_outlined,
-                      color: GameColors.sand,
-                      size: 24,
+                      color: GameColors.textMuted,
+                      size: HzIconSize.row,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: HzSpace.s12),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            tr('CONTROLLER', 'CONTROLLERS'),
-                            style: const TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 1,
-                              color: GameColors.textDim,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
+                          Kennung(tr('CONTROLLER', 'CONTROLLERS')),
+                          const SizedBox(height: HzSpace.s4),
                           Text(
                             two
                                 ? tr(
@@ -87,16 +86,15 @@ class LocalDuoPanel extends StatelessWidget {
                                         'a second controller or phone two of '
                                         'you play.',
                                   ),
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: GameColors.textDim,
+                            style: GameType.callout.copyWith(
+                              color: GameColors.textMuted,
                             ),
                           ),
                           // On a computer the keyboard makes a second seat,
                           // so one controller is enough for two.
                           if (KeyboardSeat.available &&
                               (keyboard || others == 1)) ...[
-                            const SizedBox(height: 10),
+                            const SizedBox(height: HzSpace.s12),
                             ChoiceRow<bool>(
                               options: [
                                 (false, tr('ALLEIN', 'ALONE'), null),
@@ -122,7 +120,7 @@ class LocalDuoPanel extends StatelessWidget {
                       onPressed: () => PadPairingDialog.show(context),
                       icon: const Icon(
                         Icons.chevron_right_outlined,
-                        color: GameColors.sand,
+                        color: GameColors.text,
                       ),
                     ),
                   ],

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../app/env.dart';
 import '../../game/special_weapon.dart';
@@ -52,7 +53,10 @@ class TouchControls extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SafeArea(
-      minimum: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      minimum: const EdgeInsets.symmetric(
+        horizontal: HzSpace.s12,
+        vertical: HzSpace.s8,
+      ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
@@ -224,7 +228,7 @@ class _LookToFireState extends State<_LookToFire> {
         child: Align(
           alignment: Alignment.bottomRight,
           child: Padding(
-            padding: const EdgeInsets.all(6),
+            padding: const EdgeInsets.all(HzSpace.s8),
             child: IgnorePointer(
               child: _StickLabel(tr('HINSEHEN · PINCH', 'LOOK · PINCH')),
             ),
@@ -240,7 +244,7 @@ class _LookToFireState extends State<_LookToFire> {
 class _AssistToggle extends StatefulWidget {
   const _AssistToggle({required this.input});
 
-  static const height = 44.0;
+  static const height = HzSize.touch;
 
   final TouchInput input;
 
@@ -271,7 +275,9 @@ class _AssistToggleState extends State<_AssistToggle> {
   @override
   Widget build(BuildContext context) {
     final on = widget.input.assist;
-    final color = on ? GameColors.amber : GameColors.textDim;
+    // On is a selection: the 2 px line in the accent on its tint, the word
+    // AN/AUS says it as well.
+    final color = on ? GameColors.accentText : GameColors.textMuted;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: () => setState(() {
@@ -281,18 +287,26 @@ class _AssistToggleState extends State<_AssistToggle> {
       }),
       child: Container(
         height: _AssistToggle.height,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
+        padding: const EdgeInsets.symmetric(horizontal: HzSpace.s12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(_AssistToggle.height / 2),
+          borderRadius: BorderRadius.circular(HzRadius.r6),
           // Dark in both states, so the label reads on snow and sand too.
-          color: const Color(0xB3141A0E),
-          border: Border.all(color: color, width: 2),
+          color: (on ? GameColors.accentTint : GameColors.bg).withValues(
+            alpha: 0.85,
+          ),
+        ),
+        // Over the face, so switching never shifts the label.
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(HzRadius.r6),
+          border: on
+              ? Border.all(color: color, width: HzLine.selection)
+              : Border.all(color: GameColors.lineStrong),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.gps_fixed_outlined, size: 18, color: color),
-            const SizedBox(width: 6),
+            Icon(Icons.gps_fixed_outlined, size: HzIconSize.row, color: color),
+            const SizedBox(width: HzSpace.s8),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -301,22 +315,14 @@ class _AssistToggleState extends State<_AssistToggle> {
                   on
                       ? tr('ZIELHILFE AN', 'AIM ASSIST ON')
                       : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
-                  style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: color,
-                  ),
+                  style: GameType.kennung.copyWith(color: color),
                 ),
                 // It also pulls the trigger, which spends the shells: say so.
                 Text(
                   on
                       ? tr('feuert selbst', 'fires by itself')
                       : tr('du zielst selbst', 'you aim yourself'),
-                  style: const TextStyle(
-                    fontSize: 9,
-                    letterSpacing: 0.3,
-                    color: GameColors.text,
-                  ),
+                  style: GameType.caption.copyWith(color: GameColors.text),
                 ),
               ],
             ),
@@ -327,7 +333,8 @@ class _AssistToggleState extends State<_AssistToggle> {
   }
 }
 
-/// Round button for the special weapon, firing while held.
+/// Button for the special weapon, firing while held: a free-standing
+/// plate with the radius of a card, the weapon's colour only on its gem.
 class _SpecialButton extends StatefulWidget {
   const _SpecialButton({
     required this.weapon,
@@ -381,6 +388,10 @@ class _SpecialButtonState extends State<_SpecialButton> {
   @override
   Widget build(BuildContext context) {
     final color = widget.weapon.color;
+    final mark = GameType.kennung.copyWith(
+      color: GameColors.text,
+      letterSpacing: 0,
+    );
     return Listener(
       behavior: HitTestBehavior.opaque,
       onPointerDown: _press,
@@ -389,24 +400,33 @@ class _SpecialButtonState extends State<_SpecialButton> {
       child: Container(
         width: _SpecialButton.size,
         height: _SpecialButton.size,
+        // Held, it shows the selection: the accent line on its tint. The
+        // line lies over the face, so pressing never moves the label.
         decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: _down ? color.withValues(alpha: 0.6) : const Color(0x88000000),
-          border: Border.all(color: color, width: 2.5),
+          borderRadius: BorderRadius.circular(HzRadius.r10),
+          color: (_down ? GameColors.accentTint : GameColors.sunken).withValues(
+            alpha: 0.85,
+          ),
+        ),
+        foregroundDecoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(HzRadius.r10),
+          border: _down
+              ? Border.all(
+                  color: GameColors.accentText,
+                  width: HzLine.selection,
+                )
+              : Border.all(color: GameColors.lineStrong),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond_outlined, size: 18, color: color),
+            Icon(Icons.diamond_outlined, size: HzIconSize.inline, color: color),
             Text(switch (widget.weapon) {
               SpecialWeapon.drone => tr('DROHNE', 'DRONE'),
               SpecialWeapon.mortar => tr('MÖRSER', 'MORTAR'),
               _ => tr('GRANATE', 'GRENADE'),
-            }, style: const TextStyle(fontSize: 10, letterSpacing: 0.5)),
-            Text(
-              '×${widget.charges}',
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
-            ),
+            }, style: mark),
+            Text('×${widget.charges}', style: mark),
           ],
         ),
       ),
@@ -627,7 +647,7 @@ class _CentreInside extends SingleChildLayoutDelegate {
   bool shouldRelayout(_CentreInside oldDelegate) => oldDelegate.x != x;
 }
 
-/// Name of a stick on a dark pill, readable on any ground.
+/// Name of a stick on a dark plate, readable on any ground.
 class _StickLabel extends StatelessWidget {
   const _StickLabel(this.text);
 
@@ -637,21 +657,19 @@ class _StickLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: const Color(0x99000000),
-        borderRadius: BorderRadius.circular(10),
+        color: GameColors.sunken.withValues(alpha: 0.7),
+        borderRadius: BorderRadius.circular(HzRadius.r6),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s8,
+          vertical: HzSpace.s2,
+        ),
         child: Text(
           text,
           maxLines: 1,
           softWrap: false,
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 1.2,
-            color: GameColors.sand,
-          ),
+          style: GameType.kennung.copyWith(color: GameColors.text),
         ),
       ),
     );
@@ -681,12 +699,13 @@ class _StickFace extends StatelessWidget {
       alignment: Alignment.center,
       children: [
         Container(
+          // A held stick is the selection, its ring the 2 px accent line.
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: Color(active ? 0x88000000 : 0x44000000),
+            color: GameColors.sunken.withValues(alpha: active ? 0.55 : 0.3),
             border: Border.all(
-              color: active ? GameColors.amber : GameColors.sand,
-              width: 2,
+              color: active ? GameColors.accentText : GameColors.text,
+              width: HzLine.selection,
             ),
           ),
         ),
@@ -697,9 +716,9 @@ class _StickFace extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: (firing ? GameColors.danger : GameColors.sand)
+                color: (firing ? GameColors.critical : GameColors.text)
                     .withValues(alpha: firing ? 0.9 : 0.4),
-                width: 1.5,
+                width: firing ? HzLine.selection : HzLine.hairline,
               ),
             ),
           ),
@@ -710,12 +729,8 @@ class _StickFace extends StatelessWidget {
             height: knobSize,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: firing
-                  ? GameColors.danger
-                  : active
-                  ? GameColors.amber
-                  : GameColors.olive,
-              border: Border.all(color: GameColors.sand, width: 2),
+              color: firing ? GameColors.critical : GameColors.accent,
+              border: Border.all(color: GameColors.sunken),
             ),
           ),
         ),

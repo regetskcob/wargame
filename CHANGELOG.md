@@ -7,6 +7,19 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## Unreleased
+
+- A new look on the design system Horizont, in the game and on the
+  landing page: calm olive surfaces with hairlines instead of bevels,
+  signal yellow only for the one main action and the selection, Mona Sans
+  to play, wide capitals for headlines and every number in Monaspace
+- The waiting room as in the design: the room code big, crews in the room
+  with their count, the vehicles as cards with the chosen one outlined and
+  its values as bars
+- New app icon on every platform: the tank from the side on the horizon
+- The landing page as a Horizont field page with numbered sections, the
+  screenshots in device frames, and the legal pages in the same style
+
 ## 1.7.0 (15) – 2026-10-18
 
 - The closed zone of a battle holds for 30 seconds and then draws in to

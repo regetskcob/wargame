@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/round_stats.dart';
 import '../game/game_config.dart';
@@ -14,8 +15,11 @@ import 'widgets/panel.dart';
 import 'widgets/round_rewards.dart';
 import '../l10n/l10n.dart';
 
-/// End of round: gold rays and confetti for the winner, a red pulse and a
-/// shaking banner for everyone who lost.
+/// End of round: rays and confetti in the signal yellow for the winner, a
+/// critical pulse and a shaking banner for everyone who lost. The panel
+/// itself is plain Horizont: the headline in expanded capitals with the
+/// sign of the outcome, the numbers as a list, one primary action.
+/// Asked for less motion, the backdrop stands still.
 class RoundOverOverlay extends StatefulWidget {
   const RoundOverOverlay({required this.game, super.key});
 
@@ -47,10 +51,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         final won = outcome == RoundOutcome.won;
         final lost = outcome == RoundOutcome.lost;
         final accent = won
-            ? GameColors.amber
+            ? GameColors.positive
             : lost
-            ? GameColors.danger
-            : GameColors.sand;
+            ? GameColors.critical
+            : GameColors.text;
         final title = won
             ? tr('GEWONNEN', 'VICTORY')
             : lost
@@ -59,11 +63,13 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
         return AnimatedBuilder(
           animation: _controller,
           builder: (context, _) {
-            final t = _controller.value;
+            final t = MediaQuery.disableAnimationsOf(context)
+                ? 0.0
+                : _controller.value;
             return Stack(
               fit: StackFit.expand,
               children: [
-                const ColoredBox(color: Color(0x88000000)),
+                ColoredBox(color: GameColors.bg.withValues(alpha: 0.55)),
                 if (won) CustomPaint(painter: _VictoryPainter(t)),
                 if (lost) CustomPaint(painter: _DefeatPainter(t)),
                 // The backdrop covers the whole screen, the panel stays clear
@@ -74,7 +80,9 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                       final narrow = box.maxWidth < 480;
                       return Center(
                         child: FitOrScroll(
-                          padding: EdgeInsets.all(narrow ? 12 : 16),
+                          padding: EdgeInsets.all(
+                            narrow ? HzSpace.s12 : HzSpace.s16,
+                          ),
                           child: ConstrainedBox(
                             constraints: const BoxConstraints(maxWidth: 560),
                             child: _panel(
@@ -117,14 +125,15 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
     required String title,
   }) {
     final game = widget.game;
+    // The panel settles in, without the overshoot of a spring.
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
-      duration: const Duration(milliseconds: 700),
-      curve: Curves.elasticOut,
+      duration: resolveMotion(context, HzMotion.slow),
+      curve: HzMotion.standard,
       builder: (context, scale, child) =>
-          Transform.scale(scale: 0.3 + 0.7 * scale, child: child),
+          Transform.scale(scale: 0.9 + 0.1 * scale, child: child),
       child: Panel(
-        padding: EdgeInsets.all(narrow ? 18 : 28),
+        padding: EdgeInsets.all(narrow ? HzSpace.s16 : HzSpace.s24),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -134,25 +143,29 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
               // than breaking in the middle.
               child: FittedBox(
                 fit: BoxFit.scaleDown,
-                child: Text(
-                  title,
-                  maxLines: 1,
-                  style: TextStyle(
-                    fontSize: narrow ? 34 : 44,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: narrow ? 3 : 6,
-                    color: accent,
-                    shadows: [
-                      Shadow(
-                        blurRadius: won ? 24 : 12,
-                        color: accent.withValues(alpha: 0.8),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (won || lost) ...[
+                      Icon(
+                        won
+                            ? HorizontStatus.positive.icon
+                            : HorizontStatus.critical.icon,
+                        size: HzIconSize.tab,
+                        color: accent,
                       ),
+                      const SizedBox(width: HzSpace.s12),
                     ],
-                  ),
+                    Text(
+                      title,
+                      maxLines: 1,
+                      style: GameType.headline.copyWith(color: accent),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: HzSpace.s8),
             ValueListenableBuilder<String?>(
               valueListenable: game.winnerName,
               builder: (context, winner, _) => Text(
@@ -179,28 +192,21 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                         '$winner gewinnt das Gefecht.',
                         '$winner wins the battle.',
                       ),
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontSize: narrow ? 14 : null,
-                  letterSpacing: narrow ? 1 : null,
-                ),
+                style: narrow ? GameType.callout : GameType.body,
                 textAlign: TextAlign.center,
               ),
             ),
             // A lost round still tells how long the pilot held out: the
             // experience and the rating grow with every tank outlasted.
             if (_placeOf(game, lost: lost) case (:final place, :final of)) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: HzSpace.s8),
               Text(
                 tr('PLATZ $place VON $of', 'PLACE $place OF $of'),
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                  color: GameColors.textDim,
-                ),
+                style: GameType.kennung,
               ),
             ],
             if (game.round?.participants.contains(game.myId) ?? false) ...[
-              const SizedBox(height: 20),
+              const SizedBox(height: HzSpace.s24),
               _StatsRow(
                 stats: game.roundStats,
                 respawns:
@@ -219,8 +225,10 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                   width: min(box.maxWidth, 320),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
-                    spacing: 12,
+                    spacing: HzSpace.s12,
                     children: [
+                      // The one primary action, in the accent; the others
+                      // are outlined.
                       FilledButton.icon(
                         onPressed: host ? game.rematch : null,
                         icon: const Icon(Icons.replay_outlined),
@@ -311,10 +319,10 @@ class _VictoryPainter extends CustomPainter {
   final double t;
 
   static const _confetti = [
-    Color(0xFFFFD54F),
-    Color(0xFFFFFFFF),
-    Color(0xFF9CCC65),
-    Color(0xFFFFB300),
+    GameColors.accentText,
+    GameColors.text,
+    GameColors.positive,
+    GameColors.accent,
   ];
 
   @override
@@ -323,7 +331,7 @@ class _VictoryPainter extends CustomPainter {
     final reach = size.longestSide;
 
     // Slowly turning sunburst
-    final rays = Paint()..color = const Color(0x22FFD54F);
+    final rays = Paint()..color = GameColors.accent.withValues(alpha: 0.13);
     for (var i = 0; i < 16; i++) {
       final a = t * 2 * pi + i * pi / 8;
       final path = Path()
@@ -367,19 +375,11 @@ class _DefeatPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
+    // A flat tint rather than a vignette: Horizont draws no gradients.
     final pulse = 0.5 + 0.5 * sin(t * 2 * pi * 6);
-    final rect = Offset.zero & size;
     canvas.drawRect(
-      rect,
-      Paint()
-        ..shader = RadialGradient(
-          radius: 0.95,
-          colors: [
-            const Color(0x00000000),
-            Color.fromRGBO(209, 73, 46, 0.25 + 0.2 * pulse),
-          ],
-          stops: const [0.45, 1],
-        ).createShader(rect),
+      Offset.zero & size,
+      Paint()..color = GameColors.critical.withValues(alpha: 0.1 + 0.1 * pulse),
     );
   }
 
@@ -426,42 +426,40 @@ class _StatsRow extends StatelessWidget {
         _time(stats.survived),
       ),
     ];
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 12,
-      runSpacing: 12,
-      children: [
-        for (final (label, value) in tiles)
-          Container(
-            width: 112,
-            padding: const EdgeInsets.symmetric(vertical: 10),
-            decoration: ShapeDecoration(
-              color: const Color(0x66000000),
-              shape: GameShapes.chip(),
-            ),
-            child: Column(
-              children: [
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    color: GameColors.amber,
-                  ),
+    // A list with hairlines, the numbers in mono at the end of each row,
+    // as wide as the buttons below it.
+    const rule = Divider(
+      height: HzLine.hairline,
+      thickness: HzLine.hairline,
+      color: GameColors.line,
+    );
+    return LayoutBuilder(
+      builder: (context, box) => SizedBox(
+        width: min(box.maxWidth, 320),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            rule,
+            for (final (label, value) in tiles) ...[
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: HzSpace.s8),
+                child: Row(
+                  children: [
+                    Expanded(child: Text(label, style: GameType.kennung)),
+                    Text(
+                      value,
+                      style: GameType.data.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 1.2,
-                    color: GameColors.textDim,
-                  ),
-                ),
-              ],
-            ),
-          ),
-      ],
+              ),
+              rule,
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

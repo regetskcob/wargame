@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/components/tank_painter.dart';
 import '../../game/tank_stats.dart';
@@ -50,16 +51,25 @@ class TankChoice extends StatelessWidget {
       onTap: locked ? null : onTap,
       child: Container(
         width: width,
-        padding: const EdgeInsets.symmetric(vertical: 8),
-        // No frame for the others, a thin amber line and tint for the
-        // chosen one. The line is always there, so the cards stay one size.
+        padding: const EdgeInsets.symmetric(vertical: HzSpace.s8),
+        // Horizont's selection on cards: the chosen one on the accent tint
+        // with a 2 px outline in the accent and a tick, the others with the
+        // hairline. The selection ring is painted over the card, so nothing
+        // moves on picking.
         decoration: BoxDecoration(
-          color: selected ? const Color(0x26FFB300) : const Color(0x33000000),
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: selected ? GameColors.amber : Colors.transparent,
-          ),
+          color: selected ? GameColors.accentTint : GameColors.sunken,
+          borderRadius: BorderRadius.circular(HzRadius.r10),
+          border: Border.all(color: GameColors.lineStrong),
         ),
+        foregroundDecoration: selected
+            ? BoxDecoration(
+                borderRadius: BorderRadius.circular(HzRadius.r10),
+                border: Border.all(
+                  color: GameColors.accentText,
+                  width: HzLine.selection,
+                ),
+              )
+            : null,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -77,21 +87,14 @@ class TankChoice extends StatelessWidget {
             // height however long the name is.
             _line(
               type.label,
-              const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1,
-              ),
+              GameType.label.copyWith(fontWeight: FontWeight.w600),
               17,
             ),
             _line(
               locked
                   ? tr('ab Stufe ${type.level}', 'from level ${type.level}')
                   : type.role,
-              TextStyle(
-                fontSize: 11,
-                color: locked ? GameColors.amber : GameColors.textDim,
-              ),
+              GameType.caption,
               14,
             ),
           ],
@@ -99,7 +102,23 @@ class TankChoice extends StatelessWidget {
       ),
     );
     if (!locked) {
-      return card;
+      if (!selected) {
+        return card;
+      }
+      return Stack(
+        children: [
+          card,
+          const Positioned(
+            right: HzSpace.s8,
+            top: HzSpace.s8,
+            child: Icon(
+              Icons.check_outlined,
+              size: HzIconSize.row,
+              color: GameColors.accentText,
+            ),
+          ),
+        ],
+      );
     }
     return Tooltip(
       message: tr(
@@ -110,9 +129,13 @@ class TankChoice extends StatelessWidget {
         children: [
           Opacity(opacity: 0.45, child: card),
           const Positioned(
-            right: 8,
-            top: 8,
-            child: Icon(Icons.lock_outlined, size: 18, color: GameColors.amber),
+            right: HzSpace.s8,
+            top: HzSpace.s8,
+            child: Icon(
+              Icons.lock_outlined,
+              size: HzIconSize.row,
+              color: GameColors.textMuted,
+            ),
           ),
         ],
       ),
@@ -187,29 +210,27 @@ class StatBars extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          stats.blurb,
-          style: const TextStyle(color: GameColors.textDim, fontSize: 12),
-        ),
-        const SizedBox(height: 8),
+        Text(stats.blurb, style: GameType.caption),
+        const SizedBox(height: HzSpace.s8),
         for (final (label, value) in rows)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
+            padding: const EdgeInsets.symmetric(vertical: HzSpace.s4),
             child: Row(
               children: [
+                // A term column of fixed width, so the bars stand flush.
                 SizedBox(
                   width: 104,
-                  child: Text(
-                    label,
-                    style: const TextStyle(fontSize: 11, letterSpacing: 1),
-                  ),
+                  child: Text(label, style: GameType.kennung),
                 ),
+                // Values in ink on a sunken track: a comparison, not a
+                // selection, so no accent.
                 Expanded(
                   child: LinearProgressIndicator(
                     value: value.clamp(0.0, 1.0),
-                    minHeight: 7,
-                    backgroundColor: Colors.black38,
-                    color: GameColors.amber,
+                    minHeight: HzSpace.s4,
+                    borderRadius: BorderRadius.zero,
+                    backgroundColor: GameColors.line,
+                    color: GameColors.text,
                   ),
                 ),
               ],

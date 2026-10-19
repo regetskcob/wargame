@@ -3,10 +3,12 @@ import 'dart:math';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/special_weapon.dart';
 import '../../game/touch_input.dart';
 import '../theme.dart';
+import '../widgets/panel.dart';
 import '../widgets/touch_controls.dart';
 import 'demo_painter.dart';
 import 'practice.dart';
@@ -383,7 +385,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
       autofocus: true,
       onKeyEvent: _onKey,
       child: Material(
-        color: GameColors.background,
+        color: GameColors.bg,
         child: LayoutBuilder(
           builder: (context, constraints) {
             _stageSize = constraints.biggest;
@@ -435,11 +437,11 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ),
           ),
         SafeArea(
-          minimum: const EdgeInsets.all(8),
+          minimum: const EdgeInsets.all(HzSpace.s8),
           child: Column(
             children: [
               _header(),
-              const SizedBox(height: 8),
+              const SizedBox(height: HzSpace.s8),
               ConstrainedBox(
                 constraints: BoxConstraints(
                   maxWidth: MediaQuery.sizeOf(context).height < 500 ? 680 : 520,
@@ -508,22 +510,22 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Widget _header() {
     return Row(
       children: [
-        const Icon(Icons.school_outlined, color: GameColors.amber, size: 20),
-        const SizedBox(width: 8),
+        const Icon(
+          Icons.school_outlined,
+          color: GameColors.textMuted,
+          size: HzIconSize.bar,
+        ),
+        const SizedBox(width: HzSpace.s8),
         Expanded(
           child: Text(
             tr('EINWEISUNG', 'BRIEFING'),
             overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              color: GameColors.sand,
-            ),
+            style: GameType.title,
           ),
         ),
         TextButton.icon(
           onPressed: widget.onClose,
-          icon: const Icon(Icons.close_outlined, size: 18),
+          icon: const Icon(Icons.close_outlined, size: HzIconSize.row),
           label: Text(tr('ÜBERSPRINGEN', 'SKIP')),
         ),
       ],
@@ -555,22 +557,24 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     final compact = MediaQuery.sizeOf(context).height < 500;
     final title = Row(
       children: [
-        Icon(step.icon, color: GameColors.amber, size: compact ? 18 : 22),
-        const SizedBox(width: 8),
+        Icon(
+          step.icon,
+          color: GameColors.textMuted,
+          size: compact ? HzIconSize.row : HzIconSize.bar,
+        ),
+        const SizedBox(width: HzSpace.s8),
         Expanded(
           child: Text(
-            step.title,
+            step.title.toUpperCase(),
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontSize: compact ? 18 : null,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              color: GameColors.sand,
-            ),
+            style: GameType.title,
           ),
         ),
       ],
     );
+    // While the player still tries the task, WEITER stands back as a quiet
+    // button; it lights up as the one primary action once the task is done.
+    final waiting = _practice != null && !done;
     final buttons = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -592,16 +596,16 @@ class _TutorialOverlayState extends State<TutorialOverlay>
           _index > 0,
           TextButton(onPressed: _back, child: Text(tr('ZURÜCK', 'BACK'))),
         ),
-        const SizedBox(width: 4),
+        const SizedBox(width: HzSpace.s4),
         FilledButton.icon(
           onPressed: _next,
-          // Lit in amber once the task is done: on from here.
           style: FilledButton.styleFrom(
-            backgroundColor: done ? GameColors.amber : null,
-            foregroundColor: done ? GameColors.background : null,
+            backgroundColor: waiting ? GameColors.surface : null,
+            foregroundColor: waiting ? GameColors.text : null,
+            side: waiting ? hairline : null,
             padding: EdgeInsets.symmetric(
-              horizontal: 16,
-              vertical: compact ? 6 : 10,
+              horizontal: HzSpace.s16,
+              vertical: compact ? HzSpace.s4 : HzSpace.s8,
             ),
           ),
           icon: Icon(
@@ -624,38 +628,35 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         key: _cardKey,
         decoration: ShapeDecoration(
           color: GameColors.panel,
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: const BorderSide(color: GameColors.amber, width: 1.5),
-          ),
-          shadows: const [BoxShadow(color: Color(0x88000000), blurRadius: 16)],
+          shape: GameShapes.card(),
         ),
         child: Padding(
-          padding: EdgeInsets.fromLTRB(14, compact ? 8 : 12, 14, 8),
+          padding: EdgeInsets.fromLTRB(
+            HzSpace.s16,
+            compact ? HzSpace.s8 : HzSpace.s12,
+            HzSpace.s16,
+            HzSpace.s8,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
+                  // The player's own turn is theirs: then in the accent.
                   Expanded(
-                    child: Text(
+                    child: Kennung(
                       heading,
-                      style: const TextStyle(
-                        color: GameColors.amber,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                      ),
+                      color: _practice == null ? null : GameColors.accentText,
                     ),
                   ),
                   if (compact) ...[
-                    const SizedBox(width: 12),
+                    const SizedBox(width: HzSpace.s12),
                     _Dots(count: _steps.length, index: _index),
                   ],
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: HzSpace.s4),
               if (compact)
                 Row(
                   children: [
@@ -668,7 +669,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
               // While the player drives, the text folds away and leaves them
               // the stage; they have read it already.
               if (_practice == null) ...[
-                SizedBox(height: compact ? 2 : 6),
+                SizedBox(height: compact ? HzSpace.s2 : HzSpace.s8),
                 // Every text of the tutorial is laid out, only this step's
                 // shows: the card is as tall as for the longest text and keeps
                 // its height from step to step.
@@ -679,30 +680,26 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                         i == _index,
                         Text(
                           other.text,
-                          style: TextStyle(
-                            color: GameColors.text,
-                            fontSize: compact ? 13 : 14,
-                            height: 1.35,
-                          ),
+                          style: compact ? GameType.callout : GameType.body,
                         ),
                       ),
                   ],
                 ),
-                SizedBox(height: compact ? 6 : 8),
+                SizedBox(height: compact ? HzSpace.s4 : HzSpace.s8),
                 _keep(
                   auto,
                   AnimatedBuilder(
                     animation: _auto,
                     builder: (context, _) => LinearProgressIndicator(
                       value: _auto.value,
-                      minHeight: 3,
+                      minHeight: HzLine.selection,
                     ),
                   ),
                 ),
               ] else
-                SizedBox(height: compact ? 2 : 0),
+                SizedBox(height: compact ? HzSpace.s2 : 0),
               if (!compact) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: HzSpace.s8),
                 Row(
                   children: [
                     Expanded(
@@ -711,7 +708,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
                         child: _Dots(count: _steps.length, index: _index),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: HzSpace.s12),
                     buttons,
                   ],
                 ),
@@ -742,15 +739,21 @@ class _Dots extends StatelessWidget {
         children: [
           for (var i = 0; i < count; i++)
             AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: EdgeInsets.only(left: i == 0 ? 0 : 4),
-              width: i == index ? 14 : 6,
-              height: 6,
-              color: i == index
-                  ? GameColors.amber
-                  : i < index
-                  ? GameColors.oliveLight
-                  : const Color(0x55BFC6AA),
+              duration: resolveMotion(context, HzMotion.base),
+              curve: HzMotion.standard,
+              margin: EdgeInsets.only(left: i == 0 ? 0 : HzSpace.s4),
+              width: i == index ? HzSpace.s16 : HzSpace.s8,
+              height: HzSpace.s4,
+              decoration: BoxDecoration(
+                // The card in view is the selection; the ones read and the
+                // ones ahead differ by their line, not by a hue.
+                color: i == index
+                    ? GameColors.accentText
+                    : i < index
+                    ? GameColors.lineStrong
+                    : GameColors.line,
+                borderRadius: BorderRadius.circular(HzRadius.r2),
+              ),
             ),
         ],
       ),
@@ -758,7 +761,7 @@ class _Dots extends StatelessWidget {
   }
 }
 
-/// The chips of a tour card, popping up one after the other.
+/// The chips of a tour card, fading in one after the other.
 class _Chips extends StatefulWidget {
   const _Chips({required this.chips, super.key});
 
@@ -769,10 +772,22 @@ class _Chips extends StatefulWidget {
 }
 
 class _ChipsState extends State<_Chips> with SingleTickerProviderStateMixin {
-  late final _controller = AnimationController(
-    vsync: this,
-    duration: Duration(milliseconds: 300 + 120 * widget.chips.length),
-  )..forward();
+  late final _controller = AnimationController(vsync: this);
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // One quick step per chip; nothing to wait for when the platform asks
+    // for reduced motion.
+    if (_controller.duration == null) {
+      _controller
+        ..duration = resolveMotion(
+          context,
+          HzMotion.slow + HzMotion.fast * widget.chips.length,
+        )
+        ..forward();
+    }
+  }
 
   @override
   void dispose() {
@@ -785,17 +800,17 @@ class _ChipsState extends State<_Chips> with SingleTickerProviderStateMixin {
     final n = widget.chips.length;
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 8,
-      runSpacing: 8,
+      spacing: HzSpace.s8,
+      runSpacing: HzSpace.s8,
       children: [
         for (final (i, chip) in widget.chips.indexed)
-          ScaleTransition(
-            scale: CurvedAnimation(
+          FadeTransition(
+            opacity: CurvedAnimation(
               parent: _controller,
               curve: Interval(
                 i / (n + 1),
                 (i + 2) / (n + 1),
-                curve: Curves.easeOutBack,
+                curve: HzMotion.standard,
               ),
             ),
             child: _Chip(chip: chip),
@@ -813,29 +828,23 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
+      // Sunken and a little see-through over the moving scene.
       decoration: ShapeDecoration(
-        color: const Color(0xCC161C0F),
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(6),
-          side: BorderSide(color: chip.color, width: 1.5),
-        ),
+        color: GameColors.sunken.withValues(alpha: 0.8),
+        shape: GameShapes.chip(),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s12,
+          vertical: HzSpace.s8,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(chip.icon, size: 18, color: chip.color),
-            const SizedBox(width: 8),
-            Text(
-              chip.label,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
-                color: GameColors.text,
-              ),
-            ),
+            // The sign keeps the colour the thing has in the field.
+            Icon(chip.icon, size: HzIconSize.row, color: chip.color),
+            const SizedBox(width: HzSpace.s8),
+            Text(chip.label, style: GameType.label),
           ],
         ),
       ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/inventory.dart';
 import '../theme.dart';
@@ -69,8 +70,8 @@ class InventoryStrip extends StatelessWidget {
         for (var i = 0; i < slots.length; i++)
           Padding(
             padding: axis == Axis.vertical
-                ? const EdgeInsets.symmetric(vertical: 2)
-                : const EdgeInsets.symmetric(horizontal: 3),
+                ? const EdgeInsets.symmetric(vertical: HzSpace.s2)
+                : const EdgeInsets.symmetric(horizontal: HzSpace.s4),
             child: _Slot(
               slot: slots[i],
               label: labels == null
@@ -101,7 +102,8 @@ class _Slot extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final type = slot.type;
-    final size = compact ? 44.0 : 56.0;
+    final size = compact ? HzSize.touch : 56.0;
+    final mark = GameType.kennung.copyWith(letterSpacing: 0);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -110,7 +112,7 @@ class _Slot extends StatelessWidget {
         height: size,
         decoration: ShapeDecoration(
           color: GameColors.panel,
-          shape: GameShapes.chip(edge: type.color, width: 1.8),
+          shape: GameShapes.chip(),
         ),
         child: Stack(
           children: [
@@ -118,22 +120,24 @@ class _Slot extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(type.icon, size: compact ? 16 : 20, color: type.color),
-                  const SizedBox(height: 2),
+                  // The icon keeps the colour of the item's crate in the
+                  // field, so slot and pickup are recognised as one.
+                  Icon(
+                    type.icon,
+                    size: compact ? HzIconSize.inline : HzIconSize.row,
+                    color: type.color,
+                  ),
+                  const SizedBox(height: HzSpace.s2),
                   // The longest names (SCHNELLF., ARTILLERIE) were cut off
                   // in the 44 px slot of a phone; they shrink a little
                   // instead.
                   Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    padding: const EdgeInsets.symmetric(horizontal: HzSpace.s4),
                     child: FittedBox(
                       fit: BoxFit.scaleDown,
                       child: Text(
                         type.short,
-                        style: TextStyle(
-                          fontSize: compact ? 6.5 : 7.5,
-                          letterSpacing: 0,
-                          color: GameColors.text,
-                        ),
+                        style: mark.copyWith(color: GameColors.text),
                         maxLines: 1,
                       ),
                     ),
@@ -142,29 +146,18 @@ class _Slot extends StatelessWidget {
               ),
             ),
             if (!compact)
-              Positioned(
-                left: 3,
-                top: 1,
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: GameColors.sand,
-                  ),
-                ),
+              PositionedDirectional(
+                start: HzSpace.s4,
+                top: HzSpace.s2,
+                child: Text(label, style: mark),
               ),
             if (slot.count > 1)
-              Positioned(
-                right: 3,
-                top: 1,
+              PositionedDirectional(
+                end: HzSpace.s4,
+                top: HzSpace.s2,
                 child: Text(
                   '×${slot.count}',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: type.color,
-                  ),
+                  style: mark.copyWith(color: GameColors.text),
                 ),
               ),
           ],

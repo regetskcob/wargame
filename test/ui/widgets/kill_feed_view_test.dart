@@ -1,6 +1,7 @@
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/kill_feed.dart';
 import 'package:wargame/src/ui/widgets/kill_feed_view.dart';
 
@@ -30,6 +31,7 @@ void main() {
     ]);
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(body: KillFeedView(feed: feed)),
       ),
     );

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/tank_game.dart';
-import '../theme.dart';
 import '../../l10n/l10n.dart';
 
 /// Opens the tutorial. Until the player went through it once, the button
@@ -18,17 +18,12 @@ class TutorialButton extends StatelessWidget {
       builder: (context, done, _) => done
           ? TextButton.icon(
               onPressed: game.showTutorial,
-              icon: const Icon(Icons.school_outlined, size: 18),
+              icon: const Icon(Icons.school_outlined, size: HzIconSize.row),
               label: Text(tr('EINWEISUNG', 'BRIEFING')),
             )
           : OutlinedButton.icon(
               onPressed: game.showTutorial,
-              style: OutlinedButton.styleFrom(
-                foregroundColor: GameColors.amber,
-                side: const BorderSide(color: GameColors.amber),
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-              ),
-              icon: const Icon(Icons.school_outlined, size: 18),
+              icon: const Icon(Icons.school_outlined, size: HzIconSize.row),
               label: Text(tr('EINWEISUNG', 'BRIEFING')),
             ),
     );

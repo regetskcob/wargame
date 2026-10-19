@@ -65,11 +65,19 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(L10n.current, AppLang.en);
-    // The chip itself shows the new choice, not only the texts around it.
-    Color? colorOf(String label) =>
-        tester.widget<Text>(find.text(label)).style?.color;
-    expect(colorOf('ENGLISH'), GameColors.amber);
-    expect(colorOf('DEUTSCH'), GameColors.text);
+    // The chip itself shows the new choice, not only the texts around it:
+    // the chosen one lies on the accent tint.
+    Color? groundOf(String label) {
+      final box = tester.widget<Container>(
+        find
+            .ancestor(of: find.text(label), matching: find.byType(Container))
+            .first,
+      );
+      return (box.decoration as ShapeDecoration?)?.color;
+    }
+
+    expect(groundOf('ENGLISH'), GameColors.accentTint);
+    expect(groundOf('DEUTSCH'), isNull);
     expect(find.text('ACCOUNT'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Close'));

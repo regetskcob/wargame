@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../db/room_slots.dart';
 import '../../game/game_config.dart';
@@ -54,11 +55,8 @@ class _RoomListState extends State<RoomList> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          tr('OFFENE RÄUME', 'OPEN ROOMS'),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 8),
+        Kennung(tr('Offene Räume', 'Open rooms')),
+        const SizedBox(height: HzSpace.s8),
         ListenableBuilder(
           listenable: Listenable.merge([
             widget.game.directory.rooms,
@@ -72,7 +70,7 @@ class _RoomListState extends State<RoomList> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+                style: GameType.caption,
               );
             }
             return Column(
@@ -81,7 +79,7 @@ class _RoomListState extends State<RoomList> {
             );
           },
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: HzSpace.s12),
         // Scan, code and join without frames, so only the field stands out.
         Row(
           children: [
@@ -92,13 +90,13 @@ class _RoomListState extends State<RoomList> {
               IconButton(
                 onPressed: _scan,
                 tooltip: tr('QR-Code scannen', 'Scan QR code'),
-                color: GameColors.sand,
+                color: GameColors.text,
                 icon: Icon(
                   Icons.qr_code_scanner_outlined,
                   semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: HzSpace.s4),
             ],
             Expanded(
               child: SelectToType(
@@ -108,18 +106,21 @@ class _RoomListState extends State<RoomList> {
                   controller: _code,
                   textCapitalization: TextCapitalization.characters,
                   maxLength: 12,
+                  // Horizont keeps labels out of the frame: the hint names
+                  // the field, the code itself is set in mono.
+                  style: GameType.data.copyWith(letterSpacing: 0.08 * 14),
                   decoration: InputDecoration(
-                    labelText: tr('RAUMCODE', 'ROOM CODE'),
+                    hintText: tr('RAUMCODE', 'ROOM CODE'),
                     counterText: '',
                   ),
                   onSubmitted: _join,
                 ),
               ),
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: HzSpace.s4),
             TextButton(
               onPressed: () => _join(_code.text),
-              style: TextButton.styleFrom(foregroundColor: GameColors.sand),
+              style: TextButton.styleFrom(foregroundColor: GameColors.text),
               child: Text(tr('BEITRETEN', 'JOIN')),
             ),
           ],
@@ -133,18 +134,14 @@ class _RoomListState extends State<RoomList> {
     // A room of one holds no slot yet: joining needs a free one.
     final taken = RoomSlots.allTaken && room.players < 2;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
+      padding: const EdgeInsets.symmetric(vertical: HzSpace.s2),
       child: Row(
         children: [
           Text(
             room.room,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              letterSpacing: 2,
-              color: GameColors.amber,
-            ),
+            style: GameType.data.copyWith(fontWeight: FontWeight.w600),
           ),
-          const SizedBox(width: 10),
+          const SizedBox(width: HzSpace.s12),
           Expanded(
             child: Text(
               '${room.host} · ${room.players} '
@@ -152,7 +149,7 @@ class _RoomListState extends State<RoomList> {
               '${room.teams ? ' · Teams' : ''}'
               '${room.inMatch ? tr(' · Gefecht läuft', ' · battle in progress') : ''}',
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12),
+              style: GameType.caption,
             ),
           ),
           TextButton(

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/components/obstacle.dart';
 import '../../game/defense/defense_map.dart';
@@ -154,7 +155,9 @@ class _MiniMapPainter extends CustomPainter {
         ..fillType = PathFillType.evenOdd
         ..addRect(Offset.zero & size)
         ..addOval(Rect.fromCircle(center: center, radius: safeRadius * scale)),
-      Paint()..color = const Color(0x44B8860B),
+      // Outside the zone is where the round turns against you: warning,
+      // the same attention as everything running low in the HUD.
+      Paint()..color = GameColors.warning.withValues(alpha: 0.25),
     );
     canvas.drawCircle(
       center,
@@ -162,7 +165,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1.5
-        ..color = const Color(0xCCFFB300),
+        ..color = GameColors.warning,
     );
 
     // Woods, mud and barriers are left out: there are so many that they
@@ -179,7 +182,7 @@ class _MiniMapPainter extends CustomPainter {
     }
 
     // Buildings faded, as a rough guide only.
-    final solidPaint = Paint()..color = GameColors.sand.withValues(alpha: 0.35);
+    final solidPaint = Paint()..color = GameColors.text.withValues(alpha: 0.35);
     for (final solid in _currentBuildings) {
       if (!solid.isMounted) {
         continue;
@@ -238,7 +241,7 @@ class _MiniMapPainter extends CustomPainter {
       canvas.drawRect(
         at,
         depot.destroyed
-            ? (Paint()..color = Colors.black)
+            ? (Paint()..color = GameColors.sunken)
             : (Paint()..color = depot.kind.color),
       );
     }
@@ -280,7 +283,7 @@ class _MiniMapPainter extends CustomPainter {
           Paint()
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.5
-            ..color = Colors.white,
+            ..color = GameColors.text,
         );
         canvas.drawPath(
           Path()
@@ -310,25 +313,26 @@ class _MiniMapPainter extends CustomPainter {
     if (me != null && me.isMounted) {
       final p = toMap(me.position.x, me.position.y);
       final forward = Offset(sin(me.turretAngle), -cos(me.turretAngle));
+      // The own tank is ringed in the accent: on the map it means "you".
       canvas.drawLine(
         p,
         p + forward * 13,
         Paint()
-          ..color = Colors.white.withValues(alpha: 0.85)
+          ..color = GameColors.accentText
           ..strokeWidth = 1.5,
       );
-      canvas.drawCircle(p, 5, Paint()..color = Colors.white);
+      canvas.drawCircle(p, 5, Paint()..color = GameColors.accentText);
       canvas.drawCircle(p, 3, Paint()..color = me.tankColor);
     }
     canvas.restore();
 
     canvas.drawCircle(
       center,
-      size.width / 2 - 1,
+      size.width / 2 - HzLine.hairline / 2,
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = GameColors.oliveLight,
+        ..strokeWidth = HzLine.hairline
+        ..color = GameColors.lineStrong,
     );
   }
 
@@ -377,7 +381,7 @@ class _MiniMapPainter extends CustomPainter {
       Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = max(2.0, DefenseMap.roadHalfWidth * 2 * scale)
-        ..color = GameColors.sand.withValues(alpha: 0.5),
+        ..color = GameColors.text.withValues(alpha: 0.5),
     );
     // A duel's bases in the colour of their side.
     for (final (lane, base) in map.bases.indexed) {
@@ -428,9 +432,7 @@ class _MiniMapPainter extends CustomPainter {
           ..lineTo(p.dx - 3.5, p.dy + 3)
           ..close(),
         Paint()
-          ..color = plane.friendly
-              ? const Color(0xFF9CCC65)
-              : const Color(0xFFFF5252),
+          ..color = plane.friendly ? GameColors.positive : GameColors.critical,
       );
     }
     for (final drone in game.drones.values) {
@@ -453,7 +455,7 @@ class _MiniMapPainter extends CustomPainter {
         width: 6,
         height: 6,
       );
-      canvas.drawRect(at.inflate(1), Paint()..color = Colors.black);
+      canvas.drawRect(at.inflate(1), Paint()..color = GameColors.sunken);
       canvas.drawRect(at, Paint()..color = tower.color);
     }
     for (final tank in [...game.remoteTanks.values, ...game.botTanks.values]) {
@@ -466,15 +468,15 @@ class _MiniMapPainter extends CustomPainter {
     final me = game.myTank;
     if (me != null && me.isMounted) {
       final p = toMap(me.position.x, me.position.y);
-      canvas.drawCircle(p, 4.5, Paint()..color = Colors.white);
+      canvas.drawCircle(p, 4.5, Paint()..color = GameColors.accentText);
       canvas.drawCircle(p, 2.8, Paint()..color = me.tankColor);
     }
     canvas.drawRect(
-      frame,
+      frame.deflate(HzLine.hairline / 2),
       Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = 2
-        ..color = GameColors.oliveLight,
+        ..strokeWidth = HzLine.hairline
+        ..color = GameColors.lineStrong,
     );
   }
 

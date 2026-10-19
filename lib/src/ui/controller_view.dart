@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizont/horizont.dart';
 
 import '../app/env.dart';
 import '../app/routes.dart';
@@ -16,6 +17,7 @@ import '../net/pad_link.dart';
 import '../net/payloads/pad_payload.dart';
 import 'theme.dart';
 import '../game/inventory.dart';
+import 'widgets/health_bar.dart';
 import 'widgets/inventory_bar.dart';
 import 'widgets/panel.dart';
 import 'widgets/tablet_scale.dart';
@@ -135,7 +137,7 @@ class _ControllerViewState extends State<ControllerView> {
       return _tabletNotice(context);
     }
     return Scaffold(
-      backgroundColor: GameColors.background,
+      backgroundColor: GameColors.bg,
       body: ValueListenableBuilder<PadStatus?>(
         valueListenable: _remote.status,
         builder: (context, status, _) => LayoutBuilder(
@@ -153,7 +155,7 @@ class _ControllerViewState extends State<ControllerView> {
                   assist: status?.assist ?? true,
                 ),
                 SafeArea(
-                  minimum: const EdgeInsets.all(10),
+                  minimum: const EdgeInsets.all(HzSpace.s12),
                   child: Align(
                     alignment: Alignment.topCenter,
                     child: Column(
@@ -162,7 +164,7 @@ class _ControllerViewState extends State<ControllerView> {
                       children: [
                         _header(status, wide: wide),
                         if (playing && status.defense) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: HzSpace.s8),
                           _defense(status, wide: wide),
                         ],
                       ],
@@ -181,13 +183,13 @@ class _ControllerViewState extends State<ControllerView> {
 
   Widget _tabletNotice(BuildContext context) {
     return Scaffold(
-      backgroundColor: GameColors.background,
+      backgroundColor: GameColors.bg,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 460),
             child: Panel(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(HzSpace.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -196,9 +198,9 @@ class _ControllerViewState extends State<ControllerView> {
                     kIsWeb
                         ? tr('NUR IN DER APP', 'IN THE APP ONLY')
                         : tr('NUR AUF DEM HANDY', 'ON PHONES ONLY'),
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: GameType.title,
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: HzSpace.s12),
                   Text(
                     kIsWeb
                         ? tr(
@@ -218,9 +220,9 @@ class _ControllerViewState extends State<ControllerView> {
                                 'you play yourself and can add a phone as a '
                                 'controller under Account › Pair phone.',
                           ),
-                    style: const TextStyle(color: GameColors.textDim),
+                    style: GameType.body.copyWith(color: GameColors.textMuted),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: HzSpace.s16),
                   FilledButton(
                     onPressed: _close,
                     child: Text(tr('ZUM SPIEL', 'TO THE GAME')),
@@ -239,11 +241,11 @@ class _ControllerViewState extends State<ControllerView> {
   /// where the top is taken by the status and the shop.
   Widget _inventory(PadStatus status, {required bool wide}) {
     return SafeArea(
-      minimum: const EdgeInsets.all(10),
+      minimum: const EdgeInsets.all(HzSpace.s12),
       child: Align(
         alignment: wide ? Alignment.bottomCenter : const Alignment(-1, 0.15),
         child: Padding(
-          padding: EdgeInsets.only(bottom: wide ? 12 : 0),
+          padding: EdgeInsets.only(bottom: wide ? HzSpace.s12 : 0),
           child: InventoryStrip(
             slots: [
               for (final (type, count) in status.items)
@@ -300,14 +302,19 @@ class _ControllerViewState extends State<ControllerView> {
                 ),
               };
         return Panel(
-          padding: const EdgeInsets.fromLTRB(12, 6, 4, 6),
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s12,
+            HzSpace.s4,
+            HzSpace.s4,
+            HzSpace.s4,
+          ),
           child: Row(
             children: [
               Icon(
                 online ? Icons.sports_esports_outlined : Icons.sync_outlined,
-                color: online ? GameColors.amber : GameColors.textDim,
+                color: online ? GameColors.text : GameColors.textMuted,
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: HzSpace.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,10 +330,8 @@ class _ControllerViewState extends State<ControllerView> {
                             maxLines: 1,
                             overflow: TextOverflow.fade,
                             softWrap: false,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1.5,
-                              color: GameColors.sand,
+                            style: GameType.label.copyWith(
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
@@ -336,19 +341,13 @@ class _ControllerViewState extends State<ControllerView> {
                             status != null &&
                             status.defense &&
                             status.phase == GamePhase.playing) ...[
-                          const SizedBox(width: 14),
+                          const SizedBox(width: HzSpace.s16),
                           _Funds(credits: status.credits),
                         ],
                       ],
                     ),
                     if (hint != null)
-                      Text(
-                        hint,
-                        style: const TextStyle(
-                          color: GameColors.textDim,
-                          fontSize: 12,
-                        ),
-                      )
+                      Text(hint, style: GameType.caption)
                     else if (status != null)
                       _vitals(status, wide: wide),
                   ],
@@ -358,14 +357,16 @@ class _ControllerViewState extends State<ControllerView> {
               if (wide)
                 TextButton.icon(
                   onPressed: _close,
-                  icon: const Icon(Icons.link_off_outlined, size: 18),
+                  icon: const Icon(
+                    Icons.link_off_outlined,
+                    size: HzIconSize.row,
+                  ),
                   label: Text(tr('TRENNEN', 'UNPAIR')),
                 )
               else
                 IconButton(
                   tooltip: tr('Trennen', 'Unpair'),
                   onPressed: _close,
-                  color: GameColors.amber,
                   icon: const Icon(Icons.link_off_outlined),
                 ),
             ],
@@ -375,69 +376,78 @@ class _ControllerViewState extends State<ControllerView> {
     );
   }
 
-  /// Armour, magazine and, where the level has it, fuel as thin bars.
+  /// Armour, magazine and, where the level has it, fuel as thin bars, with
+  /// the same warnings as the HUD's plate: bar and value turn warning or
+  /// critical, and the sign of that state stands in for the icon.
   Widget _vitals(PadStatus status, {required bool wide}) {
-    final hpColor = status.hp > 0.3
-        ? const Color(0xFF9CCC65)
-        : GameColors.danger;
     final ammo = status.magazine <= 0
         ? 1.0
         : (status.ammo / status.magazine).clamp(0.0, 1.0);
-    Widget bar(IconData icon, double value, Color color, String label) => Row(
-      children: [
-        Icon(icon, size: 14, color: color),
-        const SizedBox(width: 4),
-        Expanded(
-          child: LinearProgressIndicator(
-            value: value,
-            minHeight: 6,
-            backgroundColor: Colors.black38,
-            color: color,
+    Widget bar(
+      IconData icon,
+      double value,
+      HorizontStatus? state,
+      String label,
+    ) {
+      final color = stockColor(state);
+      return Row(
+        children: [
+          Icon(
+            state?.icon ?? icon,
+            size: HzIconSize.badge,
+            color: state == null ? GameColors.textMuted : color,
           ),
-        ),
-        SizedBox(
-          width: 44,
-          child: Text(
-            label,
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+          const SizedBox(width: HzSpace.s4),
+          Expanded(
+            child: GaugeBar(value: value, status: state, height: HzSpace.s4),
           ),
-        ),
-      ],
-    );
+          SizedBox(
+            width: 44,
+            child: Text(
+              label,
+              textAlign: TextAlign.right,
+              maxLines: 1,
+              softWrap: false,
+              style: GameType.kennung.copyWith(color: color, letterSpacing: 0),
+            ),
+          ),
+        ],
+      );
+    }
+
     final bars = [
       bar(
         Icons.health_and_safety_outlined,
         status.hp,
-        hpColor,
+        armourStatus(status.hp),
         '${(status.hp * 100).round()} %',
       ),
       bar(
         // The crate of the HUD's plate, so both read the same.
         Icons.inventory_2_outlined,
         ammo,
-        ammo <= 0 ? GameColors.danger : const Color(0xFF4FC3F7),
+        status.magazine > 0 && status.ammo <= 0
+            ? HorizontStatus.critical
+            : stockStatus(ammo, low: GameConfig.ammoLowShare),
         '${status.ammo}',
       ),
       if (status.fuel case final fuel?)
         bar(
           Icons.local_gas_station_outlined,
           fuel,
-          fuel <= GameConfig.fuelLowShare
-              ? GameColors.danger
-              : GameColors.amber,
+          stockStatus(fuel, low: GameConfig.fuelLowShare),
           '${(fuel * 100).round()} %',
         ),
     ];
     // Side by side when held sideways, one under the other upright, where
     // three in a row left no bar to see.
     return Padding(
-      padding: const EdgeInsets.only(top: 4, right: 8),
+      padding: const EdgeInsets.only(top: HzSpace.s4, right: HzSpace.s8),
       child: wide
           ? Row(
               children: [
                 for (final (i, gauge) in bars.indexed) ...[
-                  if (i > 0) const SizedBox(width: 12),
+                  if (i > 0) const SizedBox(width: HzSpace.s12),
                   Expanded(child: gauge),
                 ],
               ],
@@ -445,7 +455,7 @@ class _ControllerViewState extends State<ControllerView> {
           : Column(
               children: [
                 for (final (i, gauge) in bars.indexed) ...[
-                  if (i > 0) const SizedBox(height: 3),
+                  if (i > 0) const SizedBox(height: HzSpace.s4),
                   gauge,
                 ],
               ],
@@ -475,20 +485,29 @@ class _ControllerViewState extends State<ControllerView> {
               Expanded(
                 child: Align(alignment: Alignment.topLeft, child: build),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: HzSpace.s8),
               round,
             ],
           )
         : Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: [build, const SizedBox(height: 8), round],
+            children: [
+              build,
+              const SizedBox(height: HzSpace.s8),
+              round,
+            ],
           );
   }
 
   Widget _group(IconData icon, String title, List<Widget> children) {
     return Panel(
-      padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+      padding: const EdgeInsets.fromLTRB(
+        HzSpace.s12,
+        HzSpace.s8,
+        HzSpace.s12,
+        HzSpace.s8,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -496,20 +515,12 @@ class _ControllerViewState extends State<ControllerView> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: GameColors.sand),
-              const SizedBox(width: 6),
-              Text(
-                title,
-                style: const TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.5,
-                  color: GameColors.sand,
-                ),
-              ),
+              Icon(icon, size: HzIconSize.badge, color: GameColors.textMuted),
+              const SizedBox(width: HzSpace.s4),
+              Kennung(title),
             ],
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: HzSpace.s8),
           ...children,
         ],
       ),
@@ -523,12 +534,12 @@ class _ControllerViewState extends State<ControllerView> {
     final open = _shop;
     return _group(Icons.construction_outlined, tr('AUSBAU', 'BUILD'), [
       Wrap(
-        spacing: 6,
-        runSpacing: 6,
+        spacing: HzSpace.s8,
+        runSpacing: HzSpace.s8,
         children: [
           _Chip(
             icon: Icons.fort_outlined,
-            color: GameColors.oliveLight,
+            color: GameColors.textMuted,
             label: tr('GESCHÜTZE', 'GUNS'),
             selected: open == _Shop.towers,
             dot: status.towerReady,
@@ -536,7 +547,7 @@ class _ControllerViewState extends State<ControllerView> {
           ),
           _Chip(
             icon: Icons.upgrade_outlined,
-            color: GameColors.oliveLight,
+            color: GameColors.textMuted,
             label: tr('AUFRÜSTUNG', 'UPGRADES'),
             selected: open == _Shop.upgrades,
             dot: status.upgradeReady,
@@ -545,7 +556,7 @@ class _ControllerViewState extends State<ControllerView> {
           if (near != null && near.$3 > 0)
             _Chip(
               icon: Icons.keyboard_double_arrow_up_outlined,
-              color: GameColors.amber,
+              color: GameColors.text,
               label: '${near.$1.label} ${near.$3}',
               enabled: near.$4,
               onTap: () => _remote.act(PadActionKind.raise),
@@ -553,16 +564,16 @@ class _ControllerViewState extends State<ControllerView> {
         ],
       ),
       if (open != null) ...[
-        const SizedBox(height: 6),
+        const SizedBox(height: HzSpace.s8),
         Wrap(
-          spacing: 6,
-          runSpacing: 6,
+          spacing: HzSpace.s8,
+          runSpacing: HzSpace.s8,
           children: open == _Shop.towers
               ? [
                   for (final (kind, cost, ready) in status.shop)
                     _Chip(
                       icon: Icons.add_location_alt_outlined,
-                      color: GameColors.oliveLight,
+                      color: GameColors.textMuted,
                       label: '${kind.label} $cost',
                       enabled: ready,
                       onTap: () => _remote.act(PadActionKind.place, kind.index),
@@ -597,14 +608,10 @@ class _ControllerViewState extends State<ControllerView> {
     return _group(Icons.flag_outlined, tr('RUNDE', 'ROUND'), [
       if (status.deciding)
         Padding(
-          padding: const EdgeInsets.only(bottom: 6),
-          child: Text(
-            tr('RUNDE GEWONNEN', 'VICTORY SECURED'),
-            style: const TextStyle(
-              color: GameColors.amber,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
-            ),
+          padding: const EdgeInsets.only(bottom: HzSpace.s8),
+          child: HorizontBadge(
+            HorizontStatus.positive,
+            label: tr('RUNDE GEWONNEN', 'VICTORY SECURED'),
           ),
         ),
       if (host)
@@ -614,15 +621,15 @@ class _ControllerViewState extends State<ControllerView> {
             if (status.callWave)
               _Chip(
                 icon: Icons.fast_forward_outlined,
-                color: GameColors.amber,
+                color: GameColors.text,
                 label: tr('WELLE JETZT', 'WAVE NOW'),
                 onTap: () => _remote.act(PadActionKind.wave),
               ),
             if (status.canExtend) ...[
-              if (status.callWave) const SizedBox(width: 6),
+              if (status.callWave) const SizedBox(width: HzSpace.s8),
               _Chip(
                 icon: Icons.add_outlined,
-                color: GameColors.amber,
+                color: GameColors.text,
                 label: tr(
                   '${GameConfig.defenseExtension} WELLEN',
                   '${GameConfig.defenseExtension} WAVES',
@@ -631,10 +638,11 @@ class _ControllerViewState extends State<ControllerView> {
               ),
             ],
             if (status.canEnd) ...[
-              if (status.callWave || status.canExtend) const SizedBox(width: 6),
+              if (status.callWave || status.canExtend)
+                const SizedBox(width: HzSpace.s8),
               _Chip(
                 icon: Icons.flag_outlined,
-                color: GameColors.sand,
+                color: GameColors.text,
                 label: tr('BEENDEN', 'END'),
                 onTap: () => _remote.act(PadActionKind.end),
               ),
@@ -647,7 +655,7 @@ class _ControllerViewState extends State<ControllerView> {
             'Der Gastgeber entscheidet, ob es weitergeht.',
             'The host decides whether it goes on.',
           ),
-          style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+          style: GameType.caption,
         ),
     ]);
   }
@@ -671,13 +679,14 @@ class _Funds extends StatelessWidget {
           children: [
             Text(
               '$credits',
-              style: const TextStyle(
-                color: GameColors.amber,
-                fontWeight: FontWeight.w900,
-              ),
+              style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(width: 3),
-            const Icon(Icons.paid_outlined, size: 16, color: GameColors.amber),
+            const SizedBox(width: HzSpace.s4),
+            const Icon(
+              Icons.paid_outlined,
+              size: HzIconSize.inline,
+              color: GameColors.textMuted,
+            ),
           ],
         ),
       ),
@@ -697,6 +706,9 @@ class _Chip extends StatelessWidget {
   });
 
   final IconData icon;
+
+  /// The colour of the icon: muted, ink, or the colour a thing has in the
+  /// game (an upgrade's).
   final Color color;
   final String label;
   final VoidCallback onTap;
@@ -712,7 +724,7 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final edge = enabled ? color : color.withValues(alpha: 0.3);
+    final sign = enabled ? color : GameColors.textFaint;
     return Semantics(
       button: true,
       enabled: enabled,
@@ -722,12 +734,20 @@ class _Chip extends StatelessWidget {
       child: ExcludeSemantics(
         child: Badge(
           isLabelVisible: dot,
-          smallSize: 10,
-          backgroundColor: GameColors.amber,
+          smallSize: HzSpace.s8,
+          backgroundColor: GameColors.accentText,
           offset: const Offset(-2, 2),
+          // Folded out is the selection: the accent's line and tint.
           child: Material(
-            color: selected ? color.withValues(alpha: 0.28) : GameColors.panel,
-            shape: GameShapes.chip(edge: edge, width: 1.8),
+            color: selected ? GameColors.accentTint : GameColors.panel,
+            shape: selected
+                ? GameShapes.chip(
+                    edge: GameColors.accentText,
+                    width: HzLine.selection,
+                  )
+                : GameShapes.chip(
+                    edge: enabled ? GameColors.lineStrong : GameColors.line,
+                  ),
             child: InkWell(
               onTap: enabled
                   ? () {
@@ -737,22 +757,19 @@ class _Chip extends StatelessWidget {
                   : null,
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
+                  horizontal: HzSpace.s12,
+                  vertical: HzSpace.s8,
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(icon, size: 18, color: edge),
-                    const SizedBox(width: 6),
+                    Icon(icon, size: HzIconSize.row, color: sign),
+                    const SizedBox(width: HzSpace.s8),
                     Text(
                       label,
-                      style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: enabled
-                            ? GameColors.text
-                            : GameColors.textDim.withValues(alpha: 0.5),
+                      style: GameType.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: enabled ? GameColors.text : GameColors.textMuted,
                       ),
                     ),
                   ],

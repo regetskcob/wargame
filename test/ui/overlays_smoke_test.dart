@@ -7,9 +7,9 @@ import 'dart:math';
 
 import 'package:clock/clock.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/testing.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:wargame/src/app/overlay_ids.dart';
@@ -81,7 +81,7 @@ Future<void> _show(WidgetTester tester, TankGame game, Size size) async {
         supportedLocales: [for (final l in AppLang.values) l.locale],
         theme: buildGameTheme(),
         home: Scaffold(
-          backgroundColor: GameColors.background,
+          backgroundColor: GameColors.bg,
           body: ListenableBuilder(
             listenable: game.phase,
             builder: (context, _) => Stack(
@@ -138,7 +138,7 @@ Future<void> _page(WidgetTester tester, Widget page, Size size) async {
   await tester.pumpWidget(
     MaterialApp(
       theme: buildGameTheme(),
-      home: Scaffold(backgroundColor: GameColors.background, body: page),
+      home: Scaffold(backgroundColor: GameColors.bg, body: page),
     ),
   );
   await tester.pump(const Duration(milliseconds: 500));
@@ -173,13 +173,7 @@ void _startNow(TankGame game, GameMode mode) {
 
 /// The game's own font instead of the test font, whose square glyphs are
 /// far wider: an overflow here is one a player would see.
-Future<void> _loadFonts() async {
-  final roboto = FontLoader('Roboto');
-  for (final weight in ['Regular', 'Medium', 'Bold', 'Black']) {
-    roboto.addFont(rootBundle.load('assets/fonts/Roboto-$weight.ttf'));
-  }
-  await roboto.load();
-}
+Future<void> _loadFonts() => loadHorizontFonts();
 
 /// The start page for a guest who has not chosen yet, choosing the mode,
 /// its settings, then the room of each mode.

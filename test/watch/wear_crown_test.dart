@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/watch/wear_crown.dart';
 
 void main() {
@@ -45,6 +46,7 @@ void main() {
     addTearDown(controller.dispose);
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: ListView(
           controller: controller,
           children: [for (var i = 0; i < 40; i++) SizedBox(height: 50)],

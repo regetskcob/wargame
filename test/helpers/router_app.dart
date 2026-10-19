@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/app/routes.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/ui/account_page.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/ui/widgets/language_rebuild.dart';
 
 /// [home] as the game's page of the app's router, with the account page
@@ -19,6 +20,7 @@ Future<void> pumpRouterApp(
   addTearDown(router.dispose);
   await tester.pumpWidget(
     MaterialApp.router(
+      theme: buildGameTheme(),
       routerConfig: router,
       builder: (context, child) => LanguageRebuild(child: child!),
     ),

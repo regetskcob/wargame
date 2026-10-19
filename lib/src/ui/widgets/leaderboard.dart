@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../app/env.dart';
 import '../../db/score_points.dart';
@@ -145,11 +146,8 @@ class _LeaderboardState extends State<Leaderboard> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          tr('BESTENLISTE', 'LEADERBOARD'),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 10),
+        Kennung(tr('Bestenliste', 'Leaderboard')),
+        const SizedBox(height: HzSpace.s8),
         _total(context),
       ],
     );
@@ -157,7 +155,7 @@ class _LeaderboardState extends State<Leaderboard> {
 
   static Widget get _empty => Text(
     tr('Noch keine Gefechte gewertet.', 'No battles ranked yet.'),
-    style: const TextStyle(color: GameColors.textDim),
+    style: GameType.callout.copyWith(color: GameColors.textMuted),
   );
 
   Widget _table(List<String> labels, List<TableRow> rows) {
@@ -211,7 +209,7 @@ class _LeaderboardState extends State<Leaderboard> {
                   'Bestenliste gerade nicht erreichbar.',
                   'Leaderboard currently unavailable.',
                 ),
-                style: const TextStyle(color: GameColors.textDim),
+                style: GameType.callout.copyWith(color: GameColors.textMuted),
               ),
               TextButton(
                 onPressed: () => setState(_reload),
@@ -259,23 +257,22 @@ class _LeaderboardState extends State<Leaderboard> {
     );
   }
 
-  static const _head = TextStyle(
-    fontSize: 11,
-    letterSpacing: 1.4,
-    color: GameColors.textDim,
-    fontWeight: FontWeight.w800,
-  );
+  /// Column heads are Kennungen, the numbers below them mono.
+  static final _head = GameType.kennung;
 
   Widget _cell(
     String text, {
-    TextStyle style = const TextStyle(),
+    TextStyle? style,
     TextAlign align = TextAlign.right,
     int lines = 1,
   }) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 5),
+    padding: const EdgeInsets.symmetric(
+      horizontal: HzSpace.s4,
+      vertical: HzSpace.s4,
+    ),
     child: Text(
       text,
-      style: style,
+      style: style ?? GameType.data,
       textAlign: align,
       maxLines: lines,
       overflow: TextOverflow.ellipsis,
@@ -294,7 +291,7 @@ class _LeaderboardState extends State<Leaderboard> {
   TableRow _headerOf(List<String> labels) {
     return TableRow(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: GameColors.oliveLight)),
+        border: Border(bottom: BorderSide(color: GameColors.lineStrong)),
       ),
       children: [
         for (var i = 0; i < labels.length; i++)
@@ -307,17 +304,11 @@ class _LeaderboardState extends State<Leaderboard> {
     );
   }
 
-  static const _medals = [
-    Color(0xFFFFC107),
-    Color(0xFFCFD8DC),
-    Color(0xFFCD7F32),
-  ];
-
   TableRow _placeholderRow(int rank) {
-    const dim = TextStyle(color: GameColors.textDim);
+    final dim = GameType.data.copyWith(color: GameColors.textMuted);
     return TableRow(
       decoration: const BoxDecoration(
-        border: Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+        border: Border(bottom: BorderSide(color: GameColors.line)),
       ),
       children: [
         _cell('$rank', style: dim),
@@ -331,30 +322,37 @@ class _LeaderboardState extends State<Leaderboard> {
       TableRow(children: [for (var i = 0; i < 5; i++) _cell(' ')]);
 
   TableRow _row(int rank, ScoresRow row, {required bool mine}) {
-    final medal = rank <= 3 ? _medals[rank - 1] : null;
-    final base = TextStyle(
-      fontWeight: mine ? FontWeight.w800 : FontWeight.w500,
-      color: mine ? GameColors.amber : GameColors.text,
+    // The player's own row is the selection: accent tint, its rank in the
+    // accent. The first three stand out by weight, not by medal colours.
+    final base = GameType.data.copyWith(
+      fontWeight: mine ? FontWeight.w600 : FontWeight.w400,
     );
     return TableRow(
       decoration: BoxDecoration(
-        color: mine ? const Color(0x33FFB300) : null,
-        border: const Border(bottom: BorderSide(color: Color(0x22FFFFFF))),
+        color: mine ? GameColors.accentTint : null,
+        border: const Border(bottom: BorderSide(color: GameColors.line)),
       ),
       children: [
         _cell(
           '$rank',
           style: base.copyWith(
-            color: medal ?? base.color,
-            fontWeight: FontWeight.w900,
+            color: mine ? GameColors.accentText : null,
+            fontWeight: rank <= 3 || mine ? FontWeight.w600 : null,
           ),
         ),
         // A long name breaks onto a second line on a phone instead of
-        // losing its end.
-        _cell(row.name, style: base, align: TextAlign.left, lines: 2),
+        // losing its end. Names are words, in Sans.
+        _cell(
+          row.name,
+          style: GameType.callout.copyWith(
+            fontWeight: mine ? FontWeight.w600 : FontWeight.w400,
+          ),
+          align: TextAlign.left,
+          lines: 2,
+        ),
         _cell(
           '${row.points}',
-          style: base.copyWith(fontWeight: FontWeight.w900),
+          style: base.copyWith(fontWeight: FontWeight.w600),
         ),
         _cell('${row.wins}', style: base),
         _cell('${row.kills}', style: base),

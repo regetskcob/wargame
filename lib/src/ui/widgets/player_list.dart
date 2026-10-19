@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/game_config.dart';
 import '../../net/payloads/lobby_presence.dart';
@@ -33,19 +34,23 @@ class PlayerList extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          tr('BESATZUNGEN IM RAUM', 'CREWS IN THE ROOM'),
-          style: Theme.of(context).textTheme.titleMedium,
+        Kennung(
+          tr('Besatzungen im Raum', 'Crews in the room'),
+          count: members.length,
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: HzSpace.s8),
         for (final member in sorted)
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 2),
+            padding: const EdgeInsets.symmetric(vertical: HzSpace.s4),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.shield_outlined, size: 16, color: colorOf(member)),
-                const SizedBox(width: 8),
+                Icon(
+                  Icons.shield_outlined,
+                  size: HzIconSize.inline,
+                  color: colorOf(member),
+                ),
+                const SizedBox(width: HzSpace.s8),
                 Text(
                   member.id == myId
                       ? '${member.name} (${tr('du', 'you')})'
@@ -55,17 +60,15 @@ class PlayerList extends StatelessWidget {
                   const SizedBox(width: 6),
                   const Icon(
                     Icons.star_outlined,
-                    size: 13,
-                    color: GameColors.amber,
+                    size: HzIconSize.badge,
+                    color: GameColors.accentText,
                   ),
                 ],
                 if (member.team > 0) ...[
                   const SizedBox(width: 8),
                   Text(
                     GameConfig.teamNames[member.team],
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w800,
+                    style: GameType.kennung.copyWith(
                       color: GameConfig.teamColors[member.team],
                     ),
                   ),
@@ -75,8 +78,8 @@ class PlayerList extends StatelessWidget {
                   member.inMatch
                       ? tr('im Einsatz', 'in battle')
                       : tr('wartet', 'waiting'),
-                  style: const TextStyle(
-                    color: GameColors.textDim,
+                  style: GameType.data.copyWith(
+                    color: GameColors.textMuted,
                     fontSize: 12,
                   ),
                 ),

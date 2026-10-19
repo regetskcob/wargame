@@ -3,8 +3,8 @@ import 'dart:ui' as ui;
 
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/testing.dart';
 import 'package:wargame/src/game/components/power_up.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -27,15 +27,7 @@ void main() {
   final shots = Platform.environment['WATCH_SHOTS'];
 
   setUpAll(() async {
-    final loader = FontLoader('Roboto');
-    for (final file in ['Regular', 'Medium', 'Bold', 'Black']) {
-      loader.addFont(
-        File('assets/fonts/Roboto-$file.ttf')
-            .readAsBytes()
-            .then((bytes) => ByteData.view(bytes.buffer)),
-      );
-    }
-    await loader.load();
+    await loadHorizontFonts();
   });
 
   Future<void> show(
