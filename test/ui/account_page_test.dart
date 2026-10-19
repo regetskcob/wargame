@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
 import 'package:go_router/go_router.dart';
 import 'package:wargame/src/app/routes.dart';
 import 'package:wargame/src/l10n/l10n.dart';
@@ -99,7 +100,12 @@ void main() {
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
 
-    final field = tester.getRect(find.widgetWithText(TextField, 'RUFNAME'));
+    final field = tester.getRect(
+      find.descendant(
+        of: find.widgetWithText(HorizontField, 'Rufname'),
+        matching: find.byType(TextField),
+      ),
+    );
     final legal = tester.getRect(find.byType(LegalLinks));
     // Two columns: the legal links at the foot of the right one, level with
     // the call sign at the top of the left.
@@ -128,7 +134,12 @@ void main() {
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
 
-    final field = tester.getRect(find.widgetWithText(TextField, 'RUFNAME'));
+    final field = tester.getRect(
+      find.descendant(
+        of: find.widgetWithText(HorizontField, 'Rufname'),
+        matching: find.byType(TextField),
+      ),
+    );
     final legal = tester.getRect(find.byType(LegalLinks));
     expect(legal.left, greaterThan(field.right));
     final close = tester.element(find.byIcon(Icons.close_outlined));

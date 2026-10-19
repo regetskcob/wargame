@@ -461,20 +461,22 @@ class _AccountPanelState extends State<AccountPanel> {
           ),
           const SizedBox(height: HzSpace.s8),
         ] else if (!_signIn) ...[
-          SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _name,
-              maxLength: 16,
-              autofillHints: const [AutofillHints.username],
-              decoration: InputDecoration(
-                labelText: tr('RUFNAME', 'CALL SIGN'),
-                helperText: tr(
-                  'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
-                  'Publicly visible, for example on the leaderboard',
+          HorizontField(
+            label: tr('Rufname', 'Call sign'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _name,
+                maxLength: 16,
+                autofillHints: const [AutofillHints.username],
+                decoration: InputDecoration(
+                  helperText: tr(
+                    'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+                    'Publicly visible, for example on the leaderboard',
+                  ),
+                  helperMaxLines: 2,
                 ),
-                helperMaxLines: 2,
               ),
             ),
           ),
@@ -484,18 +486,20 @@ class _AccountPanelState extends State<AccountPanel> {
         // then do iOS and Android offer the saved address above the
         // keyboard.
         AutofillGroup(
-          child: SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.send,
-              autofillHints: const [AutofillHints.email],
-              autocorrect: false,
-              textCapitalization: TextCapitalization.none,
-              decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
-              onSubmitted: (_) => _sendMail(),
+          child: HorizontField(
+            label: tr('E-Mail', 'E-mail'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.send,
+                autofillHints: const [AutofillHints.email],
+                autocorrect: false,
+                textCapitalization: TextCapitalization.none,
+                onSubmitted: (_) => _sendMail(),
+              ),
             ),
           ),
         ),
@@ -530,22 +534,22 @@ class _AccountPanelState extends State<AccountPanel> {
           ],
         ),
       ] else ...[
-        SelectToType(
-          builder: (focusNode, readOnly) => TextField(
-            focusNode: focusNode,
-            readOnly: readOnly,
-            controller: _code,
-            // The send button the remote was on is gone: start here.
-            autofocus: onTv,
-            keyboardType: TextInputType.number,
-            autofillHints: const [AutofillHints.oneTimeCode],
-            decoration: InputDecoration(
-              labelText: tr(
-                'CODE AUS DER MAIL (FALLS VORHANDEN)',
-                'CODE FROM THE MAIL (IF ANY)',
-              ),
+        HorizontField(
+          label: tr(
+            'Code aus der Mail (falls vorhanden)',
+            'Code from the mail (if any)',
+          ),
+          child: SelectToType(
+            builder: (focusNode, readOnly) => TextField(
+              focusNode: focusNode,
+              readOnly: readOnly,
+              controller: _code,
+              // The send button the remote was on is gone: start here.
+              autofocus: onTv,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              onSubmitted: (_) => _verify(),
             ),
-            onSubmitted: (_) => _verify(),
           ),
         ),
         SizedBox(height: fresh ? HzSpace.s16 : HzSpace.s8),

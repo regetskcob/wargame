@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:wargame/src/ui/theme.dart';
+import 'package:wargame/src/game/bot_level.dart';
+import 'package:wargame/src/game/components/power_up.dart';
 import 'package:wargame/src/game/defense/tower.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -14,6 +16,42 @@ import 'package:wargame/src/ui/widgets/vitals_plate.dart';
 import '../helpers/fakes.dart';
 
 void main() {
+  // Simulator test after the Horizont redesign: on a laptop browser the
+  // gauges stood 72 px off the edge for an inventory that showed nothing.
+  testWidgets('the gauges step in only while the inventory holds something', (
+    tester,
+  ) async {
+    tester.view
+      ..physicalSize = const Size(1024, 768)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final game = (await tester.runAsync(loadedGame))!;
+    // Normal: ammunition and fuel add two plates under the armour.
+    game
+      ..update(0)
+      ..chooseLevel(BotLevel.normal)
+      ..chooseMode(GameMode.defense)
+      ..startRound();
+    game.touchMode.value = false;
+    game.compactHud.value = false;
+    game.defense.value = DefensePayload(id: game.myId, hp: 900, wave: 2);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildGameTheme(),
+        home: Scaffold(body: HudOverlay(game: game)),
+      ),
+    );
+    final armour = find.textContaining('PANZERUNG');
+    expect(tester.getRect(armour.first).left, lessThan(60));
+
+    game.inventory.add(PowerUpType.repair);
+    await tester.pump();
+    expect(tester.takeException(), isNull);
+    expect(tester.getRect(armour.first).left, greaterThan(72));
+  });
+
   // TestFlight feedback from an iPhone 15 Pro: upright, the defense panel in
   // the top right ran over the gauges in the top left.
   testWidgets('the defense panel keeps clear of the gauges on an upright '

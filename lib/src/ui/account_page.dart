@@ -184,57 +184,61 @@ class _AccountPageState extends State<AccountPage> {
         builder: (context, _, _) {
           final dirty = _nameDirty;
           final saved = _nameSaved && !dirty;
-          return SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _name,
-              maxLength: 16,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: tr('RUFNAME', 'CALL SIGN'),
-                helperText: saved
-                    ? tr('Gespeichert', 'Saved')
-                    : dirty
-                    ? tr(
-                        'Mit dem Haken oder Enter speichern',
-                        'Save with the tick or Enter',
-                      )
-                    : tr(
-                        'Öffentlich sichtbar, zum Beispiel in der '
-                            'Bestenliste',
-                        'Publicly visible, for example on the leaderboard',
-                      ),
-                // Saved is a status: the word, the tick and its colour.
-                helperStyle: saved
-                    ? GameType.caption.copyWith(color: GameColors.positive)
-                    : null,
-                // A phone has not the width for the hint beside the counter.
-                helperMaxLines: 2,
-                // Always there, so the field does not change width when it
-                // turns into a button.
-                suffixIcon: saved
-                    ? Icon(
-                        HorizontStatus.positive.icon,
-                        color: GameColors.positive,
-                      )
-                    : IconButton(
-                        tooltip: tr('Rufnamen speichern', 'Save call sign'),
-                        onPressed: dirty && _nameValid ? _rename : null,
-                        // Dim until there is something to save.
-                        style: IconButton.styleFrom(
-                          foregroundColor: GameColors.accentText,
-                          disabledForegroundColor: GameColors.textFaint,
+          // The label above the field, as Horizont asks, not floating in
+          // its frame.
+          return HorizontField(
+            label: tr('Rufname', 'Call sign'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _name,
+                maxLength: 16,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  helperText: saved
+                      ? tr('Gespeichert', 'Saved')
+                      : dirty
+                      ? tr(
+                          'Mit dem Haken oder Enter speichern',
+                          'Save with the tick or Enter',
+                        )
+                      : tr(
+                          'Öffentlich sichtbar, zum Beispiel in der '
+                              'Bestenliste',
+                          'Publicly visible, for example on the leaderboard',
                         ),
-                        icon: const Icon(Icons.check_outlined),
-                      ),
+                  // Saved is a status: the word, the tick and its colour.
+                  helperStyle: saved
+                      ? GameType.caption.copyWith(color: GameColors.positive)
+                      : null,
+                  // A phone has not the width for the hint beside the counter.
+                  helperMaxLines: 2,
+                  // Always there, so the field does not change width when it
+                  // turns into a button.
+                  suffixIcon: saved
+                      ? Icon(
+                          HorizontStatus.positive.icon,
+                          color: GameColors.positive,
+                        )
+                      : IconButton(
+                          tooltip: tr('Rufnamen speichern', 'Save call sign'),
+                          onPressed: dirty && _nameValid ? _rename : null,
+                          // Dim until there is something to save.
+                          style: IconButton.styleFrom(
+                            foregroundColor: GameColors.accentText,
+                            disabledForegroundColor: GameColors.textFaint,
+                          ),
+                          icon: const Icon(Icons.check_outlined),
+                        ),
+                ),
+                onChanged: (_) {
+                  if (_nameSaved) {
+                    setState(() => _nameSaved = false);
+                  }
+                },
+                onSubmitted: (_) => _rename(),
               ),
-              onChanged: (_) {
-                if (_nameSaved) {
-                  setState(() => _nameSaved = false);
-                }
-              },
-              onSubmitted: (_) => _rename(),
             ),
           );
         },

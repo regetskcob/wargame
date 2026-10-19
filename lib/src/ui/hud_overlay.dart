@@ -332,16 +332,17 @@ class _HudOverlayState extends State<HudOverlay> {
           final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
           // The plate shares its row with the buttons; when the whole line
-          // does not fit, the wave goes without its word first and then the
-          // comrades are shortened as on the phone.
+          // does not fit, the comrades are shortened as on the phone first
+          // and the wave goes without its word only then: in the wider mono
+          // a bare "2/8" stood there already at 1024 px, which says less.
           List<String> lines(DefensePayload? state) => [
+            '${_wave(state)}   '
+                '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                '${tr('KAMERADEN', 'COMRADES')} $allies',
             for (final short in const [false, true])
               '${_wave(state, short: short)}   '
                   '${tr('FEINDE', 'ENEMIES')} $enemies   '
-                  '${tr('KAMERADEN', 'COMRADES')} $allies',
-            '${_wave(state, short: true)}   '
-                '${tr('FEINDE', 'ENEMIES')} $enemies   '
-                '${tr('KAM.', 'ALLIES')} $allies',
+                  '${tr('KAM.', 'ALLIES')} $allies',
           ];
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
@@ -731,11 +732,16 @@ class _HudOverlayState extends State<HudOverlay> {
     return gaugesBottom + 8 > inventoryTop;
   }
 
+  /// The gauges step in only while the inventory holds something: an empty
+  /// one shows no slots, and the plates stood 72 px off the edge for nothing.
   Widget _status(TankGame game) {
-    return LayoutBuilder(
-      builder: (context, constraints) => _statusColumn(
-        game,
-        _gaugesMeetInventory(game, constraints.maxHeight),
+    return ValueListenableBuilder(
+      valueListenable: game.inventory,
+      builder: (context, slots, _) => LayoutBuilder(
+        builder: (context, constraints) => _statusColumn(
+          game,
+          slots.isNotEmpty && _gaugesMeetInventory(game, constraints.maxHeight),
+        ),
       ),
     );
   }

@@ -27,6 +27,10 @@ gepflegt.
 - Die offene Liste im Verteidigungsmenü trägt eine Linie am Fuß statt
   eines Rahmens, der wie der Fokusring des Fernsehers aussah, und der
   Ton-Knopf in der Runde hat eine dunkle Scheibe wie der Verlassen-Knopf
+- Die Anzeigen bleiben am linken Rand, solange das Inventar leer ist,
+  die Verteidigungszeile kürzt erst die Kameraden und lässt dann das
+  Wort Welle weg, und die Kontofelder tragen ihre Beschriftung über dem
+  Feld
 
 ## 1.7.0 (15) – 18.10.2026
 

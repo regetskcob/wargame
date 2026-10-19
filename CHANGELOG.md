@@ -25,6 +25,9 @@ step, point for point.
 - The open list of the defense panel is marked by a line along its foot,
   not a frame that looked like the television's focus ring, and the sound
   button in a round has a dark disc like the leave button
+- The gauges stay at the left edge while the inventory is empty, the
+  defense line shortens the comrades before it drops the word for the
+  wave, and the account fields carry their label above the field
 
 ## 1.7.0 (15) – 2026-10-18
 
