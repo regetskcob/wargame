@@ -462,7 +462,7 @@ class _HudOverlayState extends State<HudOverlay> {
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const MuteButton(),
+                          const MuteButton(overWorld: true),
                           LeaveRoundButton(game: game),
                         ],
                       ),
@@ -509,7 +509,7 @@ class _HudOverlayState extends State<HudOverlay> {
                         ),
                       ),
                     if (!upright) ...[
-                      const MuteButton(),
+                      const MuteButton(overWorld: true),
                       LeaveRoundButton(game: game),
                     ],
                   ],
@@ -779,7 +779,7 @@ class _HudOverlayState extends State<HudOverlay> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const MuteButton(),
+                          const MuteButton(overWorld: true),
                           LeaveRoundButton(game: game),
                         ],
                       ),
@@ -943,14 +943,26 @@ class _DefensePanelState extends State<_DefensePanel> {
     ),
   );
 
-  /// An open list is the selection: the 2 px accent line on its tint,
-  /// never the fill of the primary action.
+  /// An open list is the selection: its tint and the 2 px accent line along
+  /// the foot, never the fill of the primary action. Not a frame in the
+  /// accent either: on the television that read as the focus ring, which
+  /// sits around the button in focus in the same colour.
   ButtonStyle _tabStyle(ButtonStyle base, {required bool open}) => open
       ? base.copyWith(
           backgroundColor: const WidgetStatePropertyAll(GameColors.accentTint),
-          foregroundColor: const WidgetStatePropertyAll(GameColors.accentText),
-          side: const WidgetStatePropertyAll(
-            BorderSide(color: GameColors.accentText, width: HzLine.selection),
+          foregroundColor: const WidgetStatePropertyAll(GameColors.text),
+          backgroundBuilder: (context, states, child) => Stack(
+            alignment: Alignment.center,
+            children: [
+              ?child,
+              const Positioned(
+                left: HzRadius.r6,
+                right: HzRadius.r6,
+                bottom: 0,
+                height: HzLine.selection,
+                child: ColoredBox(color: GameColors.accentText),
+              ),
+            ],
           ),
         )
       : base;

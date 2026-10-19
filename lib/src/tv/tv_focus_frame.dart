@@ -61,7 +61,13 @@ class _TvFocusFrameState extends State<TvFocusFrame>
     final node = FocusManager.instance.primaryFocus;
     final screen = MediaQuery.sizeOf(context);
     Rect? rect;
-    final box = node?.context?.findRenderObject();
+    // A button pressed away (a page changed under it) keeps the focus for a
+    // frame on an element that has left the tree: asking it for its box
+    // threw every frame until the focus moved on.
+    final element = node?.context;
+    final box = element != null && element.mounted
+        ? element.findRenderObject()
+        : null;
     if (node != null && box is RenderBox && box.attached && box.hasSize) {
       final found = node.rect;
       // The game itself and whole pages take the focus too: no frame

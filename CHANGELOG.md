@@ -19,6 +19,12 @@ step, point for point.
 - New app icon on every platform: the tank from the side on the horizon
 - The landing page as a Horizont field page with numbered sections, the
   screenshots in device frames, and the legal pages in the same style
+- The Apple Watch no longer opens the game controller channel it does not
+  have, and the Apple TV's focus frame no longer trips over a button that
+  was just pressed away
+- The open list of the defense panel is marked by a line along its foot,
+  not a frame that looked like the television's focus ring, and the sound
+  button in a round has a dark disc like the leave button
 
 ## 1.7.0 (15) – 2026-10-18
 

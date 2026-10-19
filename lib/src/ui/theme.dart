@@ -163,6 +163,9 @@ ThemeData buildGameTheme() {
     density: HorizontDensity.touch,
   );
   return base.copyWith(
+    // A control in focus (keyboard, remote, controller) takes the tint of
+    // the selection under its focus ring instead of Material's grey.
+    focusColor: GameColors.accentTint,
     textTheme: base.textTheme.copyWith(
       displayLarge: GameType.display,
       displayMedium: GameType.display,

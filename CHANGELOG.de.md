@@ -21,6 +21,12 @@ gepflegt.
   Horizont
 - Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
   Screenshots in Geräterahmen, die Rechtstexte im selben Stil
+- Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort
+  nicht gibt, und der Fokusrahmen des Apple TV stolpert nicht mehr über
+  einen gerade weggedrückten Knopf
+- Die offene Liste im Verteidigungsmenü trägt eine Linie am Fuß statt
+  eines Rahmens, der wie der Fokusring des Fernsehers aussah, und der
+  Ton-Knopf in der Runde hat eine dunkle Scheibe wie der Verlassen-Knopf
 
 ## 1.7.0 (15) – 18.10.2026
 
