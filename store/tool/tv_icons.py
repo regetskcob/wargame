@@ -1,13 +1,14 @@
-"""Builds the TV icons, top shelf and launch image from the app icon layers.
+"""Builds the Apple TV top shelf and launch image and the Android TV banner.
 
     python3 store/tool/tv_icons.py
 
-The tvOS icon is a stack of layers that tilt against each other while it
-has the focus: the ground of the app icon at the back, its tank in front.
-The top shelf shows the tank and the name on the same ground, the launch
-screen the tank alone. Writes into tvos/Runner/Assets.xcassets, and the
-banner of the Android TV home screen, drawn like the icon, into
-android/app/src/main/res. Needs Pillow.
+The Apple TV icon itself, a stack of a back and a front layer that tilt
+against each other while it has the focus, comes from the design system
+Horizont (store/tool/horizont_icons.py). Horizont has no top shelf and no
+banner yet, so these are still drawn from the layers of the old app icon:
+the top shelf shows the tank and the name on its ground, the launch screen
+the tank alone. Writes into tvos/Runner/Assets.xcassets, and the banner of
+the Android TV home screen into android/app/src/main/res. Needs Pillow.
 """
 
 from pathlib import Path
@@ -15,12 +16,13 @@ from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
 
 import app_icon
+import horizont_fonts
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "tvos" / "Runner" / "Assets.xcassets"
 BRAND = ASSETS / "AppIcon.brandassets"
 ANDROID_RES = ROOT / "android" / "app" / "src" / "main" / "res"
-FONT = ROOT / "assets" / "fonts" / "Roboto-Black.ttf"
+FONT = horizont_fonts.fonts_dir() / horizont_fonts.HEADLINE
 
 SAND = (232, 220, 180)
 SHADOW = (27, 38, 22)
@@ -48,21 +50,6 @@ def placed(tank, size, height, x):
     small = tank.resize((w, h), Image.LANCZOS)
     layer.paste(small, (round(size[0] * x - w / 2), (size[1] - h) // 2), small)
     return layer
-
-
-def icon_stack(ground, tank, name, base):
-    stack = BRAND / f"App Icon - {name.title()}.imagestack"
-    for suffix, factor in (("", 1), ("@2x", 2)):
-        size = (base[0] * factor, base[1] * factor)
-
-        def layer(kind):
-            return stack / f"{kind}.imagestacklayer" / "Content.imageset" / (
-                f"{name}_{kind.lower()}{suffix}.png"
-            )
-
-        cover(ground, size).save(layer("Back"), optimize=True)
-        Image.new("RGBA", size, (0, 0, 0, 0)).save(layer("Middle"))
-        placed(tank, size, 0.66, 0.5).save(layer("Front"), optimize=True)
 
 
 def top_shelf(ground, tank, folder, file, base):
@@ -118,15 +105,13 @@ def launch_image(tank):
 def main():
     ground = app_icon.terrain().convert("RGBA")
     tank = app_icon.tank().crop(TANK_BOX)
-    icon_stack(ground, tank, "small", (400, 240))
-    icon_stack(ground, tank, "large", (1280, 768))
     top_shelf(ground, tank, "Top Shelf Image.imageset", "top_shelf", (1920, 720))
     top_shelf(
         ground, tank, "Top Shelf Image Wide.imageset", "top_shelf_wide", (2320, 720)
     )
     launch_image(tank)
     android_banner(ground, tank)
-    print("tvOS icons and Android TV banner written")
+    print("tvOS top shelf, launch image and Android TV banner written")
 
 
 if __name__ == "__main__":

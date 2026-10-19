@@ -220,9 +220,9 @@ which on the Mac leaves universal links to the app. A pairing link
 entitlement needs a development or distribution certificate, so CI, which
 signs ad hoc, takes it out before its Mac build. Links clicked in Messages,
 Mail or Notes open the app; `open` in the Terminal always goes to the
-browser. `python3 store/tool/app_icon.py` also writes the Mac
-icon set, the square on Apple's rounded plate with a shadow, since macOS does
-not round icons itself.
+browser. The Mac icon set comes from the design system Horizont like all app
+icons (`python3 store/tool/horizont_icons.py`): the square on Apple's rounded
+plate with a shadow, since macOS does not round icons itself.
 
 ```sh
 flutter run -d macos
@@ -324,7 +324,8 @@ as a guest. In the paired Simulators the context arrives, the watch's own
 asking fails with "Companion app is not installed" (a Simulator limit);
 both apps must come from the same build, the watch app embedded in the
 iPhone app.
-The app icon is the one of the phone app.
+The app icon is Horizont's watchOS set, the picture of the phone icon drawn
+to the edges, since the watch cuts it to a circle itself.
 
 ```sh
 export PATH="$HOME/path/to/flutter-watchos/bin:$PATH"
@@ -423,8 +424,9 @@ All televisions, Android TV and Fire TV included, are summed up in
 3.47.6, no account needed). It runs the same `lib/main.dart` and the same
 screens as the browser, drawn larger (`tvScale`), and shares the bundle id
 `de.regetskcob.wargame` with the iOS app, so both can be one universal
-purchase. Icon, top shelf and launch screen come from the layers of the app
-icon (`store/tool/tv_icons.py`). State: tried in the Apple TV Simulator only.
+purchase. The icon, a back and a front layer, comes from Horizont
+(`store/tool/horizont_icons.py`); top shelf and launch screen are still drawn
+from the layers of the old app icon (`store/tool/tv_icons.py`). State: tried in the Apple TV Simulator only.
 
 Nothing scrolls on the television. The menus use its width: the start page puts
 the controllers, the phone pairing and the leaderboard in a column beside the
@@ -519,7 +521,7 @@ export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
 flutter-tvos build tvos --debug --simulator  # debug, Simulator only
 flutter-tvos run -d <apple-tv-simulator-id>  # hot reload
 flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
-python3 store/tool/tv_icons.py               # icon layers, top shelf, launch image
+python3 store/tool/tv_icons.py               # top shelf, launch image
 ```
 
 Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the

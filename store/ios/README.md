@@ -42,16 +42,17 @@ verbietet Apple (Richtlinie 2.3.7). Die Fahrzeuge tragen Tiernamen (Hermelin,
 Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs, Wolf) statt Modell- oder
 Herstellernamen.
 
-## Icon neu erzeugen
+## Icon übernehmen
 
-`store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
-Karte) und schreibt es nach `icon/`, in die Icon-Sets für iOS und macOS und
-nach `web/`.
-Danach `store/tool/android_icons.py` für Android und Google Play:
+Das Icon (Panzer in Seitenansicht auf dem Horizont) zeichnet das
+Design-System Horizont, die App zeichnet und skaliert es nicht selbst.
+`store/tool/horizont_icons.py` kopiert die fertigen Sätze aus
+`icons/export/panzergefecht/` eines Horizont-Checkouts nach `icon/`, in die
+Icon-Sets für iOS, Watch, macOS und Apple TV, nach Android, `web/` und in
+die Play-Metadaten:
 
 ```sh
-python3 store/tool/app_icon.py
-python3 store/tool/android_icons.py
+python3 store/tool/horizont_icons.py ../design-system
 ```
 
 ## Screenshots neu erzeugen
@@ -61,7 +62,6 @@ Zwei Befehle, ohne Hand am Simulator:
 ```sh
 tool/store_shots.sh /tmp/raw              # alle Rohbilder, ca. 15 Minuten
 python3 store/tool/compose.py /tmp/raw    # alle Store-Bilder daraus
-python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 ```
 
 `tool/store_shots.sh` baut je Plattform einen Debug-Build mit
