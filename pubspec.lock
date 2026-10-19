@@ -371,11 +371,11 @@ packages:
     dependency: "direct main"
     description:
       path: flutter
-      ref: "v0.6.2"
-      resolved-ref: "4d92f6b7fd0f7a190fc30c09b55849947007aa68"
+      ref: "v0.6.3"
+      resolved-ref: "271eb444eaa6c9c70b4352ba50b926743cdead0a"
       url: "https://github.com/regetskcob/horizont.git"
     source: git
-    version: "0.6.2"
+    version: "0.6.3"
   http:
     dependency: "direct main"
     description:

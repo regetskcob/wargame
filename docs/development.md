@@ -399,7 +399,9 @@ Tests that measure text load the real fonts with `loadHorizontFonts()` from
 `tv_icons.py`) find the same files through `store/tool/horizont_fonts.py`,
 so run `flutter pub get` before them.
 
-Horizont ships the fonts with full Latin coverage, not cut down as the
-game's Roboto was, so the browser build loads more before its first frame;
-cutting them down belongs into Horizont, not here.
+Since v0.6.3 Horizont cuts its fonts down to Latin with extensions,
+punctuation and the few marks set as text (about 0.85 MB, 0.48 MB gzipped),
+because the browser build loads every font before its first frame. A
+character outside that range falls back to the system or Noto; the range
+lives in Horizont's `tool/subset_fonts.py`, so a wider one goes there.
 
