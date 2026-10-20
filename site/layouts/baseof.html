@@ -12,7 +12,7 @@
 {{- range .Translations }}{{ $other = . }}{{ end }}
 {{- if not $other }}{{ range site.Home.Translations }}{{ $other = . }}{{ end }}{{ end }}
 {{- $lang := dict -}}
-{{- with $other }}{{ $lang = dict "name" (upper .Language.Lang) "url" .RelPermalink "hreflang" .Language.Lang }}{{ end -}}
+{{- with $other }}{{ $lang = dict "current" (upper site.Language.Lang) "name" (upper .Language.Lang) "url" .RelPermalink "hreflang" .Language.Lang }}{{ end -}}
 {{- /* Impressum, privacy and licences are written by tool/legal_pages.dart
        at the root of the site, in German for both languages. */}}
 {{- $links := slice
