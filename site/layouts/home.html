@@ -1,7 +1,7 @@
 {{ define "main" }}
 {{- /*
   The landing page as a Feldseite (Horizont, docs/web.md): the hero, every
-  device on the horizon line, then numbered sections with facts in
+  device in one picture on the horizon line, then numbered sections with facts in
   mono and the store screenshots in their device frames below them. Texts
   come from the App Store listing (store/ios/metadata) where it has them,
   everything else from i18n/<lang>.yaml.
@@ -30,19 +30,20 @@
   "primary" (dict "label" (i18n "play") "url" $game)
   "secondary" (dict "label" (i18n "getApp") "url" "#beta")) }}
 
-{{- /* Every screen the game runs on, side by side on one table whose edge
-   is the horizon line: the desk (iPad, Mac), the living room (iPhone,
-   television) and pocket and wrist (Android, Apple Watch). One room for all
-   of them is the idea the page sells; the line under 03 says what is out
-   today. Narrow screens keep the living room and the pocket. */}}
-<div class="pz-panorama" role="group" aria-label="{{ i18n "panorama" }}">
-  {{ partial "shot.html" (dict "kind" "ipad" "file" "ipad-03-warteraum" "width" 300 "alt" (i18n "shot-ipad") "bare" true) }}
-  {{ partial "shot.html" (dict "kind" "mac" "file" "mac-02-verteidigung" "width" 420 "alt" (i18n "shot-mac") "bare" true) }}
-  {{ partial "shot.html" (dict "kind" "iphone" "file" "iphone-01-gefecht" "width" 150 "alt" (i18n "shot-01-gefecht") "bare" true) }}
-  {{ partial "shot.html" (dict "kind" "tv" "file" "tv-01-gefecht" "width" 520 "alt" (i18n "shot-tv") "bare" true) }}
-  {{ partial "shot.html" (dict "kind" "android" "file" "02-verteidigung" "width" 140 "alt" (i18n "shot-android") "bare" true) }}
-  {{ partial "shot.html" (dict "kind" "watch" "file" "watch-03-gefecht" "width" 90 "alt" (i18n "shot-watch") "bare" true) }}
-</div>
+{{- /* Every screen the game runs on, side by side on one table: the same
+   picture as before the Horizont page, drawn by store/tool/landing.py from
+   the store shots (one wide table, two for phones). The line under 03 says
+   what is out today. */}}
+{{- $h := resources.Get (printf "header/%s/devices.png" site.Params.store) }}
+{{- $h1 := $h.Resize "1600x webp" }}{{ $h2 := $h.Resize "3200x webp" }}
+{{- $n := resources.Get (printf "header/%s/devices-narrow.png" site.Params.store) }}
+{{- $n1 := $n.Resize "700x webp" }}{{ $n2 := $n.Resize "1400x webp" }}
+<picture class="pz-header">
+  <source media="(max-width: 760px)" srcset="{{ $n1.RelPermalink }} 1x, {{ $n2.RelPermalink }} 2x"
+    width="{{ $n1.Width }}" height="{{ $n1.Height }}">
+  <img src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
+    width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
+</picture>
 
 {{- /* 02 — The ways to play: name and first sentence of each, the store has
    the rest; the four iPhone screenshots below. */}}

@@ -9,5 +9,3 @@ crops:
   ipad: [368, 413, 2015, 1511]
   mac: [405, 394, 2069, 1293]
   tv: [534, 486, 2772, 1559]
-  # Google Play's phone shots: the same layout on a 1080 x 1920 canvas.
-  android: [204, 349, 672, 1461]

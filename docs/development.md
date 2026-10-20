@@ -293,9 +293,10 @@ is private.
 regetskcob's projects (<https://github.com/regetskcob/horizont>, guide in
 its `docs/web.md`): the head with the lockup and a quiet nav, a hero with
 a Kennung, the headline in Literata, "Jetzt spielen" as the one primary
-button, below it every device side by side on the horizon line (iPad,
-Mac, iPhone, TV, Android phone, Apple Watch; on phones the four small
-ones), then numbered sections
+button, below it every device in one picture on the horizon line
+(`site/assets/header/<lang>/devices.png` and `devices-narrow.png`, drawn
+by `store/tool/landing.py` from the raw shots of `tool/store_shots.sh`),
+then numbered sections
 (`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono,
 and the foot with "ein Projekt von regetskcob" and the legal links. The
 page stays dark on Panzergefecht's own "Gelände" neutrals
@@ -321,8 +322,7 @@ module with Go; the pages workflow uses the Go of the runner image, locally
 
 Texts and pictures are the App Store listing: name, subtitle, promotional
 text and description come from `store/ios/metadata/<lang>/`, the shots
-from `store/ios/screenshots/`, `mac/`, `tv/` and `watch/` and Google Play's
-phone shots from `store/android/metadata/android/` (Hugo mounts in
+from `store/ios/screenshots/`, `mac/`, `tv/` and `watch/` (Hugo mounts in
 `site/hugo.toml`). The store images carry a caption and a drawn device, so
 `site/layouts/_partials/shot.html` cuts the bare screen out of them (the
 rectangles in `site/data/screens.yaml` follow `store/tool/compose.py`;

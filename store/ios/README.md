@@ -33,6 +33,7 @@ Kopfzeile liegen außerhalb von `screenshots/`, weil `fastlane deliver` diesen O
 und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
+python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert
 Apple selbst. Ist der Name „Panzergefecht“ im App Store
 schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa

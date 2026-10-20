@@ -50,10 +50,6 @@ enableRobotsTXT = false
     source = '../store/ios/watch'
     target = 'assets/store/watch'
   [[module.mounts]]
-    source = '../store/android/metadata/android'
-    target = 'assets/store/android'
-    includeFiles = ['/*/images/phoneScreenshots/*.png']
-  [[module.mounts]]
     source = '../assets/images'
     target = 'assets/game'
   [[module.mounts]]
