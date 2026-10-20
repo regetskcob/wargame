@@ -5,7 +5,8 @@
 
   bare   true: the frame alone, without the caption (the hero)
   kind   iphone | ipad (store/ios/screenshots) | mac | tv | watch
-         (store/ios/<kind>), in the language of the page
+         (store/ios/<kind>) | android (Google Play's phone shots), in the
+         language of the page
   The App Store images carry a caption and a drawn device around the game;
   only the screen is cut out of them (data/screens.yaml). The watch shots
   are the bare screen already.
@@ -13,6 +14,7 @@
 {{- $store := site.Params.store -}}
 {{- $path := printf "store/%s/%s/%s.png" .kind $store .file -}}
 {{- if in (slice "iphone" "ipad") .kind }}{{ $path = printf "store/screenshots/%s/%s.png" $store .file }}{{ end -}}
+{{- if eq .kind "android" }}{{ $path = printf "store/android/%s/images/phoneScreenshots/%s.png" $store .file }}{{ end -}}
 {{- $img := resources.Get $path -}}
 {{- if not $img }}{{ errorf "shot.html: %s is missing" $path }}{{ end -}}
 {{- with index site.Data.screens.crops .kind }}
@@ -20,7 +22,7 @@
   {{- $img = $img.Crop (printf "%dx%d TopLeft" (add $x $w) (add $y $h)) }}
   {{- $img = $img.Crop (printf "%dx%d BottomRight" $w $h) }}
 {{- end -}}
-{{- $device := index (dict "iphone" "iphone" "ipad" "ipad" "mac" "laptop" "tv" "tv" "watch" "watch") .kind -}}
+{{- $device := index (dict "iphone" "iphone" "ipad" "ipad" "mac" "laptop" "tv" "tv" "watch" "watch" "android" "android") .kind -}}
 {{- $frame := partial "horizont/device.html" (dict "device" $device "width" .width "image" $img "alt" .alt) -}}
 {{- if .bare }}{{ $frame }}{{ else -}}
 <figure class="pz-shot">

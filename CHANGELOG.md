@@ -28,6 +28,8 @@ step, point for point.
 - The gauges stay at the left edge while the inventory is empty, the
   defense line shortens the comrades before it drops the word for the
   wave, and the account fields carry their label above the field
+- The landing page shows every device the game runs on side by side
+  again, standing on the horizon line, instead of the television alone
 
 ## 1.7.0 (15) – 2026-10-18
 

@@ -31,6 +31,8 @@ gepflegt.
   die Verteidigungszeile kürzt erst die Kameraden und lässt dann das
   Wort Welle weg, und die Kontofelder tragen ihre Beschriftung über dem
   Feld
+- Die Landingpage zeigt wieder alle Geräte nebeneinander, auf der
+  Horizontlinie stehend, statt nur den Fernseher
 
 ## 1.7.0 (15) – 18.10.2026
 

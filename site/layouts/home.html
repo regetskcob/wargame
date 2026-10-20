@@ -1,7 +1,7 @@
 {{ define "main" }}
 {{- /*
-  The landing page as a Feldseite (Horizont, docs/web.md): the hero with the
-  game on the TV, the horizon line, then numbered sections with facts in
+  The landing page as a Feldseite (Horizont, docs/web.md): the hero, every
+  device on the horizon line, then numbered sections with facts in
   mono and the store screenshots in their device frames below them. Texts
   come from the App Store listing (store/ios/metadata) where it has them,
   everything else from i18n/<lang>.yaml.
@@ -28,9 +28,21 @@
   "title" (i18n "hero-title")
   "text" (partial "store.html" "promotional_text")
   "primary" (dict "label" (i18n "play") "url" $game)
-  "secondary" (dict "label" (i18n "getApp") "url" "#beta")
-  "asideCenter" true
-  "aside" (partial "shot.html" (dict "kind" "tv" "file" "tv-01-gefecht" "width" 440 "alt" (i18n "shot-tv") "bare" true))) }}
+  "secondary" (dict "label" (i18n "getApp") "url" "#beta")) }}
+
+{{- /* Every screen the game runs on, side by side on one table whose edge
+   is the horizon line: the desk (iPad, Mac), the living room (iPhone,
+   television) and pocket and wrist (Android, Apple Watch). One room for all
+   of them is the idea the page sells; the line under 03 says what is out
+   today. Narrow screens keep the living room and the pocket. */}}
+<div class="pz-panorama" role="group" aria-label="{{ i18n "panorama" }}">
+  {{ partial "shot.html" (dict "kind" "ipad" "file" "ipad-03-warteraum" "width" 300 "alt" (i18n "shot-ipad") "bare" true) }}
+  {{ partial "shot.html" (dict "kind" "mac" "file" "mac-02-verteidigung" "width" 420 "alt" (i18n "shot-mac") "bare" true) }}
+  {{ partial "shot.html" (dict "kind" "iphone" "file" "iphone-01-gefecht" "width" 150 "alt" (i18n "shot-01-gefecht") "bare" true) }}
+  {{ partial "shot.html" (dict "kind" "tv" "file" "tv-01-gefecht" "width" 520 "alt" (i18n "shot-tv") "bare" true) }}
+  {{ partial "shot.html" (dict "kind" "android" "file" "02-verteidigung" "width" 140 "alt" (i18n "shot-android") "bare" true) }}
+  {{ partial "shot.html" (dict "kind" "watch" "file" "watch-03-gefecht" "width" 90 "alt" (i18n "shot-watch") "bare" true) }}
+</div>
 
 {{- /* 02 — The ways to play: name and first sentence of each, the store has
    the rest; the four iPhone screenshots below. */}}

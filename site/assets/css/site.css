@@ -28,6 +28,30 @@ img { max-width: 100%; }
 
 /* Screenshots under their section, from the start of its middle column (the
    Kennung column is 180px in components.css). */
+/* 100vw counts a classic scroll bar too: the panorama would push the page
+   sideways by its width. */
+body.hz { overflow-x: clip; }
+
+/* The devices of the hero stand on one table, its edge the horizon line:
+   the panorama draws the line itself under their feet, the hero's own goes.
+   Widths are shares of the row (container units), so the scene keeps its
+   proportions from a laptop up; a phone keeps the living room and pocket. */
+.hz-feld-horizon:has(+ .pz-panorama) { display: none; }
+.pz-panorama {
+  container-type: inline-size;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  /* Across the whole window like a table, at most 1600 wide. */
+  margin-inline: calc(50% - 50vw);
+  padding: var(--s-24) max(var(--s-32), calc(50vw - 800px)) 0;
+  border-bottom: var(--line-selection) solid var(--accent);
+}
+.pz-panorama .hz-device { margin: 0; flex: none; }
+.pz-panorama .hz-device--ipad { --w: 16cqw !important; }
+.pz-panorama .hz-device--laptop { --w: 23cqw !important; }
+.pz-panorama .hz-device--iphone { --w: 7.5cqw !important; }
+.pz-panorama .hz-device--tv { --w: 28cqw !important; }
+.pz-panorama .hz-device--android { --w: 7cqw !important; }
+.pz-panorama .hz-device--watch { --w: 4.5cqw !important; }
 .hz-feld-section:has(+ .pz-extend) { border-bottom: 0; padding-bottom: var(--s-24); }
 .pz-extend {
   padding: 0 var(--s-32) var(--s-48) calc(var(--s-32) + 180px + var(--s-32));
@@ -70,6 +94,14 @@ img { max-width: 100%; }
 
 /* Phones. */
 @container (max-width: 720px) {
+  /* The panorama keeps the living room and the pocket: too small, the
+     desk's devices only showed their frames. */
+  .pz-panorama { padding-inline: var(--s-16); justify-content: center; gap: 3cqw; }
+  .pz-panorama .hz-device--ipad, .pz-panorama .hz-device--laptop { display: none; }
+  .pz-panorama .hz-device--iphone { --w: 16cqw !important; }
+  .pz-panorama .hz-device--tv { --w: 46cqw !important; }
+  .pz-panorama .hz-device--android { --w: 15cqw !important; }
+  .pz-panorama .hz-device--watch { --w: 9cqw !important; }
   /* No top padding here: the phone row keeps its own, or the scroller
      clips the frames' edge. */
   .pz-extend { padding-inline: var(--s-16); padding-bottom: var(--s-32); scroll-padding-inline: var(--s-16); }
