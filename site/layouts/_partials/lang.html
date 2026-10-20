@@ -10,7 +10,7 @@
     var key = 'panzergefecht.site.lang';
     var other = {{ .RelPermalink }}, otherLang = {{ .Language.Lang }};
     var here = document.documentElement.lang.slice(0, 2);
-    document.querySelectorAll('.hz-feld-head nav a').forEach(function (a) {
+    document.querySelectorAll('.hz-horizon-lang').forEach(function (a) {
       if (a.getAttribute('href') !== other) return;
       a.hreflang = otherLang;
       a.addEventListener('click', function () {

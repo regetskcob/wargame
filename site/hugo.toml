@@ -77,6 +77,9 @@ enableRobotsTXT = false
       source = 'web/shortcodes'
       target = 'layouts/_shortcodes'
     [[module.imports.mounts]]
+      source = 'web/js'
+      target = 'assets/js/horizont'
+    [[module.imports.mounts]]
       source = 'web/fonts'
       target = 'static/fonts'
 

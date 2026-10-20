@@ -1,25 +1,18 @@
 {{- /*
   Every page is a "Feldseite" of Horizont (docs/web.md in the design
-  system): the head with the lockup and a quiet nav, the page, the foot with
+  system): the horizon line as the navigation (its marks read from the
+  numbered sections, the mark opens the Flurkarte), the page, the foot with
   the sender and the legal links. The partials come from the Horizont module
   (layouts/_partials/horizont/). Panzergefecht stays dark on its "Gelände"
   neutrals; the signal yellow belongs to the one button that starts the game.
 */ -}}
-{{- $home := site.Home.RelPermalink -}}
-{{- $anchor := cond .IsHome "" $home -}}
-{{- $nav := slice
-  (dict "name" (i18n "nav-modes") "url" (printf "%s#modes" $anchor))
-  (dict "name" (i18n "nav-devices") "url" (printf "%s#devices" $anchor))
-  (dict "name" (i18n "nav-beta") "url" (printf "%s#beta" $anchor)) -}}
-{{- with site.GetPage "/support" }}
-  {{- $nav = $nav | append (dict "name" (i18n "support") "url" .RelPermalink "current" (eq .RelPermalink $.RelPermalink)) }}
-{{- end }}
-{{- /* The other language last: it is the one item kept on phones. A page
-       without a translation (404) switches to the other home. */}}
+{{- /* The other language at the end of the horizon line. A page without
+       a translation (404) switches to the other home. */}}
 {{- $other := "" }}
 {{- range .Translations }}{{ $other = . }}{{ end }}
 {{- if not $other }}{{ range site.Home.Translations }}{{ $other = . }}{{ end }}{{ end }}
-{{- with $other }}{{ $nav = $nav | append (dict "name" (i18n "otherLanguage") "url" .RelPermalink) }}{{ end -}}
+{{- $lang := dict -}}
+{{- with $other }}{{ $lang = dict "name" (upper .Language.Lang) "url" .RelPermalink "hreflang" .Language.Lang }}{{ end -}}
 {{- /* Impressum, privacy and licences are written by tool/legal_pages.dart
        at the root of the site, in German for both languages. */}}
 {{- $links := slice
@@ -53,8 +46,13 @@
 </head>
 <body class="hz">
 <a class="pz-skip" href="#main">{{ i18n "skip" }}</a>
+{{ partial "horizont/nav/horizon.html" (dict
+    "product" "panzergefecht"
+    "place" (cond .IsHome (partial "store.html" "name") (printf "%s / %s" (partial "store.html" "name") .Title))
+    "marks" "auto"
+    "lang" $lang
+    "karte" (dict "home" "panzergefecht" "here" "panzergefecht" "url" "https://www.regetskcob.de/karte/")) }}
 <div class="hz-feld">
-{{ partial "horizont/feld/head.html" (dict "product" "panzergefecht" "label" (partial "store.html" "name") "href" ("" | relLangURL) "nav" $nav "navLabel" (i18n "menu")) }}
 <main id="main">
 {{ block "main" . }}{{ end }}
 </main>
@@ -68,5 +66,6 @@
 </div>
 {{ if ne .Kind "404" }}{{ partial "lang.html" $other }}{{ end }}
 {{ partial "launch.html" . }}
+{{ partial "horizont/nav/script.html" . }}
 </body>
 </html>

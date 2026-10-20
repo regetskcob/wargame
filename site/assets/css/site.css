@@ -68,11 +68,8 @@ img { max-width: 100%; }
 .pz-note { padding: 0 var(--s-32) var(--s-32); color: var(--text-muted); }
 .pz-note p { margin: 0 0 var(--s-4); }
 
-/* Phones: the module hides the nav; keep the language switch, the last
-   item. */
+/* Phones. */
 @container (max-width: 720px) {
-  .hz-feld-head nav { display: flex; }
-  .hz-feld-head nav a:not(:last-child) { display: none; }
   /* No top padding here: the phone row keeps its own, or the scroller
      clips the frames' edge. */
   .pz-extend { padding-inline: var(--s-16); padding-bottom: var(--s-32); scroll-padding-inline: var(--s-16); }
