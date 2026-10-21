@@ -379,59 +379,82 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       // stretching across the whole width below them.
       child: LayoutBuilder(
         builder: (context, box) {
+          final bars = StatBars(type: GameConfig.typeOf(_colorIndex));
+          final camo = ListenableBuilder(
+            listenable: Listenable.merge([game.mode, game.teamMode]),
+            // With others every tank drives in its own colour, in red
+            // against blue in its team's.
+            builder: (context, _) =>
+                game.mode.value.withOthers || game.teamsAhead
+                ? const SizedBox.shrink()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
+                      ValueListenableBuilder(
+                        valueListenable: game.progress.rank,
+                        builder: (context, rank, _) => _balanced(
+                          children: [
+                            for (
+                              var i = 0;
+                              i < GameConfig.tankColors.length;
+                              i++
+                            )
+                              Tooltip(
+                                message: game.progress.unlocked(i)
+                                    ? GameConfig.colorName(i)
+                                    : '${GameConfig.colorName(i)}: '
+                                          '${tr('ab Stufe', 'from level')} '
+                                          '${GameConfig.colorLevels[i]}',
+                                child: ColorSwatchButton(
+                                  color: GameConfig.tankColors[i],
+                                  selected:
+                                      i ==
+                                      _colorIndex %
+                                          GameConfig.tankColors.length,
+                                  locked: !game.progress.unlocked(i),
+                                  onTap: () => _pick(color: i),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+          );
           final details = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StatBars(type: GameConfig.typeOf(_colorIndex)),
-              const SizedBox(height: 14),
-              ListenableBuilder(
-                listenable: Listenable.merge([game.mode, game.teamMode]),
-                // With others every tank drives in its own colour, in red
-                // against blue in its team's.
-                builder: (context, _) =>
-                    game.mode.value.withOthers || game.teamsAhead
-                    ? const SizedBox.shrink()
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
-                          ValueListenableBuilder(
-                            valueListenable: game.progress.rank,
-                            builder: (context, rank, _) => _balanced(
-                              children: [
-                                for (
-                                  var i = 0;
-                                  i < GameConfig.tankColors.length;
-                                  i++
-                                )
-                                  Tooltip(
-                                    message: game.progress.unlocked(i)
-                                        ? GameConfig.colorName(i)
-                                        : '${GameConfig.colorName(i)}: '
-                                              '${tr('ab Stufe', 'from level')} '
-                                              '${GameConfig.colorLevels[i]}',
-                                    child: ColorSwatchButton(
-                                      color: GameConfig.tankColors[i],
-                                      selected:
-                                          i ==
-                                          _colorIndex %
-                                              GameConfig.tankColors.length,
-                                      locked: !game.progress.unlocked(i),
-                                      onTap: () => _pick(color: i),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ],
+            children: [bars, const SizedBox(height: 14), camo],
           );
           if (box.maxWidth < 640) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [_vehicles(), const SizedBox(height: 12), details],
+            );
+          }
+          // An upright tablet: beside the bars the cards stayed small with
+          // the lower half of the screen empty. They take the whole width,
+          // the bars and the paint share the row below them.
+          if (box.maxWidth < 900) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _vehicles(),
+                const SizedBox(height: HzSpace.s16),
+                // With others there is no paint to choose, and the bars
+                // take the row alone.
+                if (game.mode.value.withOthers || game.teamsAhead)
+                  bars
+                else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: bars),
+                      const SizedBox(width: HzSpace.s32),
+                      Expanded(child: camo),
+                    ],
+                  ),
+              ],
             );
           }
           return Row(
@@ -796,6 +819,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     List<Widget> left,
     List<Widget> right, {
     required bool narrow,
+    int leftFlex = 1,
+    int rightFlex = 1,
   }) {
     if (narrow) {
       return _column([...left, ...right]);
@@ -805,9 +830,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: FocusTraversalGroup(child: _column(left))),
+        Expanded(
+          flex: leftFlex,
+          child: FocusTraversalGroup(child: _column(left)),
+        ),
         const SizedBox(width: HzSpace.s32),
-        Expanded(child: FocusTraversalGroup(child: _column(right))),
+        Expanded(
+          flex: rightFlex,
+          child: FocusTraversalGroup(child: _column(right)),
+        ),
       ],
     );
   }
@@ -915,6 +946,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// The width from which the waiting room stands beside the vehicles: a
+  /// tablet held sideways, not an upright one.
+  static const _roomBesideTanks = 1000.0;
+
   /// The waiting room: who is here, the player's own tank and the start.
   /// The host reaches the settings through the gear in the heading.
   Widget _room(BuildContext context, {required bool narrow}) {
@@ -967,7 +1002,39 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             if (room.isEmpty)
               _tankSection(context)
             else
-              _columns(room, [_tankSection(context)], narrow: narrow),
+              LayoutBuilder(
+                builder: (context, box) {
+                  // An upright tablet is too narrow for the room beside the
+                  // vehicles: the invitation and the crews stood in a strip
+                  // with half the page empty below them, and the vehicles
+                  // squeezed two by two. The room goes across above the
+                  // vehicles instead, which get the whole width.
+                  if (narrow || box.maxWidth >= _roomBesideTanks) {
+                    // The invitation needs less than half the width; the
+                    // vehicle cards grow into the rest.
+                    return _columns(
+                      room,
+                      [_tankSection(context)],
+                      narrow: narrow,
+                      leftFlex: 2,
+                      rightFlex: 3,
+                    );
+                  }
+                  return _column([
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _column(room.sublist(0, 1))),
+                        if (room.length > 1) ...[
+                          const SizedBox(width: HzSpace.s32),
+                          Expanded(child: _column(room.sublist(1))),
+                        ],
+                      ],
+                    ),
+                    _tankSection(context),
+                  ]);
+                },
+              ),
             const SizedBox(height: 18),
             _actions(),
           ],
@@ -1043,21 +1110,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Phones and upright tablets start at the top: short pages
-              // leave the room below them instead of floating in the middle
-              // of a screen held in the hand, where a tall tablet left a
-              // band above the title. A tablet held sideways is too low for
-              // that: its start page filled the upper half and left the
-              // rest empty, so it centres like the browser and the
-              // television.
-              final screen = MediaQuery.sizeOf(context);
-              final sidewaysTablet =
-                  screen.shortestSide >= tabletShortSide &&
-                  screen.width > screen.height;
+              // Phones and tablets start at the top: short pages leave the
+              // room below them instead of floating in the middle of a
+              // screen held in the hand, where a tall tablet left a band
+              // above the title. The browser and the television show every
+              // page in the middle.
               return Align(
-                alignment: phone && !sidewaysTablet
-                    ? Alignment.topCenter
-                    : Alignment.center,
+                alignment: phone ? Alignment.topCenter : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:horizont/testing.dart';
+import 'package:wargame/src/game/components/tank_painter.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/tank_game.dart';
@@ -73,7 +74,7 @@ void main() {
   Future<TankGame> game(WidgetTester tester) async =>
       (await tester.runAsync(loadedGame))!
         ..myName = 'Panzer-4711'
-        ..myColorIndex = GameConfig.styleOf(0, 0);
+        ..myColorIndex = GameConfig.styleOf(TankType.hermelin.index, 0);
 
   for (final MapEntry(key: screen, value: size) in _screens.entries) {
     testWidgets('welcome on the $screen', (tester) async {

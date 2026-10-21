@@ -18,6 +18,7 @@ import '../tv/tv_input.dart';
 import 'theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
+import 'widgets/tablet_scale.dart';
 import 'account_page.dart';
 import 'widgets/call_sign.dart';
 import 'widgets/mute_button.dart';
@@ -103,7 +104,16 @@ class LaunchView extends StatelessWidget {
       TvControllers(game: game),
       const SizedBox(height: HzSpace.s24),
     ],
-    Leaderboard(game: game),
+    // Tablets have the height for twice the pilots; five left the lower
+    // half of the page empty.
+    Builder(
+      builder: (context) => Leaderboard(
+        game: game,
+        rows: MediaQuery.sizeOf(context).shortestSide >= tabletShortSide
+            ? 10
+            : 5,
+      ),
+    ),
     const SizedBox(height: 16),
     const LegalLinks(),
   ];
