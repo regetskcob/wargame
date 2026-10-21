@@ -6,15 +6,17 @@ import '../theme.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
-/// "Impressum · Datenschutz · Lizenzen" along the bottom edge of the welcome
-/// and the start page. Each opens its text in a dialog.
+/// The sender "ein Projekt von regetskcob" with its mark, as at the foot of
+/// the landing page, over "Impressum · Datenschutz · Lizenzen" along the
+/// bottom edge of the welcome, the start and the account page. Each link
+/// opens its text in a dialog.
 class LegalLinks extends StatelessWidget {
   const LegalLinks({super.key});
 
   @override
   Widget build(BuildContext context) {
     final style = GameType.caption;
-    return Center(
+    final links = Center(
       child: Wrap(
         crossAxisAlignment: WrapCrossAlignment.center,
         children: [
@@ -53,6 +55,18 @@ class LegalLinks extends StatelessWidget {
           ),
         ],
       ),
+    );
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        HorizontLockup(
+          HorizontProduct.regetskcob,
+          label: tr('ein Projekt von regetskcob', 'a project by regetskcob'),
+          style: style.copyWith(color: GameColors.textMuted),
+          markColor: GameColors.textMuted,
+        ),
+        links,
+      ],
     );
   }
 

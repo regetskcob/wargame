@@ -20,6 +20,10 @@ step, point for point.
 - Every symbol in menus, the HUD, the crates, the tutorial, the television
   and the watch comes from Horizont's thin, sharp set instead of Material's
   icons
+- On iPhone, iPad and Mac the questions before deleting the account, the
+  controls and the pairing code open as the system's own dialogs
+- "A project by regetskcob" with its mark stands over the legal links, as
+  at the foot of the landing page
 - The landing page as a Horizont field page with numbered sections, the
   screenshots in device frames, and the legal pages in the same style
 - The Apple Watch no longer opens the game controller channel it does not

@@ -21,6 +21,10 @@ gepflegt.
   Horizont
 - Jedes Symbol in Menüs, HUD, Kisten, Tutorial, Fernseher und Uhr kommt
   aus Horizonts schlankem, kantigem Satz statt aus den Material-Icons
+- Auf iPhone, iPad und Mac öffnen die Rückfrage vor dem Löschen des Kontos,
+  die Steuerung und der Kopplungscode als Dialoge des Systems
+- „ein Projekt von regetskcob“ mit seinem Zeichen steht über den
+  Rechtslinks, wie am Fuß der Landingpage
 - Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
   Screenshots in Geräterahmen, die Rechtstexte im selben Stil
 - Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort
