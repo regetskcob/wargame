@@ -129,7 +129,7 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
 ## Stolperfallen
 
 - `supabase db push` aus einem Worktree: vorher
-  `/Users/regetskcob/wargame/supabase/.temp` in den Worktree kopieren.
+  `/Users/regetskcob/dev/wargame/supabase/.temp` in den Worktree kopieren.
 - Nach `supabase_typegen` die Default-Fallbacks für nachträglich ergänzte
   Spalten in `supabase_schema.g.dart` wiederherstellen (siehe `docs/development.md`).
 - SQL ohne Docker prüfen: PGlite (npm) im Scratchpad mit auth-Stub.

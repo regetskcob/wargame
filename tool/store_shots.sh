@@ -19,7 +19,7 @@ targets="${*:-ios ipad tv mac}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
 bundle=de.regetskcob.wargame
 defines="--dart-define=ACCOUNTS=true --dart-define=SHOTS=true"
-tvos_flutter="$HOME/development/flutter-tvos/bin"
+tvos_flutter="$HOME/flutter/flutter-tvos/bin"
 
 # <raw name>:<scene> per device; PHONE_SCENES, TABLET_SCENES, TV_SCENES,
 # MAC_SCENES and SHOT_LANGS (e.g. "en:en-US") retake only some.

@@ -81,7 +81,7 @@ Für Einzelbilder nimmt ein Screenshot-Build außerdem `-SHOT_MAP <n>`
 und `-SHOT_LAYOUT <n>` (Verteidigungskarte, 4 = Flussufer, 5 = Haarnadel).
 Die Simulatoren („Store iPhone 6.9“, „Store iPad 13“, „Store Apple TV“)
 legt das Skript bei Bedarf selbst an; flutter-tvos erwartet es unter
-`~/development/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
+`~/flutter/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
 Bild für die Kopfzeile kommt aus `watch/`.
 
 Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne
