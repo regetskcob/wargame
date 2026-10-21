@@ -13,6 +13,7 @@ import 'theme.dart';
 import 'widgets/account_panel.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
+import 'widgets/game_dialog.dart';
 import 'widgets/legal.dart';
 import 'widgets/notice.dart';
 import 'widgets/pad_pairing.dart';
@@ -113,10 +114,9 @@ class _AccountPageState extends State<AccountPage> {
   }
 
   Future<void> _delete() async {
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showGameDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: GameColors.surface,
+      builder: (context) => AlertDialog.adaptive(
         title: Text(tr('KONTO LÖSCHEN?', 'DELETE ACCOUNT?')),
         content: Text(
           tr(
@@ -130,14 +130,17 @@ class _AccountPageState extends State<AccountPage> {
           ),
         ),
         actions: [
-          TextButton(
+          horizontDialogAction(
+            context,
+            label: tr('ABBRECHEN', 'CANCEL'),
             onPressed: () => Navigator.of(context).pop(false),
-            child: Text(tr('ABBRECHEN', 'CANCEL')),
           ),
-          FilledButton(
-            style: HorizontTheme.of(context).criticalButton,
+          horizontDialogAction(
+            context,
+            label: tr('ENDGÜLTIG LÖSCHEN', 'DELETE PERMANENTLY'),
+            primary: true,
+            destructive: true,
             onPressed: () => Navigator.of(context).pop(true),
-            child: Text(tr('ENDGÜLTIG LÖSCHEN', 'DELETE PERMANENTLY')),
           ),
         ],
       ),

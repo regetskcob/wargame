@@ -9,6 +9,7 @@ import '../../game/tank_game.dart';
 import '../../net/pad_link.dart';
 import '../controller_view.dart';
 import '../theme.dart';
+import 'game_dialog.dart';
 import 'notice.dart';
 import 'panel.dart';
 import 'room_scanner.dart';
@@ -160,7 +161,7 @@ class _BecomePad extends StatelessWidget {
   }
 
   Future<void> _type(BuildContext context) async {
-    final code = await showDialog<String>(
+    final code = await showGameDialog<String>(
       context: context,
       builder: (context) => const _CodeDialog(),
     );
@@ -234,33 +235,39 @@ class _CodeDialogState extends State<_CodeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: GameColors.surface,
+    return AlertDialog.adaptive(
       title: Text(tr('KOPPLUNGSCODE', 'PAIRING CODE')),
-      content: TextField(
-        controller: _field,
-        autofocus: true,
-        textCapitalization: TextCapitalization.characters,
-        style: GameType.data,
-        decoration: InputDecoration(
-          hintText: tr('8 Zeichen', '8 characters'),
-          errorText: _wrong
-              ? tr(
-                  'Der Code hat $padCodeLength Zeichen.',
-                  'The code has $padCodeLength characters.',
-                )
-              : null,
+      // The Cupertino dialog on iOS and macOS has no Material for the field.
+      content: Material(
+        type: MaterialType.transparency,
+        child: TextField(
+          controller: _field,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          style: GameType.data,
+          decoration: InputDecoration(
+            hintText: tr('8 Zeichen', '8 characters'),
+            errorText: _wrong
+                ? tr(
+                    'Der Code hat $padCodeLength Zeichen.',
+                    'The code has $padCodeLength characters.',
+                  )
+                : null,
+          ),
+          onSubmitted: (_) => _submit(),
         ),
-        onSubmitted: (_) => _submit(),
       ),
       actions: [
-        TextButton(
+        horizontDialogAction(
+          context,
+          label: tr('ABBRECHEN', 'CANCEL'),
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(tr('ABBRECHEN', 'CANCEL')),
         ),
-        FilledButton(
+        horizontDialogAction(
+          context,
+          label: tr('VERBINDEN', 'CONNECT'),
+          primary: true,
           onPressed: _submit,
-          child: Text(tr('VERBINDEN', 'CONNECT')),
         ),
       ],
     );

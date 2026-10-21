@@ -16,15 +16,16 @@ import 'theme.dart';
 import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'account_page.dart';
-import 'widgets/mute_button.dart';
-import 'widgets/notice.dart';
-import 'widgets/rooms_busy_notice.dart';
-import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
+import 'widgets/game_dialog.dart';
+import 'widgets/mute_button.dart';
+import 'widgets/notice.dart';
 import 'widgets/panel.dart';
-import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
+import 'widgets/room_invite.dart';
+import 'widgets/rooms_busy_notice.dart';
+import 'widgets/server_notice.dart';
 import 'widgets/tablet_scale.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
@@ -662,9 +663,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   void _showControls(BuildContext context) {
     final game = widget.game;
     final touch = game.touchMode.value;
-    showDialog<void>(
+    showGameDialog<void>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => AlertDialog.adaptive(
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
           onTv
@@ -714,17 +715,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
         ),
         actions: [
-          TextButton.icon(
+          horizontDialogAction(
+            dialog,
+            label: tr('EINWEISUNG', 'BRIEFING'),
             onPressed: () {
               Navigator.of(dialog).pop();
               game.showTutorial();
             },
-            icon: const Icon(HorizontSymbols.school, size: 18),
-            label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
-          FilledButton(
+          horizontDialogAction(
+            dialog,
+            label: 'OK',
+            primary: true,
             onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
           ),
         ],
       ),

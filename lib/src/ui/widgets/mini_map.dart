@@ -63,6 +63,9 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
   }
 }
 
+/// The frame and the markers of the interface come from the theme; water,
+/// bridges, smoke, soldiers and drones keep the colours they have in the
+/// world, since the map is a picture of the game, not part of Horizont.
 class _MiniMapPainter extends CustomPainter {
   /// How far from the own tank crates and gems still show.
   static const _itemReach = 450.0;
