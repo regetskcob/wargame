@@ -17,6 +17,9 @@ step, point for point.
   with their count, the vehicles as cards with the chosen one outlined and
   its values as bars
 - New app icon on every platform: the tank from the side on the horizon
+- The launch screens, the Apple TV top shelf and launch image, the
+  Android TV banner, the iMessage icons and the Google Play banner show
+  the new tank from the side on the horizon too
 - Every symbol in menus, the HUD, the crates, the tutorial, the television
   and the watch comes from Horizont's thin, sharp set instead of Material's
   icons

@@ -19,6 +19,9 @@ gepflegt.
   Werten als Balken
 - Neues App-Icon auf allen Plattformen: der Panzer von der Seite auf dem
   Horizont
+- Startbildschirme, Top Shelf und Startbild des Apple TV, das Banner von
+  Android TV, die iMessage-Icons und das Google-Play-Banner zeigen den
+  neuen Panzer von der Seite auf dem Horizont ebenfalls
 - Jedes Symbol in Menüs, HUD, Kisten, Tutorial, Fernseher und Uhr kommt
   aus Horizonts schlankem, kantigem Satz statt aus den Material-Icons
 - Auf iPhone, iPad und Mac öffnen die Rückfrage vor dem Löschen des Kontos,

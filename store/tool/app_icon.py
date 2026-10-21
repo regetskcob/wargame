@@ -3,9 +3,7 @@
 The app icons themselves now come from the design system Horizont
 (store/tool/horizont_icons.py copies them). This module only keeps the
 layers the other drawings still use: the tank and its ground for the store
-graphics (compose.py), the launch screen (launch_screen.py), the Apple TV
-top shelf and Android TV banner (tv_icons.py) and the iMessage pictures
-(imessage.py). Needs Pillow.
+graphics (compose.py) and the bubbles of the iMessage app (imessage.py). Needs Pillow.
 """
 
 import random

@@ -1,16 +1,14 @@
-"""Draws the pictures of the iMessage app: its icons and the bubbles.
+"""Draws the bubbles of the iMessage app.
 
     python3 store/tool/imessage.py
 
-The icons are the app icon in the wide formats of Messages, the tank stays
-whole and the ground fills the sides. The bubbles show a scene of the mode
-without any of the game's buttons: tanks of three colours fighting on the
-olive ground of the battle map, and the red defence holding its base on a
-sandy road against the blue waves. Writes into
+Its icons come from Horizont (store/tool/horizont_icons.py). The bubbles
+show a scene of the mode without any of the game's buttons: tanks of three
+colours fighting on the olive ground of the battle map, and the red defence
+holding its base on a sandy road against the blue waves. Writes into
 ios/MessagesExtension/Assets.xcassets. Needs Pillow.
 """
 
-import json
 import math
 import random
 from pathlib import Path
@@ -21,7 +19,6 @@ import app_icon
 
 ROOT = Path(__file__).resolve().parents[2]
 ASSETS = ROOT / "ios" / "MessagesExtension" / "Assets.xcassets"
-ICONS = ASSETS / "iMessage App Icon.stickersiconset"
 
 # Messages crops the bubble picture to about 3:2 in the transcript.
 BUBBLE = (1200, 800)
@@ -215,33 +212,7 @@ def defense():
     return img.convert("RGB")
 
 
-def wide_icon(width, height):
-    """The app icon on a wider plate: the tank as big as on the square
-    icon of the same height, the ground carried on to both sides."""
-    square = app_icon.icon()
-    plate = app_icon.terrain().resize((width, round(width * square.height
-                                                    / square.width)),
-                                      Image.LANCZOS)
-    top = (plate.height - height) // 2
-    plate = plate.crop((0, top, width, top + height)).convert("RGBA")
-    tank = app_icon.tank().resize((height, height), Image.LANCZOS)
-    plate.alpha_composite(tank, ((width - height) // 2, 0))
-    return plate.convert("RGB")
-
-
-def icons():
-    contents = json.loads((ICONS / "Contents.json").read_text())
-    for entry in contents["images"]:
-        w, h = (float(v) for v in entry["size"].split("x"))
-        scale = int(entry["scale"].rstrip("x"))
-        size = (round(w * scale), round(h * scale))
-        img = app_icon.icon().resize(size, Image.LANCZOS) \
-            if size[0] == size[1] else wide_icon(*size)
-        img.save(ICONS / entry["filename"], optimize=True)
-
-
 def main():
-    icons()
     for name, picture in (("InviteBattle", battle()),
                           ("InviteDefense", defense())):
         picture.save(ASSETS / f"{name}.imageset" / "invite.jpg", quality=86)

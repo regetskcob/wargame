@@ -399,11 +399,12 @@ def feature_graphic(lang):
     """The 1024 x 500 banner Google Play shows above the screenshots."""
     w, h = 1024, 500
     canvas = backdrop((w, h), "feature")
-    # Only the tank with its shadow, without the terrain of the icon.
-    layer = app_icon.tank()
-    box = (138, 290, 898, 760)
-    size = (round((box[2] - box[0]) * 0.46), round((box[3] - box[1]) * 0.46))
-    tank = layer.crop(box).resize(size, Image.LANCZOS)
+    # Horizont's tank from the side, as on the icon and the Apple TV's
+    # launch image (store/tool/horizont_icons.py copies it there).
+    tank = Image.open(ROOT / "tvos/Runner/Assets.xcassets/LaunchImage.imageset"
+                      / "LaunchImage@2x.png").convert("RGBA")
+    tank = tank.resize((240, round(tank.height * 240 / tank.width)),
+                       Image.LANCZOS)
     canvas.paste(tank, (70, (h - tank.height) // 2), tank)
     draw = ImageDraw.Draw(canvas)
     head = font(horizont_fonts.HEADLINE, 60)

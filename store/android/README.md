@@ -27,7 +27,7 @@ mit monochromer Ebene) und das Play-Symbol aus dem Design-System Horizont:
 ```sh
 pip3 install --user pillow
 python3 store/tool/compose.py <ordner-mit-rohaufnahmen>
-python3 store/tool/horizont_icons.py ../design-system
+python3 store/tool/horizont_icons.py ../horizont
 ```
 
 Englische Screenshots und Vorstellungsgrafik liegen genauso unter

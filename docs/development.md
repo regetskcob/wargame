@@ -407,8 +407,8 @@ its own. `GameType` in `lib/src/ui/theme.dart` names the styles the game
 uses; widgets never set a `fontFamily` themselves.
 
 Tests that measure text load the real fonts with `loadHorizontFonts()` from
-`package:horizont/testing.dart`. The store tools (`store/tool/compose.py`,
-`tv_icons.py`) find the same files through `store/tool/horizont_fonts.py`,
+`package:horizont/testing.dart`. The store tool `store/tool/compose.py`
+finds the same files through `store/tool/horizont_fonts.py`,
 so run `flutter pub get` before them.
 
 Since v0.6.3 Horizont cuts its fonts down to Latin with extensions,

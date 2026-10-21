@@ -53,7 +53,7 @@ Icon-Sets für iOS, Watch, macOS und Apple TV, nach Android, `web/` und in
 die Play-Metadaten:
 
 ```sh
-python3 store/tool/horizont_icons.py ../design-system
+python3 store/tool/horizont_icons.py ../horizont
 ```
 
 ## Screenshots neu erzeugen
