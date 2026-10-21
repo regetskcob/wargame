@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/game_config.dart';
 import '../game/inventory.dart';
@@ -6,6 +7,7 @@ import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../net/payloads/defense_payload.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/health_bar.dart';
 import '../ui/widgets/panel.dart';
 import 'seats.dart';
 import 'tv_input.dart';
@@ -23,7 +25,7 @@ class DuelOverviewHud extends StatelessWidget {
   Widget build(BuildContext context) {
     final partner = game.partner;
     return SafeArea(
-      minimum: const EdgeInsets.all(12),
+      minimum: const EdgeInsets.all(HzSpace.s12),
       child: Stack(
         children: [
           Align(
@@ -62,32 +64,35 @@ class _Bases extends StatelessWidget {
             ? ((next - DateTime.now().millisecondsSinceEpoch) / 1000).ceil()
             : 0;
         return Panel(
-          padding: const EdgeInsets.fromLTRB(16, 10, 16, 12),
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s16,
+            HzSpace.s12,
+            HzSpace.s16,
+            HzSpace.s12,
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               _base(state, 0),
-              const SizedBox(width: 24),
+              const SizedBox(width: HzSpace.s24),
               Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     '${tr('WELLE', 'WAVE')} $wave',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                    ),
+                    style: GameType.dataLarge,
                   ),
                   Text(
                     left > 0
                         ? tr('nächste in $left s', 'next in $left s')
                         : tr('läuft', 'on'),
-                    style: const TextStyle(color: GameColors.amber),
+                    style: GameType.callout.copyWith(
+                      color: GameColors.textMuted,
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: HzSpace.s24),
               _base(state, 1),
             ],
           ),
@@ -110,17 +115,16 @@ class _Bases extends StatelessWidget {
         Text(
           '${lane == 0 ? tr('ROT', 'RED') : tr('BLAU', 'BLUE')} · '
           '${GameConfig.hqName(hq)}  ${hp.ceil()}',
-          style: TextStyle(fontWeight: FontWeight.w800, color: color),
-        ),
-        const SizedBox(height: 4),
-        SizedBox(
-          width: 220,
-          height: 10,
-          child: LinearProgressIndicator(
-            value: ratio,
-            backgroundColor: const Color(0x66000000),
+          style: GameType.data.copyWith(
+            fontWeight: FontWeight.w600,
             color: color,
           ),
+        ),
+        const SizedBox(height: HzSpace.s4),
+        // Each side's base in its colour, which names it on the field.
+        SizedBox(
+          width: 220,
+          child: GaugeBar(value: ratio, color: color),
         ),
       ],
     );
@@ -153,90 +157,76 @@ class _PlayerPanel extends StatelessWidget {
       ]),
       builder: (context, _) {
         final hp = (game.hpNotifier.value / game.myMaxHp).clamp(0.0, 1.0);
+        final armour = armourStatus(hp);
         final respawn = game.respawnSeconds.value;
         final special = game.specialNotifier.value;
         final pad = steeredByPad(game);
         final notice = game.notice.value;
-        return DecoratedBox(
-          decoration: ShapeDecoration(
-            color: GameColors.panel,
-            shape: GameShapes.card(edge: color, width: 2),
+        // A plate like every other; the player's colour is in the name.
+        return Panel(
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s16,
+            HzSpace.s12,
+            HzSpace.s16,
+            HzSpace.s12,
           ),
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(14, 10, 14, 12),
-            child: SizedBox(
-              width: 300,
-              child: Column(
-                crossAxisAlignment: right
-                    ? CrossAxisAlignment.end
-                    : CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
+          child: SizedBox(
+            width: 300,
+            child: Column(
+              crossAxisAlignment: right
+                  ? CrossAxisAlignment.end
+                  : CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  '${tr('SPIELER', 'PLAYER')} ${player + 1}',
+                  style: GameType.title.copyWith(color: color),
+                ),
+                const SizedBox(height: HzSpace.s8),
+                if (respawn > 0)
                   Text(
-                    '${tr('SPIELER', 'PLAYER')} ${player + 1}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                      color: color,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  if (respawn > 0)
-                    Text(
-                      tr('Einsatzbereit in $respawn s', 'Ready in $respawn s'),
-                      style: const TextStyle(color: GameColors.amber),
-                    )
-                  else
-                    SizedBox(
-                      height: 8,
-                      child: LinearProgressIndicator(
-                        value: hp,
-                        backgroundColor: const Color(0x66000000),
-                        color: hp > 0.3
-                            ? const Color(0xFF9CCC65)
-                            : GameColors.danger,
+                    tr('Einsatzbereit in $respawn s', 'Ready in $respawn s'),
+                    style: GameType.callout,
+                  )
+                else
+                  Row(
+                    children: [
+                      Expanded(
+                        child: GaugeBar(value: hp, status: armour),
                       ),
-                    ),
-                  const SizedBox(height: 6),
+                      StockSign(armour),
+                    ],
+                  ),
+                const SizedBox(height: HzSpace.s8),
+                Text(
+                  '${tr('MUNITION', 'AMMO')} ${game.ammoNotifier.value}'
+                  '   ·   ${tr('MÜNZEN', 'COINS')} ${game.credits.value}',
+                  style: GameType.data.copyWith(fontWeight: FontWeight.w600),
+                ),
+                Text(
+                  '${game.towerChoice.value.label} '
+                  '${game.buildCost(game.towerChoice.value)}'
+                  '${pad ? '  ·  R1 ${tr('baut', 'builds')}  ·  Y ${tr('Panzer', 'tank')} ${GameConfig.troopCost}' : ''}',
+                  style: GameType.caption,
+                ),
+                if (special != null)
                   Text(
-                    '${tr('MUNITION', 'AMMO')} ${game.ammoNotifier.value}'
-                    '   ·   ${tr('MÜNZEN', 'COINS')} ${game.credits.value}',
-                    style: const TextStyle(fontWeight: FontWeight.w700),
+                    '${special.$1.label} ${special.$2}'
+                    '${pad ? '  ·  L2' : ''}',
+                    style: GameType.caption.copyWith(color: GameColors.text),
                   ),
-                  Text(
-                    '${game.towerChoice.value.label} '
-                    '${game.buildCost(game.towerChoice.value)}'
-                    '${pad ? '  ·  R1 ${tr('baut', 'builds')}  ·  Y ${tr('Panzer', 'tank')} ${GameConfig.troopCost}' : ''}',
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: GameColors.textDim,
-                    ),
-                  ),
-                  if (special != null)
-                    Text(
-                      '${special.$1.label} ${special.$2}'
-                      '${pad ? '  ·  L2' : ''}',
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: GameColors.amber,
-                      ),
-                    ),
-                  if (game.inventory.value.isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    _Items(slots: game.inventory.value, pad: pad),
-                  ],
-                  if (notice != null) ...[
-                    const SizedBox(height: 6),
-                    Text(
-                      notice,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: GameColors.amber,
-                      ),
-                    ),
-                  ],
+                if (game.inventory.value.isNotEmpty) ...[
+                  const SizedBox(height: HzSpace.s8),
+                  _Items(slots: game.inventory.value, pad: pad),
                 ],
-              ),
+                if (notice != null) ...[
+                  const SizedBox(height: HzSpace.s8),
+                  Text(
+                    notice,
+                    style: GameType.label.copyWith(fontWeight: FontWeight.w700),
+                  ),
+                ],
+              ],
             ),
           ),
         );
@@ -255,37 +245,32 @@ class _Items extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 6,
+      spacing: HzSpace.s8,
+      runSpacing: HzSpace.s8,
       children: [
         for (final (i, slot) in slots.indexed)
-          DecoratedBox(
-            decoration: ShapeDecoration(
-              color: const Color(0x55000000),
-              shape: GameShapes.chip(edge: slot.type.color),
+          Plate(
+            padding: const EdgeInsets.symmetric(
+              horizontal: HzSpace.s8,
+              vertical: HzSpace.s4,
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (pad && i < tvDuelSlotLabels.length)
-                    Text(
-                      '${tvDuelSlotLabels[i]} ',
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        color: GameColors.sand,
-                      ),
-                    ),
-                  Icon(slot.type.icon, size: 16, color: slot.type.color),
-                  if (slot.count > 1)
-                    Text(
-                      ' ×${slot.count}',
-                      style: TextStyle(fontSize: 11, color: slot.type.color),
-                    ),
-                ],
-              ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if (pad && i < tvDuelSlotLabels.length)
+                  Text('${tvDuelSlotLabels[i]} ', style: GameType.kennung),
+                // The icon keeps the colour of the item's crate in the field.
+                Icon(
+                  slot.type.icon,
+                  size: HzIconSize.inline,
+                  color: slot.type.color,
+                ),
+                if (slot.count > 1)
+                  Text(
+                    ' ×${slot.count}',
+                    style: GameType.kennung.copyWith(color: GameColors.text),
+                  ),
+              ],
             ),
           ),
       ],
@@ -309,20 +294,23 @@ class DuelOverviewResult extends StatelessWidget {
         ? tr('ROT GEWINNT', 'RED WINS')
         : tr('BLAU GEWINNT', 'BLUE WINS');
     return ColoredBox(
-      color: const Color(0x99000000),
+      color: GameColors.bg.withValues(alpha: 0.6),
       child: Center(
         child: Panel(
-          padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
+          padding: const EdgeInsets.symmetric(
+            horizontal: HzSpace.s32,
+            vertical: HzSpace.s24,
+          ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 title,
                 style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  color: winner < 0 ? GameColors.sand : playerColors[winner],
+                  color: winner < 0 ? GameColors.text : playerColors[winner],
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: HzSpace.s8),
               Text(
                 winner < 0
                     ? tr(
@@ -334,15 +322,15 @@ class DuelOverviewResult extends StatelessWidget {
                             '${winner == 0 ? 'Blau' : 'Rot'} ist gefallen.',
                         'The base of ${winner == 0 ? 'blue' : 'red'} fell.',
                       ),
-                style: const TextStyle(color: GameColors.textDim),
+                style: GameType.body.copyWith(color: GameColors.textMuted),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: HzSpace.s4),
               Text(
                 tr(
                   'Gleich geht es zurück in den Warteraum.',
                   'Back to the waiting room in a moment.',
                 ),
-                style: const TextStyle(color: GameColors.textDim),
+                style: GameType.body.copyWith(color: GameColors.textMuted),
               ),
             ],
           ),

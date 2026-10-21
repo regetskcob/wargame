@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_tvos/flutter_tvos.dart';
+import 'package:flutter_watchos/flutter_watchos.dart';
 
 import '../app/overlay_ids.dart';
 import '../game/game_mode.dart';
@@ -50,12 +51,32 @@ String get remoteName =>
 /// Where game controllers are read: the Apple TV, the iPhone, iPad and Mac
 /// through GameController, Android through its input events
 /// (`android/.../GamepadPlugin.kt`), the browser through its Gamepad API.
-bool get padsSupported =>
-    onTv ||
-    kIsWeb ||
-    defaultTargetPlatform == TargetPlatform.iOS ||
-    defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.macOS;
+bool get padsSupported => padsSupportedOn(
+  tv: onTv,
+  web: kIsWeb,
+  platform: defaultTargetPlatform,
+  appleWatch: FlutterWatchosPlatform.isWatch,
+);
+
+/// [padsSupported] for a given device. The Apple Watch reports itself as
+/// iOS but has no gamepad plugin: listening there threw a
+/// MissingPluginException on every start.
+@visibleForTesting
+bool padsSupportedOn({
+  required bool tv,
+  required bool web,
+  required TargetPlatform platform,
+  required bool appleWatch,
+}) {
+  if (appleWatch) {
+    return false;
+  }
+  return tv ||
+      web ||
+      platform == TargetPlatform.iOS ||
+      platform == TargetPlatform.android ||
+      platform == TargetPlatform.macOS;
+}
 
 /// What steers on the Apple TV right now.
 enum TvPadKind {

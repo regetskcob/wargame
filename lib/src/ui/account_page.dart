@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizont/horizont.dart';
 
 import '../app/env.dart';
 import '../app/routes.dart';
@@ -13,7 +14,9 @@ import 'widgets/account_panel.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/legal.dart';
+import 'widgets/notice.dart';
 import 'widgets/pad_pairing.dart';
+import 'widgets/panel.dart';
 import 'widgets/supporter_section.dart';
 import 'widgets/tablet_scale.dart';
 import '../l10n/l10n.dart';
@@ -132,7 +135,7 @@ class _AccountPageState extends State<AccountPage> {
             child: Text(tr('ABBRECHEN', 'CANCEL')),
           ),
           FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: GameColors.danger),
+            style: HorizontTheme.of(context).criticalButton,
             onPressed: () => Navigator.of(context).pop(true),
             child: Text(tr('ENDGÜLTIG LÖSCHEN', 'DELETE PERMANENTLY')),
           ),
@@ -181,58 +184,61 @@ class _AccountPageState extends State<AccountPage> {
         builder: (context, _, _) {
           final dirty = _nameDirty;
           final saved = _nameSaved && !dirty;
-          return SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _name,
-              maxLength: 16,
-              textInputAction: TextInputAction.done,
-              decoration: InputDecoration(
-                labelText: tr('RUFNAME', 'CALL SIGN'),
-                helperText: saved
-                    ? tr('Gespeichert', 'Saved')
-                    : dirty
-                    ? tr(
-                        'Mit dem Haken oder Enter speichern',
-                        'Save with the tick or Enter',
-                      )
-                    : tr(
-                        'Öffentlich sichtbar, zum Beispiel in der '
-                            'Bestenliste',
-                        'Publicly visible, for example on the leaderboard',
-                      ),
-                helperStyle: saved
-                    ? const TextStyle(color: GameColors.amber)
-                    : null,
-                // A phone has not the width for the hint beside the counter.
-                helperMaxLines: 2,
-                // Always there, so the field does not change width when it
-                // turns into a button.
-                suffixIcon: saved
-                    ? const Icon(
-                        Icons.check_circle_outlined,
-                        color: GameColors.amber,
-                      )
-                    : IconButton(
-                        tooltip: tr('Rufnamen speichern', 'Save call sign'),
-                        onPressed: dirty && _nameValid ? _rename : null,
-                        // Dim until there is something to save.
-                        style: IconButton.styleFrom(
-                          foregroundColor: GameColors.amber,
-                          disabledForegroundColor: GameColors.textDim.withAlpha(
-                            90,
-                          ),
+          // The label above the field, as Horizont asks, not floating in
+          // its frame.
+          return HorizontField(
+            label: tr('Rufname', 'Call sign'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _name,
+                maxLength: 16,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  helperText: saved
+                      ? tr('Gespeichert', 'Saved')
+                      : dirty
+                      ? tr(
+                          'Mit dem Haken oder Enter speichern',
+                          'Save with the tick or Enter',
+                        )
+                      : tr(
+                          'Öffentlich sichtbar, zum Beispiel in der '
+                              'Bestenliste',
+                          'Publicly visible, for example on the leaderboard',
                         ),
-                        icon: const Icon(Icons.check_outlined),
-                      ),
+                  // Saved is a status: the word, the tick and its colour.
+                  helperStyle: saved
+                      ? GameType.caption.copyWith(color: GameColors.positive)
+                      : null,
+                  // A phone has not the width for the hint beside the counter.
+                  helperMaxLines: 2,
+                  // Always there, so the field does not change width when it
+                  // turns into a button.
+                  suffixIcon: saved
+                      ? Icon(
+                          HorizontStatus.positive.icon,
+                          color: GameColors.positive,
+                        )
+                      : IconButton(
+                          tooltip: tr('Rufnamen speichern', 'Save call sign'),
+                          onPressed: dirty && _nameValid ? _rename : null,
+                          // Dim until there is something to save.
+                          style: IconButton.styleFrom(
+                            foregroundColor: GameColors.accentText,
+                            disabledForegroundColor: GameColors.textFaint,
+                          ),
+                          icon: const Icon(Icons.check_outlined),
+                        ),
+                ),
+                onChanged: (_) {
+                  if (_nameSaved) {
+                    setState(() => _nameSaved = false);
+                  }
+                },
+                onSubmitted: (_) => _rename(),
               ),
-              onChanged: (_) {
-                if (_nameSaved) {
-                  setState(() => _nameSaved = false);
-                }
-              },
-              onSubmitted: (_) => _rename(),
             ),
           );
         },
@@ -277,13 +283,16 @@ class _AccountPageState extends State<AccountPage> {
                   children: [
                     Text(
                       tr('VIBRATION', 'VIBRATION'),
-                      style: Theme.of(context).textTheme.titleMedium,
+                      style: GameType.label.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
                       tr(
                         'Treffer, Explosionen und Rundenstart spüren',
                         'Feel hits, blasts and the start of a round',
                       ),
+                      style: GameType.caption,
                     ),
                   ],
                 ),
@@ -325,12 +334,9 @@ class _AccountPageState extends State<AccountPage> {
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 20),
-                  Text(
-                    tr('KONTO LÖSCHEN', 'DELETE ACCOUNT'),
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: HzSpace.s24),
+                  Kennung(tr('KONTO LÖSCHEN', 'DELETE ACCOUNT')),
+                  const SizedBox(height: HzSpace.s8),
                   Text(
                     tr(
                       'Löscht dein Konto mit Rang, Wertung, Abzeichen, allen '
@@ -340,38 +346,36 @@ class _AccountPageState extends State<AccountPage> {
                           'saved games and your call sign. Afterwards you '
                           'carry on as a new guest.',
                     ),
-                    style: const TextStyle(
-                      color: GameColors.textDim,
-                      fontSize: 13,
+                    style: GameType.callout.copyWith(
+                      color: GameColors.textMuted,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: HzSpace.s12),
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: GameColors.danger,
-                      side: const BorderSide(color: GameColors.danger),
+                      foregroundColor: GameColors.critical,
+                      side: const BorderSide(color: GameColors.critical),
                     ),
                     onPressed: _busy ? null : _delete,
                     icon: _busy
                         ? const SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(strokeWidth: 2),
+                            width: HzIconSize.inline,
+                            height: HzIconSize.inline,
+                            child: CircularProgressIndicator(
+                              strokeWidth: HzLine.selection,
+                            ),
                           )
                         : const Icon(Icons.delete_forever_outlined),
                     label: Text(tr('KONTO LÖSCHEN', 'DELETE ACCOUNT')),
                   ),
                   if (_error != null) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      _error!,
-                      style: const TextStyle(color: GameColors.danger),
-                    ),
+                    const SizedBox(height: HzSpace.s8),
+                    Notice(HorizontStatus.critical, child: Text(_error!)),
                   ],
                 ],
               ),
       ),
-      const SizedBox(height: 12),
+      const SizedBox(height: HzSpace.s12),
       const LegalLinks(),
     ];
     // Lets go of the keyboard before the page goes, however it is closed:
@@ -381,7 +385,7 @@ class _AccountPageState extends State<AccountPage> {
       onPopInvokedWithResult: (_, _) =>
           FocusManager.instance.primaryFocus?.unfocus(),
       child: Scaffold(
-        backgroundColor: GameColors.background,
+        backgroundColor: GameColors.bg,
         // The same shade as the menus over the dark field.
         body: ColoredBox(
           color: GameColors.panel,
@@ -400,7 +404,12 @@ class _AccountPageState extends State<AccountPage> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 12, 12, 0),
+                            padding: const EdgeInsets.fromLTRB(
+                              HzSpace.s24,
+                              HzSpace.s12,
+                              HzSpace.s12,
+                              0,
+                            ),
                             child: _title(context, narrow: box.maxWidth < 420),
                           ),
                           Expanded(
@@ -408,10 +417,10 @@ class _AccountPageState extends State<AccountPage> {
                               // The call sign's label floats over its field
                               // and needs the room above it.
                               padding: const EdgeInsets.fromLTRB(
-                                20,
-                                10,
-                                20,
-                                20,
+                                HzSpace.s24,
+                                HzSpace.s12,
+                                HzSpace.s24,
+                                HzSpace.s24,
                               ),
                               child: columns
                                   ? Row(
@@ -423,7 +432,7 @@ class _AccountPageState extends State<AccountPage> {
                                             child: _column(left),
                                           ),
                                         ),
-                                        const SizedBox(width: 32),
+                                        const SizedBox(width: HzSpace.s32),
                                         Expanded(
                                           child: FocusTraversalGroup(
                                             child: _column(right),
@@ -433,7 +442,7 @@ class _AccountPageState extends State<AccountPage> {
                                     )
                                   : _column([
                                       ...left,
-                                      const SizedBox(height: 20),
+                                      const SizedBox(height: HzSpace.s24),
                                       ...right,
                                     ]),
                             ),
@@ -456,14 +465,9 @@ class _AccountPageState extends State<AccountPage> {
   Widget _title(BuildContext context, {required bool narrow}) {
     final title = Row(
       children: [
-        Expanded(
-          child: Text(
-            tr('KONTO', 'ACCOUNT'),
-            style: Theme.of(context).textTheme.headlineLarge,
-          ),
-        ),
+        Expanded(child: Text(tr('KONTO', 'ACCOUNT'), style: GameType.headline)),
         if (!narrow) const _Language(),
-        const SizedBox(width: 4),
+        const SizedBox(width: HzSpace.s4),
         IconButton(
           tooltip: tr('Schließen', 'Close'),
           // The remote starts on the page instead of the game below it.
@@ -478,7 +482,11 @@ class _AccountPageState extends State<AccountPage> {
     }
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: [title, const _Language(), const SizedBox(height: 4)],
+      children: [
+        title,
+        const _Language(),
+        const SizedBox(height: HzSpace.s4),
+      ],
     );
   }
 
@@ -487,7 +495,7 @@ class _AccountPageState extends State<AccountPage> {
 }
 
 /// The controllers drawn like the controller box on the start page: a
-/// quiet dark box without a frame, set apart from the account above.
+/// sunken box with the one outline, set apart from the account above.
 class _ControllerBox extends StatelessWidget {
   const _ControllerBox({required this.game});
 
@@ -496,12 +504,12 @@ class _ControllerBox extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0x55000000),
-        borderRadius: BorderRadius.circular(10),
+      decoration: ShapeDecoration(
+        color: GameColors.sunken,
+        shape: GameShapes.card(),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+        padding: const EdgeInsets.all(HzSpace.s12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -509,22 +517,14 @@ class _ControllerBox extends StatelessWidget {
               children: [
                 const Icon(
                   Icons.sports_esports_outlined,
-                  color: GameColors.sand,
-                  size: 24,
+                  color: GameColors.textMuted,
+                  size: HzIconSize.row,
                 ),
-                const SizedBox(width: 12),
-                Text(
-                  tr('CONTROLLER', 'CONTROLLERS'),
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 1,
-                    color: GameColors.textDim,
-                  ),
-                ),
+                const SizedBox(width: HzSpace.s8),
+                Kennung(tr('CONTROLLER', 'CONTROLLERS')),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: HzSpace.s8),
             ControllerSection(game: game, heading: false),
           ],
         ),

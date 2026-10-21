@@ -1,8 +1,6 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/testing.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
 import 'package:wargame/src/game/game_mode.dart';
@@ -17,15 +15,7 @@ import '../../helpers/fakes.dart';
 void main() {
   // The real font: the test font is far wider and would wrap the rows.
   setUpAll(() async {
-    final loader = FontLoader('Roboto');
-    for (final file in ['Regular', 'Medium', 'Bold', 'Black']) {
-      loader.addFont(
-        File('assets/fonts/Roboto-$file.ttf')
-            .readAsBytes()
-            .then((bytes) => ByteData.view(bytes.buffer)),
-      );
-    }
-    await loader.load();
+    await loadHorizontFonts();
   });
 
   setUp(() async {

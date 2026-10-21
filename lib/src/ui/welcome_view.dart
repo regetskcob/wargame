@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../db/account_service.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
+import 'widgets/notice.dart';
 import 'widgets/account_panel.dart';
 import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
@@ -42,7 +44,7 @@ class WelcomeView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 14),
+          const SizedBox(height: HzSpace.s12),
           Text(
             tr(
               'Sofort los, ohne E-Mail, aber ohne Wertung: EP, Rang, '
@@ -52,14 +54,10 @@ class WelcomeView extends StatelessWidget {
                   'and new vehicles need an account. You can create one in '
                   'the waiting room at any time.',
             ),
-            style: const TextStyle(
-              color: GameColors.text,
-              fontSize: 14,
-              height: 1.35,
-            ),
+            style: GameType.callout,
           ),
           if (stretched) const Spacer(),
-          const SizedBox(height: 16),
+          const SizedBox(height: HzSpace.s16),
           FilledButton.icon(
             onPressed: game.playAsGuest,
             icon: const Icon(Icons.chevron_right_outlined),
@@ -88,20 +86,20 @@ class WelcomeView extends StatelessWidget {
             const MuteButton(),
           ],
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: HzSpace.s4),
         Wrap(
           crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 12,
+          spacing: HzSpace.s12,
           children: [
             Text(
               tr('Willkommen, Panzerkommandant.', 'Welcome, tank commander.'),
-              style: const TextStyle(color: GameColors.textDim),
+              style: GameType.body.copyWith(color: GameColors.textMuted),
             ),
             TutorialButton(game: game),
           ],
         ),
         if (AccountService.mailLinkFailed) ...[
-          const SizedBox(height: 16),
+          const SizedBox(height: HzSpace.s16),
           _Notice(
             tr(
               'Der Link aus der Mail ließ sich in diesem Tab nicht abschließen. '
@@ -117,7 +115,7 @@ class WelcomeView extends StatelessWidget {
             ),
           ),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: HzSpace.s24),
         LayoutBuilder(
           builder: (context, box) => box.maxWidth >= 640
               // Both boxes as tall as the taller one.
@@ -126,17 +124,21 @@ class WelcomeView extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Expanded(flex: 3, child: account),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: HzSpace.s12),
                       Expanded(flex: 2, child: guest(stretched: true)),
                     ],
                   ),
                 )
               : Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [account, const SizedBox(height: 12), guest()],
+                  children: [
+                    account,
+                    const SizedBox(height: HzSpace.s12),
+                    guest(),
+                  ],
                 ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: HzSpace.s12),
         const LegalLinks(),
       ],
     );
@@ -150,23 +152,7 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: ShapeDecoration(
-        color: const Color(0x33FFB300),
-        shape: GameShapes.card(edge: GameColors.amber),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Icon(Icons.info_outline, color: GameColors.amber),
-            const SizedBox(width: 10),
-            Expanded(child: Text(text, style: const TextStyle(fontSize: 14))),
-          ],
-        ),
-      ),
-    );
+    return Notice(HorizontStatus.info, child: Text(text));
   }
 }
 
@@ -191,34 +177,19 @@ class _Box extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: const Color(0x44000000),
+        color: GameColors.surface,
         shape: GameShapes.card(),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(HzSpace.s16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(icon, color: GameColors.amber, size: 32),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w900,
-                letterSpacing: 2,
-                color: GameColors.sand,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              kicker,
-              style: const TextStyle(
-                color: GameColors.amber,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.5,
-              ),
-            ),
+            Icon(icon, color: GameColors.text, size: 28),
+            const SizedBox(height: HzSpace.s12),
+            Text(title, style: GameType.title),
+            const SizedBox(height: HzSpace.s4),
+            Kennung(kicker),
             if (stretched) Expanded(child: child) else child,
           ],
         ),

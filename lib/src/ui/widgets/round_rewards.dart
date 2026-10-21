@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../db/score_service.dart';
 import '../../game/pilot_progress.dart';
@@ -28,7 +29,7 @@ class RoundRewards extends StatelessWidget {
         final badges = progress.newBadges.value;
         if (progress.unranked.value) {
           return Padding(
-            padding: const EdgeInsets.only(top: 16),
+            padding: const EdgeInsets.only(top: HzSpace.s16),
             child: Text(
               tr(
                 'Als Gast wird nicht gewertet. Mit einem Konto sammelst du '
@@ -37,7 +38,7 @@ class RoundRewards extends StatelessWidget {
                     'rating and badges and unlock vehicles.',
               ),
               textAlign: TextAlign.center,
-              style: const TextStyle(color: GameColors.textDim, fontSize: 13),
+              style: GameType.callout.copyWith(color: GameColors.textMuted),
             ),
           );
         }
@@ -45,21 +46,21 @@ class RoundRewards extends StatelessWidget {
           return const SizedBox();
         }
         return Padding(
-          padding: const EdgeInsets.only(top: 16),
+          padding: const EdgeInsets.only(top: HzSpace.s16),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               if (record != null) _numbers(record),
               if (progress.rankedUp.value) ...[
-                const SizedBox(height: 8),
+                const SizedBox(height: HzSpace.s8),
                 _promotion(progress.rank.value),
               ],
               if (badges.isNotEmpty) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: HzSpace.s12),
                 Wrap(
                   alignment: WrapAlignment.center,
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: HzSpace.s8,
+                  runSpacing: HzSpace.s8,
                   children: [
                     for (final badge in badges)
                       BadgeChip(
@@ -79,22 +80,19 @@ class RoundRewards extends StatelessWidget {
 
   Widget _numbers(RoundRecord record) {
     final change = record.ratingChange;
+    // The sign of the number says the direction, the colour repeats it.
     final changeColor = change > 0
-        ? const Color(0xFF9CCC65)
+        ? GameColors.positive
         : change < 0
-        ? GameColors.danger
-        : GameColors.textDim;
+        ? GameColors.critical
+        : GameColors.textMuted;
     return Wrap(
       alignment: WrapAlignment.center,
-      spacing: 18,
+      spacing: HzSpace.s16,
       children: [
         Text(
           '+${record.xpGained} ${tr('EP', 'XP')}',
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            fontSize: 16,
-            color: GameColors.amber,
-          ),
+          style: GameType.data.copyWith(fontWeight: FontWeight.w600),
         ),
         // The rating weighs who outlasted whom. A defense round has no such
         // order and always left it unchanged, which read like a "+0" penalty.
@@ -109,7 +107,7 @@ class RoundRewards extends StatelessWidget {
                 ),
               ],
             ),
-            style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16),
+            style: GameType.data.copyWith(fontWeight: FontWeight.w600),
           ),
       ],
     );
@@ -120,16 +118,14 @@ class RoundRewards extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         RankBadge(level: rank.level, size: 26),
-        const SizedBox(width: 8),
-        Text(
-          tr(
-            'BEFÖRDERT ZUM ${rank.title.toUpperCase()}',
-            'PROMOTED TO ${rank.title.toUpperCase()}',
-          ),
-          style: const TextStyle(
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-            color: GameColors.amber,
+        const SizedBox(width: HzSpace.s8),
+        Flexible(
+          child: Text(
+            tr(
+              'BEFÖRDERT ZUM ${rank.title.toUpperCase()}',
+              'PROMOTED TO ${rank.title.toUpperCase()}',
+            ),
+            style: GameType.title,
           ),
         ),
       ],

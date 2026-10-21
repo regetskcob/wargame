@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/store/product.dart';
 import 'package:wargame/src/store/shop.dart';
 import 'package:wargame/src/ui/widgets/supporter_section.dart';
@@ -178,6 +179,7 @@ void main() {
     Future<void> pump(WidgetTester tester, Shop s, {required bool guest}) =>
         tester.pumpWidget(
           MaterialApp(
+            theme: buildGameTheme(),
             home: Scaffold(
               body: SupporterSection(shop: s, guest: guest),
             ),

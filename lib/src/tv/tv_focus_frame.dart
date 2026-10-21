@@ -1,10 +1,11 @@
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
+import 'package:horizont/horizont.dart';
 
 import '../ui/theme.dart';
 
-/// Draws an amber frame around whatever has the focus, so the menus can be
-/// followed from the sofa while the remote or a controller moves through
+/// Draws Horizont's focus ring around whatever has the focus, so the menus
+/// can be followed from the sofa while the remote or a controller moves through
 /// them. The buttons' own focus shades are too faint for that, and cards
 /// and list tiles have none at all.
 ///
@@ -60,7 +61,13 @@ class _TvFocusFrameState extends State<TvFocusFrame>
     final node = FocusManager.instance.primaryFocus;
     final screen = MediaQuery.sizeOf(context);
     Rect? rect;
-    final box = node?.context?.findRenderObject();
+    // A button pressed away (a page changed under it) keeps the focus for a
+    // frame on an element that has left the tree: asking it for its box
+    // threw every frame until the focus moved on.
+    final element = node?.context;
+    final box = element != null && element.mounted
+        ? element.findRenderObject()
+        : null;
     if (node != null && box is RenderBox && box.attached && box.hasSize) {
       final found = node.rect;
       // The game itself and whole pages take the focus too: no frame
@@ -89,6 +96,12 @@ class _TvFocusFrameState extends State<TvFocusFrame>
     }
   }
 
+  /// Horizont's focus on a television: a 3 px ring in the accent, 4 px
+  /// clear of the focused box (2 and 2 elsewhere, read from across the
+  /// room that was too thin). No glow, lines instead of shadows.
+  static const _ring = 3.0;
+  static const _gap = HzSpace.s4;
+
   @override
   Widget build(BuildContext context) {
     final rect = _rect;
@@ -98,14 +111,17 @@ class _TvFocusFrameState extends State<TvFocusFrame>
         widget.child,
         if (rect != null)
           Positioned.fromRect(
-            rect: rect.inflate(5),
+            rect: rect.inflate(_gap + _ring),
             child: IgnorePointer(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  border: Border.all(color: GameColors.amber, width: 3),
-                  boxShadow: const [
-                    BoxShadow(color: Color(0x88FFB300), blurRadius: 14),
-                  ],
+                  border: Border.all(
+                    color: GameColors.accentText,
+                    width: _ring,
+                  ),
+                  // Follows the radius 6 of buttons and fields at the gap's
+                  // distance.
+                  borderRadius: BorderRadius.circular(HzRadius.r10),
                 ),
               ),
             ),

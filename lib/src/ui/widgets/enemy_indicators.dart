@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/components/tank_base.dart';
 import '../../game/game_phase.dart';
@@ -95,7 +96,7 @@ class _Marker {
   bool wanted = true;
   int metres = 0;
   bool near = false;
-  Color color = GameColors.danger;
+  Color color = GameColors.critical;
 }
 
 class _EnemyIndicatorsState extends State<EnemyIndicators>
@@ -218,7 +219,7 @@ class _EnemyIndicatorsState extends State<EnemyIndicators>
         ..near = distance < 450
         ..color = tank.team > 0
             ? GameConfig.teamColors[tank.team]
-            : GameColors.danger;
+            : GameColors.critical;
     }
   }
 
@@ -226,7 +227,7 @@ class _EnemyIndicatorsState extends State<EnemyIndicators>
   Widget build(BuildContext context) {
     return IgnorePointer(
       // The arrows repaint every frame; on a layer of their own they no
-      // longer drag the plates, texts and shadows of the HUD along. On the
+      // longer drag the plates and texts of the HUD along. On the
       // BoPad in a late defense wave the HUD cost 3 ms of the frame.
       child: RepaintBoundary(
         child: SizedBox.expand(
@@ -351,9 +352,10 @@ class _IndicatorPainter extends CustomPainter {
       ..lineTo(-4, 0)
       ..lineTo(-9, 11)
       ..close();
+    // A dark copy a pixel behind keeps the arrow apart from the ground.
     canvas.drawPath(
       arrow,
-      Paint()..color = Color.fromRGBO(0, 0, 0, 0.53 * alpha),
+      Paint()..color = GameColors.sunken.withValues(alpha: 0.6 * alpha),
     );
     canvas.drawPath(
       arrow.shift(const Offset(-1, 0)),
@@ -367,23 +369,26 @@ class _IndicatorPainter extends CustomPainter {
     final label = TextPainter(
       text: TextSpan(
         text: '${marker.metres} m',
-        style: TextStyle(
+        style: GameType.kennung.copyWith(
           color: marker.color.withValues(alpha: alpha),
-          fontSize: 11,
-          fontWeight: FontWeight.w800,
-          shadows: [
-            Shadow(blurRadius: 3, color: Colors.black.withValues(alpha: alpha)),
-          ],
+          letterSpacing: 0,
         ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
     // The label sits on the side of the arrow that faces the middle.
     final inward = Offset(-cos(marker.angle), -sin(marker.angle)) * 26;
-    label.paint(
-      canvas,
-      at + inward - Offset(label.width / 2, label.height / 2),
+    final origin = at + inward - Offset(label.width / 2, label.height / 2);
+    // A sunken plate under the distance instead of a shadow, so it reads
+    // on snow and sand alike.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        (origin & label.size).inflate(HzSpace.s2),
+        const Radius.circular(HzRadius.r2),
+      ),
+      Paint()..color = GameColors.sunken.withValues(alpha: 0.7 * alpha),
     );
+    label.paint(canvas, origin);
   }
 
   /// A small flag on the edge of the view, where a flag lies beyond it.
@@ -391,14 +396,14 @@ class _IndicatorPainter extends CustomPainter {
     canvas.drawCircle(
       at,
       13,
-      Paint()..color = Color.fromRGBO(0, 0, 0, 0.6 * alpha),
+      Paint()..color = GameColors.sunken.withValues(alpha: 0.7 * alpha),
     );
     canvas.drawLine(
       at + const Offset(-4, 8),
       at + const Offset(-4, -8),
       Paint()
         ..strokeWidth = 2
-        ..color = Colors.white.withValues(alpha: alpha),
+        ..color = GameColors.text.withValues(alpha: alpha),
     );
     canvas.drawPath(
       Path()

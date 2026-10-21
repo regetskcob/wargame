@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
@@ -19,11 +20,11 @@ class TvControllers extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: const Color(0x44000000),
+        color: GameColors.sunken,
         shape: GameShapes.card(),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        padding: const EdgeInsets.all(HzSpace.s16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -33,8 +34,8 @@ class TvControllers extends StatelessWidget {
                 PadScreen.instance.phones,
               ]),
               builder: (context, _) => Wrap(
-                spacing: 8,
-                runSpacing: 8,
+                spacing: HzSpace.s8,
+                runSpacing: HzSpace.s8,
                 children: [
                   for (final (i, pad) in TvInput.instance.pads.indexed)
                     _Chip(
@@ -66,13 +67,15 @@ class TvControllers extends StatelessWidget {
                               'No controller connected. The remote steers '
                                   'the menus.',
                             ),
-                      style: const TextStyle(color: GameColors.textDim),
+                      style: GameType.callout.copyWith(
+                        color: GameColors.textMuted,
+                      ),
                     ),
                 ],
               ),
             ),
             const PadBusyNotice(),
-            const SizedBox(height: 14),
+            const SizedBox(height: HzSpace.s16),
             ControllerSection(game: game),
           ],
         ),
@@ -92,16 +95,22 @@ class _Chip extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: GameColors.panel,
-        shape: GameShapes.chip(edge: GameColors.oliveLight),
+        shape: GameShapes.chip(edge: GameColors.lineStrong),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s12,
+          vertical: HzSpace.s8,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 18, color: GameColors.amber),
-            const SizedBox(width: 6),
-            Text(label, style: const TextStyle(fontWeight: FontWeight.w700)),
+            Icon(icon, size: HzIconSize.row, color: GameColors.textMuted),
+            const SizedBox(width: HzSpace.s8),
+            Text(
+              label,
+              style: GameType.label.copyWith(fontWeight: FontWeight.w600),
+            ),
           ],
         ),
       ),

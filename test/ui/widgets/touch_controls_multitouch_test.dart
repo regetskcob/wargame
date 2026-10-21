@@ -1,6 +1,7 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/special_weapon.dart';
 import 'package:wargame/src/game/touch_input.dart';
 import 'package:wargame/src/ui/widgets/touch_controls.dart';
@@ -22,6 +23,7 @@ void main() {
     special = ValueNotifier<(SpecialWeapon, int)?>((SpecialWeapon.drone, 3));
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: TouchControls(input: input, special: special),
         ),

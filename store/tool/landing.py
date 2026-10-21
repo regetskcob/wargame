@@ -20,6 +20,7 @@ from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
 
+import horizont_fonts
 from compose import EDGE, LANGS, ROOT, backdrop, device, font
 
 WEB_ADDRESS = "panzergefecht.de/play"
@@ -48,7 +49,7 @@ def browser(page):
     d.rounded_rectangle((px, round(bar * 0.2), px + pill_w, round(bar * 0.8)),
                         round(bar * 0.3), fill=(20, 22, 17))
     d.text((page.width / 2, bar / 2), WEB_ADDRESS,
-           font=font("Roboto-Medium.ttf", round(bar * 0.36)),
+           font=font(horizont_fonts.TEXT, round(bar * 0.36)),
            fill=(150, 156, 132), anchor="mm")
     out.paste(page, (0, bar))
     return out

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../l10n/l10n.dart';
 import '../net/pad_link.dart';
@@ -115,7 +116,7 @@ List<DuelSeat> duelSeats() {
 }
 
 /// The colour of each player's half on a split screen: its frame and its
-/// name.
+/// name. Like the team colours they belong to the game, not to Horizont.
 const playerColors = [Color(0xFFE5533D), Color(0xFF4A90E2)];
 
 /// Which player a half of a split screen belongs to, and what steers it.
@@ -146,19 +147,35 @@ class PlayerTag extends StatelessWidget {
       decoration: ShapeDecoration(
         color: GameColors.panel,
         shape: GameShapes.chip(
-          edge: seat == null ? GameColors.danger : _color,
-          width: 2,
+          edge: seat == null ? GameColors.critical : _color,
+          width: HzLine.selection,
         ),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-        child: Text(
-          '${tr('SPIELER', 'PLAYER')} ${player + 1} · $steer',
-          style: TextStyle(
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-            color: _color,
-          ),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s12,
+          vertical: HzSpace.s4,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // A missing controller is a state: its sign beside the word.
+            if (seat == null) ...[
+              Icon(
+                HorizontStatus.critical.icon,
+                size: HzIconSize.inline,
+                color: GameColors.critical,
+              ),
+              const SizedBox(width: HzSpace.s8),
+            ],
+            Text(
+              '${tr('SPIELER', 'PLAYER')} ${player + 1} · $steer',
+              style: GameType.label.copyWith(
+                fontWeight: FontWeight.w600,
+                color: _color,
+              ),
+            ),
+          ],
         ),
       ),
     );

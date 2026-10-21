@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../theme.dart';
 
@@ -14,7 +15,7 @@ class ChoiceRow<T> extends StatelessWidget {
     this.allowNone = false,
     this.expand = false,
     this.balance = false,
-    this.minHeight = 40,
+    this.minHeight = HzSize.touch,
     super.key,
   });
 
@@ -152,11 +153,9 @@ class ChoiceRow<T> extends StatelessWidget {
 
   static const _padding = 14.0;
 
-  TextStyle _style(Color? color, bool on) => TextStyle(
-    fontSize: 12,
-    fontWeight: FontWeight.w700,
-    letterSpacing: 1.2,
-    color: color ?? (on ? GameColors.amber : GameColors.text),
+  TextStyle _style(Color? color, bool on) => GameType.label.copyWith(
+    fontWeight: on ? FontWeight.w600 : FontWeight.w500,
+    color: color ?? GameColors.text,
   );
 
   Widget _chip(
@@ -173,15 +172,16 @@ class ChoiceRow<T> extends StatelessWidget {
         constraints: BoxConstraints(minHeight: minHeight),
         alignment: centred ? Alignment.center : null,
         padding: const EdgeInsets.symmetric(horizontal: _padding, vertical: 8),
-        // Idle choices are a thin line only, the chosen one a line and a
-        // tint in amber.
+        // Horizont's segment: every option in the outline, the chosen one
+        // on the accent tint with the 2 px selection line along its foot.
         decoration: ShapeDecoration(
-          color: on ? const Color(0x22FFB300) : null,
+          color: on ? GameColors.accentTint : null,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-            side: on ? const BorderSide(color: GameColors.amber) : hairline,
+            borderRadius: BorderRadius.circular(HzRadius.r6),
+            side: hairline,
           ),
         ),
+        foregroundDecoration: on ? const _SelectionLine() : null,
         // Centred on the height, which can be more than one line of text.
         child: Align(
           widthFactor: centred ? null : 1,
@@ -193,5 +193,38 @@ class ChoiceRow<T> extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+/// The 2 px selection line along the foot of a chosen option, inside its
+/// rounded outline.
+class _SelectionLine extends Decoration {
+  const _SelectionLine();
+
+  @override
+  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _SelectionPainter();
+}
+
+class _SelectionPainter extends BoxPainter {
+  @override
+  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
+    final size = configuration.size!;
+    final box = RRect.fromRectAndRadius(
+      offset & size,
+      const Radius.circular(HzRadius.r6),
+    );
+    canvas
+      ..save()
+      ..clipRRect(box)
+      ..drawRect(
+        Rect.fromLTWH(
+          offset.dx,
+          offset.dy + size.height - HzLine.selection,
+          size.width,
+          HzLine.selection,
+        ),
+        Paint()..color = GameColors.accentText,
+      )
+      ..restore();
   }
 }

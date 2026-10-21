@@ -1,0 +1,11 @@
+# Where the screen sits in the composed store images (store/tool/compose.py,
+# device() and compose()), as x, y, width and height in pixels. The page cuts
+# the bare screen out and sets it in Horizont's device frame instead of
+# showing a drawn device inside a drawn device. The rectangles follow from
+# the canvas size alone, the same in every language; if compose.py changes
+# its layout, measure them again.
+crops:
+  iphone: [146, 468, 1027, 2231]
+  ipad: [368, 413, 2015, 1511]
+  mac: [405, 394, 2069, 1293]
+  tv: [534, 486, 2772, 1559]

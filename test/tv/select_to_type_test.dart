@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/tv/select_to_type.dart';
 import 'package:wargame/src/tv/tv_input.dart';
 
 void main() {
   Future<void> pump(WidgetTester tester) => tester.pumpWidget(
     MaterialApp(
+      theme: buildGameTheme(),
       home: Scaffold(
         body: Column(
           children: [

@@ -34,7 +34,11 @@ enum DemoScene {
 
 /// A symbol with a word, shown in the quick tour.
 class TutorialChip {
-  const TutorialChip(this.icon, this.label, [this.color = GameColors.amber]);
+  const TutorialChip(
+    this.icon,
+    this.label, [
+    this.color = GameColors.textMuted,
+  ]);
 
   final IconData icon;
   final String label;
@@ -625,7 +629,7 @@ List<TutorialStep> get _tour => [
       TutorialChip(
         Icons.signal_cellular_alt_outlined,
         BotLevel.hard.label,
-        GameColors.danger,
+        GameColors.critical,
       ),
     ],
   ),

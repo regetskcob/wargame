@@ -1,12 +1,8 @@
-play: Play
-playHint: Free in the browser, no sign-up
 otherLanguage: Deutsch
-headerAlt: Panzergefecht on a laptop, iPad, Android tablet, a TV with a phone as its controller, iPhone, Android phone, Wear OS watch and Apple Watch
-platformsNote: Today in the browser, on iPhone, iPad and Apple Watch. Android, Wear OS, Mac and Apple TV are coming.
+platformsNote: Today in the browser, on iPhone, iPad and Apple Watch, on Android in beta. Wear OS, Mac and Apple TV are coming.
 imprint: Imprint
 privacy: Privacy
 licenses: Licences
-launching: Loading the game …
 notFoundTitle: No tank here
 notFoundText: This page does not exist. Back to the start or straight into battle.
 home: Back to the start
@@ -14,7 +10,6 @@ shot-01-gefecht: A town battle with two sticks and aim assist
 shot-02-verteidigung: "Defense: building guns at the base by the river"
 shot-03-fahrzeuge: Choosing the vehicle and its camouflage
 shot-04-modi: The start page with the four ways to play
-devicesTitle: On every screen, in one room
 device-web: In the browser
 device-web-text: Right away on any computer, nothing to install, no sign-up, with keyboard, controller or phone.
 device-phone: Phone and tablet
@@ -27,6 +22,15 @@ device-tv: Apple TV · soon
 device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
 device-mac: Mac · soon
 device-mac-text: Full screen with keyboard or a game controller, with two controllers also two players on a split screen. The same app as on iPhone and iPad, coming to the Mac App Store soon.
+betaTitle: Test it early
+betaLead: The apps are in beta. Want to be there early? Play them now and help with the finishing touches.
+beta-ios: iPhone and iPad
+beta-ios-text: Through Apple's TestFlight app. New versions come to the device by themselves.
+beta-ios-link: Join on TestFlight
+beta-android: Android
+beta-android-text: In the closed test on Google Play, in two steps with the Google account of your phone.
+beta-android-step1: Join the tester group
+beta-android-step2: Become a tester and install
 support: Support
 supportTitle: Support
 supportLead: Found a bug, have a question or an idea? Write to us, we answer by e-mail.
@@ -45,3 +49,39 @@ supportMailSubject: Panzergefecht support
 supportMailTopic: Topic
 supportMailDevice: Device
 supportMailCallSign: Call sign
+play: Play now
+getApp: Get the app
+skip: Skip to content
+menu: Site navigation
+sender: a project by regetskcob
+nav-modes: Modes
+nav-devices: Devices
+nav-beta: Beta
+hero-kennung: 01 — In the browser · iPhone · iPad · Apple Watch · Android
+hero-title: Battle in the living room.
+modes-kennung: 02 — Modes
+modes-title: Alone, against others or as a squad.
+devices-kennung: 03 — Devices
+devices-title: On every screen, in one room.
+beta-kennung: 04 — Beta
+store-ios: Get it on the App Store
+store-android: Get it on Google Play
+fair-kennung: 05 — Fair
+fair-price: Price
+fair-price-text: Free, in the browser and in the apps.
+fair-account: Sign-up
+fair-account-text: None. Start right away as a guest; an account by e-mail only keeps rank and leaderboard on every device.
+fair-delete: Account
+fair-delete-text: Delete it yourself in the game at any time.
+shot-tv: A town battle on the TV
+shot-mac: "Defense on the Mac: guns at the base"
+shot-ipad: The waiting room on the iPad with room code and vehicle choice
+shot-watch: Battle on the Apple Watch
+notFoundKennung: 404 — Page not found
+supportHeadline: We are here to help.
+support-kennung: 02 — Write
+supportFormTitle: Your message to us
+supportSentShort: Ready
+supportMailTerm: E-mail
+supportAccountTerm: Account
+headerAlt: Panzergefecht on a laptop, iPad, Android tablet, a TV with a phone as its controller, iPhone, Android phone, Wear OS watch and Apple Watch

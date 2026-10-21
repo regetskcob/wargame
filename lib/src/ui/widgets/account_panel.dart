@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../db/account_service.dart';
@@ -8,6 +9,8 @@ import '../../net/room.dart';
 import '../../tv/select_to_type.dart';
 import '../../tv/tv_input.dart';
 import '../theme.dart';
+import 'notice.dart';
+import 'panel.dart';
 import 'choice_row.dart';
 import '../../l10n/l10n.dart';
 
@@ -293,14 +296,14 @@ class _AccountPanelState extends State<AccountPanel> {
             children: [..._guest(context), ..._status()],
           );
         }
-        // A quiet dark box without a frame, like the controllers below.
+        // A sunken box with the one outline, like the controllers below.
         return DecoratedBox(
-          decoration: BoxDecoration(
-            color: const Color(0x55000000),
-            borderRadius: BorderRadius.circular(10),
+          decoration: ShapeDecoration(
+            color: GameColors.sunken,
+            shape: GameShapes.card(),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(HzSpace.s12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
@@ -313,7 +316,7 @@ class _AccountPanelState extends State<AccountPanel> {
                   child: Wrap(
                     crossAxisAlignment: WrapCrossAlignment.center,
                     alignment: WrapAlignment.spaceBetween,
-                    spacing: 8,
+                    spacing: HzSpace.s8,
                     children: [
                       Row(
                         mainAxisSize: MainAxisSize.min,
@@ -322,20 +325,21 @@ class _AccountPanelState extends State<AccountPanel> {
                             guest
                                 ? Icons.person_outline
                                 : Icons.verified_user_outlined,
-                            size: 18,
+                            size: HzIconSize.row,
+                            // A linked account is a state: word, sign and
+                            // the positive colour.
                             color: guest
-                                ? GameColors.textDim
-                                : GameColors.amber,
+                                ? GameColors.textMuted
+                                : GameColors.positive,
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: HzSpace.s8),
                           Flexible(
                             child: Text(
                               guest
                                   ? tr('KONTO: GAST', 'ACCOUNT: GUEST')
                                   : '${tr('KONTO', 'ACCOUNT')}: ${widget.accounts.email ?? tr('VERKNÜPFT', 'LINKED')}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1,
+                              style: GameType.label.copyWith(
+                                fontWeight: FontWeight.w600,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -374,43 +378,37 @@ class _AccountPanelState extends State<AccountPanel> {
     // Sending the mail takes the auth service a few seconds: say that it
     // runs, the disabled button alone looked like nothing happened.
     if (_busy) ...[
-      const SizedBox(height: 8),
+      const SizedBox(height: HzSpace.s8),
       Row(
         children: [
           const SizedBox.square(
-            dimension: 12,
+            dimension: HzSpace.s12,
             child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: GameColors.sand,
+              strokeWidth: HzLine.selection,
+              color: GameColors.text,
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            tr('Einen Moment …', 'One moment …'),
-            style: const TextStyle(fontSize: 12, color: GameColors.sand),
-          ),
+          const SizedBox(width: HzSpace.s8),
+          Text(tr('Einen Moment …', 'One moment …'), style: GameType.caption),
         ],
       ),
     ] else if (_message != null) ...[
-      const SizedBox(height: 8),
-      Text(
-        _message!,
-        style: TextStyle(
-          fontSize: 12,
-          color: _error ? GameColors.danger : GameColors.sand,
-        ),
+      const SizedBox(height: HzSpace.s8),
+      // A failure as a critical note, the next step (the mail is on its
+      // way) as information, each with its sign.
+      Notice(
+        _error ? HorizontStatus.critical : HorizontStatus.info,
+        child: Text(_message!),
       ),
     ],
   ];
 
   List<Widget> _guest(BuildContext context) {
-    final dim = widget.embedded
-        ? const TextStyle(color: GameColors.text, fontSize: 14, height: 1.35)
-        : const TextStyle(color: GameColors.textDim, fontSize: 12);
+    final dim = widget.embedded ? GameType.callout : GameType.caption;
     final fresh = widget.embedded;
     return [
       if (fresh) ...[
-        const SizedBox(height: 16),
+        const SizedBox(height: HzSpace.s16),
         ChoiceRow<bool>(
           options: [
             (true, tr('ANMELDEN', 'SIGN IN'), null),
@@ -420,7 +418,7 @@ class _AccountPanelState extends State<AccountPanel> {
           onSelected: (v) => _switchTo(signIn: v ?? _signIn),
         ),
       ],
-      SizedBox(height: fresh ? 14 : 6),
+      SizedBox(height: fresh ? HzSpace.s16 : HzSpace.s8),
       Text(switch ((_signIn, fresh)) {
         (true, true) => tr(
           'Melde dich mit deinem Konto an, um Rang, Wertung und Abzeichen '
@@ -449,7 +447,7 @@ class _AccountPanelState extends State<AccountPanel> {
               'XP, rank, rating and badges and to unlock vehicles.',
         ),
       }, style: dim),
-      SizedBox(height: fresh ? 16 : 10),
+      SizedBox(height: fresh ? HzSpace.s16 : HzSpace.s12),
       if (_step == _Step.idle) ...[
         if (!_signIn && widget.callSignAbove != null) ...[
           Text(
@@ -461,50 +459,54 @@ class _AccountPanelState extends State<AccountPanel> {
             ),
             style: dim,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: HzSpace.s8),
         ] else if (!_signIn) ...[
-          SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _name,
-              maxLength: 16,
-              autofillHints: const [AutofillHints.username],
-              decoration: InputDecoration(
-                labelText: tr('RUFNAME', 'CALL SIGN'),
-                helperText: tr(
-                  'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
-                  'Publicly visible, for example on the leaderboard',
+          HorizontField(
+            label: tr('Rufname', 'Call sign'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _name,
+                maxLength: 16,
+                autofillHints: const [AutofillHints.username],
+                decoration: InputDecoration(
+                  helperText: tr(
+                    'Öffentlich sichtbar, zum Beispiel in der Bestenliste',
+                    'Publicly visible, for example on the leaderboard',
+                  ),
+                  helperMaxLines: 2,
                 ),
-                helperMaxLines: 2,
               ),
             ),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: HzSpace.s4),
         ],
         // In a group of its own, without autocorrect and capitals: only
         // then do iOS and Android offer the saved address above the
         // keyboard.
         AutofillGroup(
-          child: SelectToType(
-            builder: (focusNode, readOnly) => TextField(
-              focusNode: focusNode,
-              readOnly: readOnly,
-              controller: _email,
-              keyboardType: TextInputType.emailAddress,
-              textInputAction: TextInputAction.send,
-              autofillHints: const [AutofillHints.email],
-              autocorrect: false,
-              textCapitalization: TextCapitalization.none,
-              decoration: InputDecoration(labelText: tr('E-MAIL', 'E-MAIL')),
-              onSubmitted: (_) => _sendMail(),
+          child: HorizontField(
+            label: tr('E-Mail', 'E-mail'),
+            child: SelectToType(
+              builder: (focusNode, readOnly) => TextField(
+                focusNode: focusNode,
+                readOnly: readOnly,
+                controller: _email,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.send,
+                autofillHints: const [AutofillHints.email],
+                autocorrect: false,
+                textCapitalization: TextCapitalization.none,
+                onSubmitted: (_) => _sendMail(),
+              ),
             ),
           ),
         ),
-        SizedBox(height: fresh ? 16 : 8),
+        SizedBox(height: fresh ? HzSpace.s16 : HzSpace.s8),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: HzSpace.s8,
+          runSpacing: HzSpace.s8,
           children: [
             FilledButton(
               onPressed: _busy ? null : _sendMail,
@@ -532,27 +534,27 @@ class _AccountPanelState extends State<AccountPanel> {
           ],
         ),
       ] else ...[
-        SelectToType(
-          builder: (focusNode, readOnly) => TextField(
-            focusNode: focusNode,
-            readOnly: readOnly,
-            controller: _code,
-            // The send button the remote was on is gone: start here.
-            autofocus: onTv,
-            keyboardType: TextInputType.number,
-            autofillHints: const [AutofillHints.oneTimeCode],
-            decoration: InputDecoration(
-              labelText: tr(
-                'CODE AUS DER MAIL (FALLS VORHANDEN)',
-                'CODE FROM THE MAIL (IF ANY)',
-              ),
+        HorizontField(
+          label: tr(
+            'Code aus der Mail (falls vorhanden)',
+            'Code from the mail (if any)',
+          ),
+          child: SelectToType(
+            builder: (focusNode, readOnly) => TextField(
+              focusNode: focusNode,
+              readOnly: readOnly,
+              controller: _code,
+              // The send button the remote was on is gone: start here.
+              autofocus: onTv,
+              keyboardType: TextInputType.number,
+              autofillHints: const [AutofillHints.oneTimeCode],
+              onSubmitted: (_) => _verify(),
             ),
-            onSubmitted: (_) => _verify(),
           ),
         ),
-        SizedBox(height: fresh ? 16 : 8),
+        SizedBox(height: fresh ? HzSpace.s16 : HzSpace.s8),
         Wrap(
-          spacing: 8,
+          spacing: HzSpace.s8,
           children: [
             FilledButton(
               onPressed: _busy ? null : _verify,
@@ -566,7 +568,7 @@ class _AccountPanelState extends State<AccountPanel> {
         ),
       ],
       if (!fresh) ...[
-        const SizedBox(height: 4),
+        const SizedBox(height: HzSpace.s4),
         TextButton(
           onPressed: () => _switchTo(signIn: !_signIn),
           child: Text(

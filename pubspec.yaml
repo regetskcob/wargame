@@ -23,6 +23,14 @@ dependencies:
   flutter_watch_link: ^0.1.1
   flutter_watchos: ^0.1.0
   go_router: ^18.0.2
+  # The design system shared with the other projects of regetskcob: theme,
+  # tokens, fonts (Mona Sans, Literata, Monaspace) and a few widgets. Pinned
+  # to a tag, never main; bump it as its CHANGELOG says.
+  horizont:
+    git:
+      url: https://github.com/regetskcob/horizont.git
+      path: flutter
+      ref: v0.7.7
   http: ^1.6.0
   in_app_purchase: ^3.3.1
   mobile_scanner: ^7.4.2
@@ -57,21 +65,5 @@ flutter:
     - assets/audio/
     # The launch screen again, for the loading view that follows it.
     - assets/images/
-    # Shown with the licences of the components, as Apache 2.0 asks.
-    - assets/fonts/Roboto_LICENSE.txt
-  # Bundled so every platform draws the same letters. The browser build
-  # cannot reach system fonts and fell back to Roboto, while iOS and macOS
-  # showed their own thin Courier New. Apache 2.0, see Roboto_LICENSE.txt.
-  # Cut down to Latin with its extensions, a quarter of the size, as the
-  # browser loads them before the first frame; see docs/development.md
-  # "Fonts". Other letters come from the system or Noto.
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: assets/fonts/Roboto-Regular.ttf
-        - asset: assets/fonts/Roboto-Medium.ttf
-          weight: 500
-        - asset: assets/fonts/Roboto-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/Roboto-Black.ttf
-          weight: 900
+  # The fonts (Mona Sans, Monaspace, Literata, Material Symbols) come with
+  # the Horizont package; see docs/development.md "Fonts".

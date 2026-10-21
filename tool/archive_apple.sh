@@ -43,7 +43,7 @@ archive="build/$platform/archive/Panzergefecht.xcarchive"
 rm -rf "build/$platform/archive"
 
 if [ "$platform" = "tvos" ]; then
-  flutter_tvos="${FLUTTER_TVOS:-$HOME/development/flutter-tvos/bin/flutter-tvos}"
+  flutter_tvos="${FLUTTER_TVOS:-$HOME/flutter/flutter-tvos/bin/flutter-tvos}"
   step "Apple TV build $name ($number)"
   # Stages the engine, App.framework and the plugins; the archive signs.
   "$flutter_tvos" build tvos --release --no-codesign "${defines[@]}"

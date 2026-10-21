@@ -163,6 +163,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F5.4 | The trench notice names halved damage and the anti-tank rocket from wave 4 | #21 2, #23 W6 | auto: `defense_test`; sim: dig a trench | m |
 | F5.5 | The last helicopter of a wave comes in to the base; tank shells hurt it | #21 3 | auto: `last_helicopter_test` | M |
 | F5.6 | Desktop 1280×800: wave banner above the middle, panel ≤ 540 px with tabs GUNS / UPGRADES, the mini map not over the base, inventory clears the panel | #12 medium, next 6, #12 C | sim at 1280×800 | m |
+| F5.9 | The open list of the defense panel (GUNS / UPGRADES) is marked by its tint and a line along its foot, never by a frame in the accent, which on the television read as the focus ring | sim test 2026-10-19 | sim: Apple TV round menu, iPhone | m |
 | F5.7 | A gun the host destroys disappears on its builder's screen too | #12 A7 | auto: `hostile_room_test` / `two_player_smoke_test` | M |
 | F5.8 | Extension after wave 8, defense duel on lanes | gameplay | auto: `extension_test`, `defense_duel_test` | M |
 
@@ -301,6 +302,8 @@ both stores together and say so in the release issue (as with migrations
 | R8 | Fresh install: delete the app, start the archived build on a real device | the leaderboard loads, the device log has no `Server check failed` | owner (from `/release`) | B |
 | R9 | No unhandled error over the whole session: browser console, `preview_logs`, `idevicesyslog -p Panzergefecht`, the simulators' logs (e.g. `AudioPlayer has been disposed`) | zero | sim, collected over sections 3 and 4 | M |
 | R10 | Plugins without a watch package (`app_links`, `share_plus`, `mobile_scanner`) are not called on the watch | no `MissingPluginException` | sim: watch log | M |
+| R11 | The Apple Watch never listens on the gamepad channel (it reports iOS but has no gamepad plugin) | no `MissingPluginException` on `wargame/gamepad` | auto: `pads_supported_test` | M |
+| R12 | Television: a button pressed away under the focus does not make the focus frame throw every frame | no "Cannot get renderObject of inactive element" in the TV log | sim: Apple TV, walk menus and press buttons that change the page | M |
 
 ## 6. Accepted open risks
 

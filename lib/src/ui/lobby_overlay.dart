@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/game_config.dart';
 import '../game/bot_level.dart';
@@ -16,6 +17,7 @@ import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'account_page.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/notice.dart';
 import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
@@ -142,7 +144,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               'Capture the flag: Steal the other side\'s flag and bring it '
                   'to your base. ${GameConfig.flagCaptures} captures win.',
             ),
-          }, style: const TextStyle(color: GameColors.textDim)),
+          }, style: GameType.callout.copyWith(color: GameColors.textMuted)),
         ),
       ],
     );
@@ -225,10 +227,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                             'With a phone controller in the room there are no '
                                 'CPU tanks, so the server carries both.',
                           ),
-                          style: const TextStyle(
-                            color: GameColors.textDim,
-                            fontSize: 12,
-                          ),
+                          style: GameType.caption,
                         ),
                       )
                     : const SizedBox.shrink(),
@@ -546,10 +545,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             // Less side padding than the theme, so the label keeps its full
             // size in half a phone width.
             style: OutlinedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-              foregroundColor: _closeArmed ? GameColors.danger : null,
+              padding: const EdgeInsets.symmetric(horizontal: HzSpace.s12),
+              foregroundColor: _closeArmed ? GameColors.critical : null,
               side: _closeArmed
-                  ? const BorderSide(color: GameColors.danger)
+                  ? const BorderSide(color: GameColors.critical)
                   : null,
             ),
             icon: Icon(
@@ -664,7 +663,6 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: GameColors.surface,
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
           onTv
@@ -747,22 +745,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   );
 
   Widget _label(BuildContext context, String text) => Padding(
-    padding: const EdgeInsets.only(top: 4, bottom: 8),
-    child: Text(
-      text,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: 1.5,
-        color: GameColors.sand,
-      ),
-    ),
+    padding: const EdgeInsets.only(top: HzSpace.s4, bottom: HzSpace.s8),
+    child: Kennung(text),
   );
 
-  Widget _hint(String text) => Text(
-    text,
-    style: const TextStyle(color: GameColors.textDim, fontSize: 12),
-  );
+  Widget _hint(String text) => Text(text, style: GameType.caption);
 
   /// Closing takes two clicks: the first one asks, the second one closes.
   void _confirmClose() {
@@ -793,7 +780,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: [
       for (final (i, part) in parts.indexed) ...[
-        if (i > 0) const SizedBox(height: 14),
+        if (i > 0) const SizedBox(height: HzSpace.s24),
         part,
       ],
     ],
@@ -814,7 +801,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(child: FocusTraversalGroup(child: _column(left))),
-        const SizedBox(width: 16),
+        const SizedBox(width: HzSpace.s32),
         Expanded(child: FocusTraversalGroup(child: _column(right))),
       ],
     );
@@ -895,19 +882,26 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           alignment: Alignment.centerLeft,
           child: TextButton.icon(
             onPressed: host ? game.editSettings : null,
+            // A Kennung that opens the settings: the line names the round,
+            // in the accent only where the host can change it.
             style: TextButton.styleFrom(
-              foregroundColor: GameColors.amber,
-              disabledForegroundColor: GameColors.textDim,
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              foregroundColor: GameColors.accentText,
+              disabledForegroundColor: GameColors.textMuted,
+              padding: const EdgeInsets.symmetric(
+                horizontal: HzSpace.s8,
+                vertical: HzSpace.s4,
+              ),
               visualDensity: VisualDensity.compact,
             ),
-            icon: const Icon(Icons.tune_outlined, size: 16),
+            icon: const Icon(Icons.tune_outlined, size: HzIconSize.inline),
             label: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                parts.join('  ·  '),
+                parts.join(horizontMetaSeparator).toUpperCase(),
                 maxLines: 1,
-                style: const TextStyle(fontSize: 12, letterSpacing: 1),
+                style: GameType.kennung.copyWith(
+                  color: host ? GameColors.accentText : GameColors.textMuted,
+                ),
               ),
             ),
           ),
@@ -985,7 +979,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     if (phone) {
       return Padding(padding: const EdgeInsets.all(8), child: child);
     }
-    return Panel(padding: EdgeInsets.all(narrow ? 14 : 24), child: child);
+    return Panel(
+      padding: EdgeInsets.all(narrow ? HzSpace.s16 : HzSpace.s32),
+      child: child,
+    );
   }
 
   /// Phones and the apps on tablets show the menu without the outer plate:
@@ -1013,7 +1010,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return Builder(
       builder: (context) => ColoredBox(
         // Without the plate on phones the backdrop carries the contrast.
-        color: _frameless(context) ? GameColors.panel : const Color(0xAA000000),
+        color: _frameless(context)
+            ? GameColors.panel
+            : GameColors.sunken.withValues(alpha: 0.6),
         // Keeps the menu clear of the notch and the Dynamic Island on
         // phones held sideways, the backdrop still covers the whole screen.
         // Phones scroll the page up to the lower screen edge instead of
@@ -1093,8 +1092,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   }
 }
 
-/// A group of settings under a heading, a quiet dark box without a frame:
-/// the page's panel is the only frame.
+/// A group under a Kennung, opened by a hairline: the page's panel is the
+/// only frame, sections are not boxes of their own (Horizont: content
+/// before surface, lines instead of fills).
 class _Section extends StatelessWidget {
   const _Section({required this.child, this.icon, this.title});
 
@@ -1105,28 +1105,27 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0x55000000),
-        borderRadius: BorderRadius.circular(10),
+      decoration: const BoxDecoration(
+        border: Border(top: BorderSide(color: GameColors.line)),
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(14, 12, 14, 14),
+        padding: const EdgeInsets.only(top: HzSpace.s12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (title != null) ...[
               Row(
                 children: [
-                  Icon(icon, size: 18, color: GameColors.amber),
-                  const SizedBox(width: 8),
-                  Text(
-                    title!,
-                    style: Theme.of(context).textTheme.titleMedium
-                        ?.copyWith(letterSpacing: 2),
+                  Icon(
+                    icon,
+                    size: HzIconSize.inline,
+                    color: GameColors.textMuted,
                   ),
+                  const SizedBox(width: HzSpace.s8),
+                  Kennung(title!),
                 ],
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: HzSpace.s12),
             ],
             child,
           ],
@@ -1154,8 +1153,8 @@ class ColorSwatchButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // A round dab of colour, the chosen one in a thin amber ring with a
-    // little air: always the same size, so nothing moves on picking.
+    // A round dab of colour, the chosen one in the 2 px selection ring
+    // with a little air: always the same size, so nothing moves on picking.
     return InkWell(
       onTap: onTap,
       customBorder: const CircleBorder(),
@@ -1166,8 +1165,8 @@ class ColorSwatchButton extends StatelessWidget {
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
-            color: selected ? GameColors.amber : Colors.transparent,
-            width: 1.5,
+            color: selected ? GameColors.accentText : Colors.transparent,
+            width: HzLine.selection,
           ),
         ),
         child: Container(
@@ -1180,7 +1179,7 @@ class ColorSwatchButton extends StatelessWidget {
               ? const Icon(
                   Icons.lock_outlined,
                   size: 12,
-                  color: Color(0xCCFFFFFF),
+                  color: GameColors.text,
                 )
               : null,
         ),
@@ -1195,29 +1194,15 @@ class _JoinedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: const Color(0x55000000),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Row(
-          children: [
-            const Icon(Icons.hourglass_top_outlined, color: GameColors.amber),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                tr(
-                  'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '
-                      'Gefecht, sobald alle da sind.',
-                  'You joined the waiting room. The host starts the battle '
-                      'as soon as everyone is here.',
-                ),
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-            ),
-          ],
+    return Notice(
+      HorizontStatus.info,
+      icon: Icons.hourglass_top_outlined,
+      child: Text(
+        tr(
+          'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '
+              'Gefecht, sobald alle da sind.',
+          'You joined the waiting room. The host starts the battle '
+              'as soon as everyone is here.',
         ),
       ),
     );

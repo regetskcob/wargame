@@ -288,30 +288,60 @@ is private.
 
 ### Landing page
 
-`site/` is a small Hugo site, the page in front of the game at the root
-of <https://panzergefecht.de/>. Its texts and pictures are the App Store listing: name,
-subtitle, promotional text and description come from
-`store/ios/metadata/<lang>/`, screenshots and the device artwork from
-`store/ios/screenshots/` (Hugo mounts in `site/hugo.toml`, resized to WebP
-at build time). The page stays short on purpose: device artwork opens it,
-right under the name and the play button, because one room for browser,
-phone, tablet, TV and watch is what sets the game apart. Unlike the App
-Store header it shows every platform, out or coming, all alike on one
-table (desk, TV with a phone as its controller, pocket and wrist); the line
-under it (`platformsNote` in `site/i18n/`) says what is out today, so that
-is the place to update when a platform ships. `store/tool/landing.py <raw
-dir>` draws it from the raw shots of `tool/store_shots.sh` into
-`site/assets/header/<lang>/`, one table for wide screens and two for
-phones. The description is read into its
-parts, so its layout matters: an opening paragraph (not shown), then
-sections whose first line is a heading in capitals (only the first is
-used, the ways to play as `• Name: text`, of which the page shows the first
-sentence), then loose paragraphs (the first becomes the pledge under the
-screenshots, the rest go into the footer). Only the page's own
-words live in `site/i18n/`, among them the section on every screen the
-game runs on (browser, iPhone and iPad, phone as controller, watch, TV),
-since the store description is the iOS app's. German sits at the root, English under `en/`;
-a first visit follows the browser language like the game does.
+`site/` is a small Hugo site, the page in front of the game at the
+root of <https://panzergefecht.de/>. It is a "Feldseite" of Horizont, the
+design system of regetskcob's projects (<https://github.com/regetskcob/horizont>, guide in
+its `docs/web.md`): the head with the lockup and a quiet nav, a hero with
+a Kennung, the headline in Literata, "Jetzt spielen" as the one primary
+button, below it every device in one picture on the horizon line
+(`site/assets/header/<lang>/devices.png` and `devices-narrow.png`, drawn
+by `store/tool/landing.py` from the raw shots of `tool/store_shots.sh`),
+then numbered sections
+(`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono,
+and the foot with "ein Projekt von regetskcob" and the legal links. The
+page stays dark on Panzergefecht's own "Gelände" neutrals
+(`data-product="panzergefecht" data-theme="dark"` on `<html>`); the signal
+yellow belongs to the play button alone.
+
+Horizont comes in as a Hugo module, pinned to a tag in `site/go.mod` and
+`site/go.sum`. `site/hugo.toml` mounts its tokens, icon names, CSS,
+partials (`layouts/_partials/horizont/`), shortcodes and fonts as its
+`docs/web.md` says; the CSS is tokens, components, then `site/assets/css/site.css`
+with only the page's own layout, every value a Horizont variable. The
+layouts are built from the module's partials (`horizont/feld/*`,
+`device.html`, `facts.html`, `kennung.html`, `badge.html`), never their HTML
+again. To move to a newer Horizont, read its CHANGELOG, then:
+
+```sh
+cd site && hugo mod get github.com/regetskcob/horizont@vX.Y.Z
+```
+
+and check the page in both languages and at 375 px. Hugo fetches the
+module with Go; the pages workflow uses the Go of the runner image, locally
+`brew install go` is enough.
+
+Texts and pictures are the App Store listing: name, subtitle, promotional
+text and description come from `store/ios/metadata/<lang>/`, the shots
+from `store/ios/screenshots/`, `mac/`, `tv/` and `watch/` (Hugo mounts in
+`site/hugo.toml`). The store images carry a caption and a drawn device, so
+`site/layouts/_partials/shot.html` cuts the bare screen out of them (the
+rectangles in `site/data/screens.yaml` follow `store/tool/compose.py`;
+measure again if its layout changes) and sets it in Horizont's device
+frame, resized to WebP at build time. The description is read into its
+parts, so its layout matters: an opening paragraph (the text of `02 —
+Modi`), then sections whose first line is a heading in capitals (only the
+first is used, the ways to play as `• Name: text`, of which the page shows
+the first sentence as a fact), then loose paragraphs (the pledge and the
+disclaimer make `05 — Fair`, the rest goes under the foot). Only the page's
+own words live in `site/i18n/`, among them the devices section (browser,
+iPhone and iPad, phone as controller, watch, TV, Mac), since the store
+description is the iOS app's; `platformsNote` says what is out today and
+is the place to update when a platform ships. `04 — Beta` lists the ways
+into the apps in the order they have to be taken: the store pages once
+`params.stores` in `site/hugo.toml` has them, then TestFlight, then for
+Android the tester group before the closed test on Google Play. German sits
+at the root, English under `en/`; a first visit follows the browser
+language like the game does. The favicons are the web game's (`web/`).
 
 The play button leads to `play/`, the game's start page with the four ways
 to play. On the press the page lays the game's launch screen (ground and
@@ -357,16 +387,24 @@ flutter build web --base-href /your-repo/play/ \
 
 ## Fonts
 
-The four Roboto weights in `assets/fonts/` are cut down to Latin with its
-extensions, punctuation, arrows and the few symbols the game shows (about
-43 KB instead of 168 KB each), because the browser loads them before the
-first frame. Letters outside that range come from the system fonts in the
-apps and from Noto in the browser. To cut a fresh copy:
+The game uses the three voices of the design system
+[Horizont](https://github.com/regetskcob/horizont): Mona Sans for everything
+you operate, Mona Sans Display Expanded in capitals for headlines (the
+game's character), Monaspace Argon with tabular figures for every value that
+is counted or measured, and Literata for long reading text. They come with
+the `horizont` package (`pubspec.yaml`, pinned to a tag), together with
+their licences (`registerHorizontLicenses()`), so the app bundles no font of
+its own. `GameType` in `lib/src/ui/theme.dart` names the styles the game
+uses; widgets never set a `fontFamily` themselves.
 
-```sh
-pyftsubset Roboto-Regular.ttf --unicodes="U+0020-007E,U+00A0-00FF,U+0100-017F,U+0218-021B,U+2010-2027,U+2030-203A,U+20AC,U+2122,U+2190-2193,U+221E,U+25CB,U+25CF" --layout-features='*' --no-hinting --output-file=assets/fonts/Roboto-Regular.ttf
-```
+Tests that measure text load the real fonts with `loadHorizontFonts()` from
+`package:horizont/testing.dart`. The store tools (`store/tool/compose.py`,
+`tv_icons.py`) find the same files through `store/tool/horizont_fonts.py`,
+so run `flutter pub get` before them.
 
-`pyftsubset` comes with `pip install fonttools`. Check new texts for
-characters outside that range before they ship.
+Since v0.6.3 Horizont cuts its fonts down to Latin with extensions,
+punctuation and the few marks set as text (about 0.85 MB, 0.48 MB gzipped),
+because the browser build loads every font before its first frame. A
+character outside that range falls back to the system or Noto; the range
+lives in Horizont's `tool/subset_fonts.py`, so a wider one goes there.
 

@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/components/tank_painter.dart';
 import 'package:wargame/src/ui/widgets/tank_choice.dart';
@@ -58,6 +59,7 @@ void main() {
   testWidgets('every vehicle card has the same size', (tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: Wrap(
             children: [

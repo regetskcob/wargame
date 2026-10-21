@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../app/env.dart';
 import '../game/components/storm_zone.dart';
@@ -320,8 +321,9 @@ class _HudOverlayState extends State<HudOverlay> {
     );
   }
 
-  Widget _alive(TankGame game, double fontSize) {
-    final style = TextStyle(fontSize: fontSize, fontWeight: FontWeight.w800);
+  /// The situation in the top right corner: tanks left, the score or the
+  /// wave, in mono like every value of the HUD.
+  Widget _alive(TankGame game, TextStyle style) {
     return ValueListenableBuilder<int>(
       valueListenable: game.aliveCount,
       builder: (context, alive, _) {
@@ -330,16 +332,17 @@ class _HudOverlayState extends State<HudOverlay> {
           final enemies = game.enemiesOnField;
           final allies = round.alive.where(round.isAlly).length;
           // The plate shares its row with the buttons; when the whole line
-          // does not fit, the wave goes without its word first and then the
-          // comrades are shortened as on the phone.
+          // does not fit, the comrades are shortened as on the phone first
+          // and the wave goes without its word only then: in the wider mono
+          // a bare "2/8" stood there already at 1024 px, which says less.
           List<String> lines(DefensePayload? state) => [
+            '${_wave(state)}   '
+                '${tr('FEINDE', 'ENEMIES')} $enemies   '
+                '${tr('KAMERADEN', 'COMRADES')} $allies',
             for (final short in const [false, true])
               '${_wave(state, short: short)}   '
                   '${tr('FEINDE', 'ENEMIES')} $enemies   '
-                  '${tr('KAMERADEN', 'COMRADES')} $allies',
-            '${_wave(state, short: true)}   '
-                '${tr('FEINDE', 'ENEMIES')} $enemies   '
-                '${tr('KAM.', 'ALLIES')} $allies',
+                  '${tr('KAM.', 'ALLIES')} $allies',
           ];
           return ValueListenableBuilder<DefensePayload?>(
             valueListenable: game.defense,
@@ -380,7 +383,7 @@ class _HudOverlayState extends State<HudOverlay> {
                 ),
                 TextSpan(
                   text: '  ${tr('BIS', 'TO')} ${GameConfig.flagCaptures}',
-                  style: const TextStyle(color: GameColors.textDim),
+                  style: const TextStyle(color: GameColors.textMuted),
                 ),
               ],
             ),
@@ -455,12 +458,12 @@ class _HudOverlayState extends State<HudOverlay> {
                       ),
                     ),
                     if (upright) ...[
-                      const SizedBox(height: 6),
+                      const SizedBox(height: HzSpace.s8),
                       IgnorePointer(child: map),
                       Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const MuteButton(),
+                          const MuteButton(overWorld: true),
                           LeaveRoundButton(game: game),
                         ],
                       ),
@@ -484,28 +487,30 @@ class _HudOverlayState extends State<HudOverlay> {
                         key: _statusKey,
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 5,
+                            horizontal: HzSpace.s8,
+                            vertical: HzSpace.s4,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _alive(game, 11),
-                              const SizedBox(height: 2),
+                              _alive(
+                                game,
+                                GameType.kennung.copyWith(
+                                  color: GameColors.text,
+                                ),
+                              ),
+                              const SizedBox(height: HzSpace.s2),
                               Text(
                                 _zoneLabel(compact: true),
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: GameColors.amber,
-                                ),
+                                style: GameType.caption,
                               ),
                             ],
                           ),
                         ),
                       ),
                     if (!upright) ...[
-                      const MuteButton(),
+                      const MuteButton(overWorld: true),
                       LeaveRoundButton(game: game),
                     ],
                   ],
@@ -533,7 +538,7 @@ class _HudOverlayState extends State<HudOverlay> {
                 AmmoGauge(ammo: ammo, maxAmmo: game.myMagazine, endless: false),
           ),
         if (game.usesFuel) ...[
-          if (!game.endlessAmmo) const SizedBox(height: 6),
+          if (!game.endlessAmmo) const SizedBox(height: HzSpace.s8),
           ValueListenableBuilder<double>(
             valueListenable: game.fuelNotifier,
             builder: (context, fuel, _) => FuelGauge(fuel: fuel),
@@ -564,19 +569,19 @@ class _HudOverlayState extends State<HudOverlay> {
             children: [
               ValueListenableBuilder<String?>(
                 valueListenable: game.notice,
+                // On a plate rather than with a shadow, so it reads on any
+                // ground; in capitals as an announcement.
                 builder: (context, text, _) => text == null
                     ? const SizedBox()
-                    : Text(
-                        text,
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: touch ? 18 : 24,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: touch ? 1.5 : 3,
-                          color: GameColors.amber,
-                          shadows: const [
-                            Shadow(color: Color(0xCC000000), blurRadius: 6),
-                          ],
+                    : Panel(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: HzSpace.s16,
+                          vertical: HzSpace.s8,
+                        ),
+                        child: Text(
+                          text.toUpperCase(),
+                          textAlign: TextAlign.center,
+                          style: touch ? GameType.title : GameType.headline,
                         ),
                       ),
               ),
@@ -585,25 +590,33 @@ class _HudOverlayState extends State<HudOverlay> {
                 builder: (context, seconds, _) => seconds <= 0
                     ? const SizedBox()
                     : Padding(
-                        padding: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.only(top: HzSpace.s8),
                         // Two lines: in one the countdown broke off mid-word
                         // on an upright phone.
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
+                            horizontal: HzSpace.s16,
+                            vertical: HzSpace.s8,
                           ),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                tr('ZERSTÖRT', 'DESTROYED'),
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 2,
-                                  color: GameColors.danger,
-                                ),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(
+                                    HorizontStatus.critical.icon,
+                                    size: HzIconSize.row,
+                                    color: GameColors.critical,
+                                  ),
+                                  const SizedBox(width: HzSpace.s8),
+                                  Text(
+                                    tr('ZERSTÖRT', 'DESTROYED'),
+                                    style: GameType.title.copyWith(
+                                      color: GameColors.critical,
+                                    ),
+                                  ),
+                                ],
                               ),
                               Text(
                                 tr(
@@ -611,10 +624,7 @@ class _HudOverlayState extends State<HudOverlay> {
                                   'Ready in $seconds s',
                                 ),
                                 textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
+                                style: GameType.callout,
                               ),
                             ],
                           ),
@@ -629,17 +639,18 @@ class _HudOverlayState extends State<HudOverlay> {
                     seconds <= 0 || game.respawnSeconds.value > 0
                     ? const SizedBox()
                     : Padding(
-                        padding: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.only(top: HzSpace.s8),
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: HzSpace.s12,
+                            vertical: HzSpace.s8,
                           ),
                           child: Text(
                             tr(
                               'SCHNELLFEUER  $seconds s',
                               'RAPID FIRE  $seconds s',
                             ),
+                            style: GameType.data,
                           ),
                         ),
                       ),
@@ -649,15 +660,15 @@ class _HudOverlayState extends State<HudOverlay> {
                 builder: (context, seconds, _) => seconds <= 0
                     ? const SizedBox()
                     : Padding(
-                        padding: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.only(top: HzSpace.s8),
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
+                            horizontal: HzSpace.s12,
+                            vertical: HzSpace.s8,
                           ),
                           child: Text(
                             tr('SCHILD  $seconds s', 'SHIELD  $seconds s'),
-                            style: const TextStyle(color: Color(0xFF81D4FA)),
+                            style: GameType.data,
                           ),
                         ),
                       ),
@@ -669,7 +680,7 @@ class _HudOverlayState extends State<HudOverlay> {
                   builder: (context, special, _) => special == null
                       ? const SizedBox()
                       : Padding(
-                          padding: const EdgeInsets.only(top: 6),
+                          padding: const EdgeInsets.only(top: HzSpace.s8),
                           child: SpecialPlate(
                             weapon: special.$1,
                             charges: special.$2,
@@ -721,11 +732,16 @@ class _HudOverlayState extends State<HudOverlay> {
     return gaugesBottom + 8 > inventoryTop;
   }
 
+  /// The gauges step in only while the inventory holds something: an empty
+  /// one shows no slots, and the plates stood 72 px off the edge for nothing.
   Widget _status(TankGame game) {
-    return LayoutBuilder(
-      builder: (context, constraints) => _statusColumn(
-        game,
-        _gaugesMeetInventory(game, constraints.maxHeight),
+    return ValueListenableBuilder(
+      valueListenable: game.inventory,
+      builder: (context, slots, _) => LayoutBuilder(
+        builder: (context, constraints) => _statusColumn(
+          game,
+          slots.isNotEmpty && _gaugesMeetInventory(game, constraints.maxHeight),
+        ),
       ),
     );
   }
@@ -751,7 +767,7 @@ class _HudOverlayState extends State<HudOverlay> {
                           HealthBar(hp: hp, maxHp: game.myMaxHp),
                     ),
                     if (!game.endlessAmmo || game.usesFuel)
-                      const SizedBox(height: 6),
+                      const SizedBox(height: HzSpace.s8),
                     _ammo(game),
                   ],
                 ),
@@ -769,41 +785,47 @@ class _HudOverlayState extends State<HudOverlay> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const MuteButton(),
+                          const MuteButton(overWorld: true),
                           LeaveRoundButton(game: game),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: HzSpace.s8),
                     Flexible(
                       child: IgnorePointer(
                         key: _statusKey,
                         child: Panel(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 8,
+                            horizontal: HzSpace.s12,
+                            vertical: HzSpace.s8,
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.end,
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              _alive(game, 16),
+                              _alive(
+                                game,
+                                GameType.data.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                               ValueListenableBuilder<int>(
                                 valueListenable: game.soldiersRunOver,
                                 builder: (context, n, _) => n == 0
                                     ? const SizedBox()
                                     : Text(
                                         tr('ÜBERROLLT: $n', 'RUN OVER: $n'),
-                                        style: const TextStyle(
-                                          color: GameColors.danger,
-                                          fontWeight: FontWeight.w800,
+                                        style: GameType.data.copyWith(
+                                          color: GameColors.critical,
                                         ),
                                       ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: HzSpace.s4),
                               Text(
                                 _zoneLabel(),
-                                style: const TextStyle(color: GameColors.amber),
+                                style: GameType.callout.copyWith(
+                                  color: GameColors.textMuted,
+                                ),
                               ),
                             ],
                           ),
@@ -815,7 +837,7 @@ class _HudOverlayState extends State<HudOverlay> {
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: HzSpace.s8),
           // Six kills in a short window would push the mini map off the
           // screen: the feed gets the room left, and the oldest lines at
           // its top give way first.
@@ -887,7 +909,10 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   ButtonStyle get _buttonStyle => ButtonStyle(
     padding: WidgetStatePropertyAll(
-      EdgeInsets.symmetric(horizontal: touch ? 8 : 10, vertical: 4),
+      EdgeInsets.symmetric(
+        horizontal: touch ? HzSpace.s8 : HzSpace.s12,
+        vertical: HzSpace.s4,
+      ),
     ),
     // Big enough for a thumb on phones, still a single line of text.
     minimumSize: WidgetStatePropertyAll(Size(0, touch ? 32 : 30)),
@@ -895,31 +920,58 @@ class _DefensePanelState extends State<_DefensePanel> {
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 
-  TextStyle get _small =>
-      TextStyle(fontSize: touch ? 10 : 11, letterSpacing: 0.5);
+  /// The labels of the panel's buttons: small, without a colour of their
+  /// own, so the button's foreground still says enabled or not.
+  TextStyle get _small => TextStyle(
+    fontSize: touch ? HzType.kennung.size : HzType.caption.size,
+    fontWeight: FontWeight.w600,
+  );
 
-  /// What can be bought now is filled in [color] and bright, what cannot is
-  /// only a faint outline, so the two never look alike.
-  ButtonStyle _buyStyle(Color color) => _buttonStyle.copyWith(
+  /// What can be bought now is bright, ink in the outline on the sunken
+  /// ground; what cannot is only a faint line, so the two never look alike.
+  ButtonStyle get _buyStyle => _buttonStyle.copyWith(
     backgroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
           ? Colors.transparent
-          : color.withValues(alpha: 0.28),
+          : GameColors.sunken,
     ),
     foregroundColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.disabled)
-          ? GameColors.textDim.withValues(alpha: 0.45)
+          ? GameColors.textFaint
           : GameColors.text,
     ),
     side: WidgetStateProperty.resolveWith(
       (states) => BorderSide(
         color: states.contains(WidgetState.disabled)
-            ? color.withValues(alpha: 0.3)
-            : color,
-        width: 1.5,
+            ? GameColors.line
+            : GameColors.lineStrong,
       ),
     ),
   );
+
+  /// An open list is the selection: its tint and the 2 px accent line along
+  /// the foot, never the fill of the primary action. Not a frame in the
+  /// accent either: on the television that read as the focus ring, which
+  /// sits around the button in focus in the same colour.
+  ButtonStyle _tabStyle(ButtonStyle base, {required bool open}) => open
+      ? base.copyWith(
+          backgroundColor: const WidgetStatePropertyAll(GameColors.accentTint),
+          foregroundColor: const WidgetStatePropertyAll(GameColors.text),
+          backgroundBuilder: (context, states, child) => Stack(
+            alignment: Alignment.center,
+            children: [
+              ?child,
+              const Positioned(
+                left: HzRadius.r6,
+                right: HzRadius.r6,
+                bottom: 0,
+                height: HzLine.selection,
+                child: ColoredBox(color: GameColors.accentText),
+              ),
+            ],
+          ),
+        )
+      : base;
 
   Widget _nearTower(Tower near, int credits) {
     return FilledButton.icon(
@@ -930,7 +982,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               credits >= near.kind.upgradeCost(near.level)
           ? () => game.upgradeTower(near)
           : null,
-      icon: const Icon(Icons.upgrade_outlined, size: 16),
+      icon: const Icon(Icons.upgrade_outlined, size: HzIconSize.inline),
       label: Text(
         !near.kind.upgradable
             ? tr('${near.kind.label} BESETZT', '${near.kind.label} OCCUPIED')
@@ -957,8 +1009,8 @@ class _DefensePanelState extends State<_DefensePanel> {
     final wave = game.defense.value?.wave ?? 0;
     final extended = game.extended;
     return Wrap(
-      spacing: 6,
-      runSpacing: 4,
+      spacing: HzSpace.s8,
+      runSpacing: HzSpace.s4,
       children: [
         for (final kind in TowerKind.values)
           if (!kind.extension || extended)
@@ -971,7 +1023,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               // stayed filled and read as picked, or as the one thing the
               // funds still reached. Which kind B builds the line above says.
               child: OutlinedButton(
-                style: _buyStyle(GameColors.oliveLight),
+                style: _buyStyle,
                 onPressed:
                     credits >= game.buildCost(kind) &&
                         kind.unlockedIn(wave, extended: extended)
@@ -991,8 +1043,8 @@ class _DefensePanelState extends State<_DefensePanel> {
 
   Widget _upgrades(int credits) {
     return Wrap(
-      spacing: 6,
-      runSpacing: 4,
+      spacing: HzSpace.s8,
+      runSpacing: HzSpace.s4,
       children: [
         for (final kind in UpgradeKind.values) _upgrade(kind, credits),
       ],
@@ -1012,10 +1064,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         Text(
           '${tr('MÜNZEN', 'COINS')} $credits   ·   ${_buildKeys(game)}'
           '${(game.round?.duel ?? false) ? tr('   ·   ${steeredByPad(game) ? 'Y' : 'T'} schickt Panzer ${GameConfig.troopCost}', '   ·   ${steeredByPad(game) ? 'Y' : 'T'} sends a tank ${GameConfig.troopCost}') : ''}',
-          style: const TextStyle(
-            color: GameColors.amber,
-            fontWeight: FontWeight.w800,
-          ),
+          style: GameType.label.copyWith(fontWeight: FontWeight.w700),
         ),
         Text(
           tr(
@@ -1026,22 +1075,22 @@ class _DefensePanelState extends State<_DefensePanel> {
                 'with every wave) and every wave beaten off '
                 '(+${GameConfig.waveBonus}).',
           ),
-          style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+          style: GameType.caption,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: HzSpace.s8),
         // One list at a time, like on phones: with both the panel covered a
         // quarter of a laptop screen and the road beneath it. A narrow
         // window wraps the call for the next wave below the tabs.
         Wrap(
-          spacing: 6,
-          runSpacing: 4,
+          spacing: HzSpace.s8,
+          runSpacing: HzSpace.s4,
           children: [
             _deskTab(tr('GESCHÜTZE', 'GUNS'), _Shop.towers),
             _deskTab(tr('AUFRÜSTUNG', 'UPGRADES'), _Shop.upgrades),
             if (game.canCallWave) _callWave(),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: HzSpace.s8),
         if (_desk == _Shop.upgrades)
           _upgrades(credits)
         else if (near != null)
@@ -1056,8 +1105,8 @@ class _DefensePanelState extends State<_DefensePanel> {
     final open = _desk == shop;
     return _ready(
       shop,
-      (open ? FilledButton.new : OutlinedButton.new)(
-        style: _buttonStyle,
+      OutlinedButton(
+        style: _tabStyle(_buttonStyle, open: open),
         onPressed: () => setState(() => _desk = shop),
         child: Text(label, style: _small),
       ),
@@ -1072,21 +1121,23 @@ class _DefensePanelState extends State<_DefensePanel> {
   };
 
   /// A dot on the corner of the button for [shop] while the funds reach for
-  /// something behind it, so a closed list still says when to look.
+  /// something behind it, so a closed list still says when to look. In the
+  /// positive colour: the accent belongs to the selection.
   Widget _ready(_Shop shop, Widget button) => Badge(
     isLabelVisible: _affordable(shop),
-    smallSize: 9,
-    backgroundColor: GameColors.amber,
+    smallSize: HzSpace.s8,
+    backgroundColor: GameColors.positive,
     offset: const Offset(-2, 2),
     child: button,
   );
 
-  /// The host skips the rest of the break.
+  /// The host skips the rest of the break. Outlined: building and
+  /// upgrading are the panel's main actions.
   Widget _callWave() {
-    return FilledButton.icon(
+    return OutlinedButton.icon(
       style: _buttonStyle,
       onPressed: game.callWaveNow,
-      icon: const Icon(Icons.fast_forward_outlined, size: 16),
+      icon: const Icon(Icons.fast_forward_outlined, size: HzIconSize.inline),
       label: Text(
         touch || steeredByPad(game)
             ? tr('WELLE JETZT', 'WAVE NOW')
@@ -1111,11 +1162,11 @@ class _DefensePanelState extends State<_DefensePanel> {
         child: ExcludeSemantics(
           child: _ready(
             shop,
-            (open ? FilledButton.new : OutlinedButton.new)(
-              style: _iconStyle,
+            OutlinedButton(
+              style: _tabStyle(_iconStyle, open: open),
               onPressed: () =>
                   setState(() => _shop = open ? _Shop.closed : shop),
-              child: Icon(icon, size: 18),
+              child: Icon(icon, size: HzIconSize.row),
             ),
           ),
         ),
@@ -1142,38 +1193,41 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               '$credits',
               semanticsLabel: tr('Münzen $credits', 'Coins $credits'),
-              style: const TextStyle(
-                color: GameColors.amber,
-                fontSize: 12,
-                fontWeight: FontWeight.w800,
-              ),
+              style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
-            const SizedBox(width: 2),
-            const Icon(Icons.paid_outlined, size: 13, color: GameColors.amber),
-            const SizedBox(width: 8),
+            const SizedBox(width: HzSpace.s2),
+            const Icon(
+              Icons.paid_outlined,
+              size: HzIconSize.badge,
+              color: GameColors.textMuted,
+            ),
+            const SizedBox(width: HzSpace.s8),
             _tab(
               tr('Geschütze', 'Guns'),
               Icons.construction_outlined,
               _Shop.towers,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: HzSpace.s4),
             _tab(
               tr('Aufrüstung', 'Upgrades'),
               Icons.upgrade_outlined,
               _Shop.upgrades,
             ),
             if (game.canCallWave) ...[
-              const SizedBox(width: 4),
+              const SizedBox(width: HzSpace.s4),
               Tooltip(
                 message: tr('Welle jetzt', 'Wave now'),
                 child: Semantics(
                   button: true,
                   label: tr('Welle jetzt', 'Wave now'),
                   child: ExcludeSemantics(
-                    child: FilledButton(
+                    child: OutlinedButton(
                       style: _iconStyle,
                       onPressed: game.callWaveNow,
-                      child: const Icon(Icons.fast_forward_outlined, size: 18),
+                      child: const Icon(
+                        Icons.fast_forward_outlined,
+                        size: HzIconSize.row,
+                      ),
                     ),
                   ),
                 ),
@@ -1182,11 +1236,11 @@ class _DefensePanelState extends State<_DefensePanel> {
           ],
         ),
         if (near != null) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: HzSpace.s4),
           _nearTower(near, credits),
         ],
         if (_shop != _Shop.closed) ...[
-          const SizedBox(height: 4),
+          const SizedBox(height: HzSpace.s4),
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 330),
             child: _shop == _Shop.towers
@@ -1206,9 +1260,9 @@ class _DefensePanelState extends State<_DefensePanel> {
     return Tooltip(
       message: '${kind.label}: ${kind.effect} ${tr('je Stufe', 'per level')}',
       child: OutlinedButton(
-        style: _buyStyle(kind.color).copyWith(
-          padding: WidgetStatePropertyAll(
-            EdgeInsets.symmetric(horizontal: touch ? 6 : 8, vertical: 2),
+        style: _buyStyle.copyWith(
+          padding: const WidgetStatePropertyAll(
+            EdgeInsets.symmetric(horizontal: HzSpace.s8, vertical: HzSpace.s2),
           ),
           minimumSize: WidgetStatePropertyAll(Size(0, touch ? 32 : 28)),
         ),
@@ -1218,7 +1272,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         child: Text(
           '${kind.label} ${'●' * level}${'○' * (limit - level)}'
           '${maxed ? '' : ' $cost'}',
-          style: const TextStyle(fontSize: 11),
+          style: _small,
         ),
       ),
     );
@@ -1237,29 +1291,42 @@ class _DefensePanelState extends State<_DefensePanel> {
         final host = game.round?.botHost == game.myId;
         const more = GameConfig.defenseExtension;
         final first = !state.extended;
-        final small = TextStyle(fontSize: touch ? 10 : 11);
+        final small = GameType.caption.copyWith(color: GameColors.text);
         final align = touch ? TextAlign.end : TextAlign.start;
         return Padding(
-          padding: EdgeInsets.only(bottom: touch ? 6 : 10),
+          padding: EdgeInsets.only(bottom: touch ? HzSpace.s8 : HzSpace.s12),
           child: Column(
             crossAxisAlignment: touch
                 ? CrossAxisAlignment.end
                 : CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                tr(
-                  'WELLE ${state.wave} GEHALTEN · GEWONNEN',
-                  'WAVE ${state.wave} HELD · VICTORY SECURED',
-                ),
-                textAlign: align,
-                style: TextStyle(
-                  color: GameColors.amber,
-                  fontSize: touch ? 11 : 13,
-                  fontWeight: FontWeight.w900,
-                ),
+              // Won: the positive sign and colour with the word.
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    HorizontStatus.positive.icon,
+                    size: HzIconSize.inline,
+                    color: GameColors.positive,
+                  ),
+                  const SizedBox(width: HzSpace.s4),
+                  Flexible(
+                    child: Text(
+                      tr(
+                        'WELLE ${state.wave} GEHALTEN · GEWONNEN',
+                        'WAVE ${state.wave} HELD · VICTORY SECURED',
+                      ),
+                      textAlign: align,
+                      style: GameType.label.copyWith(
+                        color: GameColors.positive,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: HzSpace.s2),
               ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 420),
                 child: Text(
@@ -1283,7 +1350,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                   style: small,
                 ),
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: HzSpace.s4),
               // One row, as asked in the play test: the two choices side by
               // side, shrinking rather than wrapping on a narrow phone.
               if (host)
@@ -1299,18 +1366,24 @@ class _DefensePanelState extends State<_DefensePanel> {
                         FilledButton.icon(
                           style: _buttonStyle,
                           onPressed: game.extendDefense,
-                          icon: const Icon(Icons.add_outlined, size: 16),
+                          icon: const Icon(
+                            Icons.add_outlined,
+                            size: HzIconSize.inline,
+                          ),
                           label: Text(
                             tr('$more WELLEN', '$more WAVES'),
                             style: _small,
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        const SizedBox(width: HzSpace.s8),
                       ],
                       OutlinedButton.icon(
-                        style: _buyStyle(GameColors.sand),
+                        style: _buyStyle,
                         onPressed: game.withdrawDefense,
-                        icon: const Icon(Icons.flag_outlined, size: 16),
+                        icon: const Icon(
+                          Icons.flag_outlined,
+                          size: HzIconSize.inline,
+                        ),
                         label: Text(tr('BEENDEN', 'END'), style: _small),
                       ),
                     ],
@@ -1323,7 +1396,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                     'The host decides whether it goes on.',
                   ),
                   textAlign: align,
-                  style: small.copyWith(color: GameColors.textDim),
+                  style: small.copyWith(color: GameColors.textMuted),
                 ),
             ],
           ),
@@ -1343,21 +1416,15 @@ class _DefensePanelState extends State<_DefensePanel> {
         Text(
           '${tr('GEGNER', 'RIVAL')} · ${GameConfig.hqName(state.hqOf(lane))}'
           '  ${hp.ceil()}',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w800,
+          style: GameType.kennung.copyWith(
             color: GameConfig.teamColors[lane + 1],
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: HzSpace.s4),
+        // The other side in its team colour, which names it in the world.
         SizedBox(
           width: 200,
-          height: 8,
-          child: LinearProgressIndicator(
-            value: ratio,
-            backgroundColor: const Color(0x66000000),
-            color: GameConfig.teamColors[lane + 1],
-          ),
+          child: GaugeBar(value: ratio, color: GameConfig.teamColors[lane + 1]),
         ),
       ],
     );
@@ -1372,23 +1439,31 @@ class _DefensePanelState extends State<_DefensePanel> {
         final hq = state?.hqOf(lane) ?? 1;
         final hp = state?.hpOf(lane) ?? GameConfig.baseHp;
         final ratio = (hp / GameConfig.baseMaxHp(hq)).clamp(0.0, 1.0);
+        // The base like the armour: ink, then warning and critical, with
+        // the sign beside the value.
+        final status = armourStatus(ratio);
         final bar = SizedBox(
-          width: touch ? 70 : 200,
-          height: touch ? 6 : 8,
-          child: LinearProgressIndicator(
+          width: touch ? 72 : 200,
+          child: GaugeBar(
             value: ratio,
-            backgroundColor: const Color(0x66000000),
-            color: ratio > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
+            status: status,
+            height: touch ? HzSpace.s4 : HzSpace.s8,
           ),
         );
-        final label = Text(
-          touch
-              ? '${hp.ceil()}'
-              : '${tr('STÜTZPUNKT', 'BASE')} · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
-          style: TextStyle(
-            fontSize: touch ? 10 : 12,
-            fontWeight: FontWeight.w800,
-          ),
+        // The text wraps in a narrow window, the sign stays beside it.
+        final label = Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              child: Text(
+                touch
+                    ? '${hp.ceil()}'
+                    : '${tr('STÜTZPUNKT', 'BASE')} · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
+                style: GameType.kennung.copyWith(color: stockColor(status)),
+              ),
+            ),
+            StockSign(status, size: HzIconSize.badge),
+          ],
         );
         if (touch) {
           // Upright the wave label may have to drop below the bar.
@@ -1402,19 +1477,16 @@ class _DefensePanelState extends State<_DefensePanel> {
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
                 child: const Icon(
                   Icons.flag_outlined,
-                  size: 12,
-                  color: GameColors.sand,
+                  size: HzIconSize.badge,
+                  color: GameColors.textMuted,
                 ),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: HzSpace.s4),
               bar,
-              const SizedBox(width: 6),
+              const SizedBox(width: HzSpace.s8),
               label,
-              const SizedBox(width: 10),
-              Text(
-                widget.waveLabel,
-                style: const TextStyle(fontSize: 11, color: GameColors.amber),
-              ),
+              const SizedBox(width: HzSpace.s12),
+              Text(widget.waveLabel, style: GameType.caption),
             ],
           );
         }
@@ -1424,10 +1496,10 @@ class _DefensePanelState extends State<_DefensePanel> {
           mainAxisSize: MainAxisSize.min,
           children: [
             label,
-            const SizedBox(height: 4),
+            const SizedBox(height: HzSpace.s4),
             bar,
             if (rival != null) ...[
-              const SizedBox(height: 6),
+              const SizedBox(height: HzSpace.s8),
               _rivalBase(state!, rival),
             ],
           ],
@@ -1440,8 +1512,14 @@ class _DefensePanelState extends State<_DefensePanel> {
   Widget build(BuildContext context) {
     final panel = Panel(
       padding: touch
-          ? const EdgeInsets.symmetric(horizontal: 8, vertical: 6)
-          : const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          ? const EdgeInsets.symmetric(
+              horizontal: HzSpace.s8,
+              vertical: HzSpace.s8,
+            )
+          : const EdgeInsets.symmetric(
+              horizontal: HzSpace.s12,
+              vertical: HzSpace.s8,
+            ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: touch
@@ -1452,23 +1530,23 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               widget.counts,
               textAlign: TextAlign.end,
-              style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w800),
+              style: GameType.kennung.copyWith(color: GameColors.text),
             ),
-            const SizedBox(height: 3),
+            const SizedBox(height: HzSpace.s4),
           ],
           if (onTv)
             ValueListenableBuilder<bool>(
               valueListenable: game.tvMenu,
               builder: (context, open, _) => open
                   ? Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.only(bottom: HzSpace.s8),
                       child: _TvMenuButtons(game: game),
                     )
                   : const SizedBox.shrink(),
             ),
           _decision(),
           _base(),
-          SizedBox(height: touch ? 5 : 8),
+          SizedBox(height: touch ? HzSpace.s4 : HzSpace.s8),
           ListenableBuilder(
             listenable: Listenable.merge([
               game.credits,
@@ -1559,20 +1637,19 @@ class _TvMenuButtons extends StatelessWidget {
             'MENÜ · Wischen wählt, Klick oder Play/Pause löst aus, Menü schließt',
             'MENU · swipe to choose, click or play/pause to press, Menu closes',
           ),
-          style: const TextStyle(
-            fontSize: 11,
-            fontWeight: FontWeight.w800,
-            color: GameColors.amber,
-          ),
+          style: GameType.kennung,
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: HzSpace.s8),
         Wrap(
-          spacing: 6,
-          runSpacing: 4,
+          spacing: HzSpace.s8,
+          runSpacing: HzSpace.s4,
           children: [
             FilledButton.icon(
               onPressed: () => game.tvMenu.value = false,
-              icon: const Icon(Icons.play_arrow_outlined, size: 16),
+              icon: const Icon(
+                Icons.play_arrow_outlined,
+                size: HzIconSize.inline,
+              ),
               label: Text(tr('WEITERSPIELEN', 'KEEP PLAYING')),
             ),
             OutlinedButton.icon(
@@ -1580,7 +1657,7 @@ class _TvMenuButtons extends StatelessWidget {
                 game.tvMenu.value = false;
                 game.leaveAsked.value = true;
               },
-              icon: const Icon(Icons.logout_outlined, size: 16),
+              icon: const Icon(Icons.logout_outlined, size: HzIconSize.inline),
               label: Text(tr('RUNDE VERLASSEN', 'LEAVE ROUND')),
             ),
           ],
@@ -1606,7 +1683,12 @@ class _TvRoundMenu extends StatelessWidget {
               child: TvMenuScope(
                 open: game.tvMenu,
                 child: Panel(
-                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 14),
+                  padding: const EdgeInsets.fromLTRB(
+                    HzSpace.s24,
+                    HzSpace.s16,
+                    HzSpace.s24,
+                    HzSpace.s16,
+                  ),
                   child: _TvMenuButtons(game: game),
                 ),
               ),

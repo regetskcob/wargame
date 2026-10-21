@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/special_weapon.dart';
 import 'package:wargame/src/game/touch_input.dart';
 import 'package:wargame/src/ui/widgets/touch_controls.dart';
@@ -18,6 +19,7 @@ void main() {
     final input = TouchInput();
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: TouchControls(
             input: input,
@@ -57,6 +59,7 @@ void main() {
     final input = TouchInput();
     final special = ValueNotifier<(SpecialWeapon, int)?>(null);
     Widget controls(int build) => MaterialApp(
+      theme: buildGameTheme(),
       home: Scaffold(
         body: TouchControls(
           key: ValueKey(build),
@@ -115,6 +118,7 @@ void main() {
     addTearDown(tester.view.reset);
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: TouchControls(
             input: TouchInput(),

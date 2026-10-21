@@ -1,94 +1,100 @@
 {{ define "main" }}
-{{- $store := site.Params.store -}}
-{{- $name := partial "store.html" "name" -}}
-{{- $subtitle := partial "store.html" "subtitle" -}}
-{{- $promo := partial "store.html" "promotional_text" -}}
+{{- /*
+  The landing page as a Feldseite (Horizont, docs/web.md): the hero, every
+  device in one picture on the horizon line, then numbered sections with facts in
+  mono and the store screenshots in their device frames below them. Texts
+  come from the App Store listing (store/ios/metadata) where it has them,
+  everything else from i18n/<lang>.yaml.
+*/ -}}
+{{- $game := "play/" | relURL -}}
 
-{{- /* The ways to play, the first section of the App Store description:
-   after its opening paragraph, a heading in capitals, then "• Name: text"
-   lines. The loose paragraphs at its end come from notes.html. */ -}}
+{{- /* The App Store description: an opening paragraph, then sections with
+   a heading in capitals and "• Name: text" lines. The first section holds
+   the ways to play; the loose paragraphs at its end come from notes.html. */ -}}
+{{- $blocks := split (partial "store.html" "description") "\n\n" -}}
+{{- $opener := index $blocks 0 -}}
 {{- $sections := slice -}}
-{{- range $i, $block := split (partial "store.html" "description") "\n\n" -}}
+{{- range $i, $block := $blocks -}}
   {{- $lines := split (strings.TrimSpace $block) "\n" -}}
   {{- $first := index $lines 0 -}}
   {{- if and (gt $i 0) (gt (len $lines) 1) (eq (upper $first) $first) -}}
     {{- $sections = $sections | append (dict "title" $first "lines" (after 1 $lines)) -}}
   {{- end -}}
 {{- end -}}
-{{- $modes := index $sections 0 -}}
-{{- $modeIcons := slice "person" "groups" "shield" "flag" "split" -}}
+{{- $notes := partial "notes.html" -}}
 
-{{ partial "bar.html" . }}
+{{ partial "horizont/feld/hero.html" (dict
+  "kennung" (i18n "hero-kennung")
+  "title" (i18n "hero-title")
+  "text" (partial "store.html" "promotional_text")
+  "primary" (dict "label" (i18n "play") "url" $game)
+  "secondary" (dict "label" (i18n "getApp") "url" "#beta")) }}
 
-<main>
-  {{- /* The opener: every device the game runs on, one room for all of them. */}}
-  <section class="hero">
-    <h1>{{ upper $name }}</h1>
-    <p class="kicker">{{ $subtitle }}</p>
-    {{ partial "play-button.html" (dict "label" (i18n "play")) }}
-    <p class="hint">{{ i18n "playHint" }}</p>
-    {{- /* Every platform, out or coming, drawn alike by store/tool/landing.py:
-         one table for wide screens, two for phones. The line below says
-         what is out today. */}}
-    {{- $h := resources.Get (printf "header/%s/devices.png" $store) }}
-    {{- $h1 := $h.Resize "1600x webp" }}{{ $h2 := $h.Resize "3200x webp" }}
-    {{- $n := resources.Get (printf "header/%s/devices-narrow.png" $store) }}
-    {{- $n1 := $n.Resize "700x webp" }}{{ $n2 := $n.Resize "1400x webp" }}
-    <picture>
-      <source media="(max-width: 760px)" srcset="{{ $n1.RelPermalink }} 1x, {{ $n2.RelPermalink }} 2x"
-        width="{{ $n1.Width }}" height="{{ $n1.Height }}">
-      <img class="devices" src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
-        width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
-    </picture>
-    <p class="hint platforms">{{ i18n "platformsNote" }}</p>
-    <p class="lead">{{ $promo }}</p>
-  </section>
+{{- /* Every screen the game runs on, side by side on one table: the same
+   picture as before the Horizont page, drawn by store/tool/landing.py from
+   the store shots (one wide table, two for phones). The line under 03 says
+   what is out today. */}}
+{{- $h := resources.Get (printf "header/%s/devices.png" site.Params.store) }}
+{{- $h1 := $h.Resize "1600x webp" }}{{ $h2 := $h.Resize "3200x webp" }}
+{{- $n := resources.Get (printf "header/%s/devices-narrow.png" site.Params.store) }}
+{{- $n1 := $n.Resize "700x webp" }}{{ $n2 := $n.Resize "1400x webp" }}
+<picture class="pz-header">
+  <source media="(max-width: 760px)" srcset="{{ $n1.RelPermalink }} 1x, {{ $n2.RelPermalink }} 2x"
+    width="{{ $n1.Width }}" height="{{ $n1.Height }}">
+  <img src="{{ $h1.RelPermalink }}" srcset="{{ $h1.RelPermalink }} 1x, {{ $h2.RelPermalink }} 2x"
+    width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
+</picture>
 
-  <section class="section" id="modes">
-    <div class="modes">
-      {{- range $i, $line := $modes.lines }}
-      {{- with findRESubmatch `^•\s*([^:]+):\s*(.*)$` $line 1 }}
-      {{- $m := index . 0 }}
-      {{- /* The first sentence is enough here, the store has the rest. */}}
-      {{- $text := index (split (index $m 2) ". ") 0 | strings.TrimSuffix "." }}
-      <article class="mode">
-        {{ partial "icon.html" (index $modeIcons $i | default "star") }}
-        <h3>{{ upper (index $m 1) }}</h3>
-        <p>{{ $text }}.</p>
-      </article>
-      {{- end }}
-      {{- end }}
-    </div>
-  </section>
+{{- /* 02 — The ways to play: name and first sentence of each, the store has
+   the rest; the four iPhone screenshots below. */}}
+{{- $facts := slice }}
+{{- range (index $sections 0).lines }}
+  {{- with findRESubmatch `^•\s*([^:]+):\s*(.*)$` . 1 }}
+    {{- $m := index . 0 }}
+    {{- $text := index (split (index $m 2) ". ") 0 | strings.TrimSuffix "." }}
+    {{- $facts = $facts | append (dict "term" (index $m 1) "value" (printf "%s." (strings.FirstUpper $text))) }}
+  {{- end }}
+{{- end }}
+{{ partial "horizont/feld/section.html" (dict "id" "modes" "kennung" (i18n "modes-kennung") "title" (i18n "modes-title") "text" $opener "facts" $facts) }}
+<div class="pz-extend pz-shots">
+  {{- range slice "01-gefecht" "02-verteidigung" "03-fahrzeuge" "04-modi" }}
+  {{ partial "shot.html" (dict "kind" "iphone" "file" (printf "iphone-%s" .) "width" 180 "alt" (i18n (printf "shot-%s" .))) }}
+  {{- end }}
+</div>
 
-  {{- /* Every screen the game runs on, in the page's own words: the store
-     description is the iOS app's and leaves out the browser, the TV and the
-     Mac. */}}
-  <section class="section" id="devices">
-    <h2 class="section-title">{{ i18n "devicesTitle" }}</h2>
-    <div class="modes">
-      {{- range slice "web" "phone" "gamepad" "watch" "tv" "mac" }}
-      <article class="mode">
-        {{ partial "icon.html" . }}
-        <h3>{{ upper (i18n (printf "device-%s" .)) }}</h3>
-        <p>{{ i18n (printf "device-%s-text" .) }}</p>
-      </article>
-      {{- end }}
-    </div>
-  </section>
+{{- /* 03 — Every screen the game runs on, in the page's own words: the store
+   description is the iOS app's and leaves out the browser, the TV and the
+   Mac. */}}
+{{- $facts = slice }}
+{{- range slice "web" "phone" "gamepad" "watch" "tv" "mac" }}
+  {{- $facts = $facts | append (dict "term" (i18n (printf "device-%s" .)) "value" (i18n (printf "device-%s-text" .))) }}
+{{- end }}
+{{ partial "horizont/feld/section.html" (dict "id" "devices" "kennung" (i18n "devices-kennung") "title" (i18n "devices-title") "text" (i18n "platformsNote") "facts" $facts) }}
+<div class="pz-extend pz-shots pz-shots--devices">
+  {{ partial "shot.html" (dict "kind" "mac" "file" "mac-02-verteidigung" "width" 340 "alt" (i18n "shot-mac")) }}
+  {{ partial "shot.html" (dict "kind" "ipad" "file" "ipad-03-warteraum" "width" 290 "alt" (i18n "shot-ipad")) }}
+  {{ partial "shot.html" (dict "kind" "watch" "file" "watch-03-gefecht" "width" 110 "alt" (i18n "shot-watch")) }}
+</div>
 
-  <section class="section" id="screens">
-    <div class="shots" tabindex="0">
-      {{- range $i, $f := slice "01-gefecht" "02-verteidigung" "03-fahrzeuge" "04-modi" }}
-      {{- $img := resources.Get (printf "store/screenshots/%s/iphone-%s.png" $store $f) }}
-      {{- $a := $img.Resize "240x webp" }}{{ $b := $img.Resize "480x webp" }}
-      <img src="{{ $a.RelPermalink }}" srcset="{{ $a.RelPermalink }} 1x, {{ $b.RelPermalink }} 2x"
-        width="{{ $a.Width }}" height="{{ $a.Height }}" loading="lazy" alt="{{ i18n (printf "shot-%s" $f) }}">
-      {{- end }}
-    </div>
-    {{- with index (partial "notes.html") 0 }}<p class="pledge">{{ . }}</p>{{ end }}
-  </section>
-</main>
+{{- /* 04 — Where to get the apps, in the order they have to be taken: the
+   stores once they are set in hugo.toml, then the betas, Android's two
+   steps one after the other (the closed test only lets in members of the
+   tester group). */}}
+{{- $facts = slice }}
+{{- with site.Params.stores }}
+  {{- with .appStore }}{{ $facts = $facts | append (dict "term" "App Store" "value" (printf "[%s](%s)" (i18n "store-ios") .)) }}{{ end }}
+  {{- with .googlePlay }}{{ $facts = $facts | append (dict "term" "Google Play" "value" (printf "[%s](%s)" (i18n "store-android") .)) }}{{ end }}
+{{- end }}
+{{- with site.Params.beta }}
+  {{- $facts = $facts | append (dict "term" (i18n "beta-ios") "value" (printf "%s [%s](%s)" (i18n "beta-ios-text") (i18n "beta-ios-link") .testflight)) }}
+  {{- $facts = $facts | append (dict "term" (i18n "beta-android") "value" (printf "%s 1. [%s](%s) · 2. [%s](%s)" (i18n "beta-android-text") (i18n "beta-android-step1") .testerGroup (i18n "beta-android-step2") .playTest)) }}
+{{- end }}
+{{ partial "horizont/feld/section.html" (dict "id" "beta" "kennung" (i18n "beta-kennung") "title" (i18n "betaTitle") "text" (i18n "betaLead") "facts" $facts) }}
 
-{{ partial "foot.html" . }}
+{{- /* 05 — The pledge and the disclaimer of the store description. */}}
+{{- $facts = slice }}
+{{- range slice "price" "account" "delete" }}
+  {{- $facts = $facts | append (dict "term" (i18n (printf "fair-%s" .)) "value" (i18n (printf "fair-%s-text" .))) }}
+{{- end }}
+{{ partial "horizont/feld/section.html" (dict "id" "fair" "kennung" (i18n "fair-kennung") "title" (index $notes 0) "text" (index $notes 1) "facts" $facts) }}
 {{ end }}

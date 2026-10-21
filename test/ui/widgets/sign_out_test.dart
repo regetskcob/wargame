@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/db/account_service.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/net/room.dart';
@@ -27,6 +28,7 @@ void main() {
   Future<void> open(WidgetTester tester, AccountService accounts) async {
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Builder(
           builder: (context) => TextButton(
             onPressed: () => showDialog<void>(

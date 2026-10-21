@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/tank_game.dart';
 import 'theme.dart';
@@ -15,7 +16,7 @@ class ClosedOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ColoredBox(
-      color: const Color(0xAA000000),
+      color: GameColors.bg.withValues(alpha: 0.7),
       // No reason while the host's own close moves on to the start page.
       child: ValueListenableBuilder<String?>(
         valueListenable: game.closedReason,
@@ -29,11 +30,11 @@ class ClosedOverlay extends StatelessWidget {
     return SafeArea(
       child: Center(
         child: FitOrScroll(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(HzSpace.s16),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: Panel(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(HzSpace.s24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -42,12 +43,12 @@ class ClosedOverlay extends StatelessWidget {
                     tr('WARTERAUM GESCHLOSSEN', 'WAITING ROOM CLOSED'),
                     style: Theme.of(context).textTheme.headlineMedium,
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: HzSpace.s12),
                   Text(
                     reason,
-                    style: const TextStyle(color: GameColors.textDim),
+                    style: GameType.body.copyWith(color: GameColors.textMuted),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: HzSpace.s24),
                   FilledButton.icon(
                     onPressed: game.backToStart,
                     icon: const Icon(Icons.home_outlined),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/ui/widgets/leaderboard.dart';
@@ -29,6 +30,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: Padding(
             padding: const EdgeInsets.all(16),
@@ -69,6 +71,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: Leaderboard(game: offlineGame(scores: scores)),
         ),
@@ -90,6 +93,7 @@ void main() {
     );
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: Align(
             alignment: Alignment.topCenter,

@@ -1,5 +1,27 @@
+{{- /*
+  Every page is a "Feldseite" of Horizont (docs/web.md in the design
+  system): the horizon line as the navigation (its marks read from the
+  numbered sections, the mark opens the Flurkarte), the page, the foot with
+  the sender and the legal links. The partials come from the Horizont module
+  (layouts/_partials/horizont/). Panzergefecht stays dark on its "Gelände"
+  neutrals; the signal yellow belongs to the one button that starts the game.
+*/ -}}
+{{- /* The other language at the end of the horizon line. A page without
+       a translation (404) switches to the other home. */}}
+{{- $other := "" }}
+{{- range .Translations }}{{ $other = . }}{{ end }}
+{{- if not $other }}{{ range site.Home.Translations }}{{ $other = . }}{{ end }}{{ end }}
+{{- $lang := dict -}}
+{{- with $other }}{{ $lang = dict "current" (upper site.Language.Lang) "name" (upper .Language.Lang) "url" .RelPermalink "hreflang" .Language.Lang }}{{ end -}}
+{{- /* Impressum, privacy and licences are written by tool/legal_pages.dart
+       at the root of the site, in German for both languages. */}}
+{{- $links := slice
+  (dict "name" (i18n "imprint") "url" ("impressum/" | relURL))
+  (dict "name" (i18n "privacy") "url" ("datenschutz/" | relURL))
+  (dict "name" (i18n "licenses") "url" ("lizenzen/" | relURL))
+  (dict "name" (i18n "support") "url" ("support/" | relLangURL)) -}}
 <!doctype html>
-<html lang="{{ site.Language.LanguageCode }}">
+<html lang="{{ site.Language.LanguageCode }}" data-product="panzergefecht" data-theme="dark">
 <head>
   {{- /* The game used to live right here, so links into it still arrive at
      this address: room and pairing links (?room=, ?pad=, from apps that
@@ -22,8 +44,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   {{ partial "head.html" . }}
 </head>
-<body>
-  {{ block "main" . }}{{ end }}
-  {{ partial "launch.html" . }}
+<body class="hz">
+<a class="pz-skip" href="#main">{{ i18n "skip" }}</a>
+{{ partial "horizont/nav/horizon.html" (dict
+    "product" "panzergefecht"
+    "place" (cond .IsHome (partial "store.html" "name") (printf "%s / %s" (partial "store.html" "name") .Title))
+    "marks" "auto"
+    "lang" $lang
+    "karte" (dict "home" "panzergefecht" "here" "panzergefecht" "url" "https://www.regetskcob.de/karte/")) }}
+<div class="hz-feld">
+<main id="main">
+{{ block "main" . }}{{ end }}
+</main>
+{{ partial "horizont/feld/foot.html" (dict "links" $links "sender" (i18n "sender")) }}
+{{- /* The closing lines of the App Store description after the pledge and
+       the disclaimer, then the copyright. */}}
+<div class="pz-note t-caption">
+  {{- range after 2 (partial "notes.html") }}<p>{{ . | markdownify }}</p>{{ end }}
+  <p>{{ (resources.Get "store/metadata/copyright.txt").Content | strings.TrimSpace }}</p>
+</div>
+</div>
+{{ if ne .Kind "404" }}{{ partial "lang.html" $other }}{{ end }}
+{{ partial "launch.html" . }}
+{{ partial "horizont/nav/script.html" . }}
 </body>
 </html>

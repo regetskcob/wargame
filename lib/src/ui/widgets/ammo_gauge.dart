@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/special_weapon.dart';
 import '../../game/game_config.dart';
 import '../theme.dart';
+import 'health_bar.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
@@ -28,50 +30,20 @@ class AmmoGauge extends StatelessWidget {
         : maxAmmo == 0
         ? 0.0
         : (ammo / maxAmmo).clamp(0.0, 1.0);
-    final low = ratio <= GameConfig.ammoLowShare;
-    final color = endless
-        ? const Color(0xFF4FC3F7)
+    final status = endless
+        ? null
         : ammo == 0
-        ? GameColors.danger
-        : low
-        ? GameColors.amber
-        : const Color(0xFF4FC3F7);
-    return SizedBox(
-      width: 220,
-      child: Panel(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.inventory_2_outlined, size: 16, color: color),
-                const SizedBox(width: 4),
-                Text(
-                  endless
-                      ? tr('MUNITION ∞', 'AMMO ∞')
-                      : ammo == 0
-                      ? tr('MUNITION LEER', 'AMMO EMPTY')
-                      : tr('MUNITION $ammo/$maxAmmo', 'AMMO $ammo/$maxAmmo'),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-
-                    color: ammo == 0 && !endless ? GameColors.danger : null,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            LinearProgressIndicator(
-              value: ratio,
-              minHeight: 7,
-              backgroundColor: Colors.black38,
-              color: color,
-            ),
-          ],
-        ),
-      ),
+        ? HorizontStatus.critical
+        : stockStatus(ratio, low: GameConfig.ammoLowShare);
+    return _StockGauge(
+      icon: Icons.inventory_2_outlined,
+      label: endless
+          ? tr('MUNITION ∞', 'AMMO ∞')
+          : ammo == 0
+          ? tr('MUNITION LEER', 'AMMO EMPTY')
+          : tr('MUNITION $ammo/$maxAmmo', 'AMMO $ammo/$maxAmmo'),
+      value: ratio,
+      status: status,
     );
   }
 }
@@ -85,46 +57,74 @@ class FuelGauge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final low = fuel <= GameConfig.fuelLowShare;
-    final color = fuel <= 0
-        ? GameColors.danger
-        : low
-        ? GameColors.amber
-        : const Color(0xFFFF9100);
+    return _StockGauge(
+      icon: Icons.local_gas_station_outlined,
+      label: fuel <= 0
+          ? tr('TANK LEER', 'TANK EMPTY')
+          : tr(
+              'TREIBSTOFF ${(fuel * 100).ceil()} %',
+              'FUEL ${(fuel * 100).ceil()} %',
+            ),
+      value: fuel.clamp(0.0, 1.0),
+      status: stockStatus(fuel, low: GameConfig.fuelLowShare),
+    );
+  }
+}
+
+/// One stock in its plate: icon, the value in mono with the sign of its
+/// state, and the bar under it.
+class _StockGauge extends StatelessWidget {
+  const _StockGauge({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.status,
+  });
+
+  final IconData icon;
+  final String label;
+  final double value;
+  final HorizontStatus? status;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = stockColor(status);
     return SizedBox(
       width: 220,
       child: Panel(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s12,
+          vertical: HzSpace.s8,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
-                Icon(Icons.local_gas_station_outlined, size: 16, color: color),
-                const SizedBox(width: 4),
-                Text(
-                  fuel <= 0
-                      ? tr('TANK LEER', 'TANK EMPTY')
-                      : tr(
-                          'TREIBSTOFF ${(fuel * 100).ceil()} %',
-                          'FUEL ${(fuel * 100).ceil()} %',
-                        ),
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-
-                    color: fuel <= 0 ? GameColors.danger : null,
+                Icon(
+                  icon,
+                  size: HzIconSize.inline,
+                  color: status == null ? GameColors.textMuted : color,
+                ),
+                const SizedBox(width: HzSpace.s4),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.fade,
+                    style: GameType.data.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
                   ),
                 ),
+                StockSign(status),
               ],
             ),
-            const SizedBox(height: 6),
-            LinearProgressIndicator(
-              value: fuel.clamp(0.0, 1.0),
-              minHeight: 7,
-              backgroundColor: Colors.black38,
-              color: color,
-            ),
+            const SizedBox(height: HzSpace.s4),
+            GaugeBar(value: value, status: status),
           ],
         ),
       ),
@@ -148,29 +148,37 @@ class SpecialPlate extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Panel(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(
+        horizontal: HzSpace.s12,
+        vertical: HzSpace.s8,
+      ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.diamond_outlined, size: 16, color: weapon.color),
-          const SizedBox(width: 8),
-          Text(
-            '${weapon.label}  ×$charges',
-            style: TextStyle(fontWeight: FontWeight.w800, color: weapon.color),
+          // The colour of the gem's crate in the field, so the plate and
+          // the pickup are recognised as one; the text stays in ink.
+          Icon(
+            Icons.diamond_outlined,
+            size: HzIconSize.inline,
+            color: weapon.color,
           ),
+          const SizedBox(width: HzSpace.s8),
+          Text(
+            weapon.label,
+            style: GameType.label.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(width: HzSpace.s8),
+          Text('×$charges', style: GameType.data),
           if (keyHint != null) ...[
-            const SizedBox(width: 10),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-              decoration: ShapeDecoration(
-                shape: BeveledRectangleBorder(
-                  borderRadius: BorderRadius.circular(3),
-                  side: const BorderSide(color: GameColors.sand),
+            const SizedBox(width: HzSpace.s8),
+            DecoratedBox(
+              decoration: ShapeDecoration(shape: GameShapes.chip()),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: HzSpace.s4,
+                  vertical: HzSpace.s2,
                 ),
-              ),
-              child: Text(
-                keyHint!,
-                style: const TextStyle(fontSize: 11, color: GameColors.sand),
+                child: Text(keyHint!, style: GameType.kennung),
               ),
             ),
           ],

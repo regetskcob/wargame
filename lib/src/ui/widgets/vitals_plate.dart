@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/game_config.dart';
 import '../theme.dart';
+import 'health_bar.dart';
 import 'panel.dart';
 
 /// Phones: armour, shells and fuel in one small plate, a line each with an
 /// icon, a thin bar and the value. The same warnings as the big gauges, in
-/// a third of their height.
+/// a third of their height: the bar and the value turn warning or critical,
+/// and the icon gives way to the sign of that state.
 class VitalsPlate extends StatelessWidget {
   const VitalsPlate({
     required this.hp,
@@ -31,7 +34,7 @@ class VitalsPlate extends StatelessWidget {
   final double? fuel;
 
   /// The plate with its padding, for the panels that must stay beside it.
-  static const outerWidth = 112.0 + 2 * 7;
+  static const outerWidth = 112.0 + 2 * HzSpace.s8;
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +42,10 @@ class VitalsPlate extends StatelessWidget {
     final shells = maxAmmo == 0 ? 0.0 : (ammo / maxAmmo).clamp(0.0, 1.0);
     final tank = fuel;
     return Panel(
-      padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+      padding: const EdgeInsets.symmetric(
+        horizontal: HzSpace.s8,
+        vertical: HzSpace.s4,
+      ),
       child: SizedBox(
         width: 112,
         child: Column(
@@ -48,7 +54,7 @@ class VitalsPlate extends StatelessWidget {
             _line(
               Icons.health_and_safety_outlined,
               armour,
-              armour > 0.3 ? const Color(0xFF9CCC65) : GameColors.danger,
+              armourStatus(armour),
               '${hp.ceil().clamp(0, maxHp.ceil())}',
             ),
             if (!endless)
@@ -56,21 +62,15 @@ class VitalsPlate extends StatelessWidget {
                 Icons.inventory_2_outlined,
                 shells,
                 ammo == 0
-                    ? GameColors.danger
-                    : shells <= GameConfig.ammoLowShare
-                    ? GameColors.amber
-                    : const Color(0xFF4FC3F7),
+                    ? HorizontStatus.critical
+                    : stockStatus(shells, low: GameConfig.ammoLowShare),
                 '$ammo',
               ),
             if (tank != null)
               _line(
                 Icons.local_gas_station_outlined,
                 tank.clamp(0.0, 1.0),
-                tank <= 0
-                    ? GameColors.danger
-                    : tank <= GameConfig.fuelLowShare
-                    ? GameColors.amber
-                    : const Color(0xFFFF9100),
+                stockStatus(tank, low: GameConfig.fuelLowShare),
                 '${(tank * 100).ceil()} %',
               ),
           ],
@@ -79,31 +79,37 @@ class VitalsPlate extends StatelessWidget {
     );
   }
 
-  Widget _line(IconData icon, double value, Color color, String label) {
+  Widget _line(
+    IconData icon,
+    double value,
+    HorizontStatus? status,
+    String label,
+  ) {
+    final color = stockColor(status);
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 1.5),
+      padding: const EdgeInsets.symmetric(vertical: HzSpace.s2),
       child: Row(
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 5),
+          // In this small plate the sign takes the place of the icon: the
+          // order of the lines still says which stock it is.
+          Icon(
+            status?.icon ?? icon,
+            size: HzIconSize.badge,
+            color: status == null ? GameColors.textMuted : color,
+          ),
+          const SizedBox(width: HzSpace.s4),
           Expanded(
-            child: LinearProgressIndicator(
-              value: value,
-              minHeight: 5,
-              backgroundColor: Colors.black38,
-              color: color,
-            ),
+            child: GaugeBar(value: value, status: status, height: HzSpace.s4),
           ),
           SizedBox(
-            width: 32,
+            // Room for "100 %" in mono without the tracking of a Kennung.
+            width: 36,
             child: Text(
               label,
               textAlign: TextAlign.end,
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w800,
-                color: value <= 0 ? GameColors.danger : null,
-              ),
+              maxLines: 1,
+              softWrap: false,
+              style: GameType.kennung.copyWith(color: color, letterSpacing: 0),
             ),
           ),
         ],

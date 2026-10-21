@@ -2,12 +2,14 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../game/tank_game.dart';
 import '../../net/pad_link.dart';
 import '../controller_view.dart';
 import '../theme.dart';
+import 'notice.dart';
 import 'panel.dart';
 import 'room_scanner.dart';
 import 'tablet_scale.dart';
@@ -38,17 +40,17 @@ class ControllerSection extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (heading) ...[
-          Text(
-            tr('CONTROLLER', 'CONTROLLER'),
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-          const SizedBox(height: 6),
+          Kennung(tr('CONTROLLER', 'CONTROLLER')),
+          const SizedBox(height: HzSpace.s8),
         ],
         if (phone) _BecomePad(game: game) else _ScreenPairing(game: game),
       ],
     );
   }
 }
+
+/// The help line under a section heading.
+final _help = GameType.callout.copyWith(color: GameColors.textMuted);
 
 /// Says so while the Realtime budget leaves no room for the paired phones,
 /// and nothing otherwise.
@@ -61,19 +63,21 @@ class PadBusyNotice extends StatelessWidget {
       valueListenable: PadScreen.instance.busy,
       builder: (context, busy, _) => busy
           ? Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                tr(
-                  'Gerade ist kein Platz für Handy-Controller: Der Server ist '
-                      'mit anderen Gefechten ausgelastet. Das Handy steuert, '
-                      'sobald wieder Platz ist; Controller und Tastatur gehen '
-                      'immer.',
-                  'There is no room for phone controllers right now: the '
-                      'server is busy with other battles. The phone steers '
-                      'once there is room again; controllers and keyboard '
-                      'always work.',
+              padding: const EdgeInsets.only(top: HzSpace.s8),
+              child: Notice(
+                HorizontStatus.warning,
+                child: Text(
+                  tr(
+                    'Gerade ist kein Platz für Handy-Controller: Der Server ist '
+                        'mit anderen Gefechten ausgelastet. Das Handy steuert, '
+                        'sobald wieder Platz ist; Controller und Tastatur gehen '
+                        'immer.',
+                    'There is no room for phone controllers right now: the '
+                        'server is busy with other battles. The phone steers '
+                        'once there is room again; controllers and keyboard '
+                        'always work.',
+                  ),
                 ),
-                style: const TextStyle(color: GameColors.amber, fontSize: 13),
               ),
             )
           : const SizedBox.shrink(),
@@ -111,13 +115,13 @@ class _ScreenPairing extends StatelessWidget {
                         'QR code to scan with the Panzergefecht app on the '
                         'phone.',
                   ),
-            style: const TextStyle(color: GameColors.textDim, fontSize: 13),
+            style: _help,
           ),
           const PadBusyNotice(),
-          const SizedBox(height: 10),
+          const SizedBox(height: HzSpace.s12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: HzSpace.s8,
+            runSpacing: HzSpace.s8,
             children: [
               FilledButton.icon(
                 onPressed: () => PadPairingDialog.show(context),
@@ -179,12 +183,12 @@ class _BecomePad extends StatelessWidget {
                 'a computer or tablet. Open the account there, tap Pair '
                 'phone and scan the QR code.',
           ),
-          style: const TextStyle(color: GameColors.textDim, fontSize: 13),
+          style: _help,
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: HzSpace.s12),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
+          spacing: HzSpace.s8,
+          runSpacing: HzSpace.s8,
           children: [
             FilledButton.icon(
               onPressed: () => _scan(context),
@@ -237,6 +241,7 @@ class _CodeDialogState extends State<_CodeDialog> {
         controller: _field,
         autofocus: true,
         textCapitalization: TextCapitalization.characters,
+        style: GameType.data,
         decoration: InputDecoration(
           hintText: tr('8 Zeichen', '8 characters'),
           errorText: _wrong
@@ -272,7 +277,7 @@ class PadPairingDialog extends StatefulWidget {
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
+        insetPadding: const EdgeInsets.all(HzSpace.s16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 420),
           child: const PadPairingDialog(),
@@ -311,7 +316,12 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
   @override
   Widget build(BuildContext context) {
     return Panel(
-      padding: const EdgeInsets.fromLTRB(20, 16, 12, 16),
+      padding: const EdgeInsets.fromLTRB(
+        HzSpace.s24,
+        HzSpace.s16,
+        HzSpace.s12,
+        HzSpace.s16,
+      ),
       child: ValueListenableBuilder<String?>(
         valueListenable: _pad.code,
         builder: (context, code, _) => Column(
@@ -323,7 +333,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                 Expanded(
                   child: Text(
                     tr('HANDY KOPPELN', 'PAIR PHONE'),
-                    style: Theme.of(context).textTheme.titleLarge,
+                    style: GameType.title,
                   ),
                 ),
                 IconButton(
@@ -334,7 +344,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 8),
+              padding: const EdgeInsets.only(right: HzSpace.s8),
               child: Text(
                 tr(
                   'Scanne den Code mit der Panzergefecht-App auf dem Handy '
@@ -344,46 +354,49 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                       '(Account, Use as controller). The phone then becomes '
                       'the gamepad of this screen.',
                 ),
-                style: const TextStyle(color: GameColors.textDim, fontSize: 13),
+                style: _help,
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: HzSpace.s16),
             if (code == null)
               const Center(child: CircularProgressIndicator())
             else
               Center(
                 child: Column(
                   children: [
-                    Container(
-                      color: Colors.white,
-                      padding: const EdgeInsets.all(10),
-                      child: QrImageView(
-                        data: padLink(code),
-                        size: 200,
-                        padding: EdgeInsets.zero,
-                        backgroundColor: Colors.white,
-                        errorCorrectionLevel: QrErrorCorrectLevel.M,
-                        eyeStyle: const QrEyeStyle(
-                          eyeShape: QrEyeShape.square,
-                          color: Color(0xFF11140C),
-                        ),
-                        dataModuleStyle: const QrDataModuleStyle(
-                          dataModuleShape: QrDataModuleShape.square,
-                          color: Color(0xFF11140C),
+                    // A camera needs dark modules on a light ground with a
+                    // quiet zone: ink as the ground, the sunken surface as
+                    // the modules.
+                    DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: GameColors.text,
+                        borderRadius: BorderRadius.circular(HzRadius.r6),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(HzSpace.s12),
+                        child: QrImageView(
+                          data: padLink(code),
+                          size: 200,
+                          padding: EdgeInsets.zero,
+                          backgroundColor: GameColors.text,
+                          errorCorrectionLevel: QrErrorCorrectLevel.M,
+                          eyeStyle: const QrEyeStyle(
+                            eyeShape: QrEyeShape.square,
+                            color: GameColors.sunken,
+                          ),
+                          dataModuleStyle: const QrDataModuleStyle(
+                            dataModuleShape: QrDataModuleShape.square,
+                            color: GameColors.sunken,
+                          ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: HzSpace.s12),
                     SelectableText(
                       spacedPadCode(code),
-                      style: const TextStyle(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 5,
-                        color: GameColors.sand,
-                      ),
+                      style: GameType.dataLarge.copyWith(letterSpacing: 4),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: HzSpace.s8),
                     ValueListenableBuilder<String?>(
                       valueListenable: _pad.paired,
                       builder: (context, paired, _) => Row(
@@ -391,17 +404,19 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                         children: [
                           if (paired == null)
                             const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+                              width: HzIconSize.inline,
+                              height: HzIconSize.inline,
+                              child: CircularProgressIndicator(
+                                strokeWidth: HzLine.selection,
+                              ),
                             )
                           else
-                            const Icon(
-                              Icons.check_circle_outlined,
-                              size: 16,
-                              color: GameColors.amber,
+                            Icon(
+                              HorizontStatus.positive.icon,
+                              size: HzIconSize.inline,
+                              color: GameColors.positive,
                             ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: HzSpace.s8),
                           Text(
                             paired == null
                                 ? tr(
@@ -409,10 +424,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                                     'Waiting for the phone …',
                                   )
                                 : tr('Handy gekoppelt', 'Phone paired'),
-                            style: const TextStyle(
-                              color: GameColors.textDim,
-                              fontSize: 12,
-                            ),
+                            style: GameType.caption,
                           ),
                         ],
                       ),
@@ -420,7 +432,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                   ],
                 ),
               ),
-            const SizedBox(height: 8),
+            const SizedBox(height: HzSpace.s8),
             Align(
               alignment: Alignment.centerRight,
               child: TextButton(

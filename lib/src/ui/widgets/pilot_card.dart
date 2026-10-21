@@ -1,15 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
 import '../../store/product.dart';
 import '../theme.dart';
+import 'panel.dart';
 import '../../l10n/l10n.dart';
 
 /// Rank with the way to the next one and the rating in one line. The
-/// badges fold out on demand. Drawn as a quiet dark box without a frame, so
-/// it reads as status and does not compete with the framed mode buttons.
+/// badges fold out on demand. A sunken box with the hairline, values in
+/// mono, so it reads as status and leaves the accent to the ways to play.
 class PilotCard extends StatefulWidget {
   const PilotCard({required this.progress, this.owned, super.key});
 
@@ -43,10 +45,13 @@ class _PilotCardState extends State<PilotCard> {
         final supporter =
             widget.owned?.value.contains(Product.supporter) ?? false;
         return Container(
-          padding: const EdgeInsets.fromLTRB(10, 8, 12, 8),
-          decoration: BoxDecoration(
-            color: const Color(0x55000000),
-            borderRadius: BorderRadius.circular(10),
+          padding: const EdgeInsets.symmetric(
+            horizontal: HzSpace.s12,
+            vertical: HzSpace.s8,
+          ),
+          decoration: ShapeDecoration(
+            color: GameColors.sunken,
+            shape: GameShapes.chip(),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,7 +60,7 @@ class _PilotCardState extends State<PilotCard> {
               Row(
                 children: [
                   RankBadge(level: rank.level, size: 28),
-                  const SizedBox(width: 10),
+                  const SizedBox(width: HzSpace.s12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,24 +68,17 @@ class _PilotCardState extends State<PilotCard> {
                         Text(
                           '${supporter ? '★ ' : ''}'
                           '${rank.title.toUpperCase()} · ${tr('STUFE', 'LEVEL')} ${rank.level}',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 1,
-                            color: GameColors.textDim,
-                          ),
+                          style: GameType.kennung,
                         ),
-                        const SizedBox(height: 4),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(2),
-                          child: LinearProgressIndicator(
-                            value: rank.progress,
-                            minHeight: 4,
-                            backgroundColor: const Color(0x33FFFFFF),
-                            color: GameColors.amber,
-                          ),
+                        const SizedBox(height: HzSpace.s4),
+                        LinearProgressIndicator(
+                          value: rank.progress,
+                          minHeight: HzSpace.s4,
+                          borderRadius: BorderRadius.zero,
+                          backgroundColor: GameColors.line,
+                          color: GameColors.text,
                         ),
-                        const SizedBox(height: 2),
+                        const SizedBox(height: HzSpace.s4),
                         Row(
                           children: [
                             Expanded(
@@ -88,9 +86,9 @@ class _PilotCardState extends State<PilotCard> {
                                 '${rank.inRank} / ${rank.step} ${tr('EP', 'XP')}',
                                 maxLines: 1,
                                 softWrap: false,
-                                style: const TextStyle(
-                                  fontSize: 11,
-                                  color: GameColors.textDim,
+                                style: GameType.data.copyWith(
+                                  fontSize: 12,
+                                  color: GameColors.textMuted,
                                 ),
                               ),
                             ),
@@ -106,29 +104,21 @@ class _PilotCardState extends State<PilotCard> {
                     children: [
                       Text(
                         rating == null ? '–' : '$rating',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: GameColors.sand,
+                        style: GameType.data.copyWith(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      Text(
-                        tr('WERTUNG', 'RATING'),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          letterSpacing: 1.4,
-                          color: GameColors.textDim,
-                        ),
-                      ),
+                      Kennung(tr('Wertung', 'Rating')),
                     ],
                   ),
                 ],
               ),
               if (_badgesOpen) ...[
-                const SizedBox(height: 10),
+                const SizedBox(height: HzSpace.s12),
                 Wrap(
-                  spacing: 6,
-                  runSpacing: 6,
+                  spacing: HzSpace.s8,
+                  runSpacing: HzSpace.s8,
                   children: [
                     for (final achievement in Achievement.all)
                       BadgeChip(
@@ -164,25 +154,20 @@ class _PilotCardState extends State<PilotCard> {
             children: [
               const Icon(
                 Icons.military_tech_outlined,
-                size: 14,
-                color: GameColors.sand,
+                size: HzIconSize.badge,
+                color: GameColors.text,
               ),
-              const SizedBox(width: 3),
+              const SizedBox(width: HzSpace.s4),
               Text(
                 '$earned/${Achievement.all.length}',
-                style: const TextStyle(
-                  fontSize: 11,
-                  letterSpacing: 0.8,
-                  fontWeight: FontWeight.w700,
-                  color: GameColors.sand,
-                ),
+                style: GameType.data.copyWith(fontSize: 12),
               ),
               Icon(
                 _badgesOpen
                     ? Icons.expand_less_outlined
                     : Icons.expand_more_outlined,
-                size: 16,
-                color: GameColors.sand,
+                size: HzIconSize.inline,
+                color: GameColors.text,
               ),
             ],
           ),
@@ -192,7 +177,8 @@ class _PilotCardState extends State<PilotCard> {
   }
 }
 
-/// Chevrons for the rank, more of them the higher it is.
+/// The rank as a mark: its number in mono on the sunken ground, framed by
+/// the outline, radius 2 like every mark.
 class RankBadge extends StatelessWidget {
   const RankBadge({required this.level, this.size = 34, super.key});
 
@@ -205,19 +191,19 @@ class RankBadge extends StatelessWidget {
       width: size,
       height: size,
       decoration: ShapeDecoration(
-        color: GameColors.olive,
-        shape: BeveledRectangleBorder(
-          borderRadius: BorderRadius.circular(size / 5),
-          side: const BorderSide(color: GameColors.amber, width: 1.5),
+        color: GameColors.surface,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HzRadius.r2),
+          side: hairline,
         ),
       ),
       alignment: Alignment.center,
       child: Text(
         '$level',
-        style: TextStyle(
+        style: GameType.data.copyWith(
           fontSize: size * 0.45,
-          fontWeight: FontWeight.w900,
-          color: GameColors.text,
+          height: 1,
+          fontWeight: FontWeight.w600,
         ),
       ),
     );
@@ -236,26 +222,29 @@ class BadgeChip extends StatelessWidget {
   final Achievement achievement;
   final bool earned;
 
-  /// Earned just now: drawn in amber.
+  /// Earned just now: drawn as the selection, in the accent.
   final bool highlight;
 
   @override
   Widget build(BuildContext context) {
     final color = highlight
-        ? GameColors.amber
+        ? GameColors.accentText
         : earned
-        ? GameColors.sand
-        : const Color(0x559DA58A);
+        ? GameColors.text
+        : GameColors.textFaint;
     return Tooltip(
       message:
           '${achievement.description}${earned ? '' : ' (${tr('noch offen', 'not yet earned')})'}',
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(
+          horizontal: HzSpace.s8,
+          vertical: HzSpace.s4,
+        ),
         decoration: ShapeDecoration(
-          color: highlight ? const Color(0x33FFB300) : null,
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(4),
-            side: BorderSide(color: color),
+          color: highlight ? GameColors.accentTint : null,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HzRadius.r2),
+            side: BorderSide(color: earned ? GameColors.lineStrong : color),
           ),
         ),
         child: Row(
@@ -263,18 +252,13 @@ class BadgeChip extends StatelessWidget {
           children: [
             Icon(
               earned ? Icons.military_tech_outlined : Icons.lock_outline,
-              size: 13,
+              size: HzIconSize.badge,
               color: color,
             ),
-            const SizedBox(width: 4),
+            const SizedBox(width: HzSpace.s4),
             Text(
               achievement.title.toUpperCase(),
-              style: TextStyle(
-                fontSize: 11,
-                letterSpacing: 0.8,
-                fontWeight: FontWeight.w700,
-                color: color,
-              ),
+              style: GameType.kennung.copyWith(color: color),
             ),
           ],
         ),

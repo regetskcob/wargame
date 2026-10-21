@@ -69,7 +69,7 @@ All features with their numbers (damage tables, defense thresholds) are in
 
 | Layer | What we use |
 | --- | --- |
-| Game and UI | [Flutter](https://flutter.dev) 3.47 with [Flame](https://flame-engine.org) 2.0, Material 3 in an olive drab theme |
+| Game and UI | [Flutter](https://flutter.dev) 3.47 with [Flame](https://flame-engine.org) 2.0, styled by the design system [Horizont](https://github.com/regetskcob/horizont) (dark on olive ground, signal yellow, Mona Sans and Monaspace) |
 | Netcode | [Supabase Realtime](https://supabase.com/docs/guides/realtime): one Broadcast channel per room, Presence for lobby, host role and room list |
 | Data and accounts | Supabase Postgres with row level security, Supabase Auth (guests, e-mail), typed access through `supabase_flutter` 3.0.0-dev.9 and `supabase_typegen` 0.5.1 |
 | Hosting | GitHub Pages, built by GitHub Actions on every push to `main` |
@@ -84,8 +84,8 @@ The typed database layer is the Supabase v3 groundwork, merged into
 [supabase-flutter](https://github.com/supabase/supabase-flutter) and
 published to pub.dev ([#1634](https://github.com/supabase/supabase-flutter/pull/1634)
 typed tables, [#1635](https://github.com/supabase/supabase-flutter/pull/1635)
-the code generator). Everything resolves from pub.dev, no git dependencies
-and no `dependency_overrides`.
+the code generator). Everything resolves from pub.dev except Horizont, a git
+dependency pinned to a tag, and there are no `dependency_overrides`.
 
 ## Getting started
 

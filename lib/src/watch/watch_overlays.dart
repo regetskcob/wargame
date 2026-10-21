@@ -3,16 +3,19 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_watchos/flutter_watchos.dart';
+import 'package:horizont/horizont.dart';
 
+import '../game/game_config.dart';
 import '../game/inventory.dart';
 import '../game/tank_game.dart';
 import '../l10n/l10n.dart';
 import '../ui/theme.dart';
+import '../ui/widgets/health_bar.dart';
 import 'watch_support.dart';
 import 'watch_widgets.dart';
 
-/// What the round shows on the watch: how many tanks are left or the wave,
-/// armour and magazine along the bottom, the inventory at the right edge and
+/// What the round shows on the watch: how many tanks are left or the wave
+/// as the one big value in mono, armour and magazine along the bottom, the inventory at the right edge and
 /// in a defense round a button to build a gun. Everything else stays off the
 /// small screen. The crown steers, see `WatchSteering`.
 ///
@@ -77,15 +80,8 @@ class _WatchHudState extends State<WatchHud> {
     valueListenable: game.aliveCount,
     builder: (context, _, _) => ValueListenableBuilder(
       valueListenable: game.defense,
-      builder: (context, _, _) => Text(
-        _status(),
-        textAlign: TextAlign.center,
-        style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w900,
-          color: GameColors.text,
-          shadows: [Shadow(blurRadius: 4)],
-        ),
+      builder: (context, _, _) => _onPlate(
+        Text(_status(), textAlign: TextAlign.center, style: GameType.dataLarge),
       ),
     ),
   );
@@ -95,15 +91,11 @@ class _WatchHudState extends State<WatchHud> {
     valueListenable: game.notice,
     builder: (context, text, _) => text == null
         ? const SizedBox()
-        : Text(
-            text,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1,
-              color: GameColors.amber,
-              shadows: [Shadow(blurRadius: 4)],
+        : _onPlate(
+            Text(
+              text,
+              textAlign: TextAlign.center,
+              style: GameType.label.copyWith(fontWeight: FontWeight.w600),
             ),
           ),
   );
@@ -112,19 +104,34 @@ class _WatchHudState extends State<WatchHud> {
   Widget _respawn() => ValueListenableBuilder<int>(
     valueListenable: game.respawnSeconds,
     builder: (context, seconds, _) => seconds > 0
-        ? Text(
-            tr('Einsatzbereit in $seconds s', 'Ready in $seconds s'),
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              color: GameColors.amber,
-              shadows: [Shadow(blurRadius: 4)],
+        ? _onPlate(
+            Text(
+              tr('Einsatzbereit in $seconds s', 'Ready in $seconds s'),
+              textAlign: TextAlign.center,
+              style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
           )
         : const SizedBox(),
   );
 
-  /// One inventory slot: tap to use it.
+  /// A line over the moving round: on a sunken plate, a little
+  /// see-through, instead of a shadow behind the letters.
+  static Widget _onPlate(Widget child) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: GameColors.sunken.withValues(alpha: 0.7),
+      borderRadius: BorderRadius.circular(HzRadius.r6),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.symmetric(
+        horizontal: HzSpace.s8,
+        vertical: HzSpace.s2,
+      ),
+      child: child,
+    ),
+  );
+
+  /// One inventory slot: tap to use it. Framed in the colour the item has
+  /// in the field.
   Widget _slot(int index, InventorySlot slot, double size) => GestureDetector(
     behavior: HitTestBehavior.opaque,
     onTap: () => game.useItem(index),
@@ -134,12 +141,12 @@ class _WatchHudState extends State<WatchHud> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: GameColors.panel,
-        shape: BoxShape.circle,
-        border: Border.all(color: slot.type.color, width: 2),
+        borderRadius: BorderRadius.circular(HzRadius.r6),
+        border: Border.all(color: slot.type.color, width: HzLine.selection),
       ),
       child: Text(
         '${slot.count}',
-        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 13),
+        style: GameType.data.copyWith(fontWeight: FontWeight.w600),
       ),
     ),
   );
@@ -153,15 +160,21 @@ class _WatchHudState extends State<WatchHud> {
           top: band,
           left: 0,
           right: 0,
-          child: IgnorePointer(child: _statusLine()),
+          // Shrinks a long wave line to the width instead of cutting it.
+          child: IgnorePointer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: HzSpace.s12),
+              child: FittedBox(fit: BoxFit.scaleDown, child: _statusLine()),
+            ),
+          ),
         ),
         Align(
           alignment: Alignment.center,
           child: Padding(
             padding: EdgeInsets.fromLTRB(
-              padding.left + 8,
+              padding.left + HzSpace.s8,
               0,
-              padding.right + 48,
+              padding.right + HzSpace.s48,
               0,
             ),
             child: IgnorePointer(child: _notice()),
@@ -189,9 +202,9 @@ class _WatchHudState extends State<WatchHud> {
           ),
         ),
         Positioned(
-          left: padding.left + 12,
-          right: padding.right + 12,
-          bottom: padding.bottom + 6,
+          left: padding.left + HzSpace.s12,
+          right: padding.right + HzSpace.s12,
+          bottom: padding.bottom + HzSpace.s8,
           child: _bottom(),
         ),
       ],
@@ -309,30 +322,40 @@ class _WatchHudState extends State<WatchHud> {
                   valueListenable: game.hpNotifier,
                   builder: (context, hp, _) {
                     final share = (hp / game.myMaxHp).clamp(0.0, 1.0);
-                    return ClipRRect(
-                      borderRadius: BorderRadius.circular(3),
-                      child: LinearProgressIndicator(
-                        value: share,
-                        minHeight: 8,
-                        backgroundColor: const Color(0x88000000),
-                        color: share > 0.3
-                            ? GameColors.oliveLight
-                            : GameColors.danger,
-                      ),
+                    // The HUD's bar: ink while there is enough, warning
+                    // and critical with the sign beside it.
+                    final status = armourStatus(share);
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: GaugeBar(value: share, status: status),
+                        ),
+                        StockSign(status),
+                      ],
                     );
                   },
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: HzSpace.s8),
+              // The magazine stays, but quiet: the one big value on the
+              // watch is what is left of the battle.
               ValueListenableBuilder<int>(
                 valueListenable: game.ammoNotifier,
-                builder: (context, ammo, _) => Text(
-                  game.endlessAmmo ? '∞' : '$ammo',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 14,
-                    color: GameColors.amber,
-                    shadows: [Shadow(blurRadius: 4)],
+                builder: (context, ammo, _) => _onPlate(
+                  Text(
+                    game.endlessAmmo ? '∞' : '$ammo',
+                    style: GameType.data.copyWith(
+                      color: game.endlessAmmo || game.myMagazine == 0
+                          ? GameColors.textMuted
+                          : stockColor(
+                              ammo == 0
+                                  ? HorizontStatus.critical
+                                  : stockStatus(
+                                      ammo / game.myMagazine,
+                                      low: GameConfig.ammoLowShare,
+                                    ),
+                            ),
+                    ),
                   ),
                 ),
               ),
@@ -355,20 +378,23 @@ class _WatchHudState extends State<WatchHud> {
             credits >= game.buildCost(kind) &&
             kind.unlockedIn(wave, extended: extended);
         return Padding(
-          padding: const EdgeInsets.only(bottom: 6),
+          padding: const EdgeInsets.only(bottom: HzSpace.s8),
           child: SizedBox(
             height: 34,
             width: double.infinity,
             child: FilledButton(
               onPressed: ready ? () => game.buildTower(kind) : null,
-              style: FilledButton.styleFrom(
-                padding: EdgeInsets.zero,
-                backgroundColor: GameColors.olive,
-              ),
+              style: FilledButton.styleFrom(padding: EdgeInsets.zero),
               child: FittedBox(
                 child: Text(
                   '${kind.label} ${game.buildCost(kind)} · $credits',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                  style: TextStyle(
+                    fontFamily: HzFont.mono,
+                    package: HzFont.package,
+                    fontSize: GameType.data.fontSize,
+                    fontWeight: FontWeight.w600,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
                 ),
               ),
             ),
@@ -418,23 +444,17 @@ class _WatchCountdownState extends State<WatchCountdown> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
+            // The one value of the screen, big in mono.
             Text(
               '$seconds',
-              style: const TextStyle(
-                fontSize: 72,
-                fontWeight: FontWeight.w900,
-                color: GameColors.amber,
-                shadows: [Shadow(blurRadius: 8)],
-              ),
+              style: GameType.dataLarge.copyWith(fontSize: 64, height: 1),
             ),
-            Text(
-              tr('Krone dreht, Panzer lenkt', 'Crown turns, tank steers'),
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: GameColors.text,
-                shadows: [Shadow(blurRadius: 4)],
+            const SizedBox(height: HzSpace.s4),
+            _WatchHudState._onPlate(
+              Text(
+                tr('Krone dreht, Panzer lenkt', 'Crown turns, tank steers'),
+                textAlign: TextAlign.center,
+                style: GameType.caption.copyWith(color: GameColors.text),
               ),
             ),
           ],
@@ -458,46 +478,54 @@ class WatchRoundOver extends StatelessWidget {
         final won = outcome == RoundOutcome.won;
         final lost = outcome == RoundOutcome.lost;
         final stats = game.roundStats;
+        // The result is a state: word, sign and colour.
+        final status = won
+            ? HorizontStatus.positive
+            : lost
+            ? HorizontStatus.critical
+            : null;
+        final color = status == null
+            ? GameColors.text
+            : won
+            ? GameColors.positive
+            : GameColors.critical;
         return Stack(
           fit: StackFit.expand,
           children: [
-            const ColoredBox(color: Color(0xDD161C0F)),
+            ColoredBox(color: GameColors.bg.withValues(alpha: 0.87)),
             WatchPage(
               children: [
                 FittedBox(
                   fit: BoxFit.scaleDown,
-                  child: Text(
-                    won
-                        ? tr('GEWONNEN', 'VICTORY')
-                        : lost
-                        ? tr('NIEDERLAGE', 'DEFEAT')
-                        : tr('BEENDET', 'OVER'),
-                    maxLines: 1,
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 2,
-                      color: won
-                          ? GameColors.amber
-                          : lost
-                          ? GameColors.danger
-                          : GameColors.sand,
-                    ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (status != null) ...[
+                        Icon(status.icon, size: HzIconSize.bar, color: color),
+                        const SizedBox(width: HzSpace.s8),
+                      ],
+                      Text(
+                        won
+                            ? tr('GEWONNEN', 'VICTORY')
+                            : lost
+                            ? tr('NIEDERLAGE', 'DEFEAT')
+                            : tr('BEENDET', 'OVER'),
+                        maxLines: 1,
+                        style: GameType.title.copyWith(color: color),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: HzSpace.s8),
                 Text(
                   tr(
                     '${stats.kills} Abschüsse · ${stats.damage.round()} Schaden',
                     '${stats.kills} kills · ${stats.damage.round()} damage',
                   ),
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: GameColors.textDim,
-                    fontSize: 13,
-                  ),
+                  style: GameType.data.copyWith(color: GameColors.textMuted),
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: HzSpace.s12),
                 ValueListenableBuilder<bool>(
                   valueListenable: game.isHost,
                   builder: (context, host, _) => WatchButton(
@@ -541,14 +569,15 @@ class WatchSpectator extends StatelessWidget {
           child: IgnorePointer(
             child: ValueListenableBuilder<String?>(
               valueListenable: game.spectatingName,
-              builder: (context, name, _) => Text(
-                name == null
-                    ? tr('Beobachte', 'Watching')
-                    : tr('Beobachte $name', 'Watching $name'),
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  shadows: [Shadow(blurRadius: 4)],
+              builder: (context, name, _) => Center(
+                child: _WatchHudState._onPlate(
+                  Text(
+                    name == null
+                        ? tr('Beobachte', 'Watching')
+                        : tr('Beobachte $name', 'Watching $name'),
+                    textAlign: TextAlign.center,
+                    style: GameType.label.copyWith(fontWeight: FontWeight.w600),
+                  ),
                 ),
               ),
             ),
@@ -557,9 +586,9 @@ class WatchSpectator extends StatelessWidget {
         Positioned(
           // On a round watch narrow and low, in the widest part of the
           // bottom that still holds the button.
-          left: watchRound ? d * 0.25 : 12,
-          right: watchRound ? d * 0.25 : 12,
-          bottom: watchRound ? d * 0.03 : 8,
+          left: watchRound ? d * 0.25 : HzSpace.s12,
+          right: watchRound ? d * 0.25 : HzSpace.s12,
+          bottom: watchRound ? d * 0.03 : HzSpace.s8,
           child: WatchButton(
             label: tr('WEITER', 'NEXT'),
             icon: Icons.skip_next,
@@ -586,10 +615,10 @@ class WatchClosed extends StatelessWidget {
           builder: (context, reason, _) => Text(
             reason ?? tr('Raum geschlossen', 'Room closed'),
             textAlign: TextAlign.center,
-            style: const TextStyle(fontWeight: FontWeight.w800),
+            style: GameType.body,
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: HzSpace.s12),
         WatchButton(
           label: tr('STARTSEITE', 'START PAGE'),
           icon: Icons.home,

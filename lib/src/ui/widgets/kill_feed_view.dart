@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/kill_feed.dart';
 import '../../game/game_config.dart';
@@ -71,68 +72,91 @@ class _KillFeedViewState extends State<KillFeedView> {
   Widget _row(KillEntry entry, DateTime now) {
     final age = now.difference(entry.at).inMilliseconds;
     final fade = age > 6000 ? (1 - (age - 6000) / 2000).clamp(0.0, 1.0) : 1.0;
-    final highlight = entry.byMe || entry.meDied;
-    final text = TextStyle(
-      fontSize: widget.compact ? 11 : 13,
+    final text = (widget.compact ? GameType.caption : GameType.label).copyWith(
       fontWeight: FontWeight.w700,
+      color: GameColors.text,
     );
+    // Quiet rows on the sunken ground: only the kills that concern the
+    // player take a line, the accent for "you shot" and critical for
+    // "you were hit"; the player's own name says which one it is.
+    final edge = entry.byMe
+        ? GameColors.accentText
+        : entry.meDied
+        ? GameColors.critical
+        : null;
     return Opacity(
       opacity: fade,
       child: Container(
-        margin: EdgeInsets.only(top: widget.compact ? 2 : 4),
+        margin: EdgeInsets.only(top: widget.compact ? HzSpace.s2 : HzSpace.s4),
         padding: widget.compact
-            ? const EdgeInsets.symmetric(horizontal: 6, vertical: 2)
-            : const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            ? const EdgeInsets.symmetric(
+                horizontal: HzSpace.s8,
+                vertical: HzSpace.s2,
+              )
+            : const EdgeInsets.symmetric(
+                horizontal: HzSpace.s8,
+                vertical: HzSpace.s4,
+              ),
         decoration: ShapeDecoration(
-          color: const Color(0xB3101408),
-          shape: BeveledRectangleBorder(
-            borderRadius: BorderRadius.circular(6),
-            side: BorderSide(
-              color: entry.byMe
-                  ? GameColors.amber
-                  : entry.meDied
-                  ? GameColors.danger
-                  : GameColors.oliveLight.withValues(alpha: 0.6),
-              width: highlight ? 1.6 : 1,
-            ),
+          color: GameColors.sunken.withValues(alpha: 0.7),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(HzRadius.r6),
+            side: edge == null
+                ? BorderSide.none
+                : BorderSide(color: edge, width: HzLine.hairline),
           ),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             if (entry.killer != null) ...[
-              Text(
-                entry.killer!,
-                style: text.copyWith(
-                  color: _teamColor(
-                    entry.killerTeam,
-                    fallback: GameColors.text,
+              Flexible(
+                child: Text(
+                  entry.killer!,
+                  maxLines: 1,
+                  softWrap: false,
+                  overflow: TextOverflow.fade,
+                  style: text.copyWith(
+                    color: _teamColor(
+                      entry.killerTeam,
+                      fallback: GameColors.text,
+                    ),
                   ),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: HzSpace.s8),
               const Icon(
                 Icons.gps_fixed_outlined,
-                size: 14,
-                color: GameColors.amber,
+                size: HzIconSize.badge,
+                color: GameColors.textMuted,
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: HzSpace.s8),
             ],
-            Text(
-              entry.victim,
-              style: text.copyWith(
-                color: _teamColor(entry.victimTeam, fallback: GameColors.text),
-                decoration: TextDecoration.lineThrough,
-                decorationColor: GameColors.textDim,
+            // In a narrow column a long name fades out rather than
+            // pushing the row past the edge.
+            Flexible(
+              child: Text(
+                entry.victim,
+                maxLines: 1,
+                softWrap: false,
+                overflow: TextOverflow.fade,
+                style: text.copyWith(
+                  color: _teamColor(
+                    entry.victimTeam,
+                    fallback: GameColors.text,
+                  ),
+                  decoration: TextDecoration.lineThrough,
+                  decorationColor: GameColors.textMuted,
+                ),
               ),
             ),
             if (entry.killer == null) ...[
-              const SizedBox(width: 8),
+              const SizedBox(width: HzSpace.s8),
               Text(
                 // No shooter: the zone, a mine or a lost connection, so
                 // not "dropped out", which read as a connection lost.
                 tr('ist ausgeschieden', 'is out'),
-                style: const TextStyle(fontSize: 12, color: GameColors.textDim),
+                style: GameType.caption,
               ),
             ],
           ],

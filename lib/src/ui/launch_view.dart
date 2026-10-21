@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../db/room_slots.dart';
 import '../db/server_status.dart';
@@ -20,6 +21,7 @@ import 'widgets/legal.dart';
 import 'account_page.dart';
 import 'widgets/call_sign.dart';
 import 'widgets/mute_button.dart';
+import 'widgets/panel.dart';
 import 'widgets/pilot_card.dart';
 import 'widgets/tutorial_button.dart';
 import 'widgets/room_list.dart';
@@ -67,7 +69,7 @@ class LaunchView extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(width: 28),
+            const SizedBox(width: HzSpace.s32),
             Expanded(
               child: FocusTraversalGroup(
                 child: Column(
@@ -97,7 +99,10 @@ class LaunchView extends StatelessWidget {
   /// controllers.
   List<Widget> _ranking({double top = 28}) => [
     SizedBox(height: top),
-    if (onTv) ...[TvControllers(game: game), const SizedBox(height: 20)],
+    if (onTv) ...[
+      TvControllers(game: game),
+      const SizedBox(height: HzSpace.s24),
+    ],
     Leaderboard(game: game),
     const SizedBox(height: 16),
     const LegalLinks(),
@@ -187,7 +192,7 @@ class LaunchView extends StatelessWidget {
             ? _GuestCard(game: game)
             : PilotCard(progress: game.progress, owned: game.shop?.owned),
       ),
-      const SizedBox(height: 20),
+      const SizedBox(height: HzSpace.s24),
       const ServerNotice(),
       RoomsBusyNotice(slots: game.slots),
       ListenableBuilder(
@@ -256,13 +261,13 @@ class LaunchView extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             for (var row = 0; row < cards.length; row += perRow) ...[
-              if (row > 0) const SizedBox(height: 12),
+              if (row > 0) const SizedBox(height: HzSpace.s12),
               IntrinsicHeight(
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     for (var i = row; i < row + perRow; i++) ...[
-                      if (i > row) const SizedBox(width: 12),
+                      if (i > row) const SizedBox(width: HzSpace.s12),
                       Expanded(
                         child: i < cards.length
                             ? cards[i]
@@ -301,12 +306,12 @@ class _LastPlayed extends StatelessWidget {
         final tank = GameConfig.typeOf(game.myColorIndex).label;
         return TextButton.icon(
           onPressed: game.quickStart,
-          icon: const Icon(Icons.replay_outlined, size: 18),
+          icon: const Icon(Icons.replay_outlined, size: HzIconSize.row),
           label: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              '${tr('ZULETZT GESPIELT', 'LAST PLAYED')}  ·  $tank  ·  '
-              '${game.botLevel.value.label}',
+              '${tr('ZULETZT GESPIELT', 'LAST PLAYED')}$horizontMetaSeparator'
+              '$tank$horizontMetaSeparator${game.botLevel.value.label}',
               maxLines: 1,
             ),
           ),
@@ -317,8 +322,8 @@ class _LastPlayed extends StatelessWidget {
 }
 
 /// Invites a guest to sign in or create an account, with what it brings.
-/// Drawn like the controller box: a quiet dark box without a frame, so it
-/// does not compete with the mode cards, the arrow opens the account.
+/// A sunken box with the hairline, quieter than the mode cards; the arrow
+/// opens the account.
 class _GuestCard extends StatelessWidget {
   const _GuestCard({required this.game});
 
@@ -327,21 +332,26 @@ class _GuestCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0x55000000),
-      borderRadius: BorderRadius.circular(10),
+      color: GameColors.sunken,
+      shape: GameShapes.chip(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: () => AccountPage.open(context),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(12, 10, 4, 10),
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s12,
+            HzSpace.s12,
+            HzSpace.s4,
+            HzSpace.s12,
+          ),
           child: Row(
             children: [
               const Icon(
                 Icons.login_outlined,
-                color: GameColors.sand,
-                size: 24,
+                color: GameColors.text,
+                size: HzIconSize.bar,
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: HzSpace.s12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -351,14 +361,9 @@ class _GuestCard extends StatelessWidget {
                         'ALS GAST · ANMELDEN ODER KONTO ANLEGEN',
                         'GUEST · SIGN IN OR CREATE AN ACCOUNT',
                       ),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 1,
-                        color: GameColors.textDim,
-                      ),
+                      style: GameType.kennung,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: HzSpace.s4),
                     Text(
                       tr(
                         'Mit Konto sammelst du EP, Rang und Abzeichen, '
@@ -367,9 +372,8 @@ class _GuestCard extends StatelessWidget {
                         'With an account you collect XP, rank and badges, '
                             'unlock vehicles and keep playing on any device.',
                       ),
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: GameColors.textDim,
+                      style: GameType.callout.copyWith(
+                        color: GameColors.textMuted,
                       ),
                     ),
                   ],
@@ -380,7 +384,7 @@ class _GuestCard extends StatelessWidget {
                 onPressed: () => AccountPage.open(context),
                 icon: const Icon(
                   Icons.chevron_right_outlined,
-                  color: GameColors.sand,
+                  color: GameColors.text,
                 ),
               ),
             ],
@@ -441,21 +445,26 @@ class _ModeCard extends StatelessWidget {
   }
 
   Widget _card(BuildContext context) {
-    // A quiet dark box without a frame, like the boxes around it: the
-    // page's panel is the only frame.
+    // A free-standing card: surface, the one outline, radius 10. The way on
+    // is the chevron in the accent; hover tints the card like a selection.
     return Material(
-      color: const Color(0x55000000),
-      borderRadius: BorderRadius.circular(10),
+      color: GameColors.surface,
+      shape: GameShapes.card(),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
         onTap: onTap,
-        hoverColor: const Color(0x18FFB300),
+        hoverColor: GameColors.accentTint,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s16,
+            HzSpace.s16,
+            HzSpace.s8,
+            HzSpace.s16,
+          ),
           child: Row(
             children: [
-              Icon(icon, color: GameColors.amber, size: 30),
-              const SizedBox(width: 14),
+              Icon(icon, color: GameColors.text, size: 28),
+              const SizedBox(width: HzSpace.s16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -464,32 +473,22 @@ class _ModeCard extends StatelessWidget {
                     FittedBox(
                       fit: BoxFit.scaleDown,
                       alignment: Alignment.centerLeft,
-                      child: Text(
-                        title,
-                        maxLines: 1,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                          color: GameColors.sand,
-                        ),
-                      ),
+                      child: Text(title, maxLines: 1, style: GameType.title),
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: HzSpace.s4),
                     Text(
                       onTap == null
                           ? tr('GERADE NICHT VERFÜGBAR', 'NOT AVAILABLE NOW')
                           : kicker,
-                      style: const TextStyle(
-                        color: GameColors.amber,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.5,
-                      ),
+                      style: GameType.kennung,
                     ),
                   ],
                 ),
               ),
-              const Icon(Icons.chevron_right_outlined, color: GameColors.amber),
+              const Icon(
+                Icons.chevron_right_outlined,
+                color: GameColors.accentText,
+              ),
             ],
           ),
         ),
@@ -533,7 +532,6 @@ class _DuelCard extends StatelessWidget {
     return showDialog<void>(
       context: context,
       builder: (dialog) => AlertDialog(
-        backgroundColor: GameColors.surface,
         title: Text(tr('ZWEI SPIELER', 'TWO PLAYERS')),
         content: Text(
           onAppleTv

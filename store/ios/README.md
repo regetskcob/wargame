@@ -33,6 +33,7 @@ Kopfzeile liegen außerhalb von `screenshots/`, weil `fastlane deliver` diesen O
 und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
+python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert
 Apple selbst. Ist der Name „Panzergefecht“ im App Store
 schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
@@ -42,16 +43,17 @@ verbietet Apple (Richtlinie 2.3.7). Die Fahrzeuge tragen Tiernamen (Hermelin,
 Fuchs, Spitzmaus, Habicht, Keiler, Hirsch, Dachs, Wolf) statt Modell- oder
 Herstellernamen.
 
-## Icon neu erzeugen
+## Icon übernehmen
 
-`store/tool/app_icon.py` zeichnet das Icon (Panzer auf dem Gelände der
-Karte) und schreibt es nach `icon/`, in die Icon-Sets für iOS und macOS und
-nach `web/`.
-Danach `store/tool/android_icons.py` für Android und Google Play:
+Das Icon (Panzer in Seitenansicht auf dem Horizont) zeichnet das
+Design-System Horizont, die App zeichnet und skaliert es nicht selbst.
+`store/tool/horizont_icons.py` kopiert die fertigen Sätze aus
+`icons/export/panzergefecht/` eines Horizont-Checkouts nach `icon/`, in die
+Icon-Sets für iOS, Watch, macOS und Apple TV, nach Android, `web/` und in
+die Play-Metadaten:
 
 ```sh
-python3 store/tool/app_icon.py
-python3 store/tool/android_icons.py
+python3 store/tool/horizont_icons.py ../design-system
 ```
 
 ## Screenshots neu erzeugen
@@ -61,7 +63,6 @@ Zwei Befehle, ohne Hand am Simulator:
 ```sh
 tool/store_shots.sh /tmp/raw              # alle Rohbilder, ca. 15 Minuten
 python3 store/tool/compose.py /tmp/raw    # alle Store-Bilder daraus
-python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 ```
 
 `tool/store_shots.sh` baut je Plattform einen Debug-Build mit
@@ -80,7 +81,7 @@ Für Einzelbilder nimmt ein Screenshot-Build außerdem `-SHOT_MAP <n>`
 und `-SHOT_LAYOUT <n>` (Verteidigungskarte, 4 = Flussufer, 5 = Haarnadel).
 Die Simulatoren („Store iPhone 6.9“, „Store iPad 13“, „Store Apple TV“)
 legt das Skript bei Bedarf selbst an; flutter-tvos erwartet es unter
-`~/development/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
+`~/flutter/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
 Bild für die Kopfzeile kommt aus `watch/`.
 
 Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/ui/widgets/account_panel.dart';
 
 import '../../helpers/fakes.dart';
@@ -11,6 +13,7 @@ void main() {
     await accounts.signOut(); // Back to a guest.
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: AccountPanel(
             accounts: accounts,
@@ -21,7 +24,13 @@ void main() {
         ),
       ),
     );
-    expect(find.widgetWithText(TextField, 'RUFNAME'), findsNothing);
+    expect(
+      find.descendant(
+        of: find.widgetWithText(HorizontField, 'Rufname'),
+        matching: find.byType(TextField),
+      ),
+      findsNothing,
+    );
     expect(
       find.textContaining('Du registrierst dich als Testfuchs'),
       findsOneWidget,
@@ -35,11 +44,18 @@ void main() {
     await accounts.signOut();
     await tester.pumpWidget(
       MaterialApp(
+        theme: buildGameTheme(),
         home: Scaffold(
           body: AccountPanel(accounts: accounts, initiallyOpen: true),
         ),
       ),
     );
-    expect(find.widgetWithText(TextField, 'RUFNAME'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.widgetWithText(HorizontField, 'Rufname'),
+        matching: find.byType(TextField),
+      ),
+      findsOneWidget,
+    );
   });
 }

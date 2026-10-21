@@ -26,7 +26,7 @@ done
 
 cd "$(dirname "$0")/.."
 
-flutter_watchos="${FLUTTER_WATCHOS:-$HOME/development/flutter-watchos/bin/flutter-watchos}"
+flutter_watchos="${FLUTTER_WATCHOS:-$HOME/flutter/flutter-watchos/bin/flutter-watchos}"
 version=$(sed -n 's/^version: *//p' pubspec.yaml)
 name="${version%%+*}"
 number="${version##*+}"

@@ -367,6 +367,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.0"
+  horizont:
+    dependency: "direct main"
+    description:
+      path: flutter
+      ref: "v0.7.7"
+      resolved-ref: "6dfa983100924c148aa0489a94cf15f37fe791ac"
+      url: "https://github.com/regetskcob/horizont.git"
+    source: git
+    version: "0.7.7"
   http:
     dependency: "direct main"
     description:

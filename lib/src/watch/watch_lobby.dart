@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../game/components/tank_painter.dart';
 import '../game/bot_level.dart';
@@ -68,24 +69,16 @@ class _WatchLobbyState extends State<WatchLobby> {
     return WatchPage(
       key: const ValueKey('start'),
       children: [
-        const FittedBox(
+        FittedBox(
           fit: BoxFit.scaleDown,
-          child: Text(
-            'PANZERGEFECHT',
-            maxLines: 1,
-            style: TextStyle(
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-            ),
-          ),
+          child: Text('PANZERGEFECHT', maxLines: 1, style: GameType.title),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: HzSpace.s8),
         _CallSignButton(game: game),
         ValueListenableBuilder(
           valueListenable: AccountLink.instance.account,
           builder: (context, linked, _) => Padding(
-            padding: const EdgeInsets.only(top: 4),
+            padding: const EdgeInsets.only(top: HzSpace.s4),
             child: Text(
               linked != null
                   ? tr(
@@ -100,11 +93,11 @@ class _WatchLobbyState extends State<WatchLobby> {
                       'Guest. Sign in in the iPhone app.',
                     ),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 11, color: GameColors.textDim),
+              style: GameType.caption,
             ),
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: HzSpace.s8),
         WatchButton(
           label: tr('EINZELSPIELER', 'SINGLE PLAYER'),
           icon: Icons.person,
@@ -156,7 +149,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                   'Gerade ist kein öffentlicher Raum offen.',
                   'There is no public room open right now.',
                 ),
-                style: const TextStyle(color: GameColors.textDim, fontSize: 13),
+                style: GameType.callout.copyWith(color: GameColors.textMuted),
               );
             }
             return Column(
@@ -200,14 +193,10 @@ class _WatchLobbyState extends State<WatchLobby> {
                   GameMode.flag => tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
                 },
                 maxLines: 1,
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
+                style: GameType.title,
               ),
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: HzSpace.s8),
             WatchButton(
               label: host
                   ? tr('GEFECHT STARTEN', 'START BATTLE')
@@ -293,9 +282,14 @@ class _CallSignButton extends StatelessWidget {
     final name = await showDialog<String>(
       context: context,
       builder: (context) => Dialog.fullscreen(
-        backgroundColor: GameColors.background,
+        backgroundColor: GameColors.bg,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
+          padding: const EdgeInsets.fromLTRB(
+            HzSpace.s16,
+            HzSpace.s48,
+            HzSpace.s16,
+            HzSpace.s16,
+          ),
           child: Column(
             children: [
               TextField(
@@ -309,7 +303,7 @@ class _CallSignButton extends StatelessWidget {
                 ),
                 onSubmitted: (value) => Navigator.pop(context, value),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: HzSpace.s8),
               WatchButton(
                 label: 'OK',
                 primary: true,
@@ -332,17 +326,21 @@ class _CallSignButton extends StatelessWidget {
     return OutlinedButton.icon(
       onPressed: () => _edit(context),
       style: OutlinedButton.styleFrom(
-        minimumSize: const Size.fromHeight(40),
+        minimumSize: const Size.fromHeight(HzSize.touch),
         foregroundColor: GameColors.text,
-        side: const BorderSide(color: GameColors.oliveLight, width: 1.5),
+        side: hairline,
       ),
-      icon: const Icon(Icons.badge_outlined, size: 18, color: GameColors.amber),
+      icon: const Icon(
+        Icons.badge_outlined,
+        size: HzIconSize.row,
+        color: GameColors.textMuted,
+      ),
       label: FittedBox(
         fit: BoxFit.scaleDown,
         child: Text(
           game.myName,
           maxLines: 1,
-          style: const TextStyle(fontWeight: FontWeight.w800),
+          style: GameType.label.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
     );
@@ -377,7 +375,7 @@ class _TankPicker extends StatelessWidget {
     onPressed: onPressed,
     padding: EdgeInsets.zero,
     constraints: const BoxConstraints.tightFor(width: 30, height: 48),
-    icon: Icon(icon, color: GameColors.amber),
+    icon: Icon(icon, color: GameColors.text),
   );
 
   @override
@@ -404,10 +402,7 @@ class _TankPicker extends StatelessWidget {
                 child: Text(
                   type.label,
                   maxLines: 1,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                  ),
+                  style: GameType.label.copyWith(fontWeight: FontWeight.w600),
                 ),
               ),
             ],

@@ -1,12 +1,8 @@
 {{ define "main" }}
-<main class="lost">
-  <section class="card">
-    <h1>{{ upper (i18n "notFoundTitle") }}</h1>
-    <p>{{ i18n "notFoundText" }}</p>
-    <div class="row">
-      {{ partial "play-button.html" (dict "label" (i18n "play")) }}
-      <a class="ghost" href="{{ "" | relLangURL }}">{{ i18n "home" }}</a>
-    </div>
-  </section>
-</main>
+{{ partial "horizont/feld/hero.html" (dict
+  "kennung" (i18n "notFoundKennung")
+  "title" (i18n "notFoundTitle")
+  "text" (i18n "notFoundText")
+  "primary" (dict "label" (i18n "play") "url" ("play/" | relURL))
+  "secondary" (dict "label" (i18n "home") "url" ("" | relLangURL))) }}
 {{ end }}

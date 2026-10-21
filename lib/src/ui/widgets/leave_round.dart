@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../game/tank_game.dart';
 import '../../l10n/l10n.dart';
@@ -24,9 +25,11 @@ class LeaveRoundButton extends StatelessWidget {
       tooltip: game.touchMode.value
           ? tr('Runde verlassen', 'Leave round')
           : tr('Runde verlassen (Esc)', 'Leave round (Esc)'),
-      color: GameColors.textDim.withValues(alpha: 0.7),
+      color: GameColors.textMuted,
       // A dark disc under it, or the dim icon vanished on snow and sand.
-      style: IconButton.styleFrom(backgroundColor: const Color(0x80141A0E)),
+      style: IconButton.styleFrom(
+        backgroundColor: GameColors.bg.withValues(alpha: 0.5),
+      ),
       onPressed: () => game.leaveAsked.value = true,
       icon: const Icon(Icons.logout_outlined),
     );
@@ -81,33 +84,35 @@ class LeaveRoundPrompt extends StatelessWidget {
             onEnter: (_) => game.pointerOnHud = true,
             onExit: (_) => game.pointerOnHud = false,
             child: Panel(
-              padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+              padding: const EdgeInsets.fromLTRB(
+                HzSpace.s24,
+                HzSpace.s16,
+                HzSpace.s24,
+                HzSpace.s16,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    tr('Runde verlassen?', 'Leave the round?'),
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
+                    tr('Runde verlassen?', 'Leave the round?').toUpperCase(),
+                    textAlign: TextAlign.center,
+                    style: GameType.title,
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: HzSpace.s8),
                   ConstrainedBox(
                     constraints: const BoxConstraints(maxWidth: 320),
                     child: Text(
                       note,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: GameColors.textDim,
+                      style: GameType.callout.copyWith(
+                        color: GameColors.textMuted,
                       ),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: HzSpace.s16),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: HzSpace.s8,
+                    runSpacing: HzSpace.s8,
                     alignment: WrapAlignment.center,
                     children: [
                       OutlinedButton(
@@ -129,10 +134,13 @@ class LeaveRoundPrompt extends StatelessWidget {
                           label: Text(tr('RUNDE BEENDEN', 'WIN · END')),
                         ),
                       (won && host ? OutlinedButton.new : FilledButton.new)(
+                        // Leaving is the irreversible action: critical,
+                        // unless ending a won defense is the one to take.
                         style: won && host
                             ? null
                             : FilledButton.styleFrom(
-                                backgroundColor: GameColors.danger,
+                                backgroundColor: GameColors.critical,
+                                foregroundColor: GameColors.onCritical,
                               ),
                         onPressed: () {
                           game.pointerOnHud = false;

@@ -1,14 +1,9 @@
 {
   "images": [
     {
-      "idiom": "tv",
       "filename": "large_back.png",
-      "scale": "1x"
-    },
-    {
       "idiom": "tv",
-      "filename": "large_back@2x.png",
-      "scale": "2x"
+      "scale": "1x"
     }
   ],
   "info": {

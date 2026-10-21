@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
 import 'package:wargame/src/ui/widgets/player_list.dart';
 
@@ -15,6 +16,7 @@ LobbyPresence _member(String id, String name, {bool host = false}) =>
 
 Future<void> _pump(WidgetTester tester, {String? hostId}) => tester.pumpWidget(
   MaterialApp(
+    theme: buildGameTheme(),
     home: Scaffold(
       body: PlayerList(
         members: [

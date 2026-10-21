@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -68,39 +69,36 @@ class _RoomInviteState extends State<RoomInvite> {
     }
   }
 
-  /// The link as a code to scan with a phone camera, on white for contrast.
+  /// The link as a code to scan with a phone camera: dark modules on the
+  /// ink colour, the strongest contrast the palette has, in a radius-6 box.
   Widget _qr(String link) {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          color: Colors.white,
-          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: GameColors.text,
+            borderRadius: BorderRadius.circular(HzRadius.r6),
+          ),
+          padding: const EdgeInsets.all(HzSpace.s8),
           child: QrImageView(
             data: link,
             size: 84,
             padding: EdgeInsets.zero,
-            backgroundColor: Colors.white,
+            backgroundColor: GameColors.text,
             errorCorrectionLevel: QrErrorCorrectLevel.M,
             eyeStyle: const QrEyeStyle(
               eyeShape: QrEyeShape.square,
-              color: Color(0xFF11140C),
+              color: GameColors.sunken,
             ),
             dataModuleStyle: const QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
-              color: Color(0xFF11140C),
+              color: GameColors.sunken,
             ),
           ),
         ),
-        const SizedBox(height: 4),
-        Text(
-          tr('ZUM SCANNEN', 'TO SCAN'),
-          style: const TextStyle(
-            fontSize: 10,
-            letterSpacing: 1.5,
-            color: GameColors.textDim,
-          ),
-        ),
+        const SizedBox(height: HzSpace.s4),
+        Text(tr('ZUM SCANNEN', 'TO SCAN'), style: GameType.kennung),
       ],
     );
   }
@@ -112,21 +110,18 @@ class _RoomInviteState extends State<RoomInvite> {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          tr('EINLADEN', 'INVITE'),
-          style: Theme.of(context).textTheme.titleMedium,
-        ),
-        const SizedBox(height: 4),
+        Kennung(tr('Einladen · Code', 'Invite · code')),
+        const SizedBox(height: HzSpace.s4),
+        // The code big in mono: read aloud across a room or typed in.
         SelectableText(
           _room,
-          style: const TextStyle(
-            fontSize: 30,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 6,
-            color: GameColors.sand,
+          style: GameType.dataLarge.copyWith(
+            fontSize: 32,
+            height: 40 / 32,
+            letterSpacing: 0.12 * 32,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: HzSpace.s8),
         if (hasLink)
           Wrap(
             spacing: 4,
@@ -135,10 +130,10 @@ class _RoomInviteState extends State<RoomInvite> {
             children: [
               TextButton.icon(
                 onPressed: _copy,
-                // Plain sand like the share icon beside it, and narrow enough
+                // Plain ink like the share icon beside it, and narrow enough
                 // that both fit next to the QR code on a phone.
                 style: TextButton.styleFrom(
-                  foregroundColor: GameColors.sand,
+                  foregroundColor: GameColors.text,
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   minimumSize: const Size(0, _buttonHeight),
                   maximumSize: const Size(double.infinity, _buttonHeight),
@@ -155,7 +150,7 @@ class _RoomInviteState extends State<RoomInvite> {
                 builder: (button) => IconButton(
                   onPressed: () => _share(button),
                   tooltip: tr('Teilen', 'Share'),
-                  color: GameColors.sand,
+                  color: GameColors.text,
                   constraints: const BoxConstraints.tightFor(
                     width: _buttonHeight,
                     height: _buttonHeight,
@@ -174,17 +169,17 @@ class _RoomInviteState extends State<RoomInvite> {
               'Wer den Raumcode kennt, kann beitreten.',
               'Anyone who knows the room code can join.',
             ),
-            style: const TextStyle(color: GameColors.textDim, fontSize: 12),
+            style: GameType.caption,
           ),
       ],
     );
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: const Color(0x44000000),
+        color: GameColors.sunken,
         shape: GameShapes.card(),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(HzSpace.s16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -192,14 +187,17 @@ class _RoomInviteState extends State<RoomInvite> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(child: details),
-                if (hasLink) ...[const SizedBox(width: 12), _qr(_link)],
+                if (hasLink) ...[
+                  const SizedBox(width: HzSpace.s12),
+                  _qr(_link),
+                ],
               ],
             ),
             // Only rounds against each other show up in the room list.
             if (hasLink &&
                 (widget.game.mode.value == GameMode.multi ||
                     widget.game.mode.value == GameMode.flag)) ...[
-              const SizedBox(height: 10),
+              const SizedBox(height: HzSpace.s12),
               ValueListenableBuilder<bool>(
                 valueListenable: widget.game.publicRoom,
                 builder: (context, public, _) => ChoiceRow<bool>(

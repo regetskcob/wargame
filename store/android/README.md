@@ -21,13 +21,13 @@ in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
 Play erlaubt keine Seite, die mehr als doppelt so lang ist wie die andere, die
 6,9"-Bilder aus dem App Store passen deshalb nicht. `../tool/compose.py`
 baut aus denselben Rohaufnahmen beide Sätze und die Vorstellungsgrafik,
-`../tool/android_icons.py` die Launcher-Icons (klassisch und adaptiv) und das
-Play-Symbol aus dem App-Store-Icon:
+`../tool/horizont_icons.py` kopiert die Launcher-Icons (klassisch und adaptiv
+mit monochromer Ebene) und das Play-Symbol aus dem Design-System Horizont:
 
 ```sh
 pip3 install --user pillow
 python3 store/tool/compose.py <ordner-mit-rohaufnahmen>
-python3 store/tool/android_icons.py
+python3 store/tool/horizont_icons.py ../design-system
 ```
 
 Englische Screenshots und Vorstellungsgrafik liegen genauso unter

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/ui/account_page.dart';
 import 'package:wargame/src/ui/widgets/call_sign.dart';
 
@@ -26,7 +27,10 @@ void main() {
 
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
-    final field = find.widgetWithText(TextField, 'RUFNAME');
+    final field = find.descendant(
+      of: find.widgetWithText(HorizontField, 'Rufname'),
+      matching: find.byType(TextField),
+    );
     expect(field, findsOneWidget);
 
     // Typing alone changes nothing yet, the tick takes the name.
@@ -84,7 +88,10 @@ void main() {
     await tester.pump();
     expect(
       find.descendant(
-        of: find.widgetWithText(TextField, 'RUFNAME'),
+        of: find.descendant(
+          of: find.widgetWithText(HorizontField, 'Rufname'),
+          matching: find.byType(TextField),
+        ),
         matching: find.text('Peter Maffay'),
       ),
       findsOneWidget,
@@ -98,7 +105,12 @@ void main() {
     await pumpRouterApp(tester, game, AccountButton(game: game));
     await tester.tap(find.byType(AccountButton));
     await tester.pumpAndSettle();
-    await tester.tap(find.widgetWithText(TextField, 'RUFNAME'));
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(HorizontField, 'Rufname'),
+        matching: find.byType(TextField),
+      ),
+    );
     await tester.pump();
     expect(tester.testTextInput.isVisible, isTrue);
 
