@@ -231,7 +231,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                       // are outlined.
                       FilledButton.icon(
                         onPressed: host ? game.rematch : null,
-                        icon: const Icon(Icons.replay_outlined),
+                        icon: const Icon(HorizontSymbols.replay),
                         label: Text(
                           host
                               ? tr('NEUES SPIEL', 'NEW GAME')
@@ -247,7 +247,7 @@ class _RoundOverOverlayState extends State<RoundOverOverlay>
                       ),
                       OutlinedButton.icon(
                         onPressed: game.watchReplay,
-                        icon: const Icon(Icons.movie_outlined),
+                        icon: const Icon(HorizontSymbols.movie),
                         label: Text(tr('WIEDERHOLUNG', 'REPLAY')),
                       ),
                     ],

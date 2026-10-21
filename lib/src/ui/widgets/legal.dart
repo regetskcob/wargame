@@ -97,7 +97,7 @@ class LegalLinks extends StatelessWidget {
                     IconButton(
                       tooltip: tr('Schließen', 'Close'),
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_outlined),
+                      icon: const Icon(HorizontSymbols.close),
                     ),
                   ],
                 ),
@@ -133,7 +133,7 @@ class LegalLinks extends StatelessWidget {
                       alignment: Alignment.centerLeft,
                       child: TextButton.icon(
                         onPressed: action.$2,
-                        icon: const Icon(Icons.description_outlined),
+                        icon: const Icon(HorizontSymbols.description),
                         label: Text(action.$1),
                       ),
                     ),

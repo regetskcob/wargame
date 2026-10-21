@@ -154,7 +154,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _battleSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.tune_outlined,
+      icon: HorizontSymbols.tune,
       title: tr('EINSATZ', 'MISSION'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
@@ -328,7 +328,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _fieldSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.landscape_outlined,
+      icon: HorizontSymbols.landscape,
       title: tr('GELÄNDE', 'TERRAIN'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,7 +372,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _tankSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.shield_outlined,
+      icon: HorizontSymbols.shield,
       title: tr('DEIN PANZER', 'YOUR TANK'),
       // Wide, the bars and the paint stand beside the vehicles instead of
       // stretching across the whole width below them.
@@ -536,7 +536,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         if (game.mode.value == GameMode.solo && game.isHost.value) {
           leave = OutlinedButton.icon(
             onPressed: game.changeMode,
-            icon: const Icon(Icons.arrow_back_outlined),
+            icon: const Icon(HorizontSymbols.arrowBack),
             label: _oneLine(tr('ZURÜCK', 'BACK')),
           );
         } else {
@@ -552,7 +552,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : null,
             ),
             icon: Icon(
-              _closeArmed ? Icons.warning_amber_outlined : Icons.close_outlined,
+              _closeArmed
+                  ? HorizontSymbols.warningAmber
+                  : HorizontSymbols.close,
             ),
             // Short enough for half a phone width at full size; the red
             // frame and the warning icon say that the second tap counts.
@@ -582,7 +584,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                               game.startRound();
                             }
                           : null,
-                      icon: const Icon(Icons.flag_outlined),
+                      icon: const Icon(HorizontSymbols.flag),
                       label: _oneLine(
                         game.canStart
                             ? tr('STARTEN', 'START')
@@ -608,7 +610,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         padding: const EdgeInsets.only(top: 12),
                         child: OutlinedButton.icon(
                           onPressed: null,
-                          icon: const Icon(Icons.movie_outlined),
+                          icon: const Icon(HorizontSymbols.movie),
                           label: Text(
                             tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                           ),
@@ -624,7 +626,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           if (live != null)
                             OutlinedButton.icon(
                               onPressed: game.spectateLiveMatch,
-                              icon: const Icon(Icons.visibility_outlined),
+                              icon: const Icon(HorizontSymbols.visibility),
                               label: Text(
                                 tr(
                                   'LAUFENDES GEFECHT BEOBACHTEN',
@@ -635,7 +637,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           if (replay != null)
                             OutlinedButton.icon(
                               onPressed: game.watchReplay,
-                              icon: const Icon(Icons.movie_outlined),
+                              icon: const Icon(HorizontSymbols.movie),
                               label: Text(
                                 tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                               ),
@@ -717,7 +719,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               Navigator.of(dialog).pop();
               game.showTutorial();
             },
-            icon: const Icon(Icons.school_outlined, size: 18),
+            icon: const Icon(HorizontSymbols.school, size: 18),
             label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
           FilledButton(
@@ -828,7 +830,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: game.changeMode,
-                icon: const Icon(Icons.swap_horiz_outlined),
+                icon: const Icon(HorizontSymbols.swapHoriz),
                 label: _oneLine(tr('MODUS WECHSELN', 'CHANGE MODE')),
               ),
             ),
@@ -836,7 +838,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             Expanded(
               child: FilledButton.icon(
                 onPressed: game.closeSettings,
-                icon: const Icon(Icons.check_outlined),
+                icon: const Icon(HorizontSymbols.check),
                 label: _oneLine(tr('FERTIG', 'DONE')),
               ),
             ),
@@ -893,7 +895,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
               visualDensity: VisualDensity.compact,
             ),
-            icon: const Icon(Icons.tune_outlined, size: HzIconSize.inline),
+            icon: const Icon(HorizontSymbols.tune, size: HzIconSize.inline),
             label: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -937,13 +939,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 IconButton(
                   tooltip: tr('Steuerung', 'Controls'),
                   onPressed: () => _showControls(context),
-                  icon: const Icon(Icons.help_outline),
+                  icon: const Icon(HorizontSymbols.help),
                 ),
                 if (host)
                   IconButton(
                     tooltip: tr('Einstellungen', 'Settings'),
                     onPressed: widget.game.editSettings,
-                    icon: const Icon(Icons.settings_outlined),
+                    icon: const Icon(HorizontSymbols.settings),
                   ),
               ],
             ),
@@ -1177,7 +1179,7 @@ class ColorSwatchButton extends StatelessWidget {
           ),
           child: locked
               ? const Icon(
-                  Icons.lock_outlined,
+                  HorizontSymbols.lock,
                   size: 12,
                   color: GameColors.text,
                 )
@@ -1196,7 +1198,7 @@ class _JoinedBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Notice(
       HorizontStatus.info,
-      icon: Icons.hourglass_top_outlined,
+      icon: HorizontSymbols.hourglassTop,
       child: Text(
         tr(
           'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '

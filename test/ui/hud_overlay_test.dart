@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/game/bot_level.dart';
 import 'package:wargame/src/game/components/power_up.dart';
@@ -83,7 +84,7 @@ void main() {
       ),
     );
     // The fullest state: the guns to build folded out.
-    final towers = find.byIcon(Icons.construction_outlined);
+    final towers = find.byIcon(HorizontSymbols.construction);
     await tester.tap(towers);
     await tester.pump();
 
@@ -122,7 +123,7 @@ void main() {
         home: Scaffold(body: HudOverlay(game: game)),
       ),
     );
-    await tester.tap(find.byIcon(Icons.construction_outlined));
+    await tester.tap(find.byIcon(HorizontSymbols.construction));
     await tester.pump();
 
     final flak = find.ancestor(

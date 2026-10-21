@@ -112,7 +112,7 @@ class TankChoice extends StatelessWidget {
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(
-              Icons.check_outlined,
+              HorizontSymbols.check,
               size: HzIconSize.row,
               color: GameColors.accentText,
             ),
@@ -132,7 +132,7 @@ class TankChoice extends StatelessWidget {
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(
-              Icons.lock_outlined,
+              HorizontSymbols.lock,
               size: HzIconSize.row,
               color: GameColors.textMuted,
             ),

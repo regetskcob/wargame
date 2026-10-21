@@ -511,7 +511,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
     return Row(
       children: [
         const Icon(
-          Icons.school_outlined,
+          HorizontSymbols.school,
           color: GameColors.textMuted,
           size: HzIconSize.bar,
         ),
@@ -525,7 +525,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
         ),
         TextButton.icon(
           onPressed: widget.onClose,
-          icon: const Icon(Icons.close_outlined, size: HzIconSize.row),
+          icon: const Icon(HorizontSymbols.close, size: HzIconSize.row),
           label: Text(tr('ÜBERSPRINGEN', 'SKIP')),
         ),
       ],
@@ -588,7 +588,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             visualDensity: VisualDensity.compact,
             onPressed: _togglePlay,
             icon: Icon(
-              _playing ? Icons.pause_outlined : Icons.play_arrow_outlined,
+              _playing ? HorizontSymbols.pause : HorizontSymbols.playArrow,
             ),
           ),
         ),
@@ -609,7 +609,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
             ),
           ),
           icon: Icon(
-            _last ? Icons.check_outlined : Icons.chevron_right_outlined,
+            _last ? HorizontSymbols.check : HorizontSymbols.chevronRight,
           ),
           // As wide for both labels, so the button stays put on the last card.
           label: Stack(

@@ -323,8 +323,8 @@ class _AccountPanelState extends State<AccountPanel> {
                         children: [
                           Icon(
                             guest
-                                ? Icons.person_outline
-                                : Icons.verified_user_outlined,
+                                ? HorizontSymbols.person
+                                : HorizontSymbols.verifiedUser,
                             size: HzIconSize.row,
                             // A linked account is a state: word, sign and
                             // the positive colour.

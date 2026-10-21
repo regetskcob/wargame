@@ -17,6 +17,9 @@ step, point for point.
   with their count, the vehicles as cards with the chosen one outlined and
   its values as bars
 - New app icon on every platform: the tank from the side on the horizon
+- Every symbol in menus, the HUD, the crates, the tutorial, the television
+  and the watch comes from Horizont's thin, sharp set instead of Material's
+  icons
 - The landing page as a Horizont field page with numbered sections, the
   screenshots in device frames, and the legal pages in the same style
 - The Apple Watch no longer opens the game controller channel it does not

@@ -72,7 +72,7 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
           padding: const EdgeInsets.only(bottom: HzSpace.s16),
           child: Notice(
             HorizontStatus.warning,
-            icon: Icons.hourglass_top_outlined,
+            icon: HorizontSymbols.hourglassTop,
             child: Text(text),
           ),
         );

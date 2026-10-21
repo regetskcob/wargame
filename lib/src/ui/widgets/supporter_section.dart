@@ -48,7 +48,7 @@ class SupporterSection extends StatelessWidget {
                 Row(
                   children: [
                     Icon(
-                      owned ? Icons.star : Icons.star_outline,
+                      owned ? HorizontSymbols.starFill : HorizontSymbols.star,
                       color: GameColors.textMuted,
                       size: HzIconSize.row,
                     ),

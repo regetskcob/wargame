@@ -19,6 +19,8 @@ gepflegt.
   Werten als Balken
 - Neues App-Icon auf allen Plattformen: der Panzer von der Seite auf dem
   Horizont
+- Jedes Symbol in Menüs, HUD, Kisten, Tutorial, Fernseher und Uhr kommt
+  aus Horizonts schlankem, kantigem Satz statt aus den Material-Icons
 - Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
   Screenshots in Geräterahmen, die Rechtstexte im selben Stil
 - Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort

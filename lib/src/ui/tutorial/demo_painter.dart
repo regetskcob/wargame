@@ -754,7 +754,7 @@ class DemoPainter extends CustomPainter {
     _icon(
       canvas,
       base.center,
-      Icons.fort_outlined,
+      HorizontSymbols.fort,
       _tankSize * 0.6,
       GameColors.text,
     );
@@ -1318,7 +1318,7 @@ class DemoPainter extends CustomPainter {
     _icon(
       canvas,
       Offset(rect.left + 12 + 9, rect.center.dy),
-      Icons.gps_fixed_outlined,
+      HorizontSymbols.gpsFixed,
       18,
       color,
     );
@@ -1355,7 +1355,13 @@ class DemoPainter extends CustomPainter {
         ..strokeWidth = 2.5
         ..color = color,
     );
-    _icon(canvas, at + const Offset(0, -14), Icons.diamond_outlined, 18, color);
+    _icon(
+      canvas,
+      at + const Offset(0, -14),
+      HorizontSymbols.diamond,
+      18,
+      color,
+    );
     _text(
       canvas,
       at + const Offset(0, -3),

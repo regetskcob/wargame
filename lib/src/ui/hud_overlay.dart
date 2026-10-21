@@ -982,7 +982,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               credits >= near.kind.upgradeCost(near.level)
           ? () => game.upgradeTower(near)
           : null,
-      icon: const Icon(Icons.upgrade_outlined, size: HzIconSize.inline),
+      icon: const Icon(HorizontSymbols.upgrade, size: HzIconSize.inline),
       label: Text(
         !near.kind.upgradable
             ? tr('${near.kind.label} BESETZT', '${near.kind.label} OCCUPIED')
@@ -1137,7 +1137,7 @@ class _DefensePanelState extends State<_DefensePanel> {
     return OutlinedButton.icon(
       style: _buttonStyle,
       onPressed: game.callWaveNow,
-      icon: const Icon(Icons.fast_forward_outlined, size: HzIconSize.inline),
+      icon: const Icon(HorizontSymbols.fastForward, size: HzIconSize.inline),
       label: Text(
         touch || steeredByPad(game)
             ? tr('WELLE JETZT', 'WAVE NOW')
@@ -1197,20 +1197,20 @@ class _DefensePanelState extends State<_DefensePanel> {
             ),
             const SizedBox(width: HzSpace.s2),
             const Icon(
-              Icons.paid_outlined,
+              HorizontSymbols.paid,
               size: HzIconSize.badge,
               color: GameColors.textMuted,
             ),
             const SizedBox(width: HzSpace.s8),
             _tab(
               tr('Geschütze', 'Guns'),
-              Icons.construction_outlined,
+              HorizontSymbols.construction,
               _Shop.towers,
             ),
             const SizedBox(width: HzSpace.s4),
             _tab(
               tr('Aufrüstung', 'Upgrades'),
-              Icons.upgrade_outlined,
+              HorizontSymbols.upgrade,
               _Shop.upgrades,
             ),
             if (game.canCallWave) ...[
@@ -1225,7 +1225,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                       style: _iconStyle,
                       onPressed: game.callWaveNow,
                       child: const Icon(
-                        Icons.fast_forward_outlined,
+                        HorizontSymbols.fastForward,
                         size: HzIconSize.row,
                       ),
                     ),
@@ -1367,7 +1367,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                           style: _buttonStyle,
                           onPressed: game.extendDefense,
                           icon: const Icon(
-                            Icons.add_outlined,
+                            HorizontSymbols.add,
                             size: HzIconSize.inline,
                           ),
                           label: Text(
@@ -1381,7 +1381,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                         style: _buyStyle,
                         onPressed: game.withdrawDefense,
                         icon: const Icon(
-                          Icons.flag_outlined,
+                          HorizontSymbols.flag,
                           size: HzIconSize.inline,
                         ),
                         label: Text(tr('BEENDEN', 'END'), style: _small),
@@ -1476,7 +1476,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
                 child: const Icon(
-                  Icons.flag_outlined,
+                  HorizontSymbols.flag,
                   size: HzIconSize.badge,
                   color: GameColors.textMuted,
                 ),
@@ -1647,7 +1647,7 @@ class _TvMenuButtons extends StatelessWidget {
             FilledButton.icon(
               onPressed: () => game.tvMenu.value = false,
               icon: const Icon(
-                Icons.play_arrow_outlined,
+                HorizontSymbols.playArrow,
                 size: HzIconSize.inline,
               ),
               label: Text(tr('WEITERSPIELEN', 'KEEP PLAYING')),
@@ -1657,7 +1657,7 @@ class _TvMenuButtons extends StatelessWidget {
                 game.tvMenu.value = false;
                 game.leaveAsked.value = true;
               },
-              icon: const Icon(Icons.logout_outlined, size: HzIconSize.inline),
+              icon: const Icon(HorizontSymbols.logout, size: HzIconSize.inline),
               label: Text(tr('RUNDE VERLASSEN', 'LEAVE ROUND')),
             ),
           ],

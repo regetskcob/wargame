@@ -305,7 +305,7 @@ class _AssistToggleState extends State<_AssistToggle> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.gps_fixed_outlined, size: HzIconSize.row, color: color),
+            Icon(HorizontSymbols.gpsFixed, size: HzIconSize.row, color: color),
             const SizedBox(width: HzSpace.s8),
             Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -420,7 +420,11 @@ class _SpecialButtonState extends State<_SpecialButton> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.diamond_outlined, size: HzIconSize.inline, color: color),
+            Icon(
+              HorizontSymbols.diamond,
+              size: HzIconSize.inline,
+              color: color,
+            ),
             Text(switch (widget.weapon) {
               SpecialWeapon.drone => tr('DROHNE', 'DRONE'),
               SpecialWeapon.mortar => tr('MÖRSER', 'MORTAR'),

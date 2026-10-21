@@ -36,7 +36,7 @@ class AccountButton extends StatelessWidget {
     return IconButton(
       tooltip: tr('Konto', 'Account'),
       onPressed: () => AccountPage.open(context),
-      icon: const Icon(Icons.account_circle_outlined),
+      icon: const Icon(HorizontSymbols.accountCircle),
     );
   }
 }
@@ -229,7 +229,7 @@ class _AccountPageState extends State<AccountPage> {
                             foregroundColor: GameColors.accentText,
                             disabledForegroundColor: GameColors.textFaint,
                           ),
-                          icon: const Icon(Icons.check_outlined),
+                          icon: const Icon(HorizontSymbols.check),
                         ),
                 ),
                 onChanged: (_) {
@@ -365,7 +365,7 @@ class _AccountPageState extends State<AccountPage> {
                               strokeWidth: HzLine.selection,
                             ),
                           )
-                        : const Icon(Icons.delete_forever_outlined),
+                        : const Icon(HorizontSymbols.deleteForever),
                     label: Text(tr('KONTO LÖSCHEN', 'DELETE ACCOUNT')),
                   ),
                   if (_error != null) ...[
@@ -473,7 +473,7 @@ class _AccountPageState extends State<AccountPage> {
           // The remote starts on the page instead of the game below it.
           autofocus: onTv,
           onPressed: () => Navigator.of(context).pop(),
-          icon: const Icon(Icons.close_outlined),
+          icon: const Icon(HorizontSymbols.close),
         ),
       ],
     );
@@ -516,7 +516,7 @@ class _ControllerBox extends StatelessWidget {
             Row(
               children: [
                 const Icon(
-                  Icons.sports_esports_outlined,
+                  HorizontSymbols.sportsEsports,
                   color: GameColors.textMuted,
                   size: HzIconSize.row,
                 ),

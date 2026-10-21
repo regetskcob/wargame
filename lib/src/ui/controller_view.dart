@@ -311,7 +311,7 @@ class _ControllerViewState extends State<ControllerView> {
           child: Row(
             children: [
               Icon(
-                online ? Icons.sports_esports_outlined : Icons.sync_outlined,
+                online ? HorizontSymbols.sportsEsports : HorizontSymbols.sync,
                 color: online ? GameColors.text : GameColors.textMuted,
               ),
               const SizedBox(width: HzSpace.s12),
@@ -358,7 +358,7 @@ class _ControllerViewState extends State<ControllerView> {
                 TextButton.icon(
                   onPressed: _close,
                   icon: const Icon(
-                    Icons.link_off_outlined,
+                    HorizontSymbols.linkOff,
                     size: HzIconSize.row,
                   ),
                   label: Text(tr('TRENNEN', 'UNPAIR')),
@@ -367,7 +367,7 @@ class _ControllerViewState extends State<ControllerView> {
                 IconButton(
                   tooltip: tr('Trennen', 'Unpair'),
                   onPressed: _close,
-                  icon: const Icon(Icons.link_off_outlined),
+                  icon: const Icon(HorizontSymbols.linkOff),
                 ),
             ],
           ),
@@ -417,14 +417,14 @@ class _ControllerViewState extends State<ControllerView> {
 
     final bars = [
       bar(
-        Icons.health_and_safety_outlined,
+        HorizontSymbols.healthAndSafety,
         status.hp,
         armourStatus(status.hp),
         '${(status.hp * 100).round()} %',
       ),
       bar(
         // The crate of the HUD's plate, so both read the same.
-        Icons.inventory_2_outlined,
+        HorizontSymbols.inventory2,
         ammo,
         status.magazine > 0 && status.ammo <= 0
             ? HorizontStatus.critical
@@ -433,7 +433,7 @@ class _ControllerViewState extends State<ControllerView> {
       ),
       if (status.fuel case final fuel?)
         bar(
-          Icons.local_gas_station_outlined,
+          HorizontSymbols.localGasStation,
           fuel,
           stockStatus(fuel, low: GameConfig.fuelLowShare),
           '${(fuel * 100).round()} %',
@@ -532,13 +532,13 @@ class _ControllerViewState extends State<ControllerView> {
   Widget _buildGroup(PadStatus status) {
     final near = status.near;
     final open = _shop;
-    return _group(Icons.construction_outlined, tr('AUSBAU', 'BUILD'), [
+    return _group(HorizontSymbols.construction, tr('AUSBAU', 'BUILD'), [
       Wrap(
         spacing: HzSpace.s8,
         runSpacing: HzSpace.s8,
         children: [
           _Chip(
-            icon: Icons.fort_outlined,
+            icon: HorizontSymbols.fort,
             color: GameColors.textMuted,
             label: tr('GESCHÜTZE', 'GUNS'),
             selected: open == _Shop.towers,
@@ -546,7 +546,7 @@ class _ControllerViewState extends State<ControllerView> {
             onTap: () => _toggle(_Shop.towers),
           ),
           _Chip(
-            icon: Icons.upgrade_outlined,
+            icon: HorizontSymbols.upgrade,
             color: GameColors.textMuted,
             label: tr('AUFRÜSTUNG', 'UPGRADES'),
             selected: open == _Shop.upgrades,
@@ -555,7 +555,7 @@ class _ControllerViewState extends State<ControllerView> {
           ),
           if (near != null && near.$3 > 0)
             _Chip(
-              icon: Icons.keyboard_double_arrow_up_outlined,
+              icon: HorizontSymbols.keyboardDoubleArrowUp,
               color: GameColors.text,
               label: '${near.$1.label} ${near.$3}',
               enabled: near.$4,
@@ -572,7 +572,7 @@ class _ControllerViewState extends State<ControllerView> {
               ? [
                   for (final (kind, cost, ready) in status.shop)
                     _Chip(
-                      icon: Icons.add_location_alt_outlined,
+                      icon: HorizontSymbols.addLocationAlt,
                       color: GameColors.textMuted,
                       label: '${kind.label} $cost',
                       enabled: ready,
@@ -582,7 +582,7 @@ class _ControllerViewState extends State<ControllerView> {
               : [
                   for (final (kind, level, limit, cost) in status.upgrades)
                     _Chip(
-                      icon: Icons.upgrade_outlined,
+                      icon: HorizontSymbols.upgrade,
                       color: kind.color,
                       label:
                           '${kind.label} '
@@ -605,7 +605,7 @@ class _ControllerViewState extends State<ControllerView> {
   /// ends a secured round; everybody else learns what is at stake.
   Widget _roundGroup(PadStatus status) {
     final host = status.canExtend || status.canEnd || status.callWave;
-    return _group(Icons.flag_outlined, tr('RUNDE', 'ROUND'), [
+    return _group(HorizontSymbols.flag, tr('RUNDE', 'ROUND'), [
       if (status.deciding)
         Padding(
           padding: const EdgeInsets.only(bottom: HzSpace.s8),
@@ -620,7 +620,7 @@ class _ControllerViewState extends State<ControllerView> {
           children: [
             if (status.callWave)
               _Chip(
-                icon: Icons.fast_forward_outlined,
+                icon: HorizontSymbols.fastForward,
                 color: GameColors.text,
                 label: tr('WELLE JETZT', 'WAVE NOW'),
                 onTap: () => _remote.act(PadActionKind.wave),
@@ -628,7 +628,7 @@ class _ControllerViewState extends State<ControllerView> {
             if (status.canExtend) ...[
               if (status.callWave) const SizedBox(width: HzSpace.s8),
               _Chip(
-                icon: Icons.add_outlined,
+                icon: HorizontSymbols.add,
                 color: GameColors.text,
                 label: tr(
                   '${GameConfig.defenseExtension} WELLEN',
@@ -641,7 +641,7 @@ class _ControllerViewState extends State<ControllerView> {
               if (status.callWave || status.canExtend)
                 const SizedBox(width: HzSpace.s8),
               _Chip(
-                icon: Icons.flag_outlined,
+                icon: HorizontSymbols.flag,
                 color: GameColors.text,
                 label: tr('BEENDEN', 'END'),
                 onTap: () => _remote.act(PadActionKind.end),
@@ -683,7 +683,7 @@ class _Funds extends StatelessWidget {
             ),
             const SizedBox(width: HzSpace.s4),
             const Icon(
-              Icons.paid_outlined,
+              HorizontSymbols.paid,
               size: HzIconSize.inline,
               color: GameColors.textMuted,
             ),

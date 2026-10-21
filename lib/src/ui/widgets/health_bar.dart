@@ -128,7 +128,7 @@ class HealthBar extends StatelessWidget {
             Row(
               children: [
                 Icon(
-                  Icons.health_and_safety_outlined,
+                  HorizontSymbols.healthAndSafety,
                   size: HzIconSize.inline,
                   color: status == null ? GameColors.textMuted : color,
                 ),

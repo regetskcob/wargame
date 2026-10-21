@@ -46,7 +46,7 @@ class PlayerList extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
-                  Icons.shield_outlined,
+                  HorizontSymbols.shield,
                   size: HzIconSize.inline,
                   color: colorOf(member),
                 ),
@@ -59,7 +59,7 @@ class PlayerList extends StatelessWidget {
                 if (hostId == null ? member.host : member.id == hostId) ...[
                   const SizedBox(width: 6),
                   const Icon(
-                    Icons.star_outlined,
+                    HorizontSymbols.star,
                     size: HzIconSize.badge,
                     color: GameColors.accentText,
                   ),

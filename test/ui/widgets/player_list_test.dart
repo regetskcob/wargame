@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/net/payloads/lobby_presence.dart';
 import 'package:wargame/src/ui/widgets/player_list.dart';
@@ -38,7 +39,7 @@ bool _starred(WidgetTester tester, String name) {
     matching: find.byType(Row),
   );
   return find
-      .descendant(of: row.first, matching: find.byIcon(Icons.star_outlined))
+      .descendant(of: row.first, matching: find.byIcon(HorizontSymbols.star))
       .evaluate()
       .isNotEmpty;
 }

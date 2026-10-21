@@ -27,7 +27,7 @@ class CallSign extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.badge_outlined,
+              HorizontSymbols.badge,
               size: HzIconSize.row,
               color: GameColors.textMuted,
             ),

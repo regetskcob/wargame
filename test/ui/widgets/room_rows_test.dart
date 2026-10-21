@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:horizont/testing.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/room.dart';
@@ -47,7 +48,7 @@ void main() {
   testWidgets('copy and share sit side by side in the invite', (tester) async {
     await show(tester, RoomInvite(game: offlineGame()));
     final copy = tester.getRect(find.text('KOPIEREN'));
-    final share = tester.getRect(find.byIcon(Icons.ios_share_outlined));
+    final share = tester.getRect(find.byIcon(HorizontSymbols.iosShare));
     expect(share.center.dy, closeTo(copy.center.dy, 1));
     expect(find.text('TEILEN'), findsNothing);
     // Privat and public split the full width below, all at one height.

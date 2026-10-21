@@ -100,23 +100,23 @@ class _WatchLobbyState extends State<WatchLobby> {
         const SizedBox(height: HzSpace.s8),
         WatchButton(
           label: tr('EINZELSPIELER', 'SINGLE PLAYER'),
-          icon: Icons.person,
+          icon: HorizontSymbols.person,
           primary: true,
           onPressed: () => game.chooseMode(GameMode.solo),
         ),
         WatchButton(
           label: tr('MEHRSPIELER', 'MULTIPLAYER'),
-          icon: Icons.groups,
+          icon: HorizontSymbols.groups,
           onPressed: () => game.chooseMode(GameMode.multi),
         ),
         WatchButton(
           label: tr('VERTEIDIGUNG', 'DEFENSE'),
-          icon: Icons.shield,
+          icon: HorizontSymbols.shield,
           onPressed: () => game.chooseMode(GameMode.defense),
         ),
         WatchButton(
           label: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
-          icon: Icons.outlined_flag,
+          icon: HorizontSymbols.outlinedFlag,
           onPressed: () => game.chooseMode(GameMode.flag),
         ),
         // Without a room channel every mode is played alone against CPU
@@ -124,7 +124,7 @@ class _WatchLobbyState extends State<WatchLobby> {
         if (!game.net.offline)
           WatchButton(
             label: tr('OFFENE RÄUME', 'OPEN ROOMS'),
-            icon: Icons.meeting_room_outlined,
+            icon: HorizontSymbols.meetingRoom,
             onPressed: () => setState(() => _rooms = true),
           ),
       ],
@@ -137,7 +137,7 @@ class _WatchLobbyState extends State<WatchLobby> {
       children: [
         WatchButton(
           label: tr('ZURÜCK', 'BACK'),
-          icon: Icons.arrow_back,
+          icon: HorizontSymbols.arrowBack,
           onPressed: () => setState(() => _rooms = false),
         ),
         ValueListenableBuilder<List<RoomListing>>(
@@ -157,7 +157,9 @@ class _WatchLobbyState extends State<WatchLobby> {
                 for (final room in rooms.take(8))
                   WatchButton(
                     label: '${room.host} · ${room.players}',
-                    icon: room.inMatch ? Icons.visibility : Icons.login,
+                    icon: room.inMatch
+                        ? HorizontSymbols.visibility
+                        : HorizontSymbols.login,
                     onPressed: () => joinRoom(room.room),
                   ),
               ],
@@ -201,7 +203,7 @@ class _WatchLobbyState extends State<WatchLobby> {
               label: host
                   ? tr('GEFECHT STARTEN', 'START BATTLE')
                   : tr('WARTE AUF GASTGEBER', 'WAITING FOR HOST'),
-              icon: Icons.flag,
+              icon: HorizontSymbols.flag,
               primary: true,
               onPressed: host && game.liveMatch == null
                   ? () {
@@ -216,7 +218,7 @@ class _WatchLobbyState extends State<WatchLobby> {
             if (game.liveMatch != null)
               WatchButton(
                 label: tr('ZUSEHEN', 'WATCH'),
-                icon: Icons.visibility,
+                icon: HorizontSymbols.visibility,
                 onPressed: game.spectateLiveMatch,
               ),
             WatchLabel(tr('FAHRZEUG', 'VEHICLE')),
@@ -226,7 +228,7 @@ class _WatchLobbyState extends State<WatchLobby> {
                 WatchLabel(tr('SCHWIERIGKEIT', 'DIFFICULTY')),
                 WatchButton(
                   label: game.botLevel.value.label,
-                  icon: Icons.tune,
+                  icon: HorizontSymbols.tune,
                   onPressed: () => game.chooseLevel(
                     BotLevel.values[(game.botLevel.value.index + 1) %
                         BotLevel.values.length],
@@ -238,13 +240,15 @@ class _WatchLobbyState extends State<WatchLobby> {
                   label: game.publicRoom.value
                       ? tr('ÖFFENTLICH', 'PUBLIC')
                       : tr('PRIVAT', 'PRIVATE'),
-                  icon: game.publicRoom.value ? Icons.public : Icons.lock,
+                  icon: game.publicRoom.value
+                      ? HorizontSymbols.public
+                      : HorizontSymbols.lock,
                   onPressed: () =>
                       game.publicRoom.value = !game.publicRoom.value,
                 ),
               WatchButton(
                 label: tr('ZURÜCK', 'BACK'),
-                icon: Icons.arrow_back,
+                icon: HorizontSymbols.arrowBack,
                 onPressed: game.changeMode,
               ),
             ],
@@ -254,7 +258,9 @@ class _WatchLobbyState extends State<WatchLobby> {
                   : (host
                         ? tr('SCHLIESSEN', 'CLOSE')
                         : tr('VERLASSEN', 'LEAVE')),
-              icon: _closeArmed ? Icons.warning_amber : Icons.close,
+              icon: _closeArmed
+                  ? HorizontSymbols.warningAmber
+                  : HorizontSymbols.close,
               danger: _closeArmed,
               onPressed: () {
                 if (_closeArmed) {
@@ -331,7 +337,7 @@ class _CallSignButton extends StatelessWidget {
         side: hairline,
       ),
       icon: const Icon(
-        Icons.badge_outlined,
+        HorizontSymbols.badge,
         size: HzIconSize.row,
         color: GameColors.textMuted,
       ),
@@ -383,7 +389,7 @@ class _TankPicker extends StatelessWidget {
     final type = GameConfig.typeOf(game.myColorIndex);
     return Row(
       children: [
-        _arrow(Icons.chevron_left, () => _step(-1)),
+        _arrow(HorizontSymbols.chevronLeft, () => _step(-1)),
         Expanded(
           child: Column(
             children: [
@@ -408,7 +414,7 @@ class _TankPicker extends StatelessWidget {
             ],
           ),
         ),
-        _arrow(Icons.chevron_right, () => _step(1)),
+        _arrow(HorizontSymbols.chevronRight, () => _step(1)),
       ],
     );
   }
