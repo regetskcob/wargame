@@ -24,6 +24,8 @@ step, point for point.
   controls and the pairing code open as the system's own dialogs
 - "A project by regetskcob" with its mark stands over the legal links, as
   at the foot of the landing page
+- A tablet held sideways shows the menus in the middle of the screen
+  instead of crowded at the top over an empty lower half
 - The landing page as a Horizont field page with numbered sections, the
   screenshots in device frames, and the legal pages in the same style
 - The Apple Watch no longer opens the game controller channel it does not

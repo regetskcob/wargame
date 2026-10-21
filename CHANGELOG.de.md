@@ -25,6 +25,8 @@ gepflegt.
   die Steuerung und der Kopplungscode als Dialoge des Systems
 - „ein Projekt von regetskcob“ mit seinem Zeichen steht über den
   Rechtslinks, wie am Fuß der Landingpage
+- Ein Tablet im Querformat zeigt die Menüs in der Mitte des Bildschirms,
+  statt sie oben über einer leeren unteren Hälfte zu drängen
 - Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
   Screenshots in Geräterahmen, die Rechtstexte im selben Stil
 - Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort

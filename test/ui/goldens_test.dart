@@ -6,6 +6,7 @@
 @Tags(['golden'])
 library;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -20,7 +21,11 @@ import 'package:wargame/src/ui/widgets/legal.dart';
 
 import '../helpers/fakes.dart';
 
-const _screens = {'phone': Size(390, 844), 'desktop': Size(1280, 800)};
+const _screens = {
+  'phone': Size(390, 844),
+  'tablet': Size(1194, 834),
+  'desktop': Size(1280, 800),
+};
 
 Future<void> _shoot(
   WidgetTester tester,
@@ -32,6 +37,11 @@ Future<void> _shoot(
     ..physicalSize = size
     ..devicePixelRatio = 1;
   addTearDown(tester.view.reset);
+  // Tests run as Android; the phone and the tablet are the iOS app, whose
+  // menus go without the outer plate, the desktop is the Mac's window.
+  debugDefaultTargetPlatformOverride = name.endsWith('desktop')
+      ? TargetPlatform.macOS
+      : TargetPlatform.iOS;
   await tester.pumpWidget(
     MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -51,6 +61,7 @@ Future<void> _shoot(
     matchesGoldenFile('goldens/$name.png'),
   );
   await tester.pumpWidget(const SizedBox());
+  debugDefaultTargetPlatformOverride = null;
 }
 
 void main() {

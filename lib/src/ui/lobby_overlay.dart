@@ -1043,13 +1043,21 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : widget.game.configuring.value && host
                   ? 2
                   : 3;
-              // Phones and tablets start at the top: short pages leave the
-              // room below them instead of floating in the middle of a
-              // screen held in the hand, where a tall tablet left a band
-              // above the title. The browser and the television show every
-              // page in the middle.
+              // Phones and upright tablets start at the top: short pages
+              // leave the room below them instead of floating in the middle
+              // of a screen held in the hand, where a tall tablet left a
+              // band above the title. A tablet held sideways is too low for
+              // that: its start page filled the upper half and left the
+              // rest empty, so it centres like the browser and the
+              // television.
+              final screen = MediaQuery.sizeOf(context);
+              final sidewaysTablet =
+                  screen.shortestSide >= tabletShortSide &&
+                  screen.width > screen.height;
               return Align(
-                alignment: phone ? Alignment.topCenter : Alignment.center,
+                alignment: phone && !sidewaysTablet
+                    ? Alignment.topCenter
+                    : Alignment.center,
                 child: FitOrScroll(
                   // A fresh scroll position per page, so the waiting room
                   // opens at its top and not where the start page was left.
