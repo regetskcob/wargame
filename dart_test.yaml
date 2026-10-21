@@ -1,4 +1,7 @@
 tags:
+  # Pixel pictures of the menus, made on the Mac: fonts render differently
+  # on Linux, so CI leaves them out (test/ui/goldens_test.dart).
+  golden:
   # Needs a running local Supabase stack, see test/net/netcode_smoke_test.dart.
   supabase:
   # Plays hundreds of solo rounds against the CPU tanks, a few minutes:

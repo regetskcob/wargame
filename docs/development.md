@@ -34,6 +34,15 @@ skipped in the normal run (tag `balance` in `dart_test.yaml`); see
 [Balance](gameplay.md#balance). Each simulated frame awaits once, or new
 shells and tanks never finish loading and no shell of the player lands.
 
+`test/ui/goldens_test.dart` compares the welcome, the choice of mode, the
+solo waiting room and the sender over the legal links, on a phone and a
+desktop, with pictures under `test/ui/goldens/`, in the dark theme only,
+since the game has no light one. Fonts render differently on Linux, so the
+tag `golden` stays out of CI and runs in `tool/verify.sh` on the Mac. After
+a wanted change of the menus, renew them with
+`flutter test test/ui/goldens_test.dart --update-goldens` and look at the
+pictures before committing.
+
 Three smoke tests play whole rounds without a server and only ask that
 nothing throws. `test/game/smoke_test.dart` runs every mode on every bot
 level with the local tank driving, firing and setting off every item, and
