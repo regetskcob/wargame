@@ -9,6 +9,8 @@ step, point for point.
 
 ## Unreleased
 
+- Squads on foot no longer walk through the river of the defense map or
+  between islands: they cross on the bridges and close up on the deck
 - Rejoining a room after a dropped connection no longer goes over
   Realtime's presence limit of five updates in 30 seconds, which closed the
   room channel again

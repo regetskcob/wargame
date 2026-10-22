@@ -10,6 +10,8 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Infanterie läuft nicht mehr durch den Fluss der Verteidigungskarte oder
+  zwischen den Inseln: Sie geht über die Brücken und rückt dort zusammen
 - Wer nach einem Verbindungsabbruch wieder in den Raum kommt, überschreitet
   nicht mehr das Presence-Limit von Realtime (fünf Updates in 30 Sekunden),
   das den Raumkanal sonst gleich wieder schloss

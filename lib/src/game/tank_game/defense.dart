@@ -44,6 +44,13 @@ extension TankGameDefense on TankGame {
       walkable: (point) =>
           DefenseMap.bounds.deflate(60).contains(point.toOffset()) &&
           !map.inWater(point, margin: 20),
+      crossings: [
+        for (final bridge in map.bridges)
+          (
+            bridge.centre - bridge.along * bridge.halfLength,
+            bridge.centre + bridge.along * bridge.halfLength,
+          ),
+      ],
     );
     _extras.add(soldierField!);
     world.add(soldierField!);

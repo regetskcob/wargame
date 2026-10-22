@@ -137,10 +137,19 @@ class Soldier extends PositionComponent {
     final squad = route;
     if (squad != null) {
       // In its place in the squad, shifting a little on the spot.
-      return squad.at(t) +
+      final at = squad.at(t);
+      final place =
           _offset +
           Vector2(cos(t * speed + phase), sin(t * speed * 0.8 + phase)) *
               (reach * 0.3);
+      // On a bridge or along a shore the squad closes up to its line, so
+      // nobody stands in the water beside it.
+      for (final share in const [1.0, 0.5, 0.2]) {
+        if (squad.onLand(at + place * share)) {
+          return at + place * share;
+        }
+      }
+      return at;
     }
     return home +
         Vector2(cos(t * speed + phase), sin(t * speed * 0.8 + phase * 1.3)) *
@@ -389,6 +398,7 @@ class SoldierField extends Component {
     this.armedSides = false,
     this.onArrive,
     bool Function(Vector2 point)? walkable,
+    this.crossings = const [],
   }) : walkable = walkable ?? _anywhere,
        super(priority: -12);
 
@@ -396,6 +406,10 @@ class SoldierField extends Component {
 
   /// Whether a squad may patrol to a point.
   final bool Function(Vector2 point) walkable;
+
+  /// The bridges over the water, each as the two ends of its deck, see
+  /// [SquadRoute.crossings].
+  final List<(Vector2, Vector2)> crossings;
 
   /// Squads off the road by their key: those of the seed (`seed-<n>`), the
   /// paratroopers (`para-<n>`) and the squads that came in by message.
@@ -412,6 +426,8 @@ class SoldierField extends Component {
             !_solids.any(
               (o) => o.toRect().inflate(24).contains(point.toOffset()),
             ),
+        onLand: walkable,
+        crossings: crossings,
       );
 
   /// Houses and walls, which a patrol walks round, not into.
