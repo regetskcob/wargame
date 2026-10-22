@@ -12,7 +12,7 @@ class AppDelegate: FlutterAppDelegate {
     return true
   }
 
-  // A room link from the web (associated domain www.regetskcob.de) arrives
+  // A room link from the web (associated domain panzergefecht.de) arrives
   // as a browsing activity. app_links handles custom schemes on the Mac by
   // itself but leaves universal links to the app, so hand them on here.
   override func application(

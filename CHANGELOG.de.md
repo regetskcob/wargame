@@ -2,7 +2,7 @@
 
 Was jede Store-Version von Panzergefecht gebracht hat, neueste zuerst, als
 ihre wichtigsten Punkte. Die Build-Nummer steht in Klammern; die Web-Version
-unter <https://www.regetskcob.de/wargame/play/> ist immer der neueste Stand
+unter <https://panzergefecht.de/play/> ist immer der neueste Stand
 von `main`. Die Store-Texte eines Release liegen in
 `store/ios/metadata/*/release_notes.txt`. Diese Datei ist die deutsche
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen

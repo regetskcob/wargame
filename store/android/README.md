@@ -173,7 +173,7 @@ wird in der Datensicherheit nichts angegeben, nur die Diagnosedaten von
 ML Kit (oben). Die Kamera ist als optional deklariert, Geräte
 ohne Kamera bleiben im Store.
 
-**Datenschutz-URL:** `https://www.regetskcob.de/wargame/datenschutz/` (wie im
+**Datenschutz-URL:** `https://panzergefecht.de/datenschutz/` (wie im
 App Store).
 
 **Kontolöschung (Datensicherheit):** In der App über Konto > „Konto löschen“.
