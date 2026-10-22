@@ -10,6 +10,9 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Wer nach einem Verbindungsabbruch wieder in den Raum kommt, überschreitet
+  nicht mehr das Presence-Limit von Realtime (fünf Updates in 30 Sekunden),
+  das den Raumkanal sonst gleich wieder schloss
 - Neues Aussehen nach dem Designsystem Horizont, im Spiel und auf der
   Landingpage: ruhige Olivflächen mit Haarlinien statt Fasen, Signalgelb
   nur für die eine Hauptaktion und die Auswahl, Mona Sans zum Spielen,

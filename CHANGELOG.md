@@ -9,6 +9,9 @@ step, point for point.
 
 ## Unreleased
 
+- Rejoining a room after a dropped connection no longer goes over
+  Realtime's presence limit of five updates in 30 seconds, which closed the
+  room channel again
 - A new look on the design system Horizont, in the game and on the
   landing page: calm olive surfaces with hairlines instead of bevels,
   signal yellow only for the one main action and the selection, Mona Sans

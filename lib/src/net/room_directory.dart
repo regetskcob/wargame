@@ -89,12 +89,13 @@ class RoomDirectory {
     if (offline) {
       return;
     }
+    const topic = 'game-rooms';
     final channel = _client.channel(
-      'game-rooms',
+      topic,
       options: const RealtimeChannelConfig(self: true),
     );
     _channel = channel;
-    final presence = PresenceThrottle(channel);
+    final presence = PresenceThrottle(channel, topic);
     _presence = presence;
     _subscriptions
       ..add(channel.onPresenceSync.listen((_) => _emit()))
