@@ -306,7 +306,9 @@ button, below it every device in one picture on the horizon line
 (`site/assets/header/<lang>/devices.png` and `devices-narrow.png`, drawn
 by `store/tool/landing.py` from the raw shots of `tool/store_shots.sh`),
 then numbered sections
-(`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono,
+(`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono
+and the store screenshots in Horizont's device frames, which open at full
+size in its lightbox (`horizont/lightbox.html`, paged per section),
 and the foot with "ein Projekt von regetskcob" and the legal links. The
 page stays dark on Panzergefecht's own "Gelände" neutrals
 (`data-product="panzergefecht" data-theme="dark"` on `<html>`); the signal
@@ -318,14 +320,22 @@ partials (`layouts/_partials/horizont/`), shortcodes and fonts as its
 `docs/web.md` says; the CSS is tokens, components, then `site/assets/css/site.css`
 with only the page's own layout, every value a Horizont variable. The
 layouts are built from the module's partials (`horizont/feld/*`,
-`device.html`, `facts.html`, `kennung.html`, `badge.html`), never their HTML
+`device.html`, `facts.html`, `kennung.html`, `badge.html`, `lightbox.html`), never their HTML
 again. To move to a newer Horizont, read its CHANGELOG, then:
 
 ```sh
 cd site && hugo mod get github.com/regetskcob/horizont@vX.Y.Z
 ```
 
-and check the page in both languages and at 375 px. Hugo fetches the
+and check the page in both languages and at 375 px.
+
+For a short move, such as the one to a new domain, `maintenance = true`
+under `[params]` in `site/hugo.toml` puts the maintenance page
+(`site/layouts/_partials/maintenance.html`, texts `maintenance-*` in
+`site/i18n/`) in place of every page, and the pages workflow writes it
+under `play/` instead of the game, so room links and sign-in mails land on
+it too. Impressum, privacy and licences stay. Set it back to `false` and
+push to bring the site and the game back. Hugo fetches the
 module with Go; the pages workflow uses the Go of the runner image, locally
 `brew install go` is enough.
 

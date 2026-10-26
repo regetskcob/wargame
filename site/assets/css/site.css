@@ -74,6 +74,8 @@ body.hz { overflow-x: clip; }
 /* The phones scroll sideways; the other devices wrap and shrink to fit. */
 .pz-shots--devices .pz-shot { flex: 0 1 auto; min-width: 0; grid-template-columns: minmax(0, 1fr); }
 .pz-shot { flex: none; margin: 0; display: grid; gap: var(--s-12); justify-items: start; scroll-snap-align: start; }
+/* The frame opens the screen in the lightbox: a plain block, no underline. */
+.pz-shot-open { display: block; color: inherit; text-decoration: none; cursor: zoom-in; }
 /* The caption no wider than its device. */
 .pz-shot figcaption { color: var(--text-muted); width: 0; min-width: 100%; }
 

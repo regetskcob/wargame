@@ -93,6 +93,11 @@ enableRobotsTXT = false
   quality = 82
 
 [params]
+  # Every page, the game under play/ included, shows the maintenance page
+  # (layouts/_partials/maintenance.html) instead, for a short move such as
+  # the one to a new domain. Impressum, privacy and licences stay.
+  maintenance = true
+
   # Where support requests go. The page has no server of its own, so the
   # form opens a written mail in the visitor's mail app.
   supportMail = 'regetskcob@icloud.com'

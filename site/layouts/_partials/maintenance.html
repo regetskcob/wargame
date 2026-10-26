@@ -1,0 +1,11 @@
+{{- /*
+  The maintenance page in place of every page of the site while
+  site.Params.maintenance is on (hugo.toml); the pages workflow puts it
+  under play/ instead of the game, too. Impressum, privacy and licences stay
+  as they are, linked from the foot.
+*/ -}}
+{{ partial "horizont/feld/hero.html" (dict
+  "kennung" (i18n "maintenance-kennung")
+  "title" (i18n "maintenance-title")
+  "text" (i18n "maintenance-text")
+  "secondary" (dict "label" (i18n "maintenance-mail") "url" (printf "mailto:%s" site.Params.supportMail))) }}
