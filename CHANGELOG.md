@@ -28,6 +28,8 @@ step, point for point.
   pairing code open as the system's own dialogs
 - Squads on foot cross the river of the defense map on the bridges
   instead of walking through the water
+- The host's NEW GAME takes along everybody still on the end screen,
+  where guests were left behind in the waiting room before
 - Rejoining a room after a dropped connection no longer closes the room
   channel again, and the Apple Watch and the Apple TV's focus frame are
   steadier

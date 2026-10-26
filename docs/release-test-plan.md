@@ -133,7 +133,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | F3.5 | CPU tanks drive the vehicles of the people in the round (alone the player's own, in red against blue pair by pair); every vehicle stays winnable on every level | #12 evening, #24 | auto: `cpu_fairness_test`; balance sim per vehicle (`VEHICLE=`) | M |
 | F3.6 | Off-screen arrows keep 34 px apart, slide past gauges, mini map and panels, show distance in metres; the zone is in metres | #12 | auto: `enemy_indicators_test` | m |
 | F3.7 | Kill feed: a tank lost in the zone "ist ausgeschieden / is out", not "dropped out" | #23 M7 | auto: `kill_feed_view_test` | m |
-| F3.8 | End screen: NEW GAME starts a new round with the same tank and settings; alone it waits, with others it counts 15 s on its button | #12 high | auto: `quick_flow_test`; sim | B |
+| F3.8 | End screen: NEW GAME starts a new round with the same tank and settings; alone it waits, with others it counts 15 s on its button, and the host's NEW GAME takes along everybody still on the end screen (until 1.8.0 a guest's presence still said "playing" there and was left behind) | #12 high, release test 1.8.0 | auto: `quick_flow_test`, `two_player_smoke_test`; sim: host and guest in two browsers, the host presses NEW GAME at once | B |
 | F3.9 | End screen buttons share one width (≤ 320) on every size | #23 M4 | auto: `overlays_smoke_test` | m |
 | F3.10 | Replay: END REPLAY sits in the top bar next to NEXT TANK, Esc leaves it, the end is in the bar | #21 4 | auto: `replay_bar_test` | m |
 | F3.11 | Leave asks first ("Leave the round?") and the round goes on behind the dialog | #12 | sim | M |

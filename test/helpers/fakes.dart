@@ -158,6 +158,16 @@ class LoopbackNet extends NetService {
   final others = <LoopbackNet>[];
   var connects = 0;
 
+  /// What the game last put in its presence, for the tests to hand to the
+  /// others' rosters.
+  LobbyPresence? presence;
+
+  @override
+  Future<void> updatePresence(LobbyPresence me) async {
+    presence = me;
+    await super.updatePresence(me);
+  }
+
   /// Links games under [ids] all with all, like one channel.
   static List<LoopbackNet> group(List<String> ids) {
     final nets = [

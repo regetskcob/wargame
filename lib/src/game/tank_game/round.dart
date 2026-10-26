@@ -1209,6 +1209,10 @@ extension TankGameRound on TankGame {
     }
     _setPhase(GamePhase.roundOver);
     _leaveEndScreenLater(activeRound);
+    // NEW GAME takes along whoever the host's roster shows on the end
+    // screen; without this the presence still said "playing" and a guest
+    // waiting there was left out of the rematch.
+    unawaited(pushPresence());
   }
 
   /// The first seconds of a round with CPU tanks, while they leave people

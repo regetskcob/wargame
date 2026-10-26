@@ -111,6 +111,32 @@ void main() {
     expect(host.replaying.value, isFalse);
   });
 
+  test(
+    'NEW GAME takes a guest still on the end screen into the next round',
+    () async {
+      final (host, guest) = await _room();
+      await _start(host, guest, GameMode.multi);
+      await _play([host, guest], seconds: 2);
+      guest.myTank!.hp = 1;
+      await _play([host, guest], seconds: 1);
+      guest.onLocalDeath(host.myId);
+      await _play([host, guest], seconds: 1);
+      expect(host.phase.value, GamePhase.roundOver);
+      expect(guest.phase.value, GamePhase.roundOver);
+
+      // The host sees whatever the guest's presence said last.
+      host.net.onRosterChanged?.call([
+        (host.net as LoopbackNet).presence!,
+        (guest.net as LoopbackNet).presence!,
+      ]);
+      host.rematch();
+      await _play([host, guest], seconds: 1);
+      expect(host.round?.participants, contains(guest.myId));
+      expect(guest.round?.seed, host.round?.seed);
+      expect(guest.phase.value, isNot(GamePhase.roundOver));
+    },
+  );
+
   test('a team battle with CPU tanks on both sides runs', () async {
     final (host, guest) = await _room();
     host

@@ -29,6 +29,8 @@ gepflegt.
   Kopplungscode als Dialoge des Systems
 - Infanterie geht in der Verteidigung über die Brücken statt durch den
   Fluss
+- NEUES SPIEL des Gastgebers nimmt alle mit, die noch auf dem
+  Rundenende stehen, statt Gäste im Warteraum zurückzulassen
 - Wer nach einem Verbindungsabbruch zurückkommt, schließt den Raumkanal
   nicht mehr gleich wieder, und Apple Watch und Fokusrahmen des Apple TV
   laufen ruhiger
