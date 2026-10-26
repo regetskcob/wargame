@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:horizont/horizont.dart';
 import 'package:go_router/go_router.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/app/routes.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/tv/tv_input.dart';
@@ -142,7 +142,7 @@ void main() {
     );
     final legal = tester.getRect(find.byType(LegalLinks));
     expect(legal.left, greaterThan(field.right));
-    final close = tester.element(find.byIcon(Icons.close_outlined));
+    final close = tester.element(find.byIcon(HorizontSymbols.close));
     expect(Focus.of(close).hasFocus, isTrue);
   });
 

@@ -388,6 +388,10 @@ extension TankGameRound on TankGame {
       walkable: (point) =>
           point.length < GameConfig.worldRadius - 80 &&
           (islands?.land(point) ?? true),
+      crossings: [
+        for (final bridge in islands?.bridges ?? const <IslandBridge>[])
+          (bridge.start, bridge.end),
+      ],
     );
     _extras.add(soldierField!);
     world.add(soldierField!);

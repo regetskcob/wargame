@@ -21,7 +21,7 @@ class ServerNotice extends StatelessWidget {
           padding: const EdgeInsets.only(bottom: HzSpace.s16),
           child: Notice(
             HorizontStatus.warning,
-            icon: Icons.cloud_off_outlined,
+            icon: HorizontSymbols.cloudOff,
             child: Text(
               tr(
                 'Das Online-Spiel ist gerade nicht verfügbar. '

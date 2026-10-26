@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- The middle of the launch ground (store/tool/launch_screen.py),
+    <!-- The middle of the launch ground (from Horizont, store/tool/horizont_icons.py),
          LoadingView.groundColor in Dart. -->
-    <color name="launch_ground">#68733F</color>
+    <color name="launch_ground">#6E7949</color>
 </resources>

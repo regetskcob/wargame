@@ -55,6 +55,8 @@ int _busiestWindow(List<_Call> calls) {
 }
 
 void main() {
+  setUp(PresenceThrottle.forgetAll);
+
   test('a single update goes out at once', () {
     final calls = _run((throttle, async) {
       throttle.track({'phase': 'lobby'});
@@ -137,5 +139,48 @@ void main() {
       throttle.track({'step': 99});
     });
     expect(calls, hasLength(PresenceThrottle.budget));
+  });
+
+  /// A rejoin as NetService does it: the old throttle closes, a new one for
+  /// the same topic tracks again once the channel is back.
+  List<_Call> rejoin({required String before, required String after}) {
+    final calls = <_Call>[];
+    fakeAsync((async) {
+      final start = DateTime.utc(2026, 10, 22);
+      final clock = async.getClock(start);
+      PresenceThrottle throttle(String topic) => PresenceThrottle.calling(
+        track: (payload) async =>
+            calls.add(_Call(clock.now().difference(start), payload)),
+        untrack: () async =>
+            calls.add(_Call(clock.now().difference(start), null)),
+        now: clock.now,
+        topic: topic,
+      );
+      final first = throttle(before);
+      for (var i = 0; i < PresenceThrottle.budget; i++) {
+        first.track({'step': i});
+        async.elapse(const Duration(seconds: 2));
+      }
+      first.close();
+      // The channel drops and comes back after the shortest backoff.
+      async.elapse(const Duration(seconds: 1));
+      throttle(after).track({'step': 'rejoined'});
+      async.elapse(const Duration(minutes: 2));
+    });
+    return calls;
+  }
+
+  test('a rejoin of the same channel counts what went out before it', () {
+    final calls = rejoin(before: 'game-arena-ABCDE', after: 'game-arena-ABCDE');
+    expect(calls, hasLength(PresenceThrottle.budget + 1));
+    expect(calls.last.payload, {'step': 'rejoined'});
+    expect(_busiestWindow(calls), lessThan(_serverLimit));
+    // It waits until the first track of the old channel leaves the window.
+    expect(calls.last.at, _serverWindow);
+  });
+
+  test('another channel has its own budget', () {
+    final calls = rejoin(before: 'game-arena-ABCDE', after: 'game-arena-FGHIJ');
+    expect(calls.last.at, const Duration(seconds: 9));
   });
 }

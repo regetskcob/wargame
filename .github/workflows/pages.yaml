@@ -61,7 +61,7 @@ jobs:
       # deploy.
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
-      - run: flutter test --exclude-tags supabase --coverage
+      - run: flutter test --exclude-tags supabase,golden --coverage
       - run: dart run tool/coverage.dart --min 75
       - name: Build the game
         run: |

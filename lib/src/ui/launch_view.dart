@@ -18,6 +18,7 @@ import '../tv/tv_input.dart';
 import 'theme.dart';
 import 'widgets/leaderboard.dart';
 import 'widgets/legal.dart';
+import 'widgets/tablet_scale.dart';
 import 'account_page.dart';
 import 'widgets/call_sign.dart';
 import 'widgets/mute_button.dart';
@@ -103,7 +104,16 @@ class LaunchView extends StatelessWidget {
       TvControllers(game: game),
       const SizedBox(height: HzSpace.s24),
     ],
-    Leaderboard(game: game),
+    // Tablets have the height for twice the pilots; five left the lower
+    // half of the page empty.
+    Builder(
+      builder: (context) => Leaderboard(
+        game: game,
+        rows: MediaQuery.sizeOf(context).shortestSide >= tabletShortSide
+            ? 10
+            : 5,
+      ),
+    ),
     const SizedBox(height: 16),
     const LegalLinks(),
   ];
@@ -306,7 +316,7 @@ class _LastPlayed extends StatelessWidget {
         final tank = GameConfig.typeOf(game.myColorIndex).label;
         return TextButton.icon(
           onPressed: game.quickStart,
-          icon: const Icon(Icons.replay_outlined, size: HzIconSize.row),
+          icon: const Icon(HorizontSymbols.replay, size: HzIconSize.row),
           label: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
@@ -347,7 +357,7 @@ class _GuestCard extends StatelessWidget {
           child: Row(
             children: [
               const Icon(
-                Icons.login_outlined,
+                HorizontSymbols.login,
                 color: GameColors.text,
                 size: HzIconSize.bar,
               ),
@@ -383,7 +393,7 @@ class _GuestCard extends StatelessWidget {
                 tooltip: tr('Anmelden', 'Sign in'),
                 onPressed: () => AccountPage.open(context),
                 icon: const Icon(
-                  Icons.chevron_right_outlined,
+                  HorizontSymbols.chevronRight,
                   color: GameColors.text,
                 ),
               ),
@@ -400,25 +410,25 @@ typedef _Option = ({GameMode mode, IconData icon, String title, String kicker});
 List<_Option> get _options => [
   (
     mode: GameMode.solo,
-    icon: Icons.person,
+    icon: HorizontSymbols.person,
     title: tr('EINZELSPIELER', 'SINGLE PLAYER'),
     kicker: tr('ALLEIN GEGEN CPU', 'ALONE AGAINST THE CPU'),
   ),
   (
     mode: GameMode.multi,
-    icon: Icons.groups,
+    icon: HorizontSymbols.groups,
     title: tr('MEHRSPIELER', 'MULTIPLAYER'),
     kicker: tr('GEFECHT MIT ANDEREN', 'BATTLE WITH OTHERS'),
   ),
   (
     mode: GameMode.defense,
-    icon: Icons.shield,
+    icon: HorizontSymbols.shield,
     title: tr('VERTEIDIGUNG', 'DEFENSE'),
     kicker: tr('STÜTZPUNKT HALTEN', 'HOLD THE BASE'),
   ),
   (
     mode: GameMode.flag,
-    icon: Icons.flag,
+    icon: HorizontSymbols.flag,
     title: tr('FAHNENRAUB', 'CAPTURE THE FLAG'),
     kicker: tr('ROT GEGEN BLAU', 'RED AGAINST BLUE'),
   ),
@@ -486,7 +496,7 @@ class _ModeCard extends StatelessWidget {
                 ),
               ),
               const Icon(
-                Icons.chevron_right_outlined,
+                HorizontSymbols.chevronRight,
                 color: GameColors.accentText,
               ),
             ],
@@ -517,7 +527,7 @@ class _DuelCard extends StatelessWidget {
 
   Widget _card(BuildContext context, int count) {
     return _ModeCard(
-      icon: Icons.splitscreen,
+      icon: HorizontSymbols.splitscreen,
       title: tr('DUELL', 'DUEL'),
       kicker: count >= 2
           ? tr('ROT GEGEN BLAU · STÜTZPUNKTE', 'RED AGAINST BLUE · BASES')

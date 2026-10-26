@@ -51,7 +51,7 @@ class ClosedOverlay extends StatelessWidget {
                   const SizedBox(height: HzSpace.s24),
                   FilledButton.icon(
                     onPressed: game.backToStart,
-                    icon: const Icon(Icons.home_outlined),
+                    icon: const Icon(HorizontSymbols.home),
                     label: Text(tr('ZUR STARTSEITE', 'TO THE START PAGE')),
                   ),
                 ],

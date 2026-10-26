@@ -530,14 +530,14 @@ class WatchRoundOver extends StatelessWidget {
                   valueListenable: game.isHost,
                   builder: (context, host, _) => WatchButton(
                     label: tr('NEUES SPIEL', 'NEW GAME'),
-                    icon: Icons.replay,
+                    icon: HorizontSymbols.replay,
                     primary: true,
                     onPressed: host ? game.rematch : null,
                   ),
                 ),
                 WatchButton(
                   label: tr('WARTERAUM', 'WAITING ROOM'),
-                  icon: Icons.exit_to_app,
+                  icon: HorizontSymbols.exitToApp,
                   onPressed: game.backToLobby,
                 ),
               ],
@@ -591,7 +591,7 @@ class WatchSpectator extends StatelessWidget {
           bottom: watchRound ? d * 0.03 : HzSpace.s8,
           child: WatchButton(
             label: tr('WEITER', 'NEXT'),
-            icon: Icons.skip_next,
+            icon: HorizontSymbols.skipNext,
             onPressed: game.spectateNext,
           ),
         ),
@@ -621,7 +621,7 @@ class WatchClosed extends StatelessWidget {
         const SizedBox(height: HzSpace.s12),
         WatchButton(
           label: tr('STARTSEITE', 'START PAGE'),
-          icon: Icons.home,
+          icon: HorizontSymbols.home,
           primary: true,
           onPressed: game.backToStart,
         ),

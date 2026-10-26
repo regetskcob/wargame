@@ -7,20 +7,39 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// channel whose client tracks or untracks more than five times in 30
 /// seconds, which throws the player out of the room. Updates that come
 /// faster wait, and only the latest of them goes out.
+///
+/// What went out is kept per channel topic, not per throttle: a rejoin
+/// builds a new channel and a new throttle, and its first track came on top
+/// of the ones just before the drop, which once went over the limit
+/// (`ClientPresenceRateLimitReached` on 22 October 2026).
 class PresenceThrottle {
-  PresenceThrottle(RealtimeChannel channel)
+  /// [topic] is the name the channel was opened with.
+  PresenceThrottle(RealtimeChannel channel, String topic)
     : this.calling(
         track: (payload) => channel.track(payload),
         untrack: () => channel.untrack(),
+        topic: topic,
       );
 
-  /// Calls [track] and [untrack] instead of a channel, for the tests.
+  /// Calls [track] and [untrack] instead of a channel, for the tests. With
+  /// a [topic], throttles of the same topic share what went out.
   @visibleForTesting
   PresenceThrottle.calling({
     required this._track,
     required this._untrack,
     DateTime Function()? now,
-  }) : _now = now ?? DateTime.now;
+    String? topic,
+  }) : _now = now ?? DateTime.now,
+       _sent = topic == null
+           ? <DateTime>[]
+           : _sentByTopic.putIfAbsent(topic, () => <DateTime>[]);
+
+  /// When each topic last tracked or untracked, across rejoins.
+  static final _sentByTopic = <String, List<DateTime>>{};
+
+  /// Forgets every topic, so tests start from nothing.
+  @visibleForTesting
+  static void forgetAll() => _sentByTopic.clear();
 
   /// One below the server's limit, for a little room.
   static const budget = 4;
@@ -29,7 +48,7 @@ class PresenceThrottle {
   final Future<Object?> Function(Map<String, dynamic> payload) _track;
   final Future<Object?> Function() _untrack;
   final DateTime Function() _now;
-  final _sent = <DateTime>[];
+  final List<DateTime> _sent;
   Map<String, dynamic>? _payload;
   var _waiting = false;
   Timer? _timer;

@@ -104,7 +104,7 @@ class SpectatorOverlay extends StatelessWidget {
     final title = [
       if (game.replaying.value) ...[
         const Icon(
-          Icons.movie_outlined,
+          HorizontSymbols.movie,
           size: HzIconSize.row,
           color: GameColors.textMuted,
         ),
@@ -113,7 +113,7 @@ class SpectatorOverlay extends StatelessWidget {
         const SizedBox(width: HzSpace.s12),
       ] else ...[
         const Icon(
-          Icons.visibility_outlined,
+          HorizontSymbols.visibility,
           size: HzIconSize.row,
           color: GameColors.textMuted,
         ),
@@ -182,7 +182,7 @@ class SpectatorOverlay extends StatelessWidget {
                       )
                     : null,
               );
-              const icon = Icon(Icons.map_outlined, size: HzIconSize.row);
+              const icon = Icon(HorizontSymbols.map, size: HzIconSize.row);
               return Semantics(
                 toggled: on,
                 child: narrow
@@ -209,7 +209,7 @@ class SpectatorOverlay extends StatelessWidget {
     final end = game.replaying.value
         ? TextButton.icon(
             onPressed: game.stopReplay,
-            icon: const Icon(Icons.stop_circle_outlined, size: HzIconSize.row),
+            icon: const Icon(HorizontSymbols.stopCircle, size: HzIconSize.row),
             label: Text(
               game.touchMode.value
                   ? tr('BEENDEN', 'END')

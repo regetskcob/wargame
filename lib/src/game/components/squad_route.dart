@@ -9,6 +9,12 @@ import 'soldier.dart';
 /// works it out the same way: a patrol from the seed while nothing happens,
 /// and the orders its commander sent ([order]) when it stalks an enemy. So
 /// no positions travel, only an order now and then.
+///
+/// A squad walks in straight lines, so every line is checked along its
+/// length, not only where it ends: a patrol keeps to points it reaches dry,
+/// and an order across the water goes over a bridge ([crossings]), or stops
+/// at the shore when there is none. Before, only the ends were checked, and
+/// squads walked through the river of the defense map.
 class SquadRoute {
   SquadRoute({
     required this.key,
@@ -16,9 +22,23 @@ class SquadRoute {
     required Vector2 start,
     required this.startAt,
     required this.walkable,
-  }) {
+    bool Function(Vector2 point)? onLand,
+    this.crossings = const [],
+  }) : onLand = onLand ?? walkable {
     _legs.add(_Leg(startAt, start.clone(), null, _patrol(start, 0)));
   }
+
+  /// The bridges a squad may cross the water on, each as the two ends of
+  /// its deck.
+  final List<(Vector2, Vector2)> crossings;
+
+  /// How far apart the points are at which a line is checked: less than
+  /// the narrowest stretch of water or the smallest house.
+  static const _step = 12.0;
+
+  /// How far beyond a bridge's end a squad lines up to cross it, so it
+  /// walks onto the deck along the road and not in from the side.
+  static const _approach = 40.0;
 
   /// Round clock second the squad sets off.
   final double startAt;
@@ -31,6 +51,63 @@ class SquadRoute {
 
   /// Whether a patrol may lead to a point: on the field, out of the water.
   final bool Function(Vector2 point) walkable;
+
+  /// Whether a soldier may stand at a point: out of the water, houses
+  /// aside. Cheaper than [walkable], so it can be asked every frame.
+  final bool Function(Vector2 point) onLand;
+
+  /// Whether the straight line from [from] to [to] stays walkable.
+  bool clear(Vector2 from, Vector2 to) {
+    final steps = (from.distanceTo(to) / _step).ceil();
+    for (var i = 1; i <= steps; i++) {
+      if (!walkable(from + (to - from) * (i / steps))) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  /// The way from [from] to [to]: straight when nothing is in the way,
+  /// else over the bridge that makes it shortest, else as far as the
+  /// shore.
+  List<Vector2> _wayTo(Vector2 from, Vector2 to) {
+    if (clear(from, to)) {
+      return [to.clone()];
+    }
+    List<Vector2>? best;
+    var bestLength = double.infinity;
+    for (final (a, b) in crossings) {
+      final along = (b - a).normalized();
+      for (final (near, far) in [
+        (a - along * _approach, b + along * _approach),
+        (b + along * _approach, a - along * _approach),
+      ]) {
+        if (!clear(from, near) || !clear(near, far) || !clear(far, to)) {
+          continue;
+        }
+        final length =
+            from.distanceTo(near) + near.distanceTo(far) + far.distanceTo(to);
+        if (length < bestLength) {
+          bestLength = length;
+          best = [near, far, to.clone()];
+        }
+      }
+    }
+    if (best != null) {
+      return best;
+    }
+    // No bridge leads there: up to the last dry step towards it.
+    final steps = (from.distanceTo(to) / _step).ceil();
+    var shore = from.clone();
+    for (var i = 1; i <= steps; i++) {
+      final next = from + (to - from) * (i / steps);
+      if (!walkable(next)) {
+        break;
+      }
+      shore = next;
+    }
+    return [shore];
+  }
 
   final _legs = <_Leg>[];
 
@@ -87,11 +164,12 @@ class SquadRoute {
       final before = _legs[i - 1];
       final leg = _legs[i];
       final from = before.position(leg.at - before.at);
+      final target = leg.to;
       _legs[i] = _Leg(
         leg.at,
         from,
-        leg.to,
-        leg.to == null ? _patrol(from, i) : const [],
+        target,
+        target == null ? _patrol(from, i) : _wayTo(from, target),
       );
     }
     // Only the last legs matter once the clock is past them.
@@ -112,18 +190,27 @@ class SquadRoute {
         final reach =
             GameConfig.patrolReach * (0.5 + random.nextDouble() * 0.5);
         final candidate = around + Vector2(cos(angle), sin(angle)) * reach;
-        if (walkable(candidate)) {
+        // Reached dry from the middle and from the point before, so the
+        // round does not cut through the water or a house.
+        if (walkable(candidate) &&
+            clear(around, candidate) &&
+            (points.isEmpty || clear(points.last, candidate))) {
           point = candidate;
         }
       }
       points.add(point ?? around.clone());
     }
+    // The round closes from the last point back to the first.
+    if (!clear(points.last, points.first)) {
+      points.last = around.clone();
+    }
     return points;
   }
 }
 
-/// From [at] on the squad walks from [from] to [to], or with [to] null
-/// round the [loop] of a patrol.
+/// From [at] on the squad walks from [from] to [to] along the points of
+/// [loop] (the way, over a bridge if need be), or with [to] null round the
+/// [loop] of a patrol.
 class _Leg {
   const _Leg(this.at, this.from, this.to, this.loop);
 
@@ -133,14 +220,18 @@ class _Leg {
   final List<Vector2> loop;
 
   Vector2 position(double seconds) {
-    final target = to;
-    if (target != null) {
-      final offset = target - from;
-      final length = offset.length;
-      final walked = seconds * GameConfig.stalkSpeed;
-      return walked >= length
-          ? target.clone()
-          : from + offset * (walked / length);
+    if (to != null) {
+      var left = seconds * GameConfig.stalkSpeed;
+      var here = from;
+      for (final next in loop) {
+        final length = here.distanceTo(next);
+        if (left <= length) {
+          return here + (next - here) * (length == 0 ? 0 : left / length);
+        }
+        left -= length;
+        here = next;
+      }
+      return here.clone();
     }
     var left = seconds * GameConfig.patrolSpeed;
     var here = from;

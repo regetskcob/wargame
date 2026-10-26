@@ -9,6 +9,13 @@ step, point for point.
 
 ## Unreleased
 
+- Text fields in the account menus and the room code are exactly as high as
+  the buttons beside them, on Horizont 0.8.7
+- Squads on foot no longer walk through the river of the defense map or
+  between islands: they cross on the bridges and close up on the deck
+- Rejoining a room after a dropped connection no longer goes over
+  Realtime's presence limit of five updates in 30 seconds, which closed the
+  room channel again
 - A new look on the design system Horizont, in the game and on the
   landing page: calm olive surfaces with hairlines instead of bevels,
   signal yellow only for the one main action and the selection, Mona Sans
@@ -17,6 +24,20 @@ step, point for point.
   with their count, the vehicles as cards with the chosen one outlined and
   its values as bars
 - New app icon on every platform: the tank from the side on the horizon
+- The launch screens, the Apple TV top shelf and launch image, the
+  Android TV banner, the iMessage icons and the Google Play banner show
+  the new tank from the side on the horizon too
+- Every symbol in menus, the HUD, the crates, the tutorial, the television
+  and the watch comes from Horizont's thin, sharp set instead of Material's
+  icons
+- On iPhone, iPad and Mac the questions before deleting the account, the
+  controls and the pairing code open as the system's own dialogs
+- "A project by regetskcob" with its mark stands over the legal links, as
+  at the foot of the landing page
+- iPad: the waiting room puts the invitation and the crews side by side
+  above the vehicles when held upright and gives the vehicles the wider
+  column when held sideways, the vehicle cards grow with the room, and the
+  leaderboard lists ten pilots
 - The landing page as a Horizont field page with numbered sections, the
   screenshots in device frames, and the legal pages in the same style
 - The Apple Watch no longer opens the game controller channel it does not

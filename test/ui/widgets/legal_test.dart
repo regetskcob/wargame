@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/ui/widgets/legal.dart';
 
@@ -14,6 +15,23 @@ void main() {
     await tester.tap(find.text(link));
     await tester.pumpAndSettle();
   }
+
+  testWidgets('the sender with the mark of regetskcob stands over the '
+      'links', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildGameTheme(),
+        home: const Scaffold(body: LegalLinks()),
+      ),
+    );
+    final sender = find.text('ein Projekt von regetskcob');
+    expect(sender, findsOneWidget);
+    expect(find.byType(HorizontMark), findsOneWidget);
+    expect(
+      tester.getRect(sender).bottom,
+      lessThanOrEqualTo(tester.getRect(find.text('Impressum')).top),
+    );
+  });
 
   testWidgets('the imprint names the operator and the address', (tester) async {
     await open(tester, 'Impressum');

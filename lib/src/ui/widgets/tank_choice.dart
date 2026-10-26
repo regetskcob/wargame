@@ -28,8 +28,9 @@ class TankChoice extends StatelessWidget {
   /// The pilot's rank is too low for it yet.
   final bool locked;
 
-  /// The widest a card grows on a large screen.
-  static const maxWidth = 168.0;
+  /// The widest a card grows on a large screen: four of them fill an
+  /// upright tablet, where the waiting room gives them the whole width.
+  static const maxWidth = 200.0;
 
   /// One line of text [height] high, shrunk to fit instead of wrapping.
   static Widget _line(String text, TextStyle style, double height) => Padding(
@@ -112,7 +113,7 @@ class TankChoice extends StatelessWidget {
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(
-              Icons.check_outlined,
+              HorizontSymbols.check,
               size: HzIconSize.row,
               color: GameColors.accentText,
             ),
@@ -132,7 +133,7 @@ class TankChoice extends StatelessWidget {
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(
-              Icons.lock_outlined,
+              HorizontSymbols.lock,
               size: HzIconSize.row,
               color: GameColors.textMuted,
             ),

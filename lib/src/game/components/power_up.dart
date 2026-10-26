@@ -4,8 +4,9 @@ import 'dart:ui';
 import 'package:flame/collisions.dart';
 import 'package:flame/components.dart';
 
-import 'package:flutter/material.dart' show IconData, Icons, TextPainter;
+import 'package:flutter/material.dart' show IconData, TextPainter;
 import 'package:flutter/painting.dart' show TextSpan, TextStyle;
+import 'package:horizont/horizont.dart' show HorizontSymbols;
 
 import '../game_config.dart';
 import '../bot_level.dart';
@@ -88,21 +89,21 @@ enum PowerUpType {
 
   /// The symbol on the gem, in the inventory and on the crate list.
   IconData get icon => switch (this) {
-    PowerUpType.repair => Icons.build,
-    PowerUpType.smoke => Icons.cloud,
-    PowerUpType.rapidFire => Icons.fast_forward,
-    PowerUpType.shield => Icons.shield,
-    PowerUpType.mines => Icons.brightness_7,
-    PowerUpType.artillery => Icons.gps_fixed,
-    PowerUpType.ammo => Icons.inventory_2,
-    PowerUpType.grenades => Icons.sports_baseball,
-    PowerUpType.drone => Icons.toys,
-    PowerUpType.mortar => Icons.vertical_align_top,
-    PowerUpType.infantry => Icons.groups,
-    PowerUpType.paratroopers => Icons.paragliding,
-    PowerUpType.fuel => Icons.local_gas_station,
-    PowerUpType.hunterDrone => Icons.track_changes,
-    PowerUpType.airstrike => Icons.flight,
+    PowerUpType.repair => HorizontSymbols.build,
+    PowerUpType.smoke => HorizontSymbols.cloud,
+    PowerUpType.rapidFire => HorizontSymbols.fastForward,
+    PowerUpType.shield => HorizontSymbols.shield,
+    PowerUpType.mines => HorizontSymbols.brightness7,
+    PowerUpType.artillery => HorizontSymbols.gpsFixed,
+    PowerUpType.ammo => HorizontSymbols.inventory2,
+    PowerUpType.grenades => HorizontSymbols.sportsBaseball,
+    PowerUpType.drone => HorizontSymbols.toys,
+    PowerUpType.mortar => HorizontSymbols.verticalAlignTop,
+    PowerUpType.infantry => HorizontSymbols.groups,
+    PowerUpType.paratroopers => HorizontSymbols.paragliding,
+    PowerUpType.fuel => HorizontSymbols.localGasStation,
+    PowerUpType.hunterDrone => HorizontSymbols.trackChanges,
+    PowerUpType.airstrike => HorizontSymbols.flight,
   };
 
   /// Whether this turns up at all on [level]: on the easy level the tank

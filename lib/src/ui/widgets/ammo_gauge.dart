@@ -36,7 +36,7 @@ class AmmoGauge extends StatelessWidget {
         ? HorizontStatus.critical
         : stockStatus(ratio, low: GameConfig.ammoLowShare);
     return _StockGauge(
-      icon: Icons.inventory_2_outlined,
+      icon: HorizontSymbols.inventory2,
       label: endless
           ? tr('MUNITION ∞', 'AMMO ∞')
           : ammo == 0
@@ -58,7 +58,7 @@ class FuelGauge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _StockGauge(
-      icon: Icons.local_gas_station_outlined,
+      icon: HorizontSymbols.localGasStation,
       label: fuel <= 0
           ? tr('TANK LEER', 'TANK EMPTY')
           : tr(
@@ -158,7 +158,7 @@ class SpecialPlate extends StatelessWidget {
           // The colour of the gem's crate in the field, so the plate and
           // the pickup are recognised as one; the text stays in ink.
           Icon(
-            Icons.diamond_outlined,
+            HorizontSymbols.diamond,
             size: HzIconSize.inline,
             color: weapon.color,
           ),

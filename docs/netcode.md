@@ -112,7 +112,10 @@
   [Running without the server](#running-without-the-server).
 - Presence updates are spaced out to at most four per channel in 30 seconds
   (`presence_throttle.dart`); faster changes wait and only the latest goes
-  out.
+  out. The count belongs to the channel's topic, not to one channel object:
+  a rejoin opens a new channel, and its first track used to come on top of
+  the updates just before the drop, which once closed the channel with
+  `ClientPresenceRateLimitReached` (22 October 2026).
 - Presence powers the lobby roster, disconnect handling, and match discovery:
   players in a match advertise the seed so late joiners can spectate. The
   host also names the way to play it picked (`mode`) and its settings

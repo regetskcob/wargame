@@ -31,7 +31,7 @@ class LeaveRoundButton extends StatelessWidget {
         backgroundColor: GameColors.bg.withValues(alpha: 0.5),
       ),
       onPressed: () => game.leaveAsked.value = true,
-      icon: const Icon(Icons.logout_outlined),
+      icon: const Icon(HorizontSymbols.logout),
     );
   }
 }
@@ -130,7 +130,7 @@ class LeaveRoundPrompt extends StatelessWidget {
                             game.leaveAsked.value = false;
                             game.withdrawDefense();
                           },
-                          icon: const Icon(Icons.flag_outlined),
+                          icon: const Icon(HorizontSymbols.flag),
                           label: Text(tr('RUNDE BEENDEN', 'WIN · END')),
                         ),
                       (won && host ? OutlinedButton.new : FilledButton.new)(

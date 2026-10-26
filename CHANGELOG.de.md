@@ -10,6 +10,13 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Textfelder in den Kontomenüs und der Raumcode sind genau so hoch wie die
+  Knöpfe daneben, nach Horizont 0.8.7
+- Infanterie läuft nicht mehr durch den Fluss der Verteidigungskarte oder
+  zwischen den Inseln: Sie geht über die Brücken und rückt dort zusammen
+- Wer nach einem Verbindungsabbruch wieder in den Raum kommt, überschreitet
+  nicht mehr das Presence-Limit von Realtime (fünf Updates in 30 Sekunden),
+  das den Raumkanal sonst gleich wieder schloss
 - Neues Aussehen nach dem Designsystem Horizont, im Spiel und auf der
   Landingpage: ruhige Olivflächen mit Haarlinien statt Fasen, Signalgelb
   nur für die eine Hauptaktion und die Auswahl, Mona Sans zum Spielen,
@@ -19,6 +26,19 @@ gepflegt.
   Werten als Balken
 - Neues App-Icon auf allen Plattformen: der Panzer von der Seite auf dem
   Horizont
+- Startbildschirme, Top Shelf und Startbild des Apple TV, das Banner von
+  Android TV, die iMessage-Icons und das Google-Play-Banner zeigen den
+  neuen Panzer von der Seite auf dem Horizont ebenfalls
+- Jedes Symbol in Menüs, HUD, Kisten, Tutorial, Fernseher und Uhr kommt
+  aus Horizonts schlankem, kantigem Satz statt aus den Material-Icons
+- Auf iPhone, iPad und Mac öffnen die Rückfrage vor dem Löschen des Kontos,
+  die Steuerung und der Kopplungscode als Dialoge des Systems
+- „ein Projekt von regetskcob“ mit seinem Zeichen steht über den
+  Rechtslinks, wie am Fuß der Landingpage
+- iPad: Der Warteraum stellt hochkant Einladung und Besatzungen
+  nebeneinander über die Fahrzeuge und gibt quer den Fahrzeugen die
+  breitere Spalte, die Fahrzeugkarten wachsen mit, und die Bestenliste
+  zeigt zehn Piloten
 - Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
   Screenshots in Geräterahmen, die Rechtstexte im selben Stil
 - Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort

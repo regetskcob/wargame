@@ -88,8 +88,9 @@ starts, from the built assets under `assets/assets/images/`, so the loading
 view finds them in the browser cache. Android draws only the ground colour behind the tank
 (`@color/launch_ground`); since Android 12 the system splash shows the tank
 as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
-does. `python3 store/tool/launch_screen.py` draws the images for all of
-them (iOS image sets, Android drawables, `assets/images/`).
+does. The images come from Horizont, the tank standing on the horizon
+in the middle of its ground: `python3 store/tool/horizont_icons.py` copies
+them for all of them (iOS image sets, Android drawables, `assets/images/`).
 
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
 `flutter doctor`. Then:
@@ -181,9 +182,9 @@ host and hands back once the owner returns.
 To try it, build for the simulator, install the app, open Messages, a chat
 with one of its fake numbers and the app list behind "+". After installing
 a new build, quit Messages once, or it keeps looking for the old extension.
-`python3 store/tool/imessage.py` draws the icons in
-`iMessage App Icon.stickersiconset` from the layers of the app icon and the
-two pictures of the bubble: tanks of three colours on the battle ground for
+The icons in `iMessage App Icon.stickersiconset` come from Horizont
+(`store/tool/horizont_icons.py`), the square app icon and its 4:3 version.
+`python3 store/tool/imessage.py` draws the two pictures of the bubble: tanks of three colours on the battle ground for
 Last Tank Standing and capture the flag, the red defence holding its base
 on a sandy road against blue tanks for the defense and the duel. Both app
 and extension carry the app group in their entitlements; signing in the
@@ -424,9 +425,9 @@ All televisions, Android TV and Fire TV included, are summed up in
 3.47.6, no account needed). It runs the same `lib/main.dart` and the same
 screens as the browser, drawn larger (`tvScale`), and shares the bundle id
 `de.regetskcob.wargame` with the iOS app, so both can be one universal
-purchase. The icon, a back and a front layer, comes from Horizont
-(`store/tool/horizont_icons.py`); top shelf and launch screen are still drawn
-from the layers of the old app icon (`store/tool/tv_icons.py`). State: tried in the Apple TV Simulator only.
+purchase. The icon, a back and a front layer, the top shelf with the name on the
+horizon and the launch image come from Horizont
+(`store/tool/horizont_icons.py`). State: tried in the Apple TV Simulator only.
 
 Nothing scrolls on the television. The menus use its width: the start page puts
 the controllers, the phone pairing and the leaderboard in a column beside the
@@ -521,7 +522,7 @@ export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
 flutter-tvos build tvos --debug --simulator  # debug, Simulator only
 flutter-tvos run -d <apple-tv-simulator-id>  # hot reload
 flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
-python3 store/tool/tv_icons.py               # top shelf, launch image
+python3 store/tool/horizont_icons.py         # icon, top shelf, launch image
 ```
 
 Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the

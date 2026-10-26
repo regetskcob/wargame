@@ -432,8 +432,13 @@ second), keeping round houses. Once an enemy tank out of the smoke or an
 armed soldier of the other side comes within 520, they stalk it at 46 a
 second to three quarters of their reach (165 for riflemen, 225 for rocket
 launchers) and hold there while they fire; 6 seconds after losing sight
-of it they patrol again where they stand. Squads marching down the road
-of a defense round keep to the road.
+of it they patrol again where they stand. Every line a squad walks is
+checked along its length: a patrol keeps to points it reaches dry, a squad
+sent across the river of a defense map or between islands goes over the
+nearest bridge, lining up on the road beyond its end, and stops at the
+shore when no bridge leads there. On a bridge or along a shore the men
+close up to the squad's line. Squads marching down the road of a defense
+round keep to the road.
 
 **Defense.**
 

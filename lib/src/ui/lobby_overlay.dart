@@ -16,15 +16,16 @@ import 'theme.dart';
 import 'launch_view.dart';
 import 'welcome_view.dart';
 import 'account_page.dart';
-import 'widgets/mute_button.dart';
-import 'widgets/notice.dart';
-import 'widgets/rooms_busy_notice.dart';
-import 'widgets/server_notice.dart';
 import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
+import 'widgets/game_dialog.dart';
+import 'widgets/mute_button.dart';
+import 'widgets/notice.dart';
 import 'widgets/panel.dart';
-import 'widgets/room_invite.dart';
 import 'widgets/player_list.dart';
+import 'widgets/room_invite.dart';
+import 'widgets/rooms_busy_notice.dart';
+import 'widgets/server_notice.dart';
 import 'widgets/tablet_scale.dart';
 import 'widgets/tank_choice.dart';
 import '../l10n/l10n.dart';
@@ -154,7 +155,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _battleSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.tune_outlined,
+      icon: HorizontSymbols.tune,
       title: tr('EINSATZ', 'MISSION'),
       child: ValueListenableBuilder<GameMode>(
         valueListenable: game.mode,
@@ -328,7 +329,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _fieldSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.landscape_outlined,
+      icon: HorizontSymbols.landscape,
       title: tr('GELÄNDE', 'TERRAIN'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -372,65 +373,88 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   Widget _tankSection(BuildContext context) {
     final game = widget.game;
     return _Section(
-      icon: Icons.shield_outlined,
+      icon: HorizontSymbols.shield,
       title: tr('DEIN PANZER', 'YOUR TANK'),
       // Wide, the bars and the paint stand beside the vehicles instead of
       // stretching across the whole width below them.
       child: LayoutBuilder(
         builder: (context, box) {
+          final bars = StatBars(type: GameConfig.typeOf(_colorIndex));
+          final camo = ListenableBuilder(
+            listenable: Listenable.merge([game.mode, game.teamMode]),
+            // With others every tank drives in its own colour, in red
+            // against blue in its team's.
+            builder: (context, _) =>
+                game.mode.value.withOthers || game.teamsAhead
+                ? const SizedBox.shrink()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
+                      ValueListenableBuilder(
+                        valueListenable: game.progress.rank,
+                        builder: (context, rank, _) => _balanced(
+                          children: [
+                            for (
+                              var i = 0;
+                              i < GameConfig.tankColors.length;
+                              i++
+                            )
+                              Tooltip(
+                                message: game.progress.unlocked(i)
+                                    ? GameConfig.colorName(i)
+                                    : '${GameConfig.colorName(i)}: '
+                                          '${tr('ab Stufe', 'from level')} '
+                                          '${GameConfig.colorLevels[i]}',
+                                child: ColorSwatchButton(
+                                  color: GameConfig.tankColors[i],
+                                  selected:
+                                      i ==
+                                      _colorIndex %
+                                          GameConfig.tankColors.length,
+                                  locked: !game.progress.unlocked(i),
+                                  onTap: () => _pick(color: i),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+          );
           final details = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              StatBars(type: GameConfig.typeOf(_colorIndex)),
-              const SizedBox(height: 14),
-              ListenableBuilder(
-                listenable: Listenable.merge([game.mode, game.teamMode]),
-                // With others every tank drives in its own colour, in red
-                // against blue in its team's.
-                builder: (context, _) =>
-                    game.mode.value.withOthers || game.teamsAhead
-                    ? const SizedBox.shrink()
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
-                          ValueListenableBuilder(
-                            valueListenable: game.progress.rank,
-                            builder: (context, rank, _) => _balanced(
-                              children: [
-                                for (
-                                  var i = 0;
-                                  i < GameConfig.tankColors.length;
-                                  i++
-                                )
-                                  Tooltip(
-                                    message: game.progress.unlocked(i)
-                                        ? GameConfig.colorName(i)
-                                        : '${GameConfig.colorName(i)}: '
-                                              '${tr('ab Stufe', 'from level')} '
-                                              '${GameConfig.colorLevels[i]}',
-                                    child: ColorSwatchButton(
-                                      color: GameConfig.tankColors[i],
-                                      selected:
-                                          i ==
-                                          _colorIndex %
-                                              GameConfig.tankColors.length,
-                                      locked: !game.progress.unlocked(i),
-                                      onTap: () => _pick(color: i),
-                                    ),
-                                  ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-              ),
-            ],
+            children: [bars, const SizedBox(height: 14), camo],
           );
           if (box.maxWidth < 640) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [_vehicles(), const SizedBox(height: 12), details],
+            );
+          }
+          // An upright tablet: beside the bars the cards stayed small with
+          // the lower half of the screen empty. They take the whole width,
+          // the bars and the paint share the row below them.
+          if (box.maxWidth < 900) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _vehicles(),
+                const SizedBox(height: HzSpace.s16),
+                // With others there is no paint to choose, and the bars
+                // take the row alone.
+                if (game.mode.value.withOthers || game.teamsAhead)
+                  bars
+                else
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(child: bars),
+                      const SizedBox(width: HzSpace.s32),
+                      Expanded(child: camo),
+                    ],
+                  ),
+              ],
             );
           }
           return Row(
@@ -536,7 +560,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
         if (game.mode.value == GameMode.solo && game.isHost.value) {
           leave = OutlinedButton.icon(
             onPressed: game.changeMode,
-            icon: const Icon(Icons.arrow_back_outlined),
+            icon: const Icon(HorizontSymbols.arrowBack),
             label: _oneLine(tr('ZURÜCK', 'BACK')),
           );
         } else {
@@ -552,7 +576,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   : null,
             ),
             icon: Icon(
-              _closeArmed ? Icons.warning_amber_outlined : Icons.close_outlined,
+              _closeArmed
+                  ? HorizontSymbols.warningAmber
+                  : HorizontSymbols.close,
             ),
             // Short enough for half a phone width at full size; the red
             // frame and the warning icon say that the second tap counts.
@@ -582,7 +608,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                               game.startRound();
                             }
                           : null,
-                      icon: const Icon(Icons.flag_outlined),
+                      icon: const Icon(HorizontSymbols.flag),
                       label: _oneLine(
                         game.canStart
                             ? tr('STARTEN', 'START')
@@ -608,7 +634,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                         padding: const EdgeInsets.only(top: 12),
                         child: OutlinedButton.icon(
                           onPressed: null,
-                          icon: const Icon(Icons.movie_outlined),
+                          icon: const Icon(HorizontSymbols.movie),
                           label: Text(
                             tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                           ),
@@ -624,7 +650,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           if (live != null)
                             OutlinedButton.icon(
                               onPressed: game.spectateLiveMatch,
-                              icon: const Icon(Icons.visibility_outlined),
+                              icon: const Icon(HorizontSymbols.visibility),
                               label: Text(
                                 tr(
                                   'LAUFENDES GEFECHT BEOBACHTEN',
@@ -635,7 +661,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                           if (replay != null)
                             OutlinedButton.icon(
                               onPressed: game.watchReplay,
-                              icon: const Icon(Icons.movie_outlined),
+                              icon: const Icon(HorizontSymbols.movie),
                               label: Text(
                                 tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                               ),
@@ -660,9 +686,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
   void _showControls(BuildContext context) {
     final game = widget.game;
     final touch = game.touchMode.value;
-    showDialog<void>(
+    showGameDialog<void>(
       context: context,
-      builder: (dialog) => AlertDialog(
+      builder: (dialog) => AlertDialog.adaptive(
         title: Text(tr('STEUERUNG', 'CONTROLS')),
         content: Text(
           onTv
@@ -712,17 +738,19 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
         ),
         actions: [
-          TextButton.icon(
+          horizontDialogAction(
+            dialog,
+            label: tr('EINWEISUNG', 'BRIEFING'),
             onPressed: () {
               Navigator.of(dialog).pop();
               game.showTutorial();
             },
-            icon: const Icon(Icons.school_outlined, size: 18),
-            label: Text(tr('EINWEISUNG', 'BRIEFING')),
           ),
-          FilledButton(
+          horizontDialogAction(
+            dialog,
+            label: 'OK',
+            primary: true,
             onPressed: () => Navigator.of(dialog).pop(),
-            child: const Text('OK'),
           ),
         ],
       ),
@@ -791,6 +819,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     List<Widget> left,
     List<Widget> right, {
     required bool narrow,
+    int leftFlex = 1,
+    int rightFlex = 1,
   }) {
     if (narrow) {
       return _column([...left, ...right]);
@@ -800,9 +830,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(child: FocusTraversalGroup(child: _column(left))),
+        Expanded(
+          flex: leftFlex,
+          child: FocusTraversalGroup(child: _column(left)),
+        ),
         const SizedBox(width: HzSpace.s32),
-        Expanded(child: FocusTraversalGroup(child: _column(right))),
+        Expanded(
+          flex: rightFlex,
+          child: FocusTraversalGroup(child: _column(right)),
+        ),
       ],
     );
   }
@@ -828,7 +864,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             Expanded(
               child: OutlinedButton.icon(
                 onPressed: game.changeMode,
-                icon: const Icon(Icons.swap_horiz_outlined),
+                icon: const Icon(HorizontSymbols.swapHoriz),
                 label: _oneLine(tr('MODUS WECHSELN', 'CHANGE MODE')),
               ),
             ),
@@ -836,7 +872,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             Expanded(
               child: FilledButton.icon(
                 onPressed: game.closeSettings,
-                icon: const Icon(Icons.check_outlined),
+                icon: const Icon(HorizontSymbols.check),
                 label: _oneLine(tr('FERTIG', 'DONE')),
               ),
             ),
@@ -893,7 +929,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
               visualDensity: VisualDensity.compact,
             ),
-            icon: const Icon(Icons.tune_outlined, size: HzIconSize.inline),
+            icon: const Icon(HorizontSymbols.tune, size: HzIconSize.inline),
             label: FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
@@ -909,6 +945,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       },
     );
   }
+
+  /// The width from which the waiting room stands beside the vehicles: a
+  /// tablet held sideways, not an upright one.
+  static const _roomBesideTanks = 1000.0;
 
   /// The waiting room: who is here, the player's own tank and the start.
   /// The host reaches the settings through the gear in the heading.
@@ -937,13 +977,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 IconButton(
                   tooltip: tr('Steuerung', 'Controls'),
                   onPressed: () => _showControls(context),
-                  icon: const Icon(Icons.help_outline),
+                  icon: const Icon(HorizontSymbols.help),
                 ),
                 if (host)
                   IconButton(
                     tooltip: tr('Einstellungen', 'Settings'),
                     onPressed: widget.game.editSettings,
-                    icon: const Icon(Icons.settings_outlined),
+                    icon: const Icon(HorizontSymbols.settings),
                   ),
               ],
             ),
@@ -962,7 +1002,39 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             if (room.isEmpty)
               _tankSection(context)
             else
-              _columns(room, [_tankSection(context)], narrow: narrow),
+              LayoutBuilder(
+                builder: (context, box) {
+                  // An upright tablet is too narrow for the room beside the
+                  // vehicles: the invitation and the crews stood in a strip
+                  // with half the page empty below them, and the vehicles
+                  // squeezed two by two. The room goes across above the
+                  // vehicles instead, which get the whole width.
+                  if (narrow || box.maxWidth >= _roomBesideTanks) {
+                    // The invitation needs less than half the width; the
+                    // vehicle cards grow into the rest.
+                    return _columns(
+                      room,
+                      [_tankSection(context)],
+                      narrow: narrow,
+                      leftFlex: 2,
+                      rightFlex: 3,
+                    );
+                  }
+                  return _column([
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(child: _column(room.sublist(0, 1))),
+                        if (room.length > 1) ...[
+                          const SizedBox(width: HzSpace.s32),
+                          Expanded(child: _column(room.sublist(1))),
+                        ],
+                      ],
+                    ),
+                    _tankSection(context),
+                  ]);
+                },
+              ),
             const SizedBox(height: 18),
             _actions(),
           ],
@@ -1177,7 +1249,7 @@ class ColorSwatchButton extends StatelessWidget {
           ),
           child: locked
               ? const Icon(
-                  Icons.lock_outlined,
+                  HorizontSymbols.lock,
                   size: 12,
                   color: GameColors.text,
                 )
@@ -1196,7 +1268,7 @@ class _JoinedBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     return Notice(
       HorizontStatus.info,
-      icon: Icons.hourglass_top_outlined,
+      icon: HorizontSymbols.hourglassTop,
       child: Text(
         tr(
           'Du bist dem Warteraum beigetreten. Der Gastgeber startet das '

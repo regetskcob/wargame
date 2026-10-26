@@ -9,6 +9,7 @@ import '../../game/tank_game.dart';
 import '../../net/pad_link.dart';
 import '../controller_view.dart';
 import '../theme.dart';
+import 'game_dialog.dart';
 import 'notice.dart';
 import 'panel.dart';
 import 'room_scanner.dart';
@@ -125,7 +126,7 @@ class _ScreenPairing extends StatelessWidget {
             children: [
               FilledButton.icon(
                 onPressed: () => PadPairingDialog.show(context),
-                icon: const Icon(Icons.qr_code_2_outlined),
+                icon: const Icon(HorizontSymbols.qrCode2),
                 label: Text(
                   paired != null
                       ? tr('CODE ZEIGEN', 'SHOW CODE')
@@ -135,7 +136,7 @@ class _ScreenPairing extends StatelessWidget {
               if (paired != null)
                 OutlinedButton.icon(
                   onPressed: () => unawaited(pad.close()),
-                  icon: const Icon(Icons.link_off_outlined),
+                  icon: const Icon(HorizontSymbols.linkOff),
                   label: Text(tr('TRENNEN', 'UNPAIR')),
                 ),
             ],
@@ -160,7 +161,7 @@ class _BecomePad extends StatelessWidget {
   }
 
   Future<void> _type(BuildContext context) async {
-    final code = await showDialog<String>(
+    final code = await showGameDialog<String>(
       context: context,
       builder: (context) => const _CodeDialog(),
     );
@@ -192,7 +193,7 @@ class _BecomePad extends StatelessWidget {
           children: [
             FilledButton.icon(
               onPressed: () => _scan(context),
-              icon: const Icon(Icons.qr_code_scanner_outlined),
+              icon: const Icon(HorizontSymbols.qrCodeScanner),
               label: Text(tr('ALS CONTROLLER NUTZEN', 'USE AS CONTROLLER')),
             ),
             TextButton(
@@ -234,33 +235,39 @@ class _CodeDialogState extends State<_CodeDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: GameColors.surface,
+    return AlertDialog.adaptive(
       title: Text(tr('KOPPLUNGSCODE', 'PAIRING CODE')),
-      content: TextField(
-        controller: _field,
-        autofocus: true,
-        textCapitalization: TextCapitalization.characters,
-        style: GameType.data,
-        decoration: InputDecoration(
-          hintText: tr('8 Zeichen', '8 characters'),
-          errorText: _wrong
-              ? tr(
-                  'Der Code hat $padCodeLength Zeichen.',
-                  'The code has $padCodeLength characters.',
-                )
-              : null,
+      // The Cupertino dialog on iOS and macOS has no Material for the field.
+      content: Material(
+        type: MaterialType.transparency,
+        child: TextField(
+          controller: _field,
+          autofocus: true,
+          textCapitalization: TextCapitalization.characters,
+          style: GameType.data,
+          decoration: InputDecoration(
+            hintText: tr('8 Zeichen', '8 characters'),
+            errorText: _wrong
+                ? tr(
+                    'Der Code hat $padCodeLength Zeichen.',
+                    'The code has $padCodeLength characters.',
+                  )
+                : null,
+          ),
+          onSubmitted: (_) => _submit(),
         ),
-        onSubmitted: (_) => _submit(),
       ),
       actions: [
-        TextButton(
+        horizontDialogAction(
+          context,
+          label: tr('ABBRECHEN', 'CANCEL'),
           onPressed: () => Navigator.of(context).pop(),
-          child: Text(tr('ABBRECHEN', 'CANCEL')),
         ),
-        FilledButton(
+        horizontDialogAction(
+          context,
+          label: tr('VERBINDEN', 'CONNECT'),
+          primary: true,
           onPressed: _submit,
-          child: Text(tr('VERBINDEN', 'CONNECT')),
         ),
       ],
     );
@@ -339,7 +346,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                 IconButton(
                   tooltip: tr('Schließen', 'Close'),
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_outlined),
+                  icon: const Icon(HorizontSymbols.close),
                 ),
               ],
             ),

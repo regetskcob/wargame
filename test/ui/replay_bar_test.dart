@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
+import 'package:horizont/horizont.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
@@ -87,7 +88,7 @@ void main() {
       // changing its width.
       final width = tester.getSize(panelOf(end)).width;
       final following = game.camera.viewfinder.zoom;
-      await tester.tap(find.byIcon(Icons.map_outlined));
+      await tester.tap(find.byIcon(HorizontSymbols.map));
       await tester.pump();
       expect(game.replayMap.value, isTrue);
       expect(game.wholeMap, isTrue);
@@ -99,7 +100,7 @@ void main() {
         2 * GameConfig.worldRadius * game.camera.viewfinder.zoom,
         lessThanOrEqualTo(min(game.canvasSize.x, game.canvasSize.y)),
       );
-      await tester.tap(find.byIcon(Icons.map_outlined));
+      await tester.tap(find.byIcon(HorizontSymbols.map));
       await tester.pump();
       expect(game.replayMap.value, isFalse);
       expect(game.camera.viewfinder.zoom, following);

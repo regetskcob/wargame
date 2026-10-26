@@ -74,4 +74,57 @@ void main() {
       expect(b.at(t), a.at(t));
     }
   });
+
+  // A river along the y axis, 100 wide, with a bridge 40 wide across it at
+  // y = 0: the defense map in small.
+  bool river(Vector2 p) => p.x.abs() > 50 || p.y.abs() < 20;
+  const bridge = [(-50.0, 0.0), (50.0, 0.0)];
+  SquadRoute riverside(Vector2 start, {bool withBridge = true}) => SquadRoute(
+    key: 'a-q1',
+    ownerId: 'a',
+    start: start,
+    startAt: 0,
+    walkable: river,
+    crossings: [
+      if (withBridge)
+        (
+          Vector2(bridge[0].$1, bridge[0].$2),
+          Vector2(bridge[1].$1, bridge[1].$2),
+        ),
+    ],
+  );
+
+  test('an order across the river goes over the bridge, never through the '
+      'water', () {
+    final squad = riverside(Vector2(-150, 200))..order(5, Vector2(150, 200));
+    for (var t = 5.0; t < 120; t += 0.25) {
+      expect(river(squad.at(t)), isTrue, reason: 'at $t: ${squad.at(t)}');
+    }
+    expect(squad.at(200).distanceTo(Vector2(150, 200)), lessThan(1e-6));
+  });
+
+  test('without a bridge an order across the river stops at the shore', () {
+    final squad = riverside(Vector2(-150, 200), withBridge: false)
+      ..order(5, Vector2(150, 200));
+    for (var t = 5.0; t < 120; t += 0.25) {
+      expect(river(squad.at(t)), isTrue, reason: 'at $t: ${squad.at(t)}');
+    }
+    expect(squad.at(200).x, lessThan(-50));
+    expect(squad.at(200).x, greaterThan(-70));
+  });
+
+  test('a patrol by the river keeps its round on the land', () {
+    for (final key in ['a', 'b', 'c', 'd', 'e', 'f']) {
+      final squad = SquadRoute(
+        key: key,
+        ownerId: null,
+        start: Vector2(-80, 300),
+        startAt: 0,
+        walkable: river,
+      );
+      for (var t = 0.0; t < 300; t += 0.5) {
+        expect(river(squad.at(t)), isTrue, reason: '$key at $t');
+      }
+    }
+  });
 }

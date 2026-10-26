@@ -52,14 +52,14 @@ class VitalsPlate extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             _line(
-              Icons.health_and_safety_outlined,
+              HorizontSymbols.healthAndSafety,
               armour,
               armourStatus(armour),
               '${hp.ceil().clamp(0, maxHp.ceil())}',
             ),
             if (!endless)
               _line(
-                Icons.inventory_2_outlined,
+                HorizontSymbols.inventory2,
                 shells,
                 ammo == 0
                     ? HorizontStatus.critical
@@ -68,7 +68,7 @@ class VitalsPlate extends StatelessWidget {
               ),
             if (tank != null)
               _line(
-                Icons.local_gas_station_outlined,
+                HorizontSymbols.localGasStation,
                 tank.clamp(0.0, 1.0),
                 stockStatus(tank, low: GameConfig.fuelLowShare),
                 '${(tank * 100).ceil()} %',

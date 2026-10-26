@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../audio/audio_service.dart';
 import '../../l10n/l10n.dart';
@@ -31,7 +32,7 @@ class MuteButton extends StatelessWidget {
             : null,
         onPressed: () => AudioService.muted.value = !muted,
         icon: Icon(
-          muted ? Icons.volume_off_outlined : Icons.volume_up_outlined,
+          muted ? HorizontSymbols.volumeOff : HorizontSymbols.volumeUp,
         ),
       ),
     );

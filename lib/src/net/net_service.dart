@@ -214,12 +214,13 @@ class NetService {
       return;
     }
     _enterRoom(0);
+    final topic = 'game-arena-$room';
     final channel = _client.channel(
-      'game-arena-$room',
+      topic,
       options: const RealtimeChannelConfig(self: false),
     );
     _channel = channel;
-    _presence = PresenceThrottle(channel);
+    _presence = PresenceThrottle(channel, topic);
     _registerHandlers(channel);
     _subscriptions.add(channel.onPresenceSync.listen((_) => _emitRoster()));
     _subscriptions.add(

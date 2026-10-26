@@ -153,7 +153,7 @@ class _PilotCardState extends State<PilotCard> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Icon(
-                Icons.military_tech_outlined,
+                HorizontSymbols.militaryTech,
                 size: HzIconSize.badge,
                 color: GameColors.text,
               ),
@@ -164,8 +164,8 @@ class _PilotCardState extends State<PilotCard> {
               ),
               Icon(
                 _badgesOpen
-                    ? Icons.expand_less_outlined
-                    : Icons.expand_more_outlined,
+                    ? HorizontSymbols.expandLess
+                    : HorizontSymbols.expandMore,
                 size: HzIconSize.inline,
                 color: GameColors.text,
               ),
@@ -251,7 +251,7 @@ class BadgeChip extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              earned ? Icons.military_tech_outlined : Icons.lock_outline,
+              earned ? HorizontSymbols.militaryTech : HorizontSymbols.lock,
               size: HzIconSize.badge,
               color: color,
             ),

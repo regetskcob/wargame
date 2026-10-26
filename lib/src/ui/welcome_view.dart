@@ -24,7 +24,7 @@ class WelcomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final account = _Box(
-      icon: Icons.verified_user,
+      icon: HorizontSymbols.verifiedUser,
       title: tr('MIT KONTO', 'WITH ACCOUNT'),
       kicker: tr('FORTSCHRITT AUF JEDEM GERÄT', 'PROGRESS ON EVERY DEVICE'),
       child: AccountPanel(
@@ -37,7 +37,7 @@ class WelcomeView extends StatelessWidget {
     // Side by side the guest box is as tall as the account box, and its
     // button sits on the same line as the account's.
     Widget guest({bool stretched = false}) => _Box(
-      icon: Icons.person,
+      icon: HorizontSymbols.person,
       title: tr('ALS GAST', 'AS GUEST'),
       kicker: tr('OHNE KONTO SPIELEN', 'PLAY WITHOUT AN ACCOUNT'),
       stretched: stretched,
@@ -60,7 +60,7 @@ class WelcomeView extends StatelessWidget {
           const SizedBox(height: HzSpace.s16),
           FilledButton.icon(
             onPressed: game.playAsGuest,
-            icon: const Icon(Icons.chevron_right_outlined),
+            icon: const Icon(HorizontSymbols.chevronRight),
             label: Text(tr('ALS GAST SPIELEN', 'PLAY AS GUEST')),
           ),
         ],

@@ -323,8 +323,8 @@ class _AccountPanelState extends State<AccountPanel> {
                         children: [
                           Icon(
                             guest
-                                ? Icons.person_outline
-                                : Icons.verified_user_outlined,
+                                ? HorizontSymbols.person
+                                : HorizontSymbols.verifiedUser,
                             size: HzIconSize.row,
                             // A linked account is a state: word, sign and
                             // the positive colour.
@@ -468,6 +468,7 @@ class _AccountPanelState extends State<AccountPanel> {
                 focusNode: focusNode,
                 readOnly: readOnly,
                 controller: _name,
+                style: HorizontTheme.of(context).field,
                 maxLength: 16,
                 autofillHints: const [AutofillHints.username],
                 decoration: InputDecoration(
@@ -493,6 +494,7 @@ class _AccountPanelState extends State<AccountPanel> {
                 focusNode: focusNode,
                 readOnly: readOnly,
                 controller: _email,
+                style: HorizontTheme.of(context).field,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.send,
                 autofillHints: const [AutofillHints.email],
@@ -544,6 +546,7 @@ class _AccountPanelState extends State<AccountPanel> {
               focusNode: focusNode,
               readOnly: readOnly,
               controller: _code,
+              style: HorizontTheme.of(context).field,
               // The send button the remote was on is gone: start here.
               autofocus: onTv,
               keyboardType: TextInputType.number,

@@ -92,7 +92,7 @@ class _RoomListState extends State<RoomList> {
                 tooltip: tr('QR-Code scannen', 'Scan QR code'),
                 color: GameColors.text,
                 icon: Icon(
-                  Icons.qr_code_scanner_outlined,
+                  HorizontSymbols.qrCodeScanner,
                   semanticLabel: tr('QR-Code scannen', 'Scan QR code'),
                 ),
               ),
