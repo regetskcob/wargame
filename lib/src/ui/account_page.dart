@@ -196,6 +196,7 @@ class _AccountPageState extends State<AccountPage> {
                 focusNode: focusNode,
                 readOnly: readOnly,
                 controller: _name,
+                style: HorizontTheme.of(context).field,
                 maxLength: 16,
                 textInputAction: TextInputAction.done,
                 decoration: InputDecoration(

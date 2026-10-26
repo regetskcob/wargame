@@ -10,6 +10,8 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Textfelder in den Kontomenüs und der Raumcode sind genau so hoch wie die
+  Knöpfe daneben, nach Horizont 0.8.7
 - Infanterie läuft nicht mehr durch den Fluss der Verteidigungskarte oder
   zwischen den Inseln: Sie geht über die Brücken und rückt dort zusammen
 - Wer nach einem Verbindungsabbruch wieder in den Raum kommt, überschreitet

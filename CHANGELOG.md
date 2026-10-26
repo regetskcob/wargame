@@ -9,6 +9,8 @@ step, point for point.
 
 ## Unreleased
 
+- Text fields in the account menus and the room code are exactly as high as
+  the buttons beside them, on Horizont 0.8.7
 - Squads on foot no longer walk through the river of the defense map or
   between islands: they cross on the bridges and close up on the deck
 - Rejoining a room after a dropped connection no longer goes over
