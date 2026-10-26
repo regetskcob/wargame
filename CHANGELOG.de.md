@@ -8,7 +8,7 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## 1.8.0 (16) – 26.10.2026
+## 1.8.0 (17) – 26.10.2026
 
 - Panzergefecht hat eine eigene Adresse: Spiel, Raum-Links und QR-Codes
   zeigen jetzt auf <https://panzergefecht.de/play/>, und früher geteilte

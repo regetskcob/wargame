@@ -7,7 +7,7 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## 1.8.0 (16) – 2026-10-26
+## 1.8.0 (17) – 2026-10-26
 
 - Panzergefecht has its own address: the game, room links and QR codes
   now point to <https://panzergefecht.de/play/>, and links shared before
