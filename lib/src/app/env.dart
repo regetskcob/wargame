@@ -60,7 +60,7 @@ class Env {
   /// one level up passes on links of older apps that still lack `play/`.
   static const webUrl = String.fromEnvironment(
     'WEB_URL',
-    defaultValue: 'https://www.regetskcob.de/wargame/play/',
+    defaultValue: 'https://panzergefecht.de/play/',
   );
 
   /// Securing the guest account and signing in on another device. Off until

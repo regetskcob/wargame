@@ -191,7 +191,7 @@ struct Invite {
   }
 
   /// The browser game, which the apps also open by universal link.
-  static let webGame = URL(string: "https://www.regetskcob.de/wargame/play/")!
+  static let webGame = URL(string: "https://panzergefecht.de/play/")!
 
   /// Tanks per room, the default of `MAX_PILOTS` in `lib/src/app/env.dart`.
   static let maxPilots = 4

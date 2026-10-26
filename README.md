@@ -5,7 +5,7 @@ other people, or together against waves of enemy tanks in a tower defense
 mode, or red against blue in capture the flag. In German and English,
 without ads.
 
-**[▶ Play in the browser](https://www.regetskcob.de/wargame/)** · iOS and
+**[▶ Play in the browser](https://panzergefecht.de/)** · iOS and
 Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
 
 <p align="center">
@@ -183,4 +183,4 @@ flutter run -d chrome \
 © 2026 Daniel Bocksteger. All rights reserved. The source code is public for
 reading only, it is not open source; see [LICENSE](LICENSE). Third-party
 components keep their own licences, listed in the game under "Licences" and
-at <https://www.regetskcob.de/wargame/lizenzen/>.
+at <https://panzergefecht.de/lizenzen/>.

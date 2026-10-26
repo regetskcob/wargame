@@ -2,7 +2,7 @@
 
 What each store version of Panzergefecht brought, newest first, as its most
 important points. The build number follows in brackets; the web version at
-<https://www.regetskcob.de/wargame/play/> is always the latest `main`. The
+<https://panzergefecht.de/play/> is always the latest `main`. The
 store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.

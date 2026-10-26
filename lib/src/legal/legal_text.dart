@@ -36,9 +36,8 @@ const privacy = [
   LegalBlock(
     'Verantwortlicher',
     '$_owner\nE-Mail: $_mail\n\n'
-        'Diese Erklärung gilt für das Spiel Panzergefecht im Browser und in '
-        'den Apps für iPhone, iPad und Android. Für die übrige '
-        'Website gilt die Datenschutzerklärung unter regetskcob.de/legal.',
+        'Diese Erklärung gilt für die Website panzergefecht.de mit dem Spiel '
+        'im Browser und für die Apps für iPhone, iPad und Android.',
   ),
   LegalBlock(
     'Bereitstellung des Spiels',
@@ -146,7 +145,7 @@ const privacy = [
         'Landesbeauftragte für Datenschutz und Informationsfreiheit '
         'Nordrhein-Westfalen.',
   ),
-  LegalBlock(null, '\nStand: 10. Oktober 2026'),
+  LegalBlock(null, '\nStand: 18. Oktober 2026'),
 ];
 
 // English reading copies of the texts above, shown in the game when English is
@@ -176,9 +175,8 @@ const privacyEn = [
   LegalBlock(
     'Controller',
     '$_ownerEn\nE-mail: $_mail\n\n'
-        'This notice applies to the game Panzergefecht in the browser and in '
-        'the apps for iPhone, iPad and Android. The privacy notice at '
-        'regetskcob.de/legal applies to the rest of the website.',
+        'This notice applies to the website panzergefecht.de with the game in '
+        'the browser and to the apps for iPhone, iPad and Android.',
   ),
   LegalBlock(
     'Providing the game',
@@ -284,7 +282,7 @@ const privacyEn = [
   ),
   LegalBlock(
     null,
-    '\nAs of: 10 October 2026\n\nThis is an English reading copy. The German '
+    '\nAs of: 18 October 2026\n\nThis is an English reading copy. The German '
     'text is binding.',
   ),
 ];
@@ -292,7 +290,7 @@ const privacyEn = [
 // The licence terms: the game itself is not open source, the components it
 // is built from are, and their notices come with the game.
 
-const licensesUrl = 'https://www.regetskcob.de/wargame/lizenzen/';
+const licensesUrl = 'https://panzergefecht.de/lizenzen/';
 
 const licenses = [
   LegalBlock(

@@ -23,10 +23,22 @@
         "--port",
         "1313",
         "--baseURL",
-        "http://localhost:1313/wargame/",
+        "http://localhost:1313/",
         "--appendPort=false"
       ],
       "port": 1313
+    },
+    {
+      "name": "web-acc",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "8083",
+        "-d",
+        "/private/tmp/claude-501/-Users-regetskcob-wargame/fcf3abf5-25db-4e2a-b45c-b8f78fe9e4b7/scratchpad/web-acc"
+      ],
+      "port": 8083
     }
   ]
 }

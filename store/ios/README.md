@@ -171,18 +171,24 @@ einmal, die Texte dafür stehen in `metadata/de-DE/testflight.txt`.
 
 ## Universal Links
 
-Room links (`https://www.regetskcob.de/wargame/play/?room=CODE`) open the app when
+Room links (`https://panzergefecht.de/play/?room=CODE`) open the app when
 it is installed, also from the iPhone camera. The app asks for
-`applinks:www.regetskcob.de` (`ios/Runner/Runner.entitlements`, team
+`applinks:panzergefecht.de` (`ios/Runner/Runner.entitlements`, team
 86HB5U6788). Apple only reads the association file at the root of the
-domain, so `apple-app-site-association` from this folder belongs into the
-website repository `regetskcob.github.io` at
-`static/.well-known/apple-app-site-association`. Check after the deploy:
+domain; the site is that root, and `site/hugo.toml` mounts
+`apple-app-site-association` from this folder into `.well-known/`, so every
+deploy of the pages workflow carries it. Check after the deploy:
 
 ```sh
-curl -s https://www.regetskcob.de/.well-known/apple-app-site-association
-curl -s https://app-site-association.cdn-apple.com/a/v1/www.regetskcob.de
+curl -s https://panzergefecht.de/.well-known/apple-app-site-association
+curl -s https://app-site-association.cdn-apple.com/a/v1/panzergefecht.de
 ```
+
+Links shared before the move to panzergefecht.de point to
+`https://www.regetskcob.de/wargame/…`. The app still asks for
+`applinks:www.regetskcob.de` so they keep opening it; their association
+file (paths `/wargame/*`) stays in the website repository
+`regetskcob.github.io` at `static/.well-known/apple-app-site-association`.
 
 Apple's CDN can take a day to pick up a change. iOS fetches the file when the
 app is installed or updated.
