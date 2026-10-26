@@ -19,10 +19,9 @@
 {{- range .AllTranslations }}
 <link rel="alternate" hreflang="{{ .Language.LanguageCode }}" href="{{ .Permalink }}">
 {{- end }}
-{{- /* The icons of the web game (web/), drawn from Horizont's glyph: one
-       set for the landing page and the game. */}}
-<link rel="icon" type="image/svg+xml" href="{{ "favicon.svg" | relURL }}">
-<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32.png" | relURL }}">
+{{- /* The icons of the web game (web/), the app icon as on the home
+       screen: one set for the landing page and the game. */}}
+<link rel="icon" type="image/png" sizes="32x32" href="{{ "favicon-32.png" | relURL }}?v=7">
 <link rel="apple-touch-icon" href="{{ "icons/apple-touch-icon.png" | relURL }}">
 {{- /* Tokens, components, own rules (docs/web.md of Horizont). The CSS lands
        in css/, one level below fonts/, so components.css finds ../fonts/.

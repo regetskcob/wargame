@@ -126,9 +126,12 @@ def android(export):
 
 def web(export):
     src, out = export / "web", ROOT / "web"
+    # The favicon is the app icon, as on the home screen, not Horizont's
+    # glyph of the export's favicon.*: the tab shows the same tank as the
+    # icon the player installed.
+    resized(src / "icon-512.png", 32).save(out / "favicon-32.png", optimize=True)
+    (out / "favicon.svg").unlink(missing_ok=True)
     for source, target in (
-            ("favicon.svg", "favicon.svg"),
-            ("favicon-32.png", "favicon-32.png"),
             ("apple-touch-icon.png", "icons/apple-touch-icon.png"),
             ("icon-192.png", "icons/Icon-192.png"),
             ("icon-512.png", "icons/Icon-512.png"),

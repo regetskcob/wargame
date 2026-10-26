@@ -55,7 +55,7 @@ enableRobotsTXT = false
   [[module.mounts]]
     source = '../web'
     target = 'static'
-    includeFiles = ['/favicon.svg', '/favicon-32.png', '/icons/apple-touch-icon.png']
+    includeFiles = ['/favicon-32.png', '/icons/apple-touch-icon.png']
   # Apple reads the association file of the universal links only at the root
   # of the domain, and the site is that root.
   [[module.mounts]]

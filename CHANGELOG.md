@@ -7,6 +7,11 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## Unreleased
+
+- The browser tab of the game and the landing page shows the app icon
+  again instead of Horizont's glyph
+
 ## 1.8.0 (17) – 2026-10-26
 
 - Panzergefecht has its own address: the game, room links and QR codes

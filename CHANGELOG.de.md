@@ -8,6 +8,11 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## Unveröffentlicht
+
+- Der Browser-Tab von Spiel und Landingpage zeigt wieder das App-Icon
+  statt der Horizont-Glyphe
+
 ## 1.8.0 (17) – 26.10.2026
 
 - Panzergefecht hat eine eigene Adresse: Spiel, Raum-Links und QR-Codes
