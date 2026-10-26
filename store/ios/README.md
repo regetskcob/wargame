@@ -84,6 +84,23 @@ legt das Skript bei Bedarf selbst an; flutter-tvos erwartet es unter
 `~/flutter/flutter-tvos`. Die Watch-App nimmt sich nicht selbst auf, ihr
 Bild für die Kopfzeile kommt aus `watch/`.
 
+Die Watch-Bilder (`watch/<sprache>/watch-0*.png`, 422 × 514) entstehen im
+Simulator „Apple Watch Ultra 4 (49mm)“ aus einem Build mit
+`flutter-watchos build watchos --simulator --dart-define=SHOTS=true`, mit
+denselben Szenen wie oben (`menu`, `lobby`, `battle`, `defense`).
+Startargumente nimmt die Watch nicht (die Engine bricht daran ab), und ihr
+Einstellungsspeicher ist ein JSON unter
+`flutterwatch.shared_preferences.store`: Szene und Sprache kommen dort
+hinein, und zwar mit `xcrun simctl spawn <uhr> defaults write
+<container>/Library/Preferences/de.regetskcob.wargame.watchkitapp …`, weil
+cfprefsd eine direkt bearbeitete Plist überschreibt. Die Uhr muss dabei
+wach sein (zuerst über das Simulator-Panel starten), sonst startet die App
+im Hintergrund, zeichnet nichts und das Bild zeigt die Startseite; dann
+`xcrun simctl launch`, die Szene abwarten und
+`xcrun simctl io <uhr> screenshot` (mit der Uhrzeit oben). Danach
+`compose.py` und `landing.py` erneut laufen lassen, sie setzen die Watch in
+Kopfzeilen und Landingpage.
+
 Mit `SHOTS=true` nimmt der eigene Panzer keinen Schaden, es bleibt Tag ohne
 Nebel, die Schwierigkeit steht auf leicht (Munition ohne Ende), alle fahren
 den olivgrünen Hermelin, und eine Verteidigungsrunde beginnt bei Welle
