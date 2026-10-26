@@ -389,10 +389,12 @@ class _GuestCard extends StatelessWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: tr('Anmelden', 'Sign in'),
-                onPressed: () => AccountPage.open(context),
-                icon: const Icon(
+              // Only a sign: the whole card is the button. A button of its
+              // own here was a second focus stop on the television and a
+              // second button for the screen reader.
+              const SizedBox.square(
+                dimension: HzSpace.s48,
+                child: Icon(
                   HorizontSymbols.chevronRight,
                   color: GameColors.text,
                 ),
