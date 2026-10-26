@@ -327,7 +327,15 @@ again. To move to a newer Horizont, read its CHANGELOG, then:
 cd site && hugo mod get github.com/regetskcob/horizont@vX.Y.Z
 ```
 
-and check the page in both languages and at 375 px. Hugo fetches the
+and check the page in both languages and at 375 px.
+
+For a short move, such as the one to a new domain, `maintenance = true`
+under `[params]` in `site/hugo.toml` puts the maintenance page
+(`site/layouts/_partials/maintenance.html`, texts `maintenance-*` in
+`site/i18n/`) in place of every page, and the pages workflow writes it
+under `play/` instead of the game, so room links and sign-in mails land on
+it too. Impressum, privacy and licences stay. Set it back to `false` and
+push to bring the site and the game back. Hugo fetches the
 module with Go; the pages workflow uses the Go of the runner image, locally
 `brew install go` is enough.
 

@@ -28,6 +28,7 @@
      were built before the game moved to play/), sign-in mails (?code=,
      #access_token=) and home screen shortcuts. They go on to the game
      before anything is drawn. */}}
+  {{- if not site.Params.maintenance }}
   <script>
     (function () {
       var l = location, q = l.search, h = l.hash;
@@ -40,9 +41,12 @@
       }
     })();
   </script>
+  {{- end }}
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   {{ partial "head.html" . }}
+  {{- /* A page that stands in for a short while is not to be indexed. */}}
+  {{- if site.Params.maintenance }}<meta name="robots" content="noindex">{{ end }}
 </head>
 <body class="hz">
 <a class="pz-skip" href="#main">{{ i18n "skip" }}</a>
@@ -54,7 +58,7 @@
     "karte" (dict "home" "panzergefecht" "here" "panzergefecht" "url" "https://www.regetskcob.de/karte/")) }}
 <div class="hz-feld">
 <main id="main">
-{{ block "main" . }}{{ end }}
+{{- if site.Params.maintenance }}{{ partial "maintenance.html" . }}{{ else }}{{ block "main" . }}{{ end }}{{ end }}
 </main>
 {{ partial "horizont/feld/foot.html" (dict "links" $links "sender" (i18n "sender")) }}
 {{- /* The closing lines of the App Store description after the pledge and

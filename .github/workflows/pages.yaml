@@ -85,7 +85,16 @@ jobs:
         env:
           BASE_URL: ${{ steps.pages.outputs.base_url }}
       - name: Put the game below the landing page
-        run: cp -R build/web build/site/play
+        # During maintenance (params.maintenance in site/hugo.toml) play/
+        # holds the maintenance page instead, so links into the game land
+        # there too. Its paths are absolute, so it works one level down.
+        run: |
+          if hugo config --source site --format json | jq -e '.params.maintenance == true' > /dev/null; then
+            mkdir -p build/site/play
+            cp build/site/index.html build/site/play/index.html
+          else
+            cp -R build/web build/site/play
+          fi
       - name: Write the Impressum and privacy pages
         run: dart run tool/legal_pages.dart build/site
       # Kept one day only: artifact storage beyond the plan's 1 GB is billed.
