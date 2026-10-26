@@ -12,6 +12,9 @@ gepflegt.
 
 - Der Browser-Tab von Spiel und Landingpage zeigt wieder das App-Icon
   statt der Horizont-Glyphe
+- Die Minimap folgt wieder der Runde: Panzer, Geschütze, Flugzeuge und
+  Kisten bewegen sich darauf, statt dass das Bild nach dem ersten Frame
+  stehen bleibt
 
 ## 1.8.0 (17) – 26.10.2026
 

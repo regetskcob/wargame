@@ -34,12 +34,20 @@ class _MiniMapState extends State<MiniMap> with SingleTickerProviderStateMixin {
   /// pixels on a 150 pixel map needs no 60 Hz, 15 are plenty.
   final _frame = ValueNotifier<int>(0);
   Duration _last = Duration.zero;
-  late final Ticker _ticker = createTicker((elapsed) {
-    if (elapsed - _last >= MiniMap.repaintEvery) {
-      _last = elapsed;
-      _frame.value++;
-    }
-  })..start();
+  late final Ticker _ticker;
+
+  @override
+  void initState() {
+    super.initState();
+    // Started here, not in a lazy field initialiser: that ran first in
+    // dispose, so the map painted once and then stood still.
+    _ticker = createTicker((elapsed) {
+      if (elapsed - _last >= MiniMap.repaintEvery) {
+        _last = elapsed;
+        _frame.value++;
+      }
+    })..start();
+  }
 
   @override
   void dispose() {
