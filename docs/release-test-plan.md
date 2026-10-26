@@ -178,7 +178,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
-| F7.1 | The app on a phone pairs by QR or link and drives a round of the screen (browser, iPad, Apple TV); the code scanned with the iPhone's own camera opens the app, not Safari | #23, 1.6.0 on the Apple TV | sim: iPhone simulator as pad of the browser game; `curl -s https://www.regetskcob.de/.well-known/apple-app-site-association` lists `room` and `pad`; owner: system camera on a real iPhone (simulators skip universal links) | B |
+| F7.1 | The app on a phone pairs by QR or link and drives a round of the screen (browser, iPad, Apple TV); the code scanned with the iPhone's own camera opens the app, not Safari | #23, 1.6.0 on the Apple TV | sim: iPhone simulator as pad of the browser game; `curl -s https://panzergefecht.de/.well-known/apple-app-site-association` lists `room` and `pad`; owner: system camera on a real iPhone (simulators skip universal links) | B |
 | F7.2 | The phone's gauges match the HUD (crate for ammo, `100 %`) | #23 M6 | auto: `controller_view_test` | m |
 | F7.3 | A touch brings the sticks back over a connected controller; using the controller hides them again | #12 next 5 | auto: `touch_controls_test`; owner with a real controller | M |
 | F7.4 | Two phones on an iPad: split screen, player two named after the phone, same plates, own survival time on each end screen, team colours | #12 1.3.0, summary | sim: iPad sim + two phones; auto: `split_view_test` | M |
