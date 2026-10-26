@@ -8,53 +8,30 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## Unveröffentlicht
+## 1.8.0 (16) – 26.10.2026
 
-- Textfelder in den Kontomenüs und der Raumcode sind genau so hoch wie die
-  Knöpfe daneben, nach Horizont 0.8.7
-- Die Landingpage nennt iMessage und alle Fernseher, auf die das Spiel
-  kommt, und ihre Screenshots öffnen sich in voller Größe
-- Infanterie läuft nicht mehr durch den Fluss der Verteidigungskarte oder
-  zwischen den Inseln: Sie geht über die Brücken und rückt dort zusammen
-- Wer nach einem Verbindungsabbruch wieder in den Raum kommt, überschreitet
-  nicht mehr das Presence-Limit von Realtime (fünf Updates in 30 Sekunden),
-  das den Raumkanal sonst gleich wieder schloss
+- Panzergefecht hat eine eigene Adresse: Spiel, Raum-Links und QR-Codes
+  zeigen jetzt auf <https://panzergefecht.de/play/>, und früher geteilte
+  Links öffnen weiter die App
 - Neues Aussehen nach dem Designsystem Horizont, im Spiel und auf der
-  Landingpage: ruhige Olivflächen mit Haarlinien statt Fasen, Signalgelb
-  nur für die eine Hauptaktion und die Auswahl, Mona Sans zum Spielen,
-  breite Versalien für Überschriften und jede Zahl in Monaspace
-- Der Warteraum wie im Entwurf: der Raumcode groß, die Besatzungen im Raum
-  mit Zahl, die Fahrzeuge als Karten mit umrandeter Auswahl und ihren
-  Werten als Balken
-- Neues App-Icon auf allen Plattformen: der Panzer von der Seite auf dem
-  Horizont
-- Startbildschirme, Top Shelf und Startbild des Apple TV, das Banner von
-  Android TV, die iMessage-Icons und das Google-Play-Banner zeigen den
-  neuen Panzer von der Seite auf dem Horizont ebenfalls
+  Landingpage: ruhige Olivflächen mit Haarlinien, Signalgelb nur für die
+  eine Hauptaktion und die Auswahl, neue Schriften und jede Zahl in
+  Monaspace
+- Neues App-Icon auf allen Plattformen, dazu passend Startbildschirme, Top
+  Shelf des Apple TV, Banner von Android TV und die iMessage-Icons: der
+  Panzer von der Seite auf dem Horizont
 - Jedes Symbol in Menüs, HUD, Kisten, Tutorial, Fernseher und Uhr kommt
-  aus Horizonts schlankem, kantigem Satz statt aus den Material-Icons
-- Auf iPhone, iPad und Mac öffnen die Rückfrage vor dem Löschen des Kontos,
-  die Steuerung und der Kopplungscode als Dialoge des Systems
-- „ein Projekt von regetskcob“ mit seinem Zeichen steht über den
-  Rechtslinks, wie am Fuß der Landingpage
-- iPad: Der Warteraum stellt hochkant Einladung und Besatzungen
-  nebeneinander über die Fahrzeuge und gibt quer den Fahrzeugen die
-  breitere Spalte, die Fahrzeugkarten wachsen mit, und die Bestenliste
-  zeigt zehn Piloten
-- Die Landingpage als Horizont-Feldseite mit nummerierten Abschnitten, die
-  Screenshots in Geräterahmen, die Rechtstexte im selben Stil
-- Die Apple Watch öffnet den Controller-Kanal nicht mehr, den es dort
-  nicht gibt, und der Fokusrahmen des Apple TV stolpert nicht mehr über
-  einen gerade weggedrückten Knopf
-- Die offene Liste im Verteidigungsmenü trägt eine Linie am Fuß statt
-  eines Rahmens, der wie der Fokusring des Fernsehers aussah, und der
-  Ton-Knopf in der Runde hat eine dunkle Scheibe wie der Verlassen-Knopf
-- Die Anzeigen bleiben am linken Rand, solange das Inventar leer ist,
-  die Verteidigungszeile kürzt erst die Kameraden und lässt dann das
-  Wort Welle weg, und die Kontofelder tragen ihre Beschriftung über dem
-  Feld
-- Die Landingpage zeigt wieder alle Geräte nebeneinander, auf der
-  Horizontlinie stehend, statt nur den Fernseher
+  aus Horizonts schlankem, kantigem Satz
+- Der Warteraum wie im Entwurf: der Raumcode groß, die Besatzungen mit
+  Zahl, die Fahrzeuge als Karten mit ihren Werten als Balken; auf dem iPad
+  nutzt er hochkant wie quer den ganzen Bildschirm
+- Auf iPhone, iPad und Mac öffnen Konto löschen, Steuerung und
+  Kopplungscode als Dialoge des Systems
+- Infanterie geht in der Verteidigung über die Brücken statt durch den
+  Fluss
+- Wer nach einem Verbindungsabbruch zurückkommt, schließt den Raumkanal
+  nicht mehr gleich wieder, und Apple Watch und Fokusrahmen des Apple TV
+  laufen ruhiger
 
 ## 1.7.0 (15) – 18.10.2026
 

@@ -7,52 +7,30 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## Unreleased
+## 1.8.0 (16) – 2026-10-26
 
-- Text fields in the account menus and the room code are exactly as high as
-  the buttons beside them, on Horizont 0.8.7
-- The landing page names iMessage and every TV the game is coming to, and
-  its screenshots open at full size
-- Squads on foot no longer walk through the river of the defense map or
-  between islands: they cross on the bridges and close up on the deck
-- Rejoining a room after a dropped connection no longer goes over
-  Realtime's presence limit of five updates in 30 seconds, which closed the
-  room channel again
+- Panzergefecht has its own address: the game, room links and QR codes
+  now point to <https://panzergefecht.de/play/>, and links shared before
+  keep opening the app
 - A new look on the design system Horizont, in the game and on the
-  landing page: calm olive surfaces with hairlines instead of bevels,
-  signal yellow only for the one main action and the selection, Mona Sans
-  to play, wide capitals for headlines and every number in Monaspace
-- The waiting room as in the design: the room code big, crews in the room
-  with their count, the vehicles as cards with the chosen one outlined and
-  its values as bars
-- New app icon on every platform: the tank from the side on the horizon
-- The launch screens, the Apple TV top shelf and launch image, the
-  Android TV banner, the iMessage icons and the Google Play banner show
-  the new tank from the side on the horizon too
+  landing page: calm olive surfaces with hairlines, signal yellow only for
+  the one main action and the selection, new type and every number in
+  Monaspace
+- New app icon on every platform, with launch screens, the Apple TV top
+  shelf, the Android TV banner and the iMessage icons to match: the tank
+  from the side on the horizon
 - Every symbol in menus, the HUD, the crates, the tutorial, the television
-  and the watch comes from Horizont's thin, sharp set instead of Material's
-  icons
-- On iPhone, iPad and Mac the questions before deleting the account, the
-  controls and the pairing code open as the system's own dialogs
-- "A project by regetskcob" with its mark stands over the legal links, as
-  at the foot of the landing page
-- iPad: the waiting room puts the invitation and the crews side by side
-  above the vehicles when held upright and gives the vehicles the wider
-  column when held sideways, the vehicle cards grow with the room, and the
-  leaderboard lists ten pilots
-- The landing page as a Horizont field page with numbered sections, the
-  screenshots in device frames, and the legal pages in the same style
-- The Apple Watch no longer opens the game controller channel it does not
-  have, and the Apple TV's focus frame no longer trips over a button that
-  was just pressed away
-- The open list of the defense panel is marked by a line along its foot,
-  not a frame that looked like the television's focus ring, and the sound
-  button in a round has a dark disc like the leave button
-- The gauges stay at the left edge while the inventory is empty, the
-  defense line shortens the comrades before it drops the word for the
-  wave, and the account fields carry their label above the field
-- The landing page shows every device the game runs on side by side
-  again, standing on the horizon line, instead of the television alone
+  and the watch comes from Horizont's thin, sharp set
+- The waiting room as in the design: the room code big, crews with their
+  count, the vehicles as cards with their values as bars; on the iPad it
+  uses the whole screen upright and sideways
+- On iPhone, iPad and Mac deleting the account, the controls and the
+  pairing code open as the system's own dialogs
+- Squads on foot cross the river of the defense map on the bridges
+  instead of walking through the water
+- Rejoining a room after a dropped connection no longer closes the room
+  channel again, and the Apple Watch and the Apple TV's focus frame are
+  steadier
 
 ## 1.7.0 (15) – 2026-10-18
 
