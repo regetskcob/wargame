@@ -8,7 +8,8 @@
          (store/ios/<kind>), in the language of the page
   The App Store images carry a caption and a drawn device around the game;
   only the screen is cut out of them (data/screens.yaml). The watch shots
-  are the bare screen already.
+  are the bare screen already. With its caption, the frame opens the screen
+  at full size in Horizont's lightbox (home.html adds it once).
 */ -}}
 {{- $store := site.Params.store -}}
 {{- $path := printf "store/%s/%s/%s.png" .kind $store .file -}}
@@ -23,8 +24,9 @@
 {{- $device := index (dict "iphone" "iphone" "ipad" "ipad" "mac" "laptop" "tv" "tv" "watch" "watch") .kind -}}
 {{- $frame := partial "horizont/device.html" (dict "device" $device "width" .width "image" $img "alt" .alt) -}}
 {{- if .bare }}{{ $frame }}{{ else -}}
+{{- $large := $img.Process "webp" }}
 <figure class="pz-shot">
-  {{ $frame }}
+  <a class="pz-shot-open" href="{{ $large.RelPermalink }}" data-lightbox data-caption="{{ .alt }}">{{ $frame }}</a>
   <figcaption class="t-caption" aria-hidden="true">{{ .alt }}</figcaption>
 </figure>
 {{- end }}

@@ -56,21 +56,21 @@
   {{- end }}
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "modes" "kennung" (i18n "modes-kennung") "title" (i18n "modes-title") "text" $opener "facts" $facts) }}
-<div class="pz-extend pz-shots">
+<div class="pz-extend pz-shots" data-lightbox-group data-lightbox-title="{{ i18n "modes-title" }}">
   {{- range slice "01-gefecht" "02-verteidigung" "03-fahrzeuge" "04-modi" }}
   {{ partial "shot.html" (dict "kind" "iphone" "file" (printf "iphone-%s" .) "width" 180 "alt" (i18n (printf "shot-%s" .))) }}
   {{- end }}
 </div>
 
 {{- /* 03 — Every screen the game runs on, in the page's own words: the store
-   description is the iOS app's and leaves out the browser, the TV and the
-   Mac. */}}
+   description is the iOS app's and leaves out the browser, iMessage, the
+   TVs and the Mac. */}}
 {{- $facts = slice }}
-{{- range slice "web" "phone" "gamepad" "watch" "tv" "mac" }}
+{{- range slice "web" "phone" "gamepad" "chat" "watch" "tv" "mac" }}
   {{- $facts = $facts | append (dict "term" (i18n (printf "device-%s" .)) "value" (i18n (printf "device-%s-text" .))) }}
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "devices" "kennung" (i18n "devices-kennung") "title" (i18n "devices-title") "text" (i18n "platformsNote") "facts" $facts) }}
-<div class="pz-extend pz-shots pz-shots--devices">
+<div class="pz-extend pz-shots pz-shots--devices" data-lightbox-group data-lightbox-title="{{ i18n "devices-title" }}">
   {{ partial "shot.html" (dict "kind" "mac" "file" "mac-02-verteidigung" "width" 340 "alt" (i18n "shot-mac")) }}
   {{ partial "shot.html" (dict "kind" "ipad" "file" "ipad-03-warteraum" "width" 290 "alt" (i18n "shot-ipad")) }}
   {{ partial "shot.html" (dict "kind" "watch" "file" "watch-03-gefecht" "width" 110 "alt" (i18n "shot-watch")) }}
@@ -97,4 +97,8 @@
   {{- $facts = $facts | append (dict "term" (i18n (printf "fair-%s" .)) "value" (i18n (printf "fair-%s-text" .))) }}
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "fair" "kennung" (i18n "fair-kennung") "title" (index $notes 0) "text" (index $notes 1) "facts" $facts) }}
+
+{{- /* The screenshots open at full size in Horizont's lightbox, paged per
+   section. */}}
+{{ partial "horizont/lightbox.html" (dict "lang" site.Language.Lang) }}
 {{ end }}

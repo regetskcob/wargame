@@ -306,7 +306,9 @@ button, below it every device in one picture on the horizon line
 (`site/assets/header/<lang>/devices.png` and `devices-narrow.png`, drawn
 by `store/tool/landing.py` from the raw shots of `tool/store_shots.sh`),
 then numbered sections
-(`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono,
+(`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono
+and the store screenshots in Horizont's device frames, which open at full
+size in its lightbox (`horizont/lightbox.html`, paged per section),
 and the foot with "ein Projekt von regetskcob" and the legal links. The
 page stays dark on Panzergefecht's own "Gelände" neutrals
 (`data-product="panzergefecht" data-theme="dark"` on `<html>`); the signal
@@ -318,7 +320,7 @@ partials (`layouts/_partials/horizont/`), shortcodes and fonts as its
 `docs/web.md` says; the CSS is tokens, components, then `site/assets/css/site.css`
 with only the page's own layout, every value a Horizont variable. The
 layouts are built from the module's partials (`horizont/feld/*`,
-`device.html`, `facts.html`, `kennung.html`, `badge.html`), never their HTML
+`device.html`, `facts.html`, `kennung.html`, `badge.html`, `lightbox.html`), never their HTML
 again. To move to a newer Horizont, read its CHANGELOG, then:
 
 ```sh

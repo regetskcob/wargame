@@ -1,5 +1,5 @@
 otherLanguage: Deutsch
-platformsNote: Today in the browser, on iPhone, iPad and Apple Watch, on Android in beta. Wear OS, Mac and Apple TV are coming.
+platformsNote: Today in the browser, on iPhone, iPad and Apple Watch and in iMessage, on Android in beta. Mac, TVs and Wear OS are coming.
 imprint: Imprint
 privacy: Privacy
 licenses: Licences
@@ -15,11 +15,13 @@ device-web-text: Right away on any computer, nothing to install, no sign-up, wit
 device-phone: Phone and tablet
 device-phone-text: iPhone and iPad, Android phones and tablets soon on Google Play. Two thumb sticks that appear wherever your thumb lands, or a game controller, on a tablet also two players on a split screen.
 device-gamepad: Phone as controller
-device-gamepad-text: Scan a QR code and your phone steers your tank in the browser, on a tablet or soon on the Apple TV. With two phones you play two on one screen.
+device-gamepad-text: Scan a QR code and your phone steers your tank in the browser, on a tablet or soon on the TV. With two phones you play two on one screen.
+device-chat: iMessage
+device-chat-text: Invite right from the chat. The bubble opens the same room for everyone, for two for defense, the duel or Last Tank Standing, in a group for Last Tank Standing or capture the flag. After the round the result shows in the bubble.
 device-watch: Apple Watch
 device-watch-text: A game of its own on your wrist. The Digital Crown steers, the tank aims and fires by itself. Soon on round Wear OS watches through Google Play.
-device-tv: Apple TV · soon
-device-tv-text: On the big screen with the Siri Remote, a controller or your phone, two players on a split screen or in the base duel. Coming to the App Store soon.
+device-tv: TV · soon
+device-tv-text: On the big screen with the remote, a controller or your phone, two players on a split screen or in the base duel. Apple TV is coming to the App Store soon, Android TV, Google TV and Fire TV with the Android app.
 device-mac: Mac · soon
 device-mac-text: Full screen with keyboard or a game controller, with two controllers also two players on a split screen. The same app as on iPhone and iPad, coming to the Mac App Store soon.
 betaTitle: Test it early
@@ -37,7 +39,7 @@ supportLead: Found a bug, have a question or an idea? Write to us, we answer by 
 supportTopic: What is it about?
 supportTopics: Report a bug|Question about the game|Account and data|Idea or wish|Something else
 supportDevice: Where do you play?
-supportDevices: Browser|iPhone|iPad|Android|Mac|Apple TV|Apple Watch
+supportDevices: Browser|iPhone|iPad|iMessage|Android|Mac|Apple TV|Android TV or Fire TV|Apple Watch|Wear OS
 supportCallSign: Your call sign in the game (optional)
 supportMessage: Your message
 supportMessageHint: For a bug, tell us what you were doing and what happened.
@@ -57,7 +59,7 @@ sender: a project by regetskcob
 nav-modes: Modes
 nav-devices: Devices
 nav-beta: Beta
-hero-kennung: 01 — In the browser · iPhone · iPad · Apple Watch · Android
+hero-kennung: 01 — In the browser · iPhone · iPad · Apple Watch · iMessage · Android
 hero-title: Battle in the living room.
 modes-kennung: 02 — Modes
 modes-title: Alone, against others or as a squad.
