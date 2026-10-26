@@ -1,14 +1,15 @@
 BETA DESCRIPTION
-Panzergefecht is a top-down tank duel for iPhone and iPad: single player against CPU tanks, multiplayer in a shared room and defense against eight waves and more.
+Panzergefecht is a top-down tank duel for iPhone, iPad, Mac, Apple TV and Apple Watch: single player against CPU tanks, multiplayer in a shared room, defense against eight waves and more, and capture the flag, red against blue.
 
-WHAT TO TEST
-• Controls: drive with the left thumb, aim and fire with the right, aim assist on and off
-• Portrait and landscape during play and in the menus
-• Defense: build guns, upgrade them, buy upgrades, extend after wave 8
-• Day and night alternate during a battle
-• Account: play as a guest, quit and restart the app, secure the account with e-mail (enter the code from the mail)
-• Sound: follows the silent switch and the volume keys
-• Apple Watch (Series 9 or later, watchOS 26): install it from the Watch app on the iPhone, steer with the crown, play a round
+WHAT TO TEST (1.8.0)
+• New design: calm olive surfaces, new type, slim symbols and the new app icon. Does it all fit together, is any text cut off or a button hard to hit?
+• Waiting room: the room code big, crews with their count, vehicles as cards with their values as bars; on the iPad upright and sideways
+• Own address: room links and QR codes point to panzergefecht.de. A QR code scanned with the iPhone camera opens the app, not Safari
+• Multiplayer: after a round the host's NEW GAME starts the next round for everyone still on the end screen
+• Dialogs: deleting the account, the controls and the pairing code open as the system's own dialogs
+• Defense: infantry crosses the river on the bridges instead of walking through it
+• Apple Watch (Series 9 or later, watchOS 26): the new look, play a round with the crown
+• Apple TV and Mac: the start page and a round with the remote, a controller or the keyboard
 
 FEEDBACK
-By screenshot from TestFlight or to regetskcob@icloud.com.
+By screenshot from TestFlight or to review@panzergefecht.de.

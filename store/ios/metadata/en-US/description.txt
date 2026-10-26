@@ -1,37 +1,40 @@
-Panzergefecht is a fast top-down tank duel. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
+Panzergefecht is a fast top-down tank duel on iPhone, iPad, Mac, Apple TV and Apple Watch. Drive left, aim and fire right: the last tank in the field wins.
 
-WAYS TO PLAY
-• Single player: you against up to four CPU tanks on three difficulties. Easy is flat with no supply worries, on normal and hard the land gets hilly and fuel and shells must be found.
-• Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. Open rooms are listed in the room list, CPU tanks fill up on request, late joiners watch. Browser and app play in the same room.
-• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Build cannon, flak, mortar, howitzer and rockets, dig trenches and upgrade your tank. A base that holds grows from a watchtower to a citadel, and after wave 8 you can carry on endlessly.
-• Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Destroyed tanks are back in a few seconds, three captures win.
-• Two on one screen: split screen with two controllers or phones, on a tablet, in the browser and soon on the Apple TV, plus the duel, where two bases fight each other.
+NEW: Panzergefecht has a new face with calm olive surfaces, clear type, slim symbols and a new app icon on every device, and an address of its own: panzergefecht.de.
+
+FOUR WAYS TO PLAY
+• Single player: you against up to four CPU tanks on three difficulties. On easy the land is flat and the shells never run out, on normal and hard it gets hilly, and you fill up fuel and shells at fuel stations and ammo depots.
+• Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. CPU tanks fill up on request, late joiners watch, and app and browser play in the same room.
+• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Build cannon, flak, mortar, howitzer and rockets, dig trenches and upgrade your tank. The base grows from a watchtower to a citadel, and after wave 8 you can carry on.
+• Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Three captures win.
+• Two on one screen: split screen with two controllers or phones on iPad, Apple TV and in the browser, plus the duel, where two bases fight each other.
 
 NINE VEHICLES
-From the nimble weapon carrier to infantry fighting vehicles, anti-aircraft, a rocket launcher and the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
+From the nimble Spitzmaus to infantry fighting vehicles, anti-aircraft, a rocket launcher and the heavy Wolf. Every rank unlocks a new one, plus camouflage patterns and ten badges.
 
-TERRAIN, WEATHER AND WEAPONS
-Battlefield, desert, winter, city, mountain forest and islands, by day or night. Rain, snow, fog and sandstorms limit your view, rivers and bridges shape the battle, houses and trees can be shot down, the closed zone slowly shrinks. Crates and gems bring repair, a smoke launcher, shield, mines, artillery, a grenade launcher, a mortar, a kamikaze drone, paratroopers and an air strike.
+GROUNDS, WEATHER AND WEAPONS
+Battlefield, desert, winter, town, mountain forest and islands, by day or night. Rain, snow, fog and sandstorms cut the view, rivers and bridges steer the fight, houses, trees, fuel stations and depots can be shot to pieces, and the closed zone draws in until one is left. Crates and gems bring repair, a shield, mines, artillery, a drone, paratroopers and an air strike.
 
-MADE FOR TOUCH AND CONTROLLERS
+IN MESSAGES
+Invite a chat straight from iMessage into a room: a group fights it out, two of you hold the base together or meet in a duel, and the result of the round takes the place of the invitation in the chat.
+
+MADE FOR TOUCH, CONTROLLERS AND REMOTES
 • Two sticks that appear wherever your thumb lands
-• Aim assist that turns the turret to the nearest enemy
-• Playable in portrait and landscape, on iPhone and iPad
-• Game controllers are supported
-• Phone as controller: scan a QR code and your iPhone becomes the gamepad for the game in the browser, on the iPad and soon on the Apple TV
-• A short briefing shows everything in a minute
+• Aim assist on every difficulty that turns the turret to the nearest enemy and fires by itself
+• Portrait and landscape on iPhone and iPad
+• Game controllers everywhere, keyboard and mouse on the Mac, the Siri Remote on the Apple TV
+• Phone as controller: a QR code turns the iPhone into a gamepad for the game on iPad, Apple TV or in the browser
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. On the leaderboard everything you do counts: rounds, wins, kills, accuracy and rating add up to your points. There is also a replay of the last round and a new game at one tap. The leaderboard only shows the call sign you chose yourself. Your account can be deleted in the game at any time.
+Start right away as a guest, no sign-up. If you like, secure your account with an e-mail address and keep playing with rank, rating and badges on any device. The leaderboard counts rounds played and won, kills, accuracy and rating and shows only the call sign you chose. You can delete your account in the game at any time.
 
 ON THE APPLE WATCH
-The app brings a game of its own for the watch: single player, multiplayer, defense and capture the flag on your wrist. The Digital Crown steers, the tank drives and fires by itself, and you play in the same room as browser and phone.
+The app brings a game of its own for the watch: all four ways to play against CPU tanks on your wrist. The Digital Crown steers, the tank drives and fires by itself, and with the account from your iPhone every round counts for your rank.
 
-AT A GLANCE
-A widget shows who is online, a Live Activity the running round.
+Plus a widget that shows who is online and a Live Activity for the running round.
 
 No ads, no tracking.
 
 Panzergefecht is a private, non-commercial game and has no connection to any armed forces or vehicle manufacturer.
 
-All rights reserved. Licences and open source components used: https://panzergefecht.de/lizenzen/
+All rights reserved. Licences and open source components: https://panzergefecht.de/lizenzen/

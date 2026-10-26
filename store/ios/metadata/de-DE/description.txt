@@ -1,34 +1,37 @@
-Panzergefecht ist ein schnelles Panzerduell von oben. Du fährst mit dem linken Daumen, zielst mit dem rechten und feuerst, sobald du den Stick über den Ring schiebst. Der letzte Panzer im Feld gewinnt.
+Panzergefecht ist ein schnelles Panzerduell von oben, auf iPhone, iPad, Mac, Apple TV und Apple Watch. Links fahren, rechts zielen und feuern: Der letzte Panzer im Feld gewinnt.
 
-SPIELARTEN
-• Einzelspieler: Du gegen bis zu vier CPU-Panzer in drei Schwierigkeiten. Leicht ist flach und ohne Nachschubsorgen, auf Mittel und Schwer wird das Gelände hügelig, Treibstoff und Munition müssen gefunden werden.
-• Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. Offene Räume stehen in der Raumliste, CPU-Panzer füllen auf Wunsch auf, wer zu spät kommt, schaut zu. Browser und App spielen im selben Raum.
-• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen aus Panzern, Infanterie, Kampfhubschraubern, Jets und Kamikaze-Drohnen. Baut Kanone, Flak, Mörser, Haubitze und Raketen, hebt Gräben aus und rüstet euren Panzer auf. Hält der Stützpunkt, wächst er vom Wachturm bis zur Zitadelle, und nach Welle 8 geht es auf Wunsch endlos weiter.
-• Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen zum eigenen Stützpunkt, solange eure eigene dort steht. Wer fällt, steigt nach wenigen Sekunden wieder ein, drei eroberte Fahnen gewinnen.
-• Zu zweit auf einem Bildschirm: Geteilter Bildschirm mit zwei Controllern oder Handys, auf dem Tablet, im Browser und bald auf dem Apple TV, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
+NEU: Panzergefecht hat ein neues Gesicht mit ruhigen Olivflächen, klarer Schrift, schlanken Symbolen und einem neuen App-Icon auf jedem Gerät, und eine eigene Adresse: panzergefecht.de.
+
+VIER SPIELARTEN
+• Einzelspieler: Du gegen bis zu vier CPU-Panzer in drei Schwierigkeiten. Auf Leicht ist das Gelände flach und die Munition reicht ewig, auf Mittel und Schwer wird es hügelig, und Treibstoff und Munition holst du an Tankstellen und Munitionsdepots.
+• Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. CPU-Panzer füllen auf Wunsch auf, wer zu spät kommt, schaut zu, und App und Browser spielen im selben Raum.
+• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen aus Panzern, Infanterie, Kampfhubschraubern, Jets und Kamikaze-Drohnen. Baut Kanone, Flak, Mörser, Haubitze und Raketen, hebt Gräben aus und rüstet euren Panzer auf. Der Stützpunkt wächst vom Wachturm bis zur Zitadelle, nach Welle 8 geht es auf Wunsch weiter.
+• Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen zum eigenen Stützpunkt, solange eure eigene dort steht. Drei eroberte Fahnen gewinnen.
+• Zu zweit an einem Bildschirm: geteilter Bildschirm mit zwei Controllern oder Handys auf iPad, Apple TV und im Browser, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
 
 NEUN FAHRZEUGE
-Vom flinken Waffenträger über Schützenpanzer, Flugabwehr und Raketenwerfer bis zum schweren Kampfpanzer. Jedes Fahrzeug hat eigene Werte für Panzerung, Tempo, Wendigkeit und Feuerkraft. Mit jedem Rang schaltest du ein neues frei, dazu Tarnmuster und zehn Abzeichen.
+Von der flinken Spitzmaus über Schützenpanzer, Flugabwehr und Raketenwerfer bis zum schweren Wolf. Mit jedem Rang schaltest du ein neues frei, dazu Tarnmuster und zehn Abzeichen.
 
 GELÄNDE, WETTER UND WAFFEN
-Gefechtsplatz, Wüste, Winter, Stadt, Bergwald und Inseln, bei Tag oder Nacht. Regen, Schnee, Nebel und Sandsturm nehmen die Sicht, Flüsse und Brücken lenken das Gefecht, Häuser und Bäume lassen sich zerschießen, das Sperrgebiet zieht sich langsam zu. Kisten und Gems bringen Reparatur, Nebelwerfer, Schild, Minen, Artillerie, Granatwerfer, Mörser, Kamikaze-Drohne, Fallschirmjäger und Luftschlag.
+Gefechtsplatz, Wüste, Winter, Stadt, Bergwald und Inseln, bei Tag oder Nacht. Regen, Schnee, Nebel und Sandsturm nehmen die Sicht, Flüsse und Brücken lenken das Gefecht, Häuser, Bäume, Tankstellen und Depots lassen sich zerschießen, und das Sperrgebiet zieht sich zu, bis nur einer übrig ist. Kisten und Gems bringen Reparatur, Schild, Minen, Artillerie, Drohne, Fallschirmjäger und Luftschlag.
 
-GEMACHT FÜR TOUCH UND CONTROLLER
+IN DER NACHRICHTEN-APP
+Lade einen Chat direkt aus iMessage in einen Raum ein: Eine Gruppe tritt gegeneinander an, zu zweit haltet ihr den Stützpunkt oder fordert euch zum Duell, und das Ergebnis der Runde ersetzt die Einladung im Chat.
+
+GEMACHT FÜR TOUCH, CONTROLLER UND FERNBEDIENUNG
 • Zwei Sticks, die dort erscheinen, wo dein Daumen aufsetzt
-• Zielhilfe, die den Turm auf den nächsten Gegner dreht
-• Spielbar im Hoch- und im Querformat, auf iPhone und iPad
-• Game-Controller werden unterstützt
-• Handy als Controller: Das iPhone wird per QR-Code zum Gamepad für das Spiel im Browser, auf dem iPad und bald auf dem Apple TV
-• Eine kurze Einweisung zeigt alles in einer Minute
+• Zielhilfe auf jeder Schwierigkeit, die den Turm auf den nächsten Gegner dreht und selbst feuert
+• Hoch- und Querformat auf iPhone und iPad
+• Game-Controller überall, Tastatur und Maus auf dem Mac, Siri Remote auf dem Apple TV
+• Handy als Controller: Das iPhone wird per QR-Code zum Gamepad für das Spiel auf iPad, Apple TV oder im Browser
 
 FORTSCHRITT UND BESTENLISTE
-Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Wertung und Abzeichen auf jedem Gerät weiter. In der Bestenliste zählt alles, was du tust: gespielte und gewonnene Runden, Abschüsse, Treffsicherheit und Wertung ergeben deine Punkte. Dazu gibt es eine Wiederholung der letzten Runde und ein neues Spiel per Knopfdruck. In der Bestenliste erscheint nur dein selbst gewählter Rufname. Dein Konto lässt sich jederzeit im Spiel löschen.
+Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer E-Mail-Adresse und spielt mit Rang, Wertung und Abzeichen auf jedem Gerät weiter. Die Bestenliste zählt gespielte und gewonnene Runden, Abschüsse, Treffsicherheit und Wertung und zeigt nur deinen selbst gewählten Rufnamen. Dein Konto lässt sich jederzeit im Spiel löschen.
 
 AUF DER APPLE WATCH
-Die App bringt ein eigenes Spiel für die Uhr mit: Einzelspieler, Mehrspieler, Verteidigung und Fahnenraub am Handgelenk. Die Digital Crown lenkt, der Panzer fährt und feuert von selbst, und du spielst im selben Raum wie Browser und Handy.
+Die App bringt ein eigenes Spiel für die Uhr mit: alle vier Spielarten gegen CPU-Panzer am Handgelenk. Die Digital Crown lenkt, der Panzer fährt und feuert von selbst, und mit dem Konto vom iPhone zählt jede Runde für deinen Rang.
 
-AUF EINEN BLICK
-Ein Widget zeigt, wer gerade online ist, eine Live-Aktivität die laufende Runde.
+Dazu ein Widget, das zeigt, wer gerade online ist, und eine Live-Aktivität für die laufende Runde.
 
 Keine Werbung, kein Tracking.
 

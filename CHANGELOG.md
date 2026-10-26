@@ -30,6 +30,7 @@ step, point for point.
   instead of walking through the water
 - The host's NEW GAME takes along everybody still on the end screen,
   where guests were left behind in the waiting room before
+- Imprint and privacy notice name info@panzergefecht.de as the contact
 - On the television the sign-in card on the start page is one focus
   stop, not two
 - Rejoining a room after a dropped connection no longer closes the room

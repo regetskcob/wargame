@@ -31,6 +31,7 @@ gepflegt.
   Fluss
 - NEUES SPIEL des Gastgebers nimmt alle mit, die noch auf dem
   Rundenende stehen, statt Gäste im Warteraum zurückzulassen
+- Impressum und Datenschutz nennen info@panzergefecht.de als Kontakt
 - Auf dem Fernseher ist die Anmelde-Karte der Startseite ein Fokus-Halt
   statt zwei
 - Wer nach einem Verbindungsabbruch zurückkommt, schließt den Raumkanal

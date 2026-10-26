@@ -36,7 +36,7 @@ void main() {
   testWidgets('the imprint names the operator and the address', (tester) async {
     await open(tester, 'Impressum');
     expect(find.textContaining('Kirchstraße 42'), findsWidgets);
-    expect(find.textContaining('regetskcob@icloud.com'), findsWidgets);
+    expect(find.textContaining('info@panzergefecht.de'), findsWidgets);
     await tester.tap(find.byTooltip('Schließen'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Kirchstraße 42'), findsNothing);

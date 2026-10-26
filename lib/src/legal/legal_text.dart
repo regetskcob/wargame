@@ -16,7 +16,7 @@ const _owner =
     '47546 Kalkar\n'
     'Deutschland';
 
-const _mail = 'regetskcob@icloud.com';
+const _mail = 'info@panzergefecht.de';
 
 const imprint = [
   LegalBlock('Angaben gemäß § 5 DDG', _owner),

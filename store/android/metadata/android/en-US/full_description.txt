@@ -1,30 +1,35 @@
-Panzergefecht is a fast top-down tank duel. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
+Panzergefecht is a fast top-down tank duel on phone, tablet, TV and watch. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
+
+NEW: Panzergefecht has a new face with calm olive surfaces, clear type, slim symbols and a new app icon, and an address of its own: panzergefecht.de.
 
 FOUR WAYS TO PLAY
-• Single player: you against up to four CPU tanks on three difficulty levels, rolled anew every round.
-• Multiplayer: meet other players in a shared room, free for all or red against blue. CPU tanks fill up on request.
-• Defense: hold the base together against eight waves, then carry on if you like until it falls. Enemies roll down the road, from the second wave they also come through the air. Every kill earns coins for cannon, flak, mortar, howitzer, rockets and trenches as well as upgrades for your tank.
-• Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Destroyed tanks are back in a few seconds, three captures win.
+• Single player: you against up to four CPU tanks on three difficulties. On easy the land is flat and the shells never run out, on normal and hard it gets hilly, and you fill up fuel and shells at fuel stations and ammo depots.
+• Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. CPU tanks fill up on request, late joiners watch, and Android, iPhone and browser play in the same room.
+• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Every kill earns coins for cannon, flak, mortar, howitzer, rockets and trenches and for upgrading your tank. The base grows from a watchtower to a citadel, and after wave 8 you can carry on.
+• Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Three captures win.
+• Two on one screen: split screen with two controllers or phones on tablet and TV, plus the duel, where two bases fight each other.
 
 NINE VEHICLES
-From the nimble weapon carrier to the heavy main battle tank. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
+From the nimble Spitzmaus to infantry fighting vehicles, anti-aircraft, a rocket launcher and the heavy Wolf. Every vehicle has its own values for armour, speed, agility and firepower. Every rank unlocks a new one, plus camouflage patterns and ten badges.
 
-TERRAIN AND WEATHER
-Battlefield, desert, winter, city, mountain forest and islands, by day or night. Rain, fog and sandstorms limit your view, rivers and bridges shape the battle, the closed zone slowly shrinks.
+GROUNDS, WEATHER AND WEAPONS
+Battlefield, desert, winter, town, mountain forest and islands, by day or night. Rain, snow, fog and sandstorms cut the view, rivers and bridges steer the fight, and the closed zone draws in until one is left. Crates and gems bring repair, a shield, mines, artillery, a drone, paratroopers and an air strike.
 
-MADE FOR TOUCH AND CONTROLLERS
+MADE FOR TOUCH, CONTROLLERS AND REMOTES
 • Two sticks that appear wherever your thumb lands
-• Aim assist that turns the turret to the nearest enemy
-• Playable in portrait and landscape, on phone and tablet
-• Game controllers are supported, with two of them you play two on one screen on a tablet
-• Phone as controller: scan a QR code and your phone becomes the gamepad for the game in the browser or on a tablet
+• Aim assist on every difficulty that turns the turret to the nearest enemy and fires by itself
+• Portrait and landscape on phone and tablet
+• Game controllers are supported
+• Android TV, Google TV and Fire TV: play with the remote or a controller
+• Phone as controller: a QR code turns the phone into a gamepad for the game on tablet, TV or in the browser
+• Wear OS: Panzergefecht against CPU tanks on your wrist, steered with the crown
 • A short briefing shows everything in a minute
 
 PROGRESS AND LEADERBOARD
-Jump in right away as a guest, no sign-up. If you like, secure your account with an e-mail address and carry on with rank, rating and badges on every device. On the leaderboard everything you do counts: rounds, wins, kills, accuracy and rating add up to your points. It only shows the call sign you chose yourself.
+Start right away as a guest, no sign-up. If you like, secure your account with an e-mail address and keep playing with rank, rating and badges on any device. The leaderboard counts rounds played and won, kills, accuracy and rating and shows only the call sign you chose. You can delete your account in the game at any time.
 
 No ads, no tracking.
 
 Panzergefecht is a private, non-commercial game and has no connection to any armed forces or vehicle manufacturer.
 
-All rights reserved. Licences and open source components used: https://panzergefecht.de/lizenzen/
+All rights reserved. Licences and open source components: https://panzergefecht.de/lizenzen/
