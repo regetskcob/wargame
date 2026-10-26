@@ -11,6 +11,8 @@ step, point for point.
 
 - The browser tab of the game and the landing page shows the app icon
   again instead of Horizont's glyph
+- The mini map follows the round again: tanks, guns, aircraft and crates
+  move on it instead of the picture standing still after the first frame
 
 ## 1.8.0 (17) – 2026-10-26
 
