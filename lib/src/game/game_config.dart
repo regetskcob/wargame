@@ -112,6 +112,13 @@ class GameConfig {
   static const outageGrace = Duration(seconds: 45);
   static const keepaliveInterval = 1.0;
   static const remoteLerpFactorPerSecond = 12.0;
+
+  /// How long a remote tank rolls on with its last speed when no state
+  /// comes: a moving tank sends ten a second, so this rides out a few lost
+  /// ones. Past it the tank stops where it is, since a player whose round
+  /// ended, who died unheard or whose app froze sends nothing more, and
+  /// their tank drove on straight across the field and off it.
+  static const remoteExtrapolationSeconds = 0.5;
   static const remoteTeleportDistance = 200.0;
 
   static const zoneGraceSeconds = 20.0;

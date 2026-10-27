@@ -35,8 +35,13 @@ class RemoteTank extends TankBase {
   DateTime lastSeen = clock.now();
   late double _targetTurret = turretAngle;
 
+  /// Seconds of play since the last state, see
+  /// [GameConfig.remoteExtrapolationSeconds].
+  double _sinceState = 0;
+
   void applyState(TankStatePayload state) {
     lastSeen = clock.now();
+    _sinceState = 0;
     _target.setValues(state.x, state.y);
     // Anybody can send a state: a speed of 1e308 would carry the tank to
     // infinity and then to NaN for good, an angle of NaN would do the same
@@ -64,8 +69,11 @@ class RemoteTank extends TankBase {
   @override
   void update(double dt) {
     super.update(dt);
-    _target.add(velocity * dt);
-    position.add(velocity * dt);
+    _sinceState += dt;
+    if (_sinceState <= GameConfig.remoteExtrapolationSeconds) {
+      _target.add(velocity * dt);
+      position.add(velocity * dt);
+    }
     final factor = min(1.0, dt * GameConfig.remoteLerpFactorPerSecond);
     position.add((_target - position) * factor);
     angle += (_targetAngle - angle).toNormalizedAngle() * factor;

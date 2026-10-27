@@ -13,6 +13,9 @@ step, point for point.
   again instead of Horizont's glyph
 - The mini map follows the round again: tanks, guns, aircraft and crates
   move on it instead of the picture standing still after the first frame
+- Other players' tanks stop when nothing more comes from them instead of
+  driving on straight across the field, as they did on the end screen
+  after a lost battle
 
 ## 1.8.0 (17) – 2026-10-26
 

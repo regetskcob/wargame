@@ -15,6 +15,9 @@ gepflegt.
 - Die Minimap folgt wieder der Runde: Panzer, Geschütze, Flugzeuge und
   Kisten bewegen sich darauf, statt dass das Bild nach dem ersten Frame
   stehen bleibt
+- Panzer anderer Spieler halten an, wenn von ihnen nichts mehr kommt,
+  statt geradeaus übers Feld weiterzufahren, wie nach einer verlorenen
+  Schlacht auf dem Endbildschirm
 
 ## 1.8.0 (17) – 26.10.2026
 
