@@ -111,6 +111,36 @@ void main() {
     expect(host.replaying.value, isFalse);
   });
 
+  test('a heavy tank killed by one shell dies for the other too', () async {
+    final (host, guest) = await _room();
+    // Two Keiler, the guest's as the roster says.
+    host.myColorIndex = 0;
+    guest.myColorIndex = 1;
+    await _start(host, guest, GameMode.multi);
+    final tank = guest.myTank!;
+    // Above the guard's death ceiling, within one of the host's shells.
+    tank.hp = 80;
+    // Driving about without firing, so the host hears the full health.
+    for (final game in [host, guest]) {
+      game.touch.thrust = true;
+    }
+    for (var frame = 0; frame < 30; frame++) {
+      host.update(1 / 30);
+      guest.update(1 / 30);
+      await Future<void>.delayed(Duration.zero);
+    }
+    expect(host.guard.hpOf(guest.myId), 80);
+
+    // One shell takes the rest: the hit has to reach the host before the
+    // death, or the host keeps a silent tank that drives on.
+    tank.applyDamage(tank.hp * 2, killerId: host.myId, hitBy: 'shell');
+    await _play([host, guest], seconds: 1);
+    expect(host.remoteTanks, isNot(contains(guest.myId)));
+    expect(host.phase.value, GamePhase.roundOver);
+    expect(host.round?.winnerId, host.myId);
+    expect(guest.phase.value, GamePhase.roundOver);
+  });
+
   test(
     'NEW GAME takes a guest still on the end screen into the next round',
     () async {

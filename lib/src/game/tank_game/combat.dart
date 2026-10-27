@@ -13,16 +13,7 @@ extension TankGameCombat on TankGame {
     if (tank.hp <= 0) {
       return;
     }
-    tank.applyDamage(amount, killerId: ownerId);
-    net.send(
-      NetEvent.hit,
-      HitPayload(
-        id: tank.playerId,
-        shooterId: ownerId,
-        bulletId: sourceId,
-        hp: max(0, tank.hp),
-      ).toJson(),
-    );
+    tank.applyDamage(amount, killerId: ownerId, hitBy: sourceId);
   }
 
   void fireLocalBullet() {
@@ -313,16 +304,7 @@ extension TankGameCombat on TankGame {
             ? null
             : _distanceToView(tank.position),
       );
-      tank.applyDamage(damage, killerId: ownerId);
-      net.send(
-        NetEvent.hit,
-        HitPayload(
-          id: tank.playerId,
-          shooterId: ownerId,
-          bulletId: blastId,
-          hp: tank.hp,
-        ).toJson(),
-      );
+      tank.applyDamage(damage, killerId: ownerId, hitBy: blastId);
     }
 
     // The player who runs the waves keeps the score of every gun, every

@@ -43,7 +43,11 @@
   characters. A message about a player sent by somebody else (the host
   reporting what is left of a builder's gun) names its sender in `from`, so
   the builder does not drop it as its own echo. Deaths carry the start of
-  their round, so a late one cannot knock a player out of a rematch.
+  their round, so a late one cannot knock a player out of a rematch. A
+  death is only taken from a tank last heard at 75 health or less, so the
+  victim sends the `hit` that brought it down before its `death`. Between
+  states a remote tank rolls on with its last speed for half a second at
+  most, then stops: a player whose round ended sends nothing more.
 - Every game speaks with a key of its own (`room_key.dart`, migration 0020),
   so nobody can speak for somebody else, not even another player in the
   room. A game makes an X25519 key pair when it starts; its id is the

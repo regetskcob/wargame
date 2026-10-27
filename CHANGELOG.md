@@ -16,6 +16,9 @@ step, point for point.
 - Other players' tanks stop when nothing more comes from them instead of
   driving on straight across the field, as they did on the end screen
   after a lost battle
+- A tank destroyed by a single heavy shell or blast is destroyed for
+  everybody at once, so the round ends with its result instead of the
+  others waiting eight seconds for a wreck still on the move
 
 ## 1.8.0 (17) – 2026-10-26
 

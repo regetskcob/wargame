@@ -18,6 +18,9 @@ gepflegt.
 - Panzer anderer Spieler halten an, wenn von ihnen nichts mehr kommt,
   statt geradeaus übers Feld weiterzufahren, wie nach einer verlorenen
   Schlacht auf dem Endbildschirm
+- Ein Panzer, den eine einzige schwere Granate oder Explosion zerstört,
+  ist für alle sofort zerstört, sodass die Runde mit ihrem Ergebnis endet,
+  statt dass die anderen acht Sekunden auf ein noch fahrendes Wrack warten
 
 ## 1.8.0 (17) – 26.10.2026
 

@@ -636,7 +636,12 @@ class PlayerTank extends TankBase
     }
   }
 
-  void applyDamage(double amount, {required String? killerId}) {
+  /// Takes [amount] off the hull. With [hitBy], the shell or blast that did
+  /// it, the others hear of the hit here, before a death it causes: the
+  /// other way round their guard still knew the health of the last state,
+  /// above the death ceiling after a heavy shell, threw the
+  /// death away, and the wreck drove on until it fell silent for good.
+  void applyDamage(double amount, {required String? killerId, String? hitBy}) {
     if (hp <= 0 || (Env.shots && controls == null)) {
       return;
     }
@@ -674,6 +679,17 @@ class PlayerTank extends TankBase
       } else {
         gameRef.onLocalDamage(position, amount);
       }
+    }
+    if (hitBy != null && killerId != null) {
+      gameRef.net.send(
+        NetEvent.hit,
+        HitPayload(
+          id: playerId,
+          shooterId: killerId,
+          bulletId: hitBy,
+          hp: max(0, hp),
+        ).toJson(),
+      );
     }
     if (hp <= 0) {
       if (isBot) {
@@ -720,16 +736,7 @@ class PlayerTank extends TankBase
       if (other.ownerId == gameRef.myId) {
         gameRef.registerHit(min(other.damage, hp), bulletId: other.bulletId);
       }
-      applyDamage(other.damage, killerId: other.ownerId);
-      gameRef.net.send(
-        NetEvent.hit,
-        HitPayload(
-          id: playerId,
-          shooterId: other.ownerId,
-          bulletId: other.bulletId,
-          hp: hp,
-        ).toJson(),
-      );
+      applyDamage(other.damage, killerId: other.ownerId, hitBy: other.bulletId);
     } else if (other is Mine) {
       if (other.armed &&
           other.ownerId != playerId &&
