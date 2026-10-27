@@ -120,11 +120,9 @@ void main() {
     final tank = guest.myTank!;
     // Above the guard's death ceiling, within one of the host's shells.
     tank.hp = 80;
-    // Driving about without firing, so the host hears the full health.
-    for (final game in [host, guest]) {
-      game.touch.thrust = true;
-    }
-    for (var frame = 0; frame < 30; frame++) {
+    // Standing still, so nothing scrapes health off on the way, until the
+    // once-a-second state has told the host.
+    for (var frame = 0; frame < 45; frame++) {
       host.update(1 / 30);
       guest.update(1 / 30);
       await Future<void>.delayed(Duration.zero);
