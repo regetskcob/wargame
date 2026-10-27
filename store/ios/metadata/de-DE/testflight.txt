@@ -1,7 +1,9 @@
 BETA-BESCHREIBUNG
 Panzergefecht ist ein Panzerduell von oben für iPhone, iPad, Mac, Apple TV und Apple Watch: Einzelspieler gegen CPU-Panzer, Mehrspieler im gemeinsamen Raum, Verteidigung gegen acht Wellen und mehr, und Fahnenraub Rot gegen Blau.
 
-WAS TESTEN (1.8.0)
+WAS TESTEN (1.8.1)
+• Mehrspieler-Fix: Nach einer verlorenen Runde fahren die anderen Panzer nicht mehr geradeaus weiter, und Gewonnen/Verloren kommt sofort, auch nach einem einzigen schweren Treffer
+• Die Minimap bewegt sich mit der Runde
 • Neues Design: ruhige Olivflächen, neue Schriften, schlanke Symbole und das neue App-Icon. Wirkt alles stimmig, ist irgendwo Text abgeschnitten oder ein Knopf schwer zu treffen?
 • Warteraum: Raumcode groß, Besatzungen mit Zahl, Fahrzeuge als Karten mit Werten als Balken; auf dem iPad hochkant und quer
 • Eigene Adresse: Raum-Links und QR-Codes zeigen auf panzergefecht.de. Ein mit der iPhone-Kamera gescannter QR-Code öffnet die App, nicht Safari

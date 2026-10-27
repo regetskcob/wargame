@@ -10,6 +10,8 @@ gepflegt.
 
 ## Unveröffentlicht
 
+## 1.8.1 (18) – 27.10.2026
+
 - Der Browser-Tab von Spiel und Landingpage zeigt wieder das App-Icon
   statt der Horizont-Glyphe
 - Die Minimap folgt wieder der Runde: Panzer, Geschütze, Flugzeuge und

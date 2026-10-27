@@ -9,6 +9,8 @@ step, point for point.
 
 ## Unreleased
 
+## 1.8.1 (18) – 2026-10-27
+
 - The browser tab of the game and the landing page shows the app icon
   again instead of Horizont's glyph
 - The mini map follows the round again: tanks, guns, aircraft and crates
