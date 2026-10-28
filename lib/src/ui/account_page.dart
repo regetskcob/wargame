@@ -15,7 +15,6 @@ import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/game_dialog.dart';
 import 'widgets/legal.dart';
-import 'widgets/notice.dart';
 import 'widgets/pad_pairing.dart';
 import 'widgets/panel.dart';
 import 'widgets/supporter_section.dart';
@@ -374,7 +373,10 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: HzSpace.s8),
-                    Notice(HorizontStatus.critical, child: Text(_error!)),
+                    HorizontNotice(
+                      HorizontStatus.critical,
+                      child: Text(_error!),
+                    ),
                   ],
                 ],
               ),

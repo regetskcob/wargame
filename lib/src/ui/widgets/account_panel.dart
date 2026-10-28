@@ -9,7 +9,6 @@ import '../../net/room.dart';
 import '../../tv/select_to_type.dart';
 import '../../tv/tv_input.dart';
 import '../theme.dart';
-import 'notice.dart';
 import 'panel.dart';
 import 'choice_row.dart';
 import '../../l10n/l10n.dart';
@@ -396,7 +395,7 @@ class _AccountPanelState extends State<AccountPanel> {
       const SizedBox(height: HzSpace.s8),
       // A failure as a critical note, the next step (the mail is on its
       // way) as information, each with its sign.
-      Notice(
+      HorizontNotice(
         _error ? HorizontStatus.critical : HorizontStatus.info,
         child: Text(_message!),
       ),

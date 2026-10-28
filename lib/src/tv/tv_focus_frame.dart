@@ -97,10 +97,11 @@ class _TvFocusFrameState extends State<TvFocusFrame>
   }
 
   /// Horizont's focus on a television: a ring of `HzTv.focus` (3 px) in the
-  /// accent, 4 px clear of the focused box (2 and 2 elsewhere, read from
+  /// accent, `HzTv.focusGap` (4 px) clear of the focused box (2 and 2
+  /// elsewhere, read from
   /// across the room that was too thin). No glow, lines instead of shadows.
   static const _ring = HzTv.focus;
-  static const _gap = HzSpace.s4;
+  static const _gap = HzTv.focusGap;
 
   @override
   Widget build(BuildContext context) {

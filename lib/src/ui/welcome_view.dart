@@ -4,7 +4,6 @@ import 'package:horizont/horizont.dart';
 import '../db/account_service.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
-import 'widgets/notice.dart';
 import 'widgets/account_panel.dart';
 import 'widgets/legal.dart';
 import 'widgets/mute_button.dart';
@@ -152,7 +151,7 @@ class _Notice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Notice(HorizontStatus.info, child: Text(text));
+    return HorizontNotice(HorizontStatus.info, child: Text(text));
   }
 }
 

@@ -169,7 +169,7 @@ class ChoiceRow<T> extends StatelessWidget {
     // Horizont's segment: every option in the outline, the chosen one as
     // Horizont's selection (tint and the 2 px line along its foot) inside
     // it, so the outline stays visible around the tint.
-    final chip = DecoratedBox(
+    return DecoratedBox(
       decoration: ShapeDecoration(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(HzRadius.r6),
@@ -183,9 +183,10 @@ class ChoiceRow<T> extends StatelessWidget {
           child: HorizontSelectable(
             selected: on,
             edge: HorizontSelectionEdge.bottom,
-            // Its Ink adds the selection line to the height below
-            // minHeight, the outline adds a hairline above and below.
-            minHeight: minHeight - 2 * HzLine.hairline - HzLine.selection,
+            // The outline adds a hairline above and below.
+            minHeight: minHeight - 2 * HzLine.hairline,
+            // In a wrap a chip keeps the width of its label.
+            alignment: centred ? AlignmentDirectional.centerStart : null,
             padding: const EdgeInsets.symmetric(
               horizontal: _padding,
               vertical: HzSpace.s8,
@@ -205,8 +206,5 @@ class ChoiceRow<T> extends StatelessWidget {
         ),
       ),
     );
-    // HorizontSelectable fills the width it is given; in a wrap a chip
-    // keeps the width of its label.
-    return centred ? chip : IntrinsicWidth(child: chip);
   }
 }

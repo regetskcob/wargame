@@ -20,7 +20,6 @@ import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/game_dialog.dart';
 import 'widgets/mute_button.dart';
-import 'widgets/notice.dart';
 import 'widgets/panel.dart';
 import 'widgets/player_list.dart';
 import 'widgets/room_invite.dart';
@@ -1264,7 +1263,7 @@ class _JoinedBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Notice(
+    return HorizontNotice(
       HorizontStatus.info,
       icon: HorizontSymbols.hourglassTop,
       child: Text(

@@ -5,7 +5,6 @@ import 'package:horizont/horizont.dart';
 
 import '../../db/room_slots.dart';
 import '../../l10n/l10n.dart';
-import 'notice.dart';
 
 /// Says so while the project's Realtime budget has no room for another
 /// room, and nothing otherwise. Counts now and every 20 seconds while it
@@ -70,7 +69,7 @@ class _RoomsBusyNoticeState extends State<RoomsBusyNotice> {
               );
         return Padding(
           padding: const EdgeInsets.only(bottom: HzSpace.s16),
-          child: Notice(
+          child: HorizontNotice(
             HorizontStatus.warning,
             icon: HorizontSymbols.hourglassTop,
             child: Text(text),
