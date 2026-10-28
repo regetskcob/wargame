@@ -125,6 +125,12 @@ verknüpft, nur für die App-Funktion:
 - Nutzerinhalte → Gameplay-Inhalte (Rufname, Fahrzeug, Spielstände)
 - Nutzungsdaten → Produktinteraktion (Statistiken, Runden, Wertung)
 
+**Privacy Manifests:** `PrivacyInfo.xcprivacy` in `ios/Runner`,
+`ios/MessagesExtension`, `macos/Runner` und `tvos/Runner` begründen den
+Zugriff auf `UserDefaults` (CA92.1, mit App Group 1C8F.1) und wiederholen die
+Angaben oben. Ändern sich die erhobenen Daten (etwa mit Käufen), beide Stellen
+anpassen.
+
 **Altersfreigabe:** Comic- oder Fantasy-Gewalt „häufig/intensiv“ (Panzer
 werden zerstört, Infanterie wird überrollt), sonst überall „keine“. Ergibt
 voraussichtlich 12+.
