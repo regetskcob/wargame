@@ -18,6 +18,13 @@ const _owner =
 
 const _mail = 'info@panzergefecht.de';
 
+/// Whether the apps sell anything (docs/purchases.md). Off until the first
+/// build with `PURCHASES=true` goes out: it adds the purchase paragraphs to
+/// the privacy notice and the licence terms and drops "non-commercial" from
+/// the Impressum. The texts never depend on the build, so the web pages say
+/// the same as every app.
+const purchasesOffered = false;
+
 const imprint = [
   LegalBlock('Angaben gemäß § 5 DDG', _owner),
   LegalBlock('Kontakt', 'E-Mail: $_mail'),
@@ -27,8 +34,13 @@ const imprint = [
   ),
   LegalBlock(
     null,
-    '\nPanzergefecht ist ein privates, nicht kommerzielles Spiel. Es steht in '
-    'keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.',
+    purchasesOffered
+        ? '\nPanzergefecht ist kostenlos spielbar; in den Apps gibt es '
+              'freiwillige Käufe ohne spielerischen Vorteil. Es steht in '
+              'keiner Verbindung zu Streitkräften oder Fahrzeugherstellern.'
+        : '\nPanzergefecht ist ein privates, nicht kommerzielles Spiel. Es '
+              'steht in keiner Verbindung zu Streitkräften oder '
+              'Fahrzeugherstellern.',
   ),
 ];
 
@@ -37,22 +49,26 @@ const privacy = [
     'Verantwortlicher',
     '$_owner\nE-Mail: $_mail\n\n'
         'Diese Erklärung gilt für die Website panzergefecht.de mit dem Spiel '
-        'im Browser und für die Apps für iPhone, iPad und Android.',
+        'im Browser und für alle Apps: iPhone, iPad, Mac, Apple Watch, '
+        'Apple TV, Android, Wear OS und Android TV sowie die '
+        'iMessage-Erweiterung.',
   ),
   LegalBlock(
     'Bereitstellung des Spiels',
     'Die Dateien des Spiels liegen bei GitHub Pages (GitHub Inc., USA). '
         'Beim Aufruf verarbeitet GitHub technisch notwendige Zugriffsdaten, '
         'darunter die IP-Adresse, um die Seite auszuliefern und gegen '
-        'Missbrauch zu schützen. Die Laufzeitumgebung des Spiels (Flutter) '
-        'lädt zur Darstellung außerdem Schriften und Programmbibliotheken '
-        'von Servern von Google (gstatic.com); dabei wird ebenfalls die '
-        'IP-Adresse übermittelt. Rechtsgrundlage ist Art. 6 Abs. 1 lit. f '
+        'Missbrauch zu schützen. Das Spiel bringt alle Programmteile und '
+        'Schriften selbst mit und lädt nichts von Servern Dritter. '
+        'Rechtsgrundlage ist Art. 6 Abs. 1 lit. f '
         'DSGVO, unser Interesse ist ein funktionierendes und sicheres Spiel.\n\n'
-        'Die Apps für iPhone und iPad lädst du aus dem App Store von Apple. '
+        'Die Apps lädst du aus dem App Store von Apple oder aus Google Play. '
         'Für Download und Updates gelten die Datenschutzbestimmungen von '
-        'Apple, wir erhalten dabei keine Daten über dich. Die App bringt '
-        'ihre Schriften mit und lädt nichts von Google.',
+        'Apple bzw. Google. Wir erhalten dabei keine Daten über dich, nur '
+        'zusammengefasste Zahlen wie Downloads und, wenn du es in den '
+        'Einstellungen deines Geräts erlaubt hast, Absturzberichte ohne '
+        'Bezug zu deiner Person. Die Apps bringen ihre Schriften mit und '
+        'laden nichts von Google.',
   ),
   LegalBlock(
     'Spielkonto und Spielstände',
@@ -81,7 +97,12 @@ const privacy = [
         'Spielereignisse sowie dein Rufname, Fahrzeug und Team über Supabase '
         'Realtime an die anderen Spieler im selben Raum. Diese Nachrichten '
         'werden nur weitergereicht und nicht dauerhaft gespeichert. Die '
-        'Wiederholung der letzten Runde bleibt nur auf deinem Gerät.',
+        'Wiederholung der letzten Runde bleibt nur auf deinem Gerät.\n\n'
+        'Solange das Spiel läuft, meldet es einmal pro Minute, dass du online '
+        'bist und ob du gerade in einer Runde spielst. Daraus zählen Spiel und '
+        'Widget „Piloten online“, wie viele gerade spielen; wer das ist, sieht '
+        'niemand. Der Eintrag wird spätestens einen Tag nach der letzten '
+        'Meldung gelöscht.',
   ),
   LegalBlock(
     'Kamera (nur in den Apps)',
@@ -99,12 +120,44 @@ const privacy = [
         'Betriebssystem die Erkennung.',
   ),
   LegalBlock(
+    'Einladen über iMessage (nur iPhone und iPad)',
+    'Über die iMessage-Erweiterung schickst du eine Einladung in einen '
+        'Chat. Sie enthält den Raumcode, den Spielmodus und nach der Runde '
+        'dein Ergebnis und geht wie jede Nachricht über Apples iMessage an '
+        'die Personen im Chat; wir sehen davon nichts. Das Ergebnis reicht '
+        'die App nur über einen gemeinsamen Speicher auf deinem Gerät an die '
+        'Erweiterung weiter.',
+  ),
+  if (purchasesOffered)
+    LegalBlock(
+      'Käufe in den Apps',
+      'In den Apps für iPhone, iPad, Mac und Android kannst du freiwillig '
+          'etwas kaufen, etwa die Unterstützung, die nur einen Stern auf '
+          'deiner Pilotenkarte bringt und keinen Vorteil im Spiel. Bezahlt '
+          'wird allein über den App Store von Apple bzw. Google Play; '
+          'Zahlungsdaten erhalten wir nie, es gelten die '
+          'Datenschutzbestimmungen von Apple bzw. Google.\n\n'
+          'Käufe gibt es nur mit einem Konto, damit sie nicht mit einem '
+          'Gerät verloren gehen. Nach dem Kauf schickt die App den Kaufbeleg '
+          'des Stores an unsere Funktion bei Supabase (EU), die ihn bei Apple '
+          'bzw. Google prüft. Gespeichert werden dann zu deinem Konto: das '
+          'Produkt, der Store, die Kennung des ursprünglichen Kaufs und der '
+          'Zeitpunkt. Stellst du einen Kauf unter einem anderen Konto wieder '
+          'her, wandert er dorthin. Rechtsgrundlage ist die Erfüllung des '
+          'Kaufvertrags (Art. 6 Abs. 1 lit. b DSGVO). Löschst du dein Konto, '
+          'werden diese Angaben mit gelöscht; Apple und Google bewahren ihre '
+          'Kaufbelege nach ihren eigenen Regeln auf.',
+    ),
+  LegalBlock(
     'Konto mit E-Mail-Adresse (freiwillig)',
     'Sicherst du dein Gastkonto mit einer E-Mail-Adresse, speichert Supabase '
         'die Adresse, um dich anzumelden und dir Anmelde- und '
         'Bestätigungsmails zu schicken. Verschickt werden diese Mails über '
-        'den Mailserver unseres Webhosters do.de (Domain-Offensive), der dazu '
-        'deine E-Mail-Adresse und den Inhalt der Mail erhält. Die Adresse '
+        'den Mailserver unseres Mailanbieters do.de, eines Dienstes der '
+        'Greenmark IT GmbH, Leinstraße 3, 31061 Alfeld (Leine), Deutschland, '
+        'der dazu deine E-Mail-Adresse und den Inhalt der Mail erhält. Über '
+        'denselben Anbieter empfangen und speichern wir E-Mails an $_mail. '
+        'Die Adresse '
         'wird anderen Spielern '
         'nie angezeigt, öffentlich erscheint nur dein Rufname. Sofern eine '
         'Anmeldung mit GitHub oder Google angeboten wird und du sie nutzt, '
@@ -124,8 +177,9 @@ const privacy = [
     'Die Daten deines Kontos bleiben gespeichert, solange das Konto besteht. '
         'Du kannst dein Konto, auch ein Gastkonto, jederzeit im Spiel löschen: '
         'oben über den Knopf Konto, dann „Konto löschen“. Dabei werden Rang, '
-        'Wertung, Abzeichen, alle Spielstände, dein Rufname und eine '
-        'hinterlegte E-Mail-Adresse sofort und endgültig gelöscht. Du kannst '
+        'Wertung, Abzeichen, alle Spielstände, dein Rufname, eine '
+        'hinterlegte E-Mail-Adresse und die Zuordnung von Käufen sofort und '
+        'endgültig gelöscht. Du kannst '
         'die Löschung auch per E-Mail an $_mail verlangen.',
   ),
   LegalBlock(
@@ -145,7 +199,7 @@ const privacy = [
         'Landesbeauftragte für Datenschutz und Informationsfreiheit '
         'Nordrhein-Westfalen.',
   ),
-  LegalBlock(null, '\nStand: 18. Oktober 2026'),
+  LegalBlock(null, '\nStand: 28. Oktober 2026'),
 ];
 
 // English reading copies of the texts above, shown in the game when English is
@@ -166,8 +220,10 @@ const imprintEn = [
   ),
   LegalBlock(
     null,
-    '\nPanzergefecht is a private, non-commercial game. It has no '
-    'connection to any armed forces or vehicle manufacturer.\n\nThis is an English reading copy. The German text is binding.',
+    '${purchasesOffered ? '\nPanzergefecht is free to play; the apps offer '
+              'optional purchases without any advantage in the game.' : '\nPanzergefecht is a private, non-commercial game.'} It has no '
+    'connection to any armed forces or vehicle manufacturer.\n\nThis is an '
+    'English reading copy. The German text is binding.',
   ),
 ];
 
@@ -176,22 +232,25 @@ const privacyEn = [
     'Controller',
     '$_ownerEn\nE-mail: $_mail\n\n'
         'This notice applies to the website panzergefecht.de with the game in '
-        'the browser and to the apps for iPhone, iPad and Android.',
+        'the browser and to all apps: iPhone, iPad, Mac, Apple Watch, '
+        'Apple TV, Android, Wear OS and Android TV as well as the iMessage '
+        'extension.',
   ),
   LegalBlock(
     'Providing the game',
     'The files of the game are hosted on GitHub Pages (GitHub Inc., USA). '
         'When you open the page, GitHub processes technically necessary '
         'access data, including the IP address, to deliver the page and to '
-        'protect it against abuse. To display the game, its runtime '
-        '(Flutter) also loads fonts and program libraries from Google '
-        'servers (gstatic.com); the IP address is transmitted in this case '
-        'as well. The legal basis is Art. 6 (1) (f) GDPR, our interest is a '
+        'protect it against abuse. The game brings all its program parts '
+        'and fonts with it and loads nothing from third-party servers. '
+        'The legal basis is Art. 6 (1) (f) GDPR, our interest is a '
         'working and secure game.\n\n'
-        'You download the apps for iPhone and iPad from Apple\'s App Store. '
-        'Apple\'s privacy terms apply to downloads and updates, we receive '
-        'no data about you. The app brings its fonts with it and loads '
-        'nothing from Google.',
+        'You download the apps from Apple\'s App Store or from Google Play. '
+        'The privacy terms of Apple or Google apply to downloads and '
+        'updates. We receive no data about you, only aggregated figures such '
+        'as downloads and, if you allowed it in your device settings, crash '
+        'reports that do not identify you. The apps bring their fonts with '
+        'them and load nothing from Google.',
   ),
   LegalBlock(
     'Game account and saved games',
@@ -219,7 +278,11 @@ const privacyEn = [
         'your call sign, vehicle and team are sent to the other players in '
         'the same room via Supabase Realtime. These messages are only passed '
         'on and not stored permanently. The replay of the last round stays '
-        'on your device only.',
+        'on your device only.\n\n'
+        'While the game runs, it reports once a minute that you are online '
+        'and whether you are in a round. From this the game and the "Pilots '
+        'online" widget count how many are playing; nobody sees who. The '
+        'entry is deleted at the latest one day after the last report.',
   ),
   LegalBlock(
     'Camera (apps only)',
@@ -237,12 +300,42 @@ const privacyEn = [
         'recognition.',
   ),
   LegalBlock(
+    'Inviting through iMessage (iPhone and iPad only)',
+    'With the iMessage extension you send an invitation into a chat. It '
+        'holds the room code, the game mode and, after the round, your '
+        'result, and it reaches the people in the chat through Apple\'s '
+        'iMessage like any message; we see none of it. The app passes the '
+        'result to the extension only through a shared storage on your '
+        'device.',
+  ),
+  if (purchasesOffered)
+    LegalBlock(
+      'Purchases in the apps',
+      'In the apps for iPhone, iPad, Mac and Android you can buy things '
+          'voluntarily, such as the supporter pack, which only adds a star '
+          'to your pilot card and no advantage in the game. Payment runs '
+          'through Apple\'s App Store or Google Play alone; we never receive '
+          'payment details, the privacy terms of Apple or Google apply.\n\n'
+          'Purchases need an account, so that they are not lost with a '
+          'device. After a purchase the app sends the store\'s receipt to our '
+          'function at Supabase (EU), which checks it with Apple or Google. '
+          'Stored with your account are then: the product, the store, the '
+          'identifier of the original purchase and the time. If you restore '
+          'a purchase under another account, it moves there. The legal basis '
+          'is the performance of the purchase contract (Art. 6 (1) (b) '
+          'GDPR). If you delete your account, these details are deleted with '
+          'it; Apple and Google keep their receipts under their own rules.',
+    ),
+  LegalBlock(
     'Account with e-mail address (optional)',
     'If you secure your guest account with an e-mail address, Supabase '
         'stores the address to sign you in and to send you sign-in and '
         'confirmation mails. These mails are sent through the mail server of '
-        'our web host do.de (Domain-Offensive), which receives your e-mail '
-        'address and the content of the mail for this purpose. The address '
+        'our mail provider do.de, a service of Greenmark IT GmbH, '
+        'Leinstraße 3, 31061 Alfeld (Leine), Germany, which receives your '
+        'e-mail address and the content of the mail for this purpose. E-mails '
+        'to $_mail are received and stored through the same provider. The '
+        'address '
         'is never shown to other players, only your call sign appears '
         'publicly. If a sign-in with GitHub or Google is offered and you use '
         'it, we receive your e-mail address and an identifier of the account '
@@ -261,8 +354,9 @@ const privacyEn = [
     'The data of your account stays stored as long as the account exists. '
         'You can delete your account, a guest account too, in the game at '
         'any time: via the Account button at the top, then "Delete account". '
-        'Rank, rating, badges, all saved games, your call sign and a stored '
-        'e-mail address are deleted immediately and permanently. You can '
+        'Rank, rating, badges, all saved games, your call sign, a stored '
+        'e-mail address and the record of purchases are deleted immediately '
+        'and permanently. You can '
         'also request deletion by e-mail to $_mail.',
   ),
   LegalBlock(
@@ -282,7 +376,7 @@ const privacyEn = [
   ),
   LegalBlock(
     null,
-    '\nAs of: 18 October 2026\n\nThis is an English reading copy. The German '
+    '\nAs of: 28 October 2026\n\nThis is an English reading copy. The German '
     'text is binding.',
   ),
 ];
@@ -323,9 +417,20 @@ const licenses = [
         'Diese Rechte bleiben von den Vorbehalten oben unberührt: Für die '
         'Komponenten gelten allein ihre eigenen Lizenzen.',
   ),
+  if (purchasesOffered)
+    LegalBlock(
+      'Käufe',
+      'Käufe in den Apps schließt du mit Apple bzw. Google ab; es gelten '
+          'deren Bedingungen, bei Apple die Standard-Lizenzvereinbarung für '
+          'Apps (EULA). Ein Kauf schaltet nur Zusätze ohne spielerischen '
+          'Vorteil frei, gilt mit deinem Konto auf allen Geräten und lässt '
+          'sich unter „Käufe wiederherstellen“ zurückholen. Erstattungen '
+          'beantragst du bei Apple bzw. Google. Löschst du dein Konto, '
+          'stellst du den Kauf mit einem neuen Konto wieder her.',
+    ),
   LegalBlock(
     'Marken',
-    'Panzergefecht ist ein privates, nicht kommerzielles Spiel. '
+    '${purchasesOffered ? 'Panzergefecht ist kostenlos spielbar.' : 'Panzergefecht ist ein privates, nicht kommerzielles Spiel.'} '
         'Fahrzeugnamen sind erfunden. Genannte Marken gehören ihren '
         'Inhabern.',
   ),
@@ -360,10 +465,21 @@ const licensesEn = [
         'These rights are not affected by the reservations above: the '
         'components are governed by their own licences alone.',
   ),
+  if (purchasesOffered)
+    LegalBlock(
+      'Purchases',
+      'You make purchases in the apps with Apple or Google, under their '
+          'terms; at Apple the Standard License Agreement for apps (EULA). '
+          'A purchase only unlocks extras without an advantage in the game, '
+          'counts with your account on all devices and can be brought back '
+          'with "Restore purchases". Ask Apple or Google for refunds. If you '
+          'delete your account, restore the purchase with a new account.',
+    ),
   LegalBlock(
     'Trademarks',
-    'Panzergefecht is a private, non-commercial game. The vehicle names are '
-        'made up. Trademarks mentioned belong to their owners.',
+    '${purchasesOffered ? 'Panzergefecht is free to play.' : 'Panzergefecht is a private, non-commercial game.'} '
+        'The vehicle names are made up. Trademarks mentioned belong to their '
+        'owners.',
   ),
   LegalBlock(
     null,

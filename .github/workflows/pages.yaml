@@ -71,7 +71,7 @@ jobs:
           if [ "$ACCOUNTS" = "true" ]; then args+=(--dart-define=ACCOUNTS=true); fi
           if [ -n "$MAX_PILOTS" ]; then args+=(--dart-define=MAX_PILOTS="$MAX_PILOTS"); fi
           if [ -n "$REALTIME_BUDGET" ]; then args+=(--dart-define=REALTIME_BUDGET="$REALTIME_BUDGET"); fi
-          flutter build web --base-href "${BASE_PATH}/play/" --dart-define=WEB_URL="${BASE_URL}/play/" "${args[@]}"
+          flutter build web --no-web-resources-cdn --base-href "${BASE_PATH}/play/" --dart-define=WEB_URL="${BASE_URL}/play/" "${args[@]}"
         env:
           BASE_PATH: ${{ steps.pages.outputs.base_path }}
           BASE_URL: ${{ steps.pages.outputs.base_url }}

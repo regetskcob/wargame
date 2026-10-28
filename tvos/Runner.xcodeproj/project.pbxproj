@@ -9,12 +9,13 @@
 /* Begin PBXBuildFile section */
 		1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */ = {isa = PBXBuildFile; fileRef = 1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */; };
 		4F0D093B723318FC58DFFD77 /* Pods_Runner.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4B28E1F49757777F1191FE70 /* Pods_Runner.framework */; };
+		4F82AA1392F127AFA45BFF0E /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = DFD241245E171338DDA9066B /* PrivacyInfo.xcprivacy */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
 		97C146FB1CF9000082B4168C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C146FA1CF9000082B4168C /* AppDelegate.swift */; };
-		A1D0000A2F00000100C0FFEE /* GamepadPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D000092F00000100C0FFEE /* GamepadPlugin.swift */; };
 		97C1470A1CF9000082B4168D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000082B4168D /* Main.storyboard */; };
 		97C1470B1CF9000082B4168D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FF1CF9000082B4168E /* LaunchScreen.storyboard */; };
 		97C1470F1CF9000082B4168C /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 97C146FD1CF9000082B4168C /* Assets.xcassets */; };
+		A1D0000A2F00000100C0FFEE /* GamepadPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1D000092F00000100C0FFEE /* GamepadPlugin.swift */; };
 		AAF20000000000000000F00D /* FlutterGeneratedPluginSwiftPackage in Frameworks */ = {isa = PBXBuildFile; productRef = AAF30000000000000000F00D /* FlutterGeneratedPluginSwiftPackage */; };
 /* End PBXBuildFile section */
 
@@ -31,13 +32,14 @@
 		9740EEB21CF90195004384FC /* Debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Debug.xcconfig; path = Flutter/Debug.xcconfig; sourceTree = "<group>"; };
 		97C146EE1CF9000082B41680 /* Runner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Runner.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		97C146FA1CF9000082B4168C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A1D000092F00000100C0FFEE /* GamepadPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadPlugin.swift; sourceTree = "<group>"; };
 		97C146FD1CF9000082B4168C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		97C146FE1CF9000082B4168C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		97C146FF1CF9000082B4168D /* Main.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Main.storyboard; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		97C146FF1CF9000082B4168E /* LaunchScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		A1D000092F00000100C0FFEE /* GamepadPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GamepadPlugin.swift; sourceTree = "<group>"; };
 		AAA000000000000000000003 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		CCE6092207ED9D6A33B05BB6 /* Pods-Runner.profile.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.profile.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.profile.xcconfig"; sourceTree = "<group>"; };
+		DFD241245E171338DDA9066B /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -96,6 +98,7 @@
 				97C146FE1CF9000082B4168C /* Info.plist */,
 				97C146FF1CF9000082B4168D /* Main.storyboard */,
 				97C146FF1CF9000082B4168E /* LaunchScreen.storyboard */,
+				DFD241245E171338DDA9066B /* PrivacyInfo.xcprivacy */,
 			);
 			path = Runner;
 			sourceTree = "<group>";
@@ -191,6 +194,7 @@
 				97C1470F1CF9000082B4168C /* Assets.xcassets in Resources */,
 				97C1470A1CF9000082B4168D /* Main.storyboard in Resources */,
 				97C1470B1CF9000082B4168D /* LaunchScreen.storyboard in Resources */,
+				4F82AA1392F127AFA45BFF0E /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -305,7 +309,6 @@
 		249021D3217E4FDB00AE95B9 /* Profile */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = 86HB5U6788;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -334,6 +337,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -384,7 +388,6 @@
 		97C147031CF9000082B41691 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = 86HB5U6788;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -413,6 +416,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
@@ -469,7 +473,6 @@
 		97C147041CF9000082B41691 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				DEVELOPMENT_TEAM = 86HB5U6788;
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
@@ -498,6 +501,7 @@
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = 86HB5U6788;
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = NO;
