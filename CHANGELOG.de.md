@@ -10,6 +10,10 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Die Lizenzbedingungen nennen das Designsystem Horizont unter der
+  MIT-Lizenz und seine Schriften mit ihren neuen Namen, Horizont Sans und
+  Horizont Mono, zugeschnitten aus Mona Sans und Monaspace
+
 ## 1.8.1 (18) – 27.10.2026
 
 - Der Browser-Tab von Spiel und Landingpage zeigt wieder das App-Icon
