@@ -124,7 +124,7 @@ class ChoiceRow<T> extends StatelessWidget {
           painter
             ..text = TextSpan(text: label, style: _style(null, false))
             ..layout();
-          return painter.width + 2 * _padding;
+          return painter.width + 2 * (_padding + HzLine.hairline);
         }(),
     ];
     painter.dispose();
@@ -151,7 +151,7 @@ class ChoiceRow<T> extends StatelessWidget {
     return null;
   }
 
-  static const _padding = 14.0;
+  static const _padding = HzSpace.s12;
 
   TextStyle _style(Color? color, bool on) => GameType.label.copyWith(
     fontWeight: on ? FontWeight.w600 : FontWeight.w500,
@@ -166,65 +166,47 @@ class ChoiceRow<T> extends StatelessWidget {
     bool fill = false,
   }) {
     final centred = expand || fill;
-    return InkWell(
-      onTap: () => onSelected(on && allowNone ? null : value),
-      child: Container(
-        constraints: BoxConstraints(minHeight: minHeight),
-        alignment: centred ? Alignment.center : null,
-        padding: const EdgeInsets.symmetric(horizontal: _padding, vertical: 8),
-        // Horizont's segment: every option in the outline, the chosen one
-        // on the accent tint with the 2 px selection line along its foot.
-        decoration: ShapeDecoration(
-          color: on ? GameColors.accentTint : null,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(HzRadius.r6),
-            side: hairline,
-          ),
+    // Horizont's segment: every option in the outline, the chosen one as
+    // Horizont's selection (tint and the 2 px line along its foot) inside
+    // it, so the outline stays visible around the tint.
+    final chip = DecoratedBox(
+      decoration: ShapeDecoration(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(HzRadius.r6),
+          side: hairline,
         ),
-        foregroundDecoration: on ? const _SelectionLine() : null,
-        // Centred on the height, which can be more than one line of text.
-        child: Align(
-          widthFactor: centred ? null : 1,
-          child: Text(
-            label,
-            textAlign: centred ? TextAlign.center : null,
-            style: _style(color, on),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(HzLine.hairline),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(HzRadius.r6 - HzLine.hairline),
+          child: HorizontSelectable(
+            selected: on,
+            edge: HorizontSelectionEdge.bottom,
+            // Its Ink adds the selection line to the height below
+            // minHeight, the outline adds a hairline above and below.
+            minHeight: minHeight - 2 * HzLine.hairline - HzLine.selection,
+            padding: const EdgeInsets.symmetric(
+              horizontal: _padding,
+              vertical: HzSpace.s8,
+            ),
+            onTap: () => onSelected(on && allowNone ? null : value),
+            // Centred on the height, which can be more than one line of
+            // text.
+            child: Align(
+              widthFactor: centred ? null : 1,
+              child: Text(
+                label,
+                textAlign: centred ? TextAlign.center : null,
+                style: _style(color, on),
+              ),
+            ),
           ),
         ),
       ),
     );
-  }
-}
-
-/// The 2 px selection line along the foot of a chosen option, inside its
-/// rounded outline.
-class _SelectionLine extends Decoration {
-  const _SelectionLine();
-
-  @override
-  BoxPainter createBoxPainter([VoidCallback? onChanged]) => _SelectionPainter();
-}
-
-class _SelectionPainter extends BoxPainter {
-  @override
-  void paint(Canvas canvas, Offset offset, ImageConfiguration configuration) {
-    final size = configuration.size!;
-    final box = RRect.fromRectAndRadius(
-      offset & size,
-      const Radius.circular(HzRadius.r6),
-    );
-    canvas
-      ..save()
-      ..clipRRect(box)
-      ..drawRect(
-        Rect.fromLTWH(
-          offset.dx,
-          offset.dy + size.height - HzLine.selection,
-          size.width,
-          HzLine.selection,
-        ),
-        Paint()..color = GameColors.accentText,
-      )
-      ..restore();
+    // HorizontSelectable fills the width it is given; in a wrap a chip
+    // keeps the width of its label.
+    return centred ? chip : IntrinsicWidth(child: chip);
   }
 }

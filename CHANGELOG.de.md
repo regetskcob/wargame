@@ -18,6 +18,10 @@ gepflegt.
 - Die Live-Aktivität samt Dynamic Island ist entfallen: iOS zeigt sie nur,
   solange das Spiel im Hintergrund liegt, sie erschien also erst nach der
   Runde mit alten Werten. Das Ergebnis für den iMessage-Chat bleibt
+- Menüs auf Horizont 0.9.0: Die gewählte Option einer Auswahlzeile ist
+  Horizonts Auswahl und sagt Screenreadern, dass sie gewählt ist, Abstände
+  liegen auf dem Raster, und große Werte wie der Raumcode nehmen eine
+  Größe der Typo-Skala
 
 ## 1.8.1 (18) – 27.10.2026
 

@@ -56,19 +56,17 @@ void main() {
     final game = offlineGame()..mode.value = GameMode.multi;
     await show(tester, RoomInvite(game: game));
     final copyButton = tester.getRect(find.byType(TextButton));
-    final private = tester.getRect(
-      find
-          .ancestor(of: find.text('PRIVAT'), matching: find.byType(Container))
-          .first,
-    );
-    final public = tester.getRect(
-      find
-          .ancestor(
-            of: find.text('ÖFFENTLICH'),
-            matching: find.byType(Container),
-          )
-          .first,
-    );
+    // The chip is its selectable inside the hairline outline.
+    Rect chip(String label) => tester
+        .getRect(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byType(HorizontSelectable),
+          ),
+        )
+        .inflate(HzLine.hairline);
+    final private = chip('PRIVAT');
+    final public = chip('ÖFFENTLICH');
     expect(private.width, closeTo(public.width, 1));
     expect(private.top, greaterThan(copyButton.bottom));
     expect(copyButton.height, 48);
