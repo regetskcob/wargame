@@ -95,8 +95,12 @@ Owner (consoles, money, law):
    key**: download the `.p8`, note key id and issuer id.
 4. Play Console (once the app is there): the same product, and a service
    account with "View financial data" for the Play Developer API.
-5. Imprint with the company name and legal form (still open), and a
-   paragraph on purchases in the privacy policy (`lib/src/legal/`).
+5. Decide who sells: as a private person or as the business (Kalkar IT
+   Solutions), and put that name, the legal form and a VAT id if there is
+   one into the Impressum (`lib/src/legal/legal_text.dart`, `_owner`). The
+   texts on purchases are written and wait behind `purchasesOffered` there:
+   the privacy notice (paragraph "Käufe in den Apps"), the licence terms
+   ("Käufe") and the Impressum without "nicht kommerziell".
 6. App privacy in App Store Connect: "Purchases" linked to the account.
 
 Then Claude:
@@ -108,5 +112,7 @@ Then Claude:
    check the row in `entitlements`, restore on a second device with the same
    account, delete the account and see the row go.
 4. Switch `PURCHASES` on in `tool/archive_ios.sh`, `tool/archive_apple.sh`
-   and `tool/release_android.sh`, add
+   and `tool/release_android.sh` and `purchasesOffered` in
+   `lib/src/legal/legal_text.dart` in the same change, so the web pages and
+   the apps carry the purchase texts from the first build that sells; add
    "In-app purchases" to the store texts and the changelog.
