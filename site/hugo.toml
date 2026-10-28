@@ -31,6 +31,12 @@ enableRobotsTXT = false
   [[module.mounts]]
     source = 'assets'
     target = 'assets'
+  # The changelog page shows the latest store versions straight from the
+  # changelogs at the root of the repository (layouts/changelog.html).
+  [[module.mounts]]
+    source = '..'
+    target = 'assets/changelog'
+    includeFiles = ['/CHANGELOG.md', '/CHANGELOG.de.md']
   [[module.mounts]]
     source = '../store/ios/metadata'
     target = 'assets/store/metadata'
@@ -101,6 +107,9 @@ enableRobotsTXT = false
   # Where support requests go. The page has no server of its own, so the
   # form opens a written mail in the visitor's mail app.
   supportMail = 'review@panzergefecht.de'
+
+  # How many of the latest store versions the changelog page shows.
+  changelogVersions = 6
 
   # Ways into the betas of the apps until they are in the stores. Android
   # testers join the Google Group first: the closed test on Google Play only

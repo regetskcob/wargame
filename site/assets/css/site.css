@@ -120,3 +120,7 @@ body.hz { overflow-x: clip; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
 }
+
+/* Changelog: the date on the left, the version and its points across the rest. */
+.pz-changes > div { grid-column: span 2; max-width: var(--size-reading, 42rem); }
+.pz-changes ul { margin: 0; padding-left: 1.25em; display: grid; gap: var(--s-8); }

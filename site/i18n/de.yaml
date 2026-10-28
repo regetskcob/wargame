@@ -91,3 +91,7 @@ maintenance-kennung: Wartung · Umzug auf panzergefecht.de
 maintenance-title: Kurze Feuerpause.
 maintenance-text: Panzergefecht zieht auf seine eigene Adresse **panzergefecht.de** um. Solange die Umstellung läuft, ruhen Spiel und Seite, gleich geht es weiter. Die Apps für iPhone, iPad und Android laufen weiter, dein Konto bleibt, wie es ist.
 maintenance-mail: Support schreiben
+changelog: Änderungen
+changelog-kennung: 02 — Änderungen
+changelogHeadline: Was neu ist.
+changelogLead: Was die letzten Versionen der Apps gebracht haben, neueste zuerst. Das Spiel im Browser ist immer auf dem neuesten Stand.

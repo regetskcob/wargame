@@ -1,0 +1,29 @@
+{{ define "main" }}
+{{- /* The latest store versions, read from CHANGELOG.md or CHANGELOG.de.md
+   at the root of the repository, so the page follows every release without
+   a copy. The intro of the file and the unreleased section stay out; the
+   build number in brackets is for us, not for players. */}}
+{{- $file := cond (eq site.Language.Lang "de") "changelog/CHANGELOG.de.md" "changelog/CHANGELOG.md" -}}
+{{- $parts := after 1 (split (resources.Get $file).Content "\n## ") -}}
+{{- $versions := slice -}}
+{{- range $parts }}
+  {{- $head := index (split . "\n") 0 -}}
+  {{- if findRE `^\d+\.\d+` $head }}{{ $versions = $versions | append . }}{{ end -}}
+{{- end }}
+{{ partial "horizont/feld/hero.html" (dict
+  "kennung" (printf "%s · %s" (partial "store.html" "name") (i18n "changelog"))
+  "title" (i18n "changelogHeadline")
+  "text" (i18n "changelogLead")) }}
+{{- range first site.Params.changelogVersions $versions }}
+  {{- $lines := split . "\n" -}}
+  {{- $head := replaceRE ` \([^)]*\)` "" (index $lines 0) -}}
+  {{- $title := index (split $head " – ") 0 -}}
+<section class="pz-page pz-changes" id="v{{ replace $title "." "-" }}">
+  {{ partial "horizont/kennung.html" (dict "text" (delimit (after 1 (split $head " – ")) " – ") "tag" "p") }}
+  <div>
+    <h2>{{ $title }}</h2>
+    {{ delimit (after 1 $lines) "\n" | markdownify }}
+  </div>
+</section>
+{{- end }}
+{{ end }}
