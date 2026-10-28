@@ -24,7 +24,7 @@ if $quick; then
 fi
 
 step "flutter build web"
-flutter build web
+flutter build web --no-web-resources-cdn
 if command -v hugo >/dev/null; then
   step "hugo (landing page)"
   hugo --quiet --source site --destination "$(mktemp -d)"
