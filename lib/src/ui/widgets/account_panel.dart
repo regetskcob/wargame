@@ -381,7 +381,7 @@ class _AccountPanelState extends State<AccountPanel> {
       const SizedBox(height: HzSpace.s8),
       Row(
         children: [
-          const SizedBox.square(
+          SizedBox.square(
             dimension: HzSpace.s12,
             child: CircularProgressIndicator(
               strokeWidth: HzLine.selection,

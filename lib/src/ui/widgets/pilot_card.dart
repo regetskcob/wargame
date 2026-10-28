@@ -152,7 +152,7 @@ class _PilotCardState extends State<PilotCard> {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(
+              Icon(
                 HorizontSymbols.militaryTech,
                 size: HzIconSize.badge,
                 color: GameColors.text,

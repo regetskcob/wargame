@@ -34,7 +34,7 @@ class TankChoice extends StatelessWidget {
 
   /// One line of text [height] high, shrunk to fit instead of wrapping.
   static Widget _line(String text, TextStyle style, double height) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6),
+    padding: const EdgeInsets.symmetric(horizontal: HzSpace.s8),
     child: SizedBox(
       height: height,
       child: FittedBox(
@@ -109,7 +109,7 @@ class TankChoice extends StatelessWidget {
       return Stack(
         children: [
           card,
-          const Positioned(
+          Positioned(
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(
@@ -129,7 +129,7 @@ class TankChoice extends StatelessWidget {
       child: Stack(
         children: [
           Opacity(opacity: 0.45, child: card),
-          const Positioned(
+          Positioned(
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(

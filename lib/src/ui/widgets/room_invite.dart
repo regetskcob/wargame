@@ -87,11 +87,11 @@ class _RoomInviteState extends State<RoomInvite> {
             padding: EdgeInsets.zero,
             backgroundColor: GameColors.text,
             errorCorrectionLevel: QrErrorCorrectLevel.M,
-            eyeStyle: const QrEyeStyle(
+            eyeStyle: QrEyeStyle(
               eyeShape: QrEyeShape.square,
               color: GameColors.sunken,
             ),
-            dataModuleStyle: const QrDataModuleStyle(
+            dataModuleStyle: QrDataModuleStyle(
               dataModuleShape: QrDataModuleShape.square,
               color: GameColors.sunken,
             ),

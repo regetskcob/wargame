@@ -356,7 +356,7 @@ class _GuestCard extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(
+              Icon(
                 HorizontSymbols.login,
                 color: GameColors.text,
                 size: HzIconSize.bar,
@@ -392,7 +392,7 @@ class _GuestCard extends StatelessWidget {
               // Only a sign: the whole card is the button. A button of its
               // own here was a second focus stop on the television and a
               // second button for the screen reader.
-              const SizedBox.square(
+              SizedBox.square(
                 dimension: HzSpace.s48,
                 child: Icon(
                   HorizontSymbols.chevronRight,
@@ -497,10 +497,7 @@ class _ModeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(
-                HorizontSymbols.chevronRight,
-                color: GameColors.accentText,
-              ),
+              Icon(HorizontSymbols.chevronRight, color: GameColors.accentText),
             ],
           ),
         ),

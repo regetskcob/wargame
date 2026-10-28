@@ -4,81 +4,86 @@ import 'package:horizont/horizont.dart';
 /// The colour slots of Horizont for Panzergefecht: always dark, on the
 /// game's own olive "Gelände" neutrals, with signal yellow as the one accent.
 ///
-/// These are const mirrors of `HorizontColors.resolve(panzergefecht, dark)`,
-/// so overlays and Flame painters keep their const constructors;
-/// `test/ui/theme_test.dart` checks every one against the tokens, so they
-/// cannot drift. Change a value in Horizont's `tokens/horizont.json`, never
-/// here. The colours of the world itself (ground, teams, camouflage) belong
+/// Every slot is read from `HorizontColors.resolve(panzergefecht, dark)`, so
+/// the values live only in Horizont's `tokens/horizont.json`. They are
+/// `final`, not `const`: overlays read them at build time like any theme
+/// value. The colours of the world itself (ground, teams, camouflage) belong
 /// to the game and live in `game_config.dart` and `map_theme.dart`.
 abstract final class GameColors {
+  static final _c = HorizontColors.resolve(
+    HorizontProduct.panzergefecht,
+    Brightness.dark,
+  );
+
   /// Page background: the ground behind every menu.
-  static const bg = Color(0xFF141A0E);
+  static final bg = _c.bg;
 
   /// Raised surfaces: cards, sheets, fields.
-  static const surface = Color(0xFF1E2616);
+  static final surface = _c.surface;
 
   /// Sunken surfaces: wells inside a card, bands, tracks of a bar.
-  static const sunken = Color(0xFF0E120A);
+  static final sunken = _c.sunken;
 
   /// Hairlines between rows and sections.
-  static const line = Color(0xFF2F3A24);
+  static final line = _c.line;
 
   /// The one outline of everything framed (card, field, button, chip,
   /// dialog), at least 3:1 on every surface.
-  static const lineStrong = Color(0xFF667154);
+  static final lineStrong = _c.lineStrong;
 
   /// Ink.
-  static const text = Color(0xFFE6E2D3);
+  static final text = _c.text;
 
   /// Secondary text, Kennungen, meta lines.
-  static const textMuted = Color(0xFFB4BA9E);
+  static final textMuted = _c.textMuted;
 
   /// Decorative only, never for reading.
-  static const textFaint = Color(0xFF7D8466);
+  static final textFaint = _c.textFaint;
 
   /// Fill of the one primary action: signal yellow.
-  static const accent = Color(0xFFFFB300);
+  static final accent = _c.accent;
 
   /// Text and icons on [accent].
-  static const onAccent = Color(0xFF1A1405);
+  static final onAccent = _c.onAccent;
 
   /// Background of the selection.
-  static const accentTint = Color(0xFF2E2810);
+  static final accentTint = _c.accentTint;
 
   /// The accent as text, icon or line: the selection, the player's own.
-  static const accentText = Color(0xFFFFC233);
+  static final accentText = _c.accentText;
 
   /// Status: good, done, healed, won.
-  static const positive = Color(0xFF7FC79B);
+  static final positive = _c.positive;
 
   /// Background of [positive].
-  static const positiveTint = Color(0xFF18281E);
+  static final positiveTint = _c.positiveTint;
 
   /// Status: attention, running low.
-  static const warning = Color(0xFFEBBE6A);
+  static final warning = _c.warning;
 
   /// Background of [warning].
-  static const warningTint = Color(0xFF2C2414);
+  static final warningTint = _c.warningTint;
 
   /// Status: hit, destroyed, error, irreversible.
-  static const critical = Color(0xFFF0A097);
+  static final critical = _c.critical;
 
   /// Background of [critical].
-  static const criticalTint = Color(0xFF301B19);
+  static final criticalTint = _c.criticalTint;
 
   /// Text and icons on [critical].
-  static const onCritical = Color(0xFF121311);
+  static final onCritical = _c.onCritical;
 
   /// Status: note, information.
-  static const info = Color(0xFF9DBBE3);
+  static final info = _c.info;
 
   /// Background of [info].
-  static const infoTint = Color(0xFF1A2333);
+  static final infoTint = _c.infoTint;
 
-  /// A HUD plate over the running round: [surface], a little see-through so
-  /// the ground under the corners stays readable. The game's one deviation
-  /// from opaque surfaces, as a plate floats over a moving picture.
-  static const panel = Color(0xE61E2616);
+  /// A HUD plate over the running round: [surface] at 90 %, so the ground
+  /// under the corners stays readable. Game-only: Horizont's surfaces are
+  /// opaque, but a plate here floats over a moving picture, so the
+  /// see-through stays with the game and is derived, not a token.
+  static final panel = _c.surface.withAlpha(0xE6);
 }
 
 /// The type of the game, from Horizont's three voices: Mona Sans to operate,
@@ -87,6 +92,13 @@ abstract final class GameColors {
 ///
 /// Widgets uppercase the text themselves where a style says capitals, never
 /// the strings in `l10n.dart`.
+///
+/// The three Expanded headlines are the one place where the game leaves
+/// Horizont's type scale, as CLAUDE.md of Horizont allows: Display Expanded
+/// in capitals runs much wider than Literata, so each sits a step
+/// under its Literata counterpart to keep the same measure on a phone:
+/// display 40/44 (scale 44/48), headline 28/34 (scale 30/36), title 18/24
+/// (scale title-3 17/24, same line). Everything else is a step of the scale.
 abstract final class GameType {
   static TextStyle _expanded(double size, double line, FontWeight weight) =>
       TextStyle(
@@ -121,11 +133,14 @@ abstract final class GameType {
   static final data = horizontTextStyle(HzType.data, GameColors.text);
 
   /// A value that carries a screen: the room code, the countdown, the
-  /// remaining tanks.
-  static final dataLarge = horizontTextStyle(
-    HzType.data,
-    GameColors.text,
-  ).copyWith(fontSize: 28, height: 32 / 28, fontWeight: FontWeight.w600);
+  /// remaining tanks. Monaspace at the size, line and weight of `title-1`,
+  /// as the scale has no larger mono step.
+  static final dataLarge = horizontTextStyle(HzType.data, GameColors.text)
+      .copyWith(
+        fontSize: HzType.title1.size,
+        height: HzType.title1.line / HzType.title1.size,
+        fontWeight: HzType.title1.weight,
+      );
 
   /// Body text of the menus.
   static final body = horizontTextStyle(HzType.body, GameColors.text);
@@ -148,7 +163,7 @@ abstract final class GameType {
 
 /// The outline of everything framed, as a side for borders that are built
 /// by hand (Horizont's components carry it already).
-const hairline = BorderSide(color: GameColors.lineStrong);
+final hairline = BorderSide(color: GameColors.lineStrong);
 
 /// Horizont's dark theme for Panzergefecht with the game's headlines.
 ///

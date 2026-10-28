@@ -35,15 +35,14 @@ enum DemoScene {
 
 /// A symbol with a word, shown in the quick tour.
 class TutorialChip {
-  const TutorialChip(
-    this.icon,
-    this.label, [
-    this.color = GameColors.textMuted,
-  ]);
+  const TutorialChip(this.icon, this.label, [Color? color]) : _color = color;
 
   final IconData icon;
   final String label;
-  final Color color;
+  final Color? _color;
+
+  /// The tint of the symbol; [GameColors.textMuted] by default.
+  Color get color => _color ?? GameColors.textMuted;
 }
 
 /// One card of the tutorial.

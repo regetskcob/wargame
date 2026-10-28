@@ -176,7 +176,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     selected: level,
                     onSelected: (v) => game.chooseLevel(v ?? level),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: HzSpace.s8),
                   _hint(switch (level) {
                     BotLevel.easy => tr(
                       'Flaches Gelände, voller Tank und Munition ohne Ende. '
@@ -203,7 +203,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               ),
             ),
             if (mode == GameMode.multi) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: HzSpace.s16),
               _label(context, tr('CPU-PANZER', 'CPU TANKS')),
               ValueListenableBuilder<bool>(
                 valueListenable: game.fillWithBots,
@@ -220,7 +220,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 listenable: Listenable.merge([game.roster, game.padSteered]),
                 builder: (context, _) => game.roomHasPhone
                     ? Padding(
-                        padding: const EdgeInsets.only(top: 6),
+                        padding: const EdgeInsets.only(top: HzSpace.s8),
                         child: Text(
                           tr(
                             'Mit Handy-Controller im Raum ohne CPU-Panzer, '
@@ -236,7 +236,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             ],
             if (mode == GameMode.flag) ...[
               if (game.partner != null) ...[
-                const SizedBox(height: 14),
+                const SizedBox(height: HzSpace.s16),
                 _label(context, tr('ZU ZWEIT', 'TWO PLAYERS')),
                 ValueListenableBuilder<bool>(
                   valueListenable: game.duoTogether,
@@ -250,10 +250,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
                 ),
               ],
-              const SizedBox(height: 14),
+              const SizedBox(height: HzSpace.s16),
               _label(context, 'TEAM'),
               _teamPickRow(),
-              const SizedBox(height: 6),
+              const SizedBox(height: HzSpace.s8),
               _hint(
                 tr(
                   'CPU-Panzer füllen beide Seiten auf je '
@@ -267,7 +267,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                 ),
               ),
             ] else if (mode != GameMode.defense) ...[
-              const SizedBox(height: 14),
+              const SizedBox(height: HzSpace.s16),
               _label(context, tr('MODUS', 'MODE')),
               _teamChoice(),
             ],
@@ -294,9 +294,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             onSelected: (v) => game.teamMode.value = v ?? false,
           ),
           if (teams) ...[
-            const SizedBox(height: 10),
+            const SizedBox(height: HzSpace.s12),
             _teamPickRow(),
-            const SizedBox(height: 6),
+            const SizedBox(height: HzSpace.s8),
             _hint(
               tr(
                 'AUTO teilt nach Fahrzeug: Neulinge spielen mit Erfahrenen.',
@@ -347,7 +347,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               onSelected: (v) => game.mapChoice.value = v,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: HzSpace.s8),
           _hint(
             tr(
               'Ohne Auswahl zufällig. Wetter und Tageszeit wechseln von '
@@ -424,7 +424,11 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
           );
           final details = Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: [bars, const SizedBox(height: 14), camo],
+            children: [
+              bars,
+              const SizedBox(height: HzSpace.s16),
+              camo,
+            ],
           );
           if (box.maxWidth < 640) {
             return Column(
@@ -571,9 +575,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
             style: OutlinedButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: HzSpace.s12),
               foregroundColor: _closeArmed ? GameColors.critical : null,
-              side: _closeArmed
-                  ? const BorderSide(color: GameColors.critical)
-                  : null,
+              side: _closeArmed ? BorderSide(color: GameColors.critical) : null,
             ),
             icon: Icon(
               _closeArmed
@@ -850,13 +852,13 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         _header(context, tr('EINSTELLUNGEN', 'SETTINGS')),
-        const SizedBox(height: 18),
+        const SizedBox(height: HzSpace.s16),
         _columns(
           [_battleSection(context)],
           [_fieldSection(context)],
           narrow: narrow,
         ),
-        const SizedBox(height: 18),
+        const SizedBox(height: HzSpace.s16),
         // The same pair as below the waiting room: the way aside on the
         // left, the way on to the right, both as wide.
         Row(
@@ -987,9 +989,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: HzSpace.s8),
             _settingsSummary(),
-            const SizedBox(height: 18),
+            const SizedBox(height: HzSpace.s16),
             if (mode.withOthers) ...[
               const ServerNotice(),
               ValueListenableBuilder(
@@ -1035,7 +1037,7 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   ]);
                 },
               ),
-            const SizedBox(height: 18),
+            const SizedBox(height: HzSpace.s16),
             _actions(),
           ],
         );
@@ -1177,7 +1179,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(top: BorderSide(color: GameColors.line)),
       ),
       child: Padding(
@@ -1233,7 +1235,7 @@ class ColorSwatchButton extends StatelessWidget {
       child: Container(
         width: 34,
         height: 34,
-        padding: const EdgeInsets.all(3),
+        padding: const EdgeInsets.all(HzSpace.s4),
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           border: Border.all(
@@ -1248,11 +1250,7 @@ class ColorSwatchButton extends StatelessWidget {
             color: locked ? color.withValues(alpha: 0.35) : color,
           ),
           child: locked
-              ? const Icon(
-                  HorizontSymbols.lock,
-                  size: 12,
-                  color: GameColors.text,
-                )
+              ? Icon(HorizontSymbols.lock, size: 12, color: GameColors.text)
               : null,
         ),
       ),

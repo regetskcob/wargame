@@ -57,8 +57,8 @@ class PlayerList extends StatelessWidget {
                       : member.name,
                 ),
                 if (hostId == null ? member.host : member.id == hostId) ...[
-                  const SizedBox(width: 6),
-                  const Icon(
+                  const SizedBox(width: HzSpace.s8),
+                  Icon(
                     HorizontSymbols.star,
                     size: HzIconSize.badge,
                     color: GameColors.accentText,

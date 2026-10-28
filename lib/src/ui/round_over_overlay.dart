@@ -318,7 +318,7 @@ class _VictoryPainter extends CustomPainter {
 
   final double t;
 
-  static const _confetti = [
+  static final _confetti = [
     GameColors.accentText,
     GameColors.text,
     GameColors.positive,
@@ -428,7 +428,7 @@ class _StatsRow extends StatelessWidget {
     ];
     // A list with hairlines, the numbers in mono at the end of each row,
     // as wide as the buttons below it.
-    const rule = Divider(
+    final rule = Divider(
       height: HzLine.hairline,
       thickness: HzLine.hairline,
       color: GameColors.line,

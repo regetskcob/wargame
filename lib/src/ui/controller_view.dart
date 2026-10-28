@@ -682,7 +682,7 @@ class _Funds extends StatelessWidget {
               style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: HzSpace.s4),
-            const Icon(
+            Icon(
               HorizontSymbols.paid,
               size: HzIconSize.inline,
               color: GameColors.textMuted,

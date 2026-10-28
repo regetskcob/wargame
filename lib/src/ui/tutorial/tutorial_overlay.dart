@@ -510,7 +510,7 @@ class _TutorialOverlayState extends State<TutorialOverlay>
   Widget _header() {
     return Row(
       children: [
-        const Icon(
+        Icon(
           HorizontSymbols.school,
           color: GameColors.textMuted,
           size: HzIconSize.bar,

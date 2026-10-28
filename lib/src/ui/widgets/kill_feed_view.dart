@@ -125,7 +125,7 @@ class _KillFeedViewState extends State<KillFeedView> {
                 ),
               ),
               const SizedBox(width: HzSpace.s8),
-              const Icon(
+              Icon(
                 HorizontSymbols.gpsFixed,
                 size: HzIconSize.badge,
                 color: GameColors.textMuted,

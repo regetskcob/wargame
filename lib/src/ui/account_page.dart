@@ -358,7 +358,7 @@ class _AccountPageState extends State<AccountPage> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: GameColors.critical,
-                      side: const BorderSide(color: GameColors.critical),
+                      side: BorderSide(color: GameColors.critical),
                     ),
                     onPressed: _busy ? null : _delete,
                     icon: _busy
@@ -519,7 +519,7 @@ class _ControllerBox extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   HorizontSymbols.sportsEsports,
                   color: GameColors.textMuted,
                   size: HzIconSize.row,
