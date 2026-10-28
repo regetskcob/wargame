@@ -53,8 +53,7 @@ Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
   kills, accuracy and rating, replays and a rematch button.
 - Keyboard and mouse, touch sticks with aim assist, game controllers, the
   Siri Remote, or a phone as a controller for the big screen.
-- An iOS widget with the pilots online and a Live Activity for the running
-  round.
+- An iOS widget with the pilots online.
 - An iMessage app that invites the chat into a room: a group fights, two
   can also hold the base together or duel, and the result of the round
   takes the place of the invitation.

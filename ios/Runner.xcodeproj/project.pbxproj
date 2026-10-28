@@ -12,10 +12,7 @@
 		3B3967161E833CAA004F5970 /* AppFrameworkInfo.plist in Resources */ = {isa = PBXBuildFile; fileRef = 3B3967151E833CAA004F5970 /* AppFrameworkInfo.plist */; };
 		4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */; };
 		4F0E1A052E9A000100A1B2C3 /* OnlineWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
-		4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */; };
-		4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */; };
-		4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */; };
+		4F0E1A242E9A000100A1B2C3 /* ChatResultPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4F0E1A232E9A000100A1B2C3 /* ChatResultPlugin.swift */; };
 		5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */; };
 		5B1E5A062F0A000100C0FFEE /* MessagesExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B1E5A072F0A000100C0FFEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B1E5A042F0A000100C0FFEE /* Assets.xcassets */; };
@@ -92,9 +89,7 @@
 		4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnlineWidget.swift; sourceTree = "<group>"; };
 		4F0E1A022E9A000100A1B2C3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		4F0E1A032E9A000100A1B2C3 /* OnlineWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = OnlineWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchActivityAttributes.swift; sourceTree = "<group>"; };
-		4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityPlugin.swift; sourceTree = "<group>"; };
-		4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MatchLiveActivity.swift; sourceTree = "<group>"; };
+		4F0E1A232E9A000100A1B2C3 /* ChatResultPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResultPlugin.swift; sourceTree = "<group>"; };
 		5B1E5A012F0A000100C0FFEE /* MessagesViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MessagesViewController.swift; sourceTree = "<group>"; };
 		5B1E5A022F0A000100C0FFEE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MessagesExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -154,7 +149,6 @@
 			isa = PBXGroup;
 			children = (
 				4F0E1A012E9A000100A1B2C3 /* OnlineWidget.swift */,
-				4F0E1A252E9A000100A1B2C3 /* MatchLiveActivity.swift */,
 				4F0E1A022E9A000100A1B2C3 /* Info.plist */,
 			);
 			path = OnlineWidget;
@@ -163,7 +157,6 @@
 		4F0E1A272E9A000100A1B2C3 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				4F0E1A202E9A000100A1B2C3 /* MatchActivityAttributes.swift */,
 				5B1E5A202F0A000100C0FFEE /* ChatResult.swift */,
 			);
 			path = Shared;
@@ -228,7 +221,7 @@
 				1498D2331E8E89220040F4C2 /* GeneratedPluginRegistrant.m */,
 				74858FAE1ED2DC5600515810 /* AppDelegate.swift */,
 				7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */,
-				4F0E1A232E9A000100A1B2C3 /* LiveActivityPlugin.swift */,
+				4F0E1A232E9A000100A1B2C3 /* ChatResultPlugin.swift */,
 				A1D000192F00000200C0FFEE /* GamepadPlugin.swift */,
 				74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */,
 				4236D1F82F5B591110A24866 /* PrivacyInfo.xcprivacy */,
@@ -468,8 +461,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */,
-				4F0E1A262E9A000100A1B2C3 /* MatchLiveActivity.swift in Sources */,
-				4F0E1A222E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -489,9 +480,8 @@
 				74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */,
 				1498D2341E8E89220040F4C2 /* GeneratedPluginRegistrant.m in Sources */,
 				7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */,
-				4F0E1A242E9A000100A1B2C3 /* LiveActivityPlugin.swift in Sources */,
+				4F0E1A242E9A000100A1B2C3 /* ChatResultPlugin.swift in Sources */,
 				A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */,
-				4F0E1A212E9A000100A1B2C3 /* MatchActivityAttributes.swift in Sources */,
 				5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 
 // One word per thing, wherever a player reads it: the game, the tutorial,
-// the watch, iMessage, the Live Activity, the stores and the landing page.
+// the watch, iMessage, the widget, the stores and the landing page.
 // Issue 23 (W1–W7) found one defense shop under four names, "Stufe" for
 // three things and the stores naming places the game does not have. The
 // words decided there are kept here; docs/release-test-plan.md has the

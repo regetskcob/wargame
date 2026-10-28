@@ -46,8 +46,8 @@ import '../ui/widgets/tablet_scale.dart';
 import '../watch/watch_lobby.dart';
 import '../watch/watch_overlays.dart';
 import '../watch/watch_support.dart';
+import 'chat_result.dart';
 import 'env.dart';
-import 'live_activity.dart';
 import 'overlay_ids.dart';
 import 'routes.dart';
 
@@ -60,7 +60,7 @@ class GameApp extends StatefulWidget {
 
 class _GameAppState extends State<GameApp> {
   late TankGame game;
-  late LiveActivityBridge _liveActivity;
+  late ChatResultBridge _chatResult;
   final _gameFocus = FocusNode(debugLabel: 'game');
   late final GoRouter _router = buildRouter(
     game: _gamePage,
@@ -79,7 +79,7 @@ class _GameAppState extends State<GameApp> {
   void initState() {
     super.initState();
     game = _createGame(resolveRoom(), host: isRoomHost());
-    _liveActivity = LiveActivityBridge(game)..attach();
+    _chatResult = ChatResultBridge(game)..attach();
     _online.start();
     onRoomSwitch = _switchRoom;
     onPadLink = _openPad;
@@ -182,12 +182,12 @@ class _GameAppState extends State<GameApp> {
     old.tvMenu.removeListener(_menuClosed);
     old.leaveAsked.removeListener(_menuClosed);
     old.roster.removeListener(_phaseChanged);
-    _liveActivity.detach();
+    _chatResult.detach();
     unawaited(old.leave());
     game = _createGame(room, host: host);
     _gameSwitches.value++;
     PadScreen.instance.game = game;
-    _liveActivity = LiveActivityBridge(game)..attach();
+    _chatResult = ChatResultBridge(game)..attach();
     _second?.followRoom();
   }
 
@@ -220,7 +220,7 @@ class _GameAppState extends State<GameApp> {
     onPadLink = null;
     onModeLink = null;
     _online.dispose();
-    _liveActivity.detach();
+    _chatResult.detach();
     game.phase
       ..removeListener(_reclaimFocus)
       ..removeListener(_phaseChanged);

@@ -232,8 +232,7 @@ Everything the game does, with the numbers behind it. The short version is in th
   wave) and every wave beaten off (+50). On a desktop the camera may run
   past the field's edge by the width of the mini map, so the base at the
   end of the road never hides under it.
-- On iOS a widget with the pilots online, a Live Activity for the running
-  round, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
+- On iOS a widget with the pilots online, and an Apple Watch version in progress, see [Apple Watch](platforms.md#apple-watch).
 - Visible battle damage, hit sparks, screen shake, a kill feed, a mini map
   and markers for enemies off screen, which slide along the edge past the
   gauges, the mini map and the panels. The mini map of the battle modes

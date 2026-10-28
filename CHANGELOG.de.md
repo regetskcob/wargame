@@ -13,6 +13,9 @@ gepflegt.
 - Die Lizenzbedingungen nennen das Designsystem Horizont unter der
   MIT-Lizenz und seine Schriften mit ihren neuen Namen, Horizont Sans und
   Horizont Mono, zugeschnitten aus Mona Sans und Monaspace
+- Die Live-Aktivität samt Dynamic Island ist entfallen: iOS zeigt sie nur,
+  solange das Spiel im Hintergrund liegt, sie erschien also erst nach der
+  Runde mit alten Werten. Das Ergebnis für den iMessage-Chat bleibt
 
 ## 1.8.1 (18) – 27.10.2026
 

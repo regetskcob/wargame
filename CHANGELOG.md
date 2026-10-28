@@ -12,6 +12,9 @@ step, point for point.
 - The licence terms name the design system Horizont under the MIT
   licence and its fonts by their new names, Horizont Sans and Horizont
   Mono, cut from Mona Sans and Monaspace
+- The Live Activity and its Dynamic Island are gone: iOS only shows them
+  while the game is in the background, so they appeared after the round
+  with old numbers. The result for the iMessage chat stays
 
 ## 1.8.1 (18) – 2026-10-27
 

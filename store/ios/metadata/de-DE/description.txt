@@ -31,7 +31,7 @@ Sofort als Gast loslegen, ohne Anmeldung. Wer mag, sichert sein Konto mit einer 
 AUF DER APPLE WATCH
 Die App bringt ein eigenes Spiel für die Uhr mit: alle vier Spielarten gegen CPU-Panzer am Handgelenk. Die Digital Crown lenkt, der Panzer fährt und feuert von selbst, und mit dem Konto vom iPhone zählt jede Runde für deinen Rang.
 
-Dazu ein Widget, das zeigt, wer gerade online ist, und eine Live-Aktivität für die laufende Runde.
+Dazu ein Widget, das zeigt, wer gerade online ist.
 
 Keine Werbung, kein Tracking.
 

@@ -221,7 +221,6 @@ struct OnlineWidget: Widget {
 struct OnlineWidgetBundle: WidgetBundle {
   var body: some Widget {
     OnlineWidget()
-    MatchLiveActivity()
   }
 }
 

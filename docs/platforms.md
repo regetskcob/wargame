@@ -162,8 +162,8 @@ interactive bubble.
    for the local player. Everybody else joins as a guest, and the lobby
    gives each their own tank as with any other room link.
 
-5. When a round ends, `LiveActivityPlugin.swift` (which hears of every
-   round anyway) leaves its result in the defaults of the app group
+5. When a round ends, `ChatResultPlugin.swift` (fed by
+   `lib/src/app/chat_result.dart`) leaves its result in the defaults of the app group
    `group.de.regetskcob.wargame`, as `ChatResult` (`ios/Shared`). The app
    writes every round, it knows nothing of chats. The extension keeps the
    session of every bubble it sent or followed, archived with the chat it

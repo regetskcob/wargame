@@ -200,7 +200,7 @@ Mostly **sim**; real devices in section 6. Severity in the last column
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F9.1 | Switching the language rebuilds everything, mode cards and footer links included | #21 | auto: `l10n_test`; sim | M |
-| F9.2 | One word per thing everywhere (game, tutorial, watch, iMessage, Live Activity, store, landing page) | #23 W1–W5, W7 | auto: `glossary_test` reads every `tr()` in Dart and Swift, the store texts and the landing page | m |
+| F9.2 | One word per thing everywhere (game, tutorial, watch, iMessage, widget, store, landing page) | #23 W1–W5, W7 | auto: `glossary_test` reads every `tr()` in Dart and Swift, the store texts and the landing page | m |
 
 Glossary (DE / EN) to grep for strays: GESCHÜTZE / GUNS (never Türme,
 turret), AUFRÜSTUNG / UPGRADES, LEICHT · MITTEL · SCHWER / EASY · NORMAL ·
@@ -233,7 +233,7 @@ Per platform the smoke path S1–S6 where the platform has it, plus:
 | F11.7 | Apple Watch | every mode alone against CPU tanks, no room channel, NEUES SPIEL, rounds count for the iPhone's account via WatchConnectivity, rounds after an expired token wait for the next one | auto: `watch_*`, `offline_modes_test`, `account_link_test`; sim (grant "Let Claude use it" first); owner on a real watch | M |
 | F11.8 | Wear OS | crown, round HUD, vibration, "Gast, ohne Wertung" | auto: `wear_crown_test`, `wear_haptics_test` | m |
 | F11.9 | iMessage | the bubble invites into a room and opens the app with mode and host; titles Mehrspieler / Fahnenraub / Verteidigung / Duell; the result comes back over the app group | owner: two real devices in one chat | M |
-| F11.10 | Live Activity and online widget | round and defense state, "Stützpunkt", heartbeat | sim | m |
+| F11.10 | Online widget | pilots online, heartbeat | sim | m |
 
 ### 3.12 Store and landing page
 
