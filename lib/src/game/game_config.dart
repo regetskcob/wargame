@@ -34,11 +34,13 @@ class GameConfig {
   /// enough that a wide window never shows the void.
   static const groundReach = worldRadius * 2.8;
 
-  static const tankMaxSpeed = 240.0;
+  /// Players found 240 too hectic, so tanks drive a tenth slower since 1.8.2.
+  /// Older clients still at 240 stay inside the plausibility slack.
+  static const tankMaxSpeed = 216.0;
   static const tankAcceleration = 1000.0;
   static const tankBrake = 2000.0;
   static const tankRollingResistance = 1600.0;
-  static const tankReverseSpeed = 110.0;
+  static const tankReverseSpeed = 100.0;
   static const tankRotationSpeed = 3.0;
   static const tankMaxHp = 100.0;
   static const tankRadius = 24.0;
