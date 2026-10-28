@@ -111,7 +111,9 @@ class TvSplitView extends StatelessWidget {
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: halfColor(player == 0 ? host : guest, player),
-                          width: 3,
+                          // The television's line weight, as heavy as
+                          // its focus ring, to be read from the sofa.
+                          width: HzTv.focus,
                         ),
                       ),
                       child: Align(
