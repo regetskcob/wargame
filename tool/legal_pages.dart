@@ -32,9 +32,10 @@ void main(List<String> args) {
         '<p><a href="../play/assets/NOTICES">Lizenztexte aller Pakete und '
         'der Flutter-Engine</a></p>\n'
         '<h2>Schriften</h2>\n'
-        '<p>Mona Sans, Monaspace und Literata unter der SIL Open Font '
-        'License 1.1, Material Symbols unter der Apache-Lizenz 2.0, '
-        'gebündelt im Designsystem Horizont.</p>\n'
+        '<p>Horizont Sans und Horizont Mono (zugeschnitten aus Mona Sans '
+        'und Monaspace) und Literata unter der SIL Open Font License 1.1, '
+        'Material Symbols unter der Apache-Lizenz 2.0, gebündelt im '
+        'Designsystem Horizont, das selbst unter der MIT-Lizenz steht.</p>\n'
         '<pre>${escape.convert(fonts.ofl)}</pre>\n'
         '<pre>${escape.convert(fonts.symbols)}</pre>\n',
   );

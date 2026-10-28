@@ -9,6 +9,10 @@ step, point for point.
 
 ## Unreleased
 
+- The licence terms name the design system Horizont under the MIT
+  licence and its fonts by their new names, Horizont Sans and Horizont
+  Mono, cut from Mona Sans and Monaspace
+
 ## 1.8.1 (18) – 2026-10-27
 
 - The browser tab of the game and the landing page shows the app icon
