@@ -98,7 +98,12 @@ const privacy = [
         'Spielereignisse sowie dein Rufname, Fahrzeug und Team über Supabase '
         'Realtime an die anderen Spieler im selben Raum. Diese Nachrichten '
         'werden nur weitergereicht und nicht dauerhaft gespeichert. Die '
-        'Wiederholung der letzten Runde bleibt nur auf deinem Gerät.',
+        'Wiederholung der letzten Runde bleibt nur auf deinem Gerät.\n\n'
+        'Solange das Spiel läuft, meldet es einmal pro Minute, dass du online '
+        'bist und ob du gerade in einer Runde spielst. Daraus zählen Spiel und '
+        'Widget „Piloten online“, wie viele gerade spielen; wer das ist, sieht '
+        'niemand. Der Eintrag wird spätestens einen Tag nach der letzten '
+        'Meldung gelöscht.',
   ),
   LegalBlock(
     'Kamera (nur in den Apps)',
@@ -275,7 +280,11 @@ const privacyEn = [
         'your call sign, vehicle and team are sent to the other players in '
         'the same room via Supabase Realtime. These messages are only passed '
         'on and not stored permanently. The replay of the last round stays '
-        'on your device only.',
+        'on your device only.\n\n'
+        'While the game runs, it reports once a minute that you are online '
+        'and whether you are in a round. From this the game and the "Pilots '
+        'online" widget count how many are playing; nobody sees who. The '
+        'entry is deleted at the latest one day after the last report.',
   ),
   LegalBlock(
     'Camera (apps only)',
