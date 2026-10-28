@@ -10,6 +10,8 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Panzer fahren etwas langsamer, vorwärts wie rückwärts um etwa ein
+  Zehntel, damit Runden weniger hektisch wirken
 - Die Lizenzbedingungen nennen das Designsystem Horizont unter der
   MIT-Lizenz und seine Schriften mit ihren neuen Namen, Horizont Sans und
   Horizont Mono, zugeschnitten aus Mona Sans und Monaspace

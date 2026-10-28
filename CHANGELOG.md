@@ -9,6 +9,8 @@ step, point for point.
 
 ## Unreleased
 
+- Tanks drive a little slower, about a tenth forwards and in reverse,
+  so rounds feel less hectic
 - The licence terms name the design system Horizont under the MIT
   licence and its fonts by their new names, Horizont Sans and Horizont
   Mono, cut from Mona Sans and Monaspace
