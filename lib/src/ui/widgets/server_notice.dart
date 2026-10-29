@@ -3,7 +3,6 @@ import 'package:horizont/horizont.dart';
 
 import '../../db/server_status.dart';
 import '../../l10n/l10n.dart';
-import 'notice.dart';
 
 /// Says so while the server does not answer, and nothing otherwise.
 class ServerNotice extends StatelessWidget {
@@ -19,7 +18,7 @@ class ServerNotice extends StatelessWidget {
         }
         return Padding(
           padding: const EdgeInsets.only(bottom: HzSpace.s16),
-          child: Notice(
+          child: HorizontNotice(
             HorizontStatus.warning,
             icon: HorizontSymbols.cloudOff,
             child: Text(

@@ -10,7 +10,6 @@ import '../../net/pad_link.dart';
 import '../controller_view.dart';
 import '../theme.dart';
 import 'game_dialog.dart';
-import 'notice.dart';
 import 'panel.dart';
 import 'room_scanner.dart';
 import 'tablet_scale.dart';
@@ -65,7 +64,7 @@ class PadBusyNotice extends StatelessWidget {
       builder: (context, busy, _) => busy
           ? Padding(
               padding: const EdgeInsets.only(top: HzSpace.s8),
-              child: Notice(
+              child: HorizontNotice(
                 HorizontStatus.warning,
                 child: Text(
                   tr(
@@ -387,11 +386,11 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                           padding: EdgeInsets.zero,
                           backgroundColor: GameColors.text,
                           errorCorrectionLevel: QrErrorCorrectLevel.M,
-                          eyeStyle: const QrEyeStyle(
+                          eyeStyle: QrEyeStyle(
                             eyeShape: QrEyeShape.square,
                             color: GameColors.sunken,
                           ),
-                          dataModuleStyle: const QrDataModuleStyle(
+                          dataModuleStyle: QrDataModuleStyle(
                             dataModuleShape: QrDataModuleShape.square,
                             color: GameColors.sunken,
                           ),

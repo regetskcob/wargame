@@ -1184,18 +1184,13 @@ class DemoPainter extends CustomPainter {
 
   /// [text] on a dark plate centred on [at], shifted back inside the stage:
   /// sunken, a little see-through, with the one outline.
-  void _pill(
-    Canvas canvas,
-    Offset at,
-    String text, {
-    Color color = GameColors.text,
-  }) {
+  void _pill(Canvas canvas, Offset at, String text, {Color? color}) {
     final painter = TextPainter(
       text: TextSpan(
         text: text,
         style: TextStyle(
           fontSize: 11,
-          color: color,
+          color: color ?? GameColors.text,
           fontFamily: HzFont.sans,
           package: HzFont.package,
           fontWeight: FontWeight.w600,

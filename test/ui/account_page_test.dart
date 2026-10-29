@@ -6,7 +6,6 @@ import 'package:wargame/src/app/routes.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/account_page.dart';
-import 'package:wargame/src/ui/theme.dart';
 import 'package:wargame/src/ui/widgets/legal.dart';
 import 'package:shared_preferences_platform_interface/in_memory_shared_preferences_async.dart';
 import 'package:shared_preferences_platform_interface/shared_preferences_async_platform_interface.dart';
@@ -67,18 +66,18 @@ void main() {
 
     expect(L10n.current, AppLang.en);
     // The chip itself shows the new choice, not only the texts around it:
-    // the chosen one lies on the accent tint.
-    Color? groundOf(String label) {
-      final box = tester.widget<Container>(
-        find
-            .ancestor(of: find.text(label), matching: find.byType(Container))
-            .first,
-      );
-      return (box.decoration as ShapeDecoration?)?.color;
-    }
+    // the chosen one is Horizont's selection.
+    bool chosen(String label) => tester
+        .widget<HorizontSelectable>(
+          find.ancestor(
+            of: find.text(label),
+            matching: find.byType(HorizontSelectable),
+          ),
+        )
+        .selected;
 
-    expect(groundOf('ENGLISH'), GameColors.accentTint);
-    expect(groundOf('DEUTSCH'), isNull);
+    expect(chosen('ENGLISH'), isTrue);
+    expect(chosen('DEUTSCH'), isFalse);
     expect(find.text('ACCOUNT'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Close'));
@@ -127,7 +126,14 @@ void main() {
     addTearDown(() => onAndroidTvForTesting = false);
     addTearDown(tester.view.reset);
     tester.view
-      ..physicalSize = const Size(1371, 771)
+      // 1920 by 1080 at the television's scale, inside its safe margin.
+      ..physicalSize = const Size(1280, 720)
+      ..padding = const FakeViewPadding(
+        left: HzTv.safeHorizontal / HzTv.typeScale,
+        right: HzTv.safeHorizontal / HzTv.typeScale,
+        top: HzTv.safeVertical / HzTv.typeScale,
+        bottom: HzTv.safeVertical / HzTv.typeScale,
+      )
       ..devicePixelRatio = 1;
     final game = offlineGame();
     await pumpRouterApp(tester, game, AccountButton(game: game));

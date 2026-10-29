@@ -69,7 +69,7 @@ class LoadingView extends StatelessWidget {
           Center(
             child: Transform.translate(
               offset: Offset(0, height * 0.5 + 40),
-              child: const SizedBox.square(
+              child: SizedBox.square(
                 dimension: 22,
                 child: CircularProgressIndicator(
                   strokeWidth: 2.5,

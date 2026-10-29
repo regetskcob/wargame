@@ -383,7 +383,7 @@ class _HudOverlayState extends State<HudOverlay> {
                 ),
                 TextSpan(
                   text: '  ${tr('BIS', 'TO')} ${GameConfig.flagCaptures}',
-                  style: const TextStyle(color: GameColors.textMuted),
+                  style: TextStyle(color: GameColors.textMuted),
                 ),
               ],
             ),
@@ -955,13 +955,13 @@ class _DefensePanelState extends State<_DefensePanel> {
   /// sits around the button in focus in the same colour.
   ButtonStyle _tabStyle(ButtonStyle base, {required bool open}) => open
       ? base.copyWith(
-          backgroundColor: const WidgetStatePropertyAll(GameColors.accentTint),
-          foregroundColor: const WidgetStatePropertyAll(GameColors.text),
+          backgroundColor: WidgetStatePropertyAll(GameColors.accentTint),
+          foregroundColor: WidgetStatePropertyAll(GameColors.text),
           backgroundBuilder: (context, states, child) => Stack(
             alignment: Alignment.center,
             children: [
               ?child,
-              const Positioned(
+              Positioned(
                 left: HzRadius.r6,
                 right: HzRadius.r6,
                 bottom: 0,
@@ -1196,7 +1196,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               style: GameType.data.copyWith(fontWeight: FontWeight.w600),
             ),
             const SizedBox(width: HzSpace.s2),
-            const Icon(
+            Icon(
               HorizontSymbols.paid,
               size: HzIconSize.badge,
               color: GameColors.textMuted,
@@ -1475,7 +1475,7 @@ class _DefensePanelState extends State<_DefensePanel> {
               Tooltip(
                 message:
                     '${tr('Stützpunkt', 'Base')} · ${GameConfig.hqName(hq)}',
-                child: const Icon(
+                child: Icon(
                   HorizontSymbols.flag,
                   size: HzIconSize.badge,
                   color: GameColors.textMuted,

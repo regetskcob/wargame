@@ -103,7 +103,7 @@ class SpectatorOverlay extends StatelessWidget {
     );
     final title = [
       if (game.replaying.value) ...[
-        const Icon(
+        Icon(
           HorizontSymbols.movie,
           size: HzIconSize.row,
           color: GameColors.textMuted,
@@ -112,7 +112,7 @@ class SpectatorOverlay extends StatelessWidget {
         Text(tr('WIEDERHOLUNG', 'REPLAY'), style: GameType.kennung),
         const SizedBox(width: HzSpace.s12),
       ] else ...[
-        const Icon(
+        Icon(
           HorizontSymbols.visibility,
           size: HzIconSize.row,
           color: GameColors.textMuted,
@@ -176,7 +176,7 @@ class SpectatorOverlay extends StatelessWidget {
                 backgroundColor: on ? GameColors.accentTint : null,
                 foregroundColor: on ? GameColors.accentText : null,
                 side: on
-                    ? const BorderSide(
+                    ? BorderSide(
                         color: GameColors.accentText,
                         width: HzLine.selection,
                       )

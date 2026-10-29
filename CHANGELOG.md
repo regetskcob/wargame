@@ -17,6 +17,14 @@ step, point for point.
 - The Live Activity and its Dynamic Island are gone: iOS only shows them
   while the game is in the background, so they appeared after the round
   with old numbers. The result for the iMessage chat stays
+- Menus on Horizont 0.9.0: the chosen option of a choice row is
+  Horizont's selection and tells screen readers it is selected, gaps sit
+  on the spacing scale, and large values such as the room code take a
+  size of the type scale
+- On the television the menus are drawn a little larger (1.5) and keep a
+  safe margin from the edge of the panel, the HUD inside it in the
+  corners; icon buttons are in ink, the accent marks only what is chosen
+- The browser bar of the web game takes the page's ground, light or dark
 
 ## 1.8.1 (18) – 2026-10-27
 

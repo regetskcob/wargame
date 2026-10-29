@@ -15,7 +15,6 @@ import 'widgets/choice_row.dart';
 import 'widgets/fit_or_scroll.dart';
 import 'widgets/game_dialog.dart';
 import 'widgets/legal.dart';
-import 'widgets/notice.dart';
 import 'widgets/pad_pairing.dart';
 import 'widgets/panel.dart';
 import 'widgets/supporter_section.dart';
@@ -228,11 +227,8 @@ class _AccountPageState extends State<AccountPage> {
                       : IconButton(
                           tooltip: tr('Rufnamen speichern', 'Save call sign'),
                           onPressed: dirty && _nameValid ? _rename : null,
-                          // Dim until there is something to save.
-                          style: IconButton.styleFrom(
-                            foregroundColor: GameColors.accentText,
-                            disabledForegroundColor: GameColors.textFaint,
-                          ),
+                          // Ink from the theme, faint until there is
+                          // something to save.
                           icon: const Icon(HorizontSymbols.check),
                         ),
                 ),
@@ -358,7 +354,7 @@ class _AccountPageState extends State<AccountPage> {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       foregroundColor: GameColors.critical,
-                      side: const BorderSide(color: GameColors.critical),
+                      side: BorderSide(color: GameColors.critical),
                     ),
                     onPressed: _busy ? null : _delete,
                     icon: _busy
@@ -374,7 +370,10 @@ class _AccountPageState extends State<AccountPage> {
                   ),
                   if (_error != null) ...[
                     const SizedBox(height: HzSpace.s8),
-                    Notice(HorizontStatus.critical, child: Text(_error!)),
+                    HorizontNotice(
+                      HorizontStatus.critical,
+                      child: Text(_error!),
+                    ),
                   ],
                 ],
               ),
@@ -519,7 +518,7 @@ class _ControllerBox extends StatelessWidget {
           children: [
             Row(
               children: [
-                const Icon(
+                Icon(
                   HorizontSymbols.sportsEsports,
                   color: GameColors.textMuted,
                   size: HzIconSize.row,

@@ -49,7 +49,7 @@ class LocalDuoPanel extends StatelessWidget {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       HorizontSymbols.sportsEsports,
                       color: GameColors.textMuted,
                       size: HzIconSize.row,
@@ -118,7 +118,7 @@ class LocalDuoPanel extends StatelessWidget {
                     IconButton(
                       tooltip: tr('Handy koppeln', 'Pair phone'),
                       onPressed: () => PadPairingDialog.show(context),
-                      icon: const Icon(
+                      icon: Icon(
                         HorizontSymbols.chevronRight,
                         color: GameColors.text,
                       ),

@@ -7,7 +7,6 @@ import '../../app/routes.dart';
 import '../../net/pad_link.dart';
 import '../../net/room_code.dart';
 import '../theme.dart';
-import 'notice.dart';
 import 'panel.dart';
 import '../../l10n/l10n.dart';
 
@@ -153,7 +152,7 @@ class _RoomScannerState extends State<RoomScanner> {
   /// code that is not the game's as a critical note with its sign.
   Widget _hint(String text) {
     if (_rejected != null) {
-      return Notice(HorizontStatus.critical, child: Text(text));
+      return HorizontNotice(HorizontStatus.critical, child: Text(text));
     }
     return Panel(
       padding: const EdgeInsets.symmetric(

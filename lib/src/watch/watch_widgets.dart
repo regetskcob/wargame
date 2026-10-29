@@ -115,10 +115,10 @@ class WatchButton extends StatelessWidget {
               onPressed: onPressed,
               style: danger
                   ? style.copyWith(
-                      foregroundColor: const WidgetStatePropertyAll(
+                      foregroundColor: WidgetStatePropertyAll(
                         GameColors.critical,
                       ),
-                      side: const WidgetStatePropertyAll(
+                      side: WidgetStatePropertyAll(
                         BorderSide(color: GameColors.critical),
                       ),
                     )

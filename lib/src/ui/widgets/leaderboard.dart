@@ -290,7 +290,7 @@ class _LeaderboardState extends State<Leaderboard> {
 
   TableRow _headerOf(List<String> labels) {
     return TableRow(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: GameColors.lineStrong)),
       ),
       children: [
@@ -307,7 +307,7 @@ class _LeaderboardState extends State<Leaderboard> {
   TableRow _placeholderRow(int rank) {
     final dim = GameType.data.copyWith(color: GameColors.textMuted);
     return TableRow(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: GameColors.line)),
       ),
       children: [
@@ -330,7 +330,7 @@ class _LeaderboardState extends State<Leaderboard> {
     return TableRow(
       decoration: BoxDecoration(
         color: mine ? GameColors.accentTint : null,
-        border: const Border(bottom: BorderSide(color: GameColors.line)),
+        border: Border(bottom: BorderSide(color: GameColors.line)),
       ),
       children: [
         _cell(

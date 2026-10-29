@@ -336,7 +336,7 @@ class _CallSignButton extends StatelessWidget {
         foregroundColor: GameColors.text,
         side: hairline,
       ),
-      icon: const Icon(
+      icon: Icon(
         HorizontSymbols.badge,
         size: HzIconSize.row,
         color: GameColors.textMuted,

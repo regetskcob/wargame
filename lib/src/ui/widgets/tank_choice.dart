@@ -34,7 +34,7 @@ class TankChoice extends StatelessWidget {
 
   /// One line of text [height] high, shrunk to fit instead of wrapping.
   static Widget _line(String text, TextStyle style, double height) => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 6),
+    padding: const EdgeInsets.symmetric(horizontal: HzSpace.s8),
     child: SizedBox(
       height: height,
       child: FittedBox(
@@ -48,39 +48,29 @@ class TankChoice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final card = InkWell(
-      onTap: locked ? null : onTap,
-      child: Container(
-        width: width,
-        padding: const EdgeInsets.symmetric(vertical: HzSpace.s8),
-        // Horizont's selection on cards: the chosen one on the accent tint
-        // with a 2 px outline in the accent and a tick, the others with the
-        // hairline. The selection ring is painted over the card, so nothing
-        // moves on picking.
-        decoration: BoxDecoration(
-          color: selected ? GameColors.accentTint : GameColors.sunken,
-          borderRadius: BorderRadius.circular(HzRadius.r10),
-          border: Border.all(color: GameColors.lineStrong),
-        ),
-        foregroundDecoration: selected
-            ? BoxDecoration(
-                borderRadius: BorderRadius.circular(HzRadius.r10),
-                border: Border.all(
-                  color: GameColors.accentText,
-                  width: HzLine.selection,
-                ),
-              )
-            : null,
+    // Horizont's selection on cards: the chosen one on the accent tint
+    // with a 2 px outline in the accent and a tick; a locked one cannot be
+    // chosen.
+    final card = SizedBox(
+      width: width,
+      child: HorizontSelectableCard(
+        selected: selected,
+        onTap: locked ? null : onTap,
+        padding: const EdgeInsets.all(HzSpace.s8),
+        // The full width of the card, so the content stays centred.
         child: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // The tank grows with a card wider than the default, so a wide
             // card is not a small tank in a lot of air.
-            SizedBox(
-              width: 96 * _grow,
-              height: 92 * _grow,
-              child: CustomPaint(
-                painter: TankPreviewPainter(type, color, scale: _grow),
+            Center(
+              child: SizedBox(
+                width: 96 * _grow,
+                height: 92 * _grow,
+                child: CustomPaint(
+                  painter: TankPreviewPainter(type, color, scale: _grow),
+                ),
               ),
             ),
             const SizedBox(height: 4),
@@ -103,23 +93,7 @@ class TankChoice extends StatelessWidget {
       ),
     );
     if (!locked) {
-      if (!selected) {
-        return card;
-      }
-      return Stack(
-        children: [
-          card,
-          const Positioned(
-            right: HzSpace.s8,
-            top: HzSpace.s8,
-            child: Icon(
-              HorizontSymbols.check,
-              size: HzIconSize.row,
-              color: GameColors.accentText,
-            ),
-          ),
-        ],
-      );
+      return card;
     }
     return Tooltip(
       message: tr(
@@ -129,7 +103,7 @@ class TankChoice extends StatelessWidget {
       child: Stack(
         children: [
           Opacity(opacity: 0.45, child: card),
-          const Positioned(
+          Positioned(
             right: HzSpace.s8,
             top: HzSpace.s8,
             child: Icon(

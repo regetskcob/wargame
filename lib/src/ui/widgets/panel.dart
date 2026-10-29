@@ -9,19 +9,19 @@ import '../theme.dart';
 /// chip, a plate inside a panel) takes their radius 6.
 class GameShapes {
   static RoundedRectangleBorder card({
-    Color edge = GameColors.lineStrong,
+    Color? edge,
     double width = HzLine.hairline,
   }) => RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(HzRadius.r10),
-    side: BorderSide(color: edge, width: width),
+    side: BorderSide(color: edge ?? GameColors.lineStrong, width: width),
   );
 
   static RoundedRectangleBorder chip({
-    Color edge = GameColors.lineStrong,
+    Color? edge,
     double width = HzLine.hairline,
   }) => RoundedRectangleBorder(
     borderRadius: BorderRadius.circular(HzRadius.r6),
-    side: BorderSide(color: edge, width: width),
+    side: BorderSide(color: edge ?? GameColors.lineStrong, width: width),
   );
 }
 
@@ -31,22 +31,26 @@ class Plate extends StatelessWidget {
   const Plate({
     required this.child,
     this.padding = const EdgeInsets.all(HzSpace.s12),
-    this.color = GameColors.sunken,
-    this.edge = GameColors.lineStrong,
+    this.color,
+    this.edge,
     super.key,
   });
 
   final Widget child;
   final EdgeInsetsGeometry padding;
-  final Color color;
-  final Color edge;
+
+  /// The ground; [GameColors.sunken] by default.
+  final Color? color;
+
+  /// The outline; [GameColors.lineStrong] by default.
+  final Color? edge;
 
   @override
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: ShapeDecoration(
-        color: color,
-        shape: GameShapes.chip(edge: edge),
+        color: color ?? GameColors.sunken,
+        shape: GameShapes.chip(edge: edge ?? GameColors.lineStrong),
       ),
       child: Padding(padding: padding, child: child),
     );

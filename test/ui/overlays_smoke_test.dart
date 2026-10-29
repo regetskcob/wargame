@@ -68,7 +68,14 @@ const _screens = {
 };
 
 /// Shows what the game has open right now, as the GameWidget would.
-Future<void> _show(WidgetTester tester, TankGame game, Size size) async {
+/// With [tv] the pages sit in the television's safe margin and scale, as in
+/// `GameApp`.
+Future<void> _show(
+  WidgetTester tester,
+  TankGame game,
+  Size size, {
+  bool tv = false,
+}) async {
   tester.view
     ..physicalSize = size
     ..devicePixelRatio = 1;
@@ -76,6 +83,11 @@ Future<void> _show(WidgetTester tester, TankGame game, Size size) async {
     ValueListenableBuilder<AppLang>(
       valueListenable: L10n.lang,
       builder: (context, lang, _) => MaterialApp(
+        builder: tv
+            ? (context, child) => TvSafeArea(
+                child: FixedScale(scale: tvScaleFor(size), child: child!),
+              )
+            : null,
         locale: lang.locale,
         localizationsDelegates: GlobalMaterialLocalizations.delegates,
         supportedLocales: [for (final l in AppLang.values) l.locale],
@@ -177,24 +189,28 @@ Future<void> _loadFonts() => loadHorizontFonts();
 
 /// The start page for a guest who has not chosen yet, choosing the mode,
 /// its settings, then the room of each mode.
-Future<void> _everyLobbyPage(WidgetTester tester, Size size) async {
+Future<void> _everyLobbyPage(
+  WidgetTester tester,
+  Size size, {
+  bool tv = false,
+}) async {
   final game = await _game(tester);
   expect(game.overlays.isActive(OverlayIds.lobby), isTrue);
   game.welcomed.value = false;
-  await _show(tester, game, size);
+  await _show(tester, game, size, tv: tv);
   expect(find.byType(WelcomeView), findsOneWidget);
   game
     ..welcomed.value = true
     ..choosingMode.value = true;
-  await _show(tester, game, size);
+  await _show(tester, game, size, tv: tv);
   game
     ..choosingMode.value = false
     ..configuring.value = true;
-  await _show(tester, game, size);
+  await _show(tester, game, size, tv: tv);
   game.configuring.value = false;
   for (final mode in GameMode.values) {
     game.chooseMode(mode);
-    await _show(tester, game, size);
+    await _show(tester, game, size, tv: tv);
     expect(find.byType(LobbyOverlay), findsOneWidget, reason: '$mode');
   }
   await tester.pumpWidget(const SizedBox());
@@ -212,14 +228,32 @@ void main() {
   tearDown(() => L10n.lang.value = AppLang.de);
 
   for (final lang in AppLang.values) {
-    // The television lays the menus out on 1371 points, see tvScaleFor.
+    // The television: 1920 by 1080 in the safe margin, scaled by
+    // tvScaleFor, as GameApp does.
     testWidgets('every page of the waiting room lays out on a television '
         '(${lang.code})', (tester) async {
       L10n.lang.value = lang;
       onAndroidTvForTesting = true;
       addTearDown(() => onAndroidTvForTesting = false);
       addTearDown(tester.view.reset);
-      await _everyLobbyPage(tester, const Size(1371, 771));
+      await _everyLobbyPage(tester, const Size(1920, 1080), tv: true);
+    });
+  }
+
+  for (final mode in [GameMode.solo, GameMode.defense, GameMode.flag]) {
+    testWidgets('the HUD of ${mode.name} lays out in the safe margin of a '
+        'television', (tester) async {
+      onAndroidTvForTesting = true;
+      addTearDown(() => onAndroidTvForTesting = false);
+      addTearDown(tester.view.reset);
+      final game = await _game(tester);
+      await _start(tester, game, mode);
+      game.touchMode.value = false;
+      await _show(tester, game, const Size(1920, 1080), tv: true);
+      await _play(tester, game, 3);
+      await _show(tester, game, const Size(1920, 1080), tv: true);
+      expect(find.byType(HudOverlay), findsOneWidget);
+      await tester.pumpWidget(const SizedBox());
     });
   }
 

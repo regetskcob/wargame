@@ -51,7 +51,7 @@ void main() {
     expect(onTv, isFalse);
   });
 
-  test('every television lays the menus out 1371 points wide', () {
+  test('every television lays the menus out 1280 points wide', () {
     expect(tvScaleFor(const Size(1920, 1080)), tvScale);
     final android = tvScaleFor(const Size(960, 540));
     expect(960 / android, closeTo(1920 / tvScale, 1e-9));
