@@ -2,6 +2,8 @@
 # tool/release.sh may source it too (after wb_enter_repo / wb_load_conf the
 # wb_* functions work there the same way).
 # shellcheck shell=bash
+# wb_version takes an optional part (name, build); calls without one are meant.
+# shellcheck disable=SC2119,SC2120
 
 say() { printf '\033[1;32m==>\033[0m %s\n' "$*"; }
 warn() { printf '\033[1;33mwarning:\033[0m %s\n' "$*" >&2; }
@@ -360,7 +362,7 @@ wb_doctor() {
   for tool in git flutter dart xcrun gh hugo rsync python3 shellcheck; do
     if command -v "$tool" >/dev/null; then say "$tool: $(command -v "$tool")"; else warn "$tool missing"; fi
   done
-  (wb_keytool >/dev/null) && say "keytool: $(wb_keytool)" || true
+  if (wb_keytool >/dev/null 2>&1); then say "keytool: $(wb_keytool)"; fi
   if [ -f android/key.properties ]; then
     say "android/key.properties present"
   else
