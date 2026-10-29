@@ -126,7 +126,14 @@ void main() {
     addTearDown(() => onAndroidTvForTesting = false);
     addTearDown(tester.view.reset);
     tester.view
-      ..physicalSize = const Size(1371, 771)
+      // 1920 by 1080 at the television's scale, inside its safe margin.
+      ..physicalSize = const Size(1280, 720)
+      ..padding = const FakeViewPadding(
+        left: HzTv.safeHorizontal / HzTv.typeScale,
+        right: HzTv.safeHorizontal / HzTv.typeScale,
+        top: HzTv.safeVertical / HzTv.typeScale,
+        bottom: HzTv.safeVertical / HzTv.typeScale,
+      )
       ..devicePixelRatio = 1;
     final game = offlineGame();
     await pumpRouterApp(tester, game, AccountButton(game: game));

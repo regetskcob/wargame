@@ -272,9 +272,11 @@ class _GameAppState extends State<GameApp> {
                     SingleActivator(LogicalKeyboardKey.arrowUp):
                         PreviousFocusIntent(),
                   },
-                  child: FixedScale(
-                    scale: tvScaleFor(MediaQuery.sizeOf(context)),
-                    child: child!,
+                  child: TvSafeArea(
+                    child: FixedScale(
+                      scale: tvScaleFor(MediaQuery.sizeOf(context)),
+                      child: child!,
+                    ),
                   ),
                 ),
               )

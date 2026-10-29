@@ -24,10 +24,12 @@ the start page, no touch sticks, no camera, no room links. `onAppleTv` is
 only for what the Apple TV alone has, the Siri Remote and its settings.
 `remoteName` names the remote on screen.
 
-The menus are laid out 1371 points wide on every television
+The menus are laid out 1280 points wide on every television
 (`tvScaleFor`): the Apple TV is always 1920 points wide and draws them at
-1.4, Android TV is mostly 960 wide (1080p at twice the density) and draws
-them at 0.7. Both end up the same size on the panel, so the layouts tried on
+Horizont's `HzTv.typeScale` of 1.5, Android TV is mostly 960 wide (1080p at
+twice the density) and draws them at 0.75. Menus and HUD keep Horizont's
+safe margin of 80 at the sides and 60 above and below (`TvSafeArea`, handed
+down as the screen's padding), the round itself fills the panel. Both end up the same size on the panel, so the layouts tried on
 the Apple TV hold.
 
 ## Android TV and Google TV

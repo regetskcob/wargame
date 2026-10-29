@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:horizont/horizont.dart';
 
 import '../../tv/tv_input.dart';
 
@@ -49,12 +50,13 @@ double menuScaleFor(Size size) {
 }
 
 /// How much larger the Apple TV draws everything than a desktop browser on
-/// a screen of the same size, as it is seen from across the room.
-const tvScale = 1.4;
+/// a screen of the same size, as it is seen from across the room: Horizont's
+/// type scale for the television.
+const tvScale = HzTv.typeScale;
 
 /// The scale for a television of [screen] logical pixels. The Apple TV is
 /// always 1920 wide, Android TV mostly 960 (1080p at twice the density), so
-/// the menus get the same 1371 points of width on both and keep the
+/// the menus get the same 1280 points of width on both and keep the
 /// layouts tried on the Apple TV.
 double tvScaleFor(Size screen) =>
     screen.width <= 0 ? tvScale : screen.width * tvScale / 1920;
@@ -155,6 +157,40 @@ class FixedScale extends StatelessWidget {
           child: child,
         ),
       ),
+    );
+  }
+}
+
+/// Horizont's safe margin of a television, `HzTv.safeVertical` above and
+/// below and `HzTv.safeHorizontal` at the sides, given to everything below
+/// as the screen's padding: menus and HUD keep inside it through their
+/// `SafeArea`, while the round itself still fills the whole panel.
+class TvSafeArea extends StatelessWidget {
+  const TvSafeArea({required this.child, super.key});
+
+  final Widget child;
+
+  static const margin = EdgeInsets.symmetric(
+    horizontal: HzTv.safeHorizontal,
+    vertical: HzTv.safeVertical,
+  );
+
+  static EdgeInsets _atLeast(EdgeInsets a) => EdgeInsets.fromLTRB(
+    max(a.left, margin.left),
+    max(a.top, margin.top),
+    max(a.right, margin.right),
+    max(a.bottom, margin.bottom),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final media = MediaQuery.of(context);
+    return MediaQuery(
+      data: media.copyWith(
+        padding: _atLeast(media.padding),
+        viewPadding: _atLeast(media.viewPadding),
+      ),
+      child: child,
     );
   }
 }

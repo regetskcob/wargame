@@ -22,6 +22,11 @@ gepflegt.
   Horizonts Auswahl und sagt Screenreadern, dass sie gewählt ist, Abstände
   liegen auf dem Raster, und große Werte wie der Raumcode nehmen eine
   Größe der Typo-Skala
+- Auf dem Fernseher sind die Menüs etwas größer (1,5) und halten einen
+  sicheren Rand zum Bildschirmrand, das HUD bleibt darin in den Ecken;
+  Symbolknöpfe stehen in Textfarbe, der Akzent markiert nur Gewähltes
+- Die Browserleiste des Web-Spiels nimmt den Seitengrund an, hell oder
+  dunkel
 
 ## 1.8.1 (18) – 27.10.2026
 

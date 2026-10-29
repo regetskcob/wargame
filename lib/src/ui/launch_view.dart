@@ -458,7 +458,7 @@ class _ModeCard extends StatelessWidget {
 
   Widget _card(BuildContext context) {
     // A free-standing card: surface, the one outline, radius 10. The way on
-    // is the chevron in the accent; hover tints the card like a selection.
+    // is the chevron in ink; hover tints the card like a selection.
     return Material(
       color: GameColors.surface,
       shape: GameShapes.card(),
@@ -497,7 +497,7 @@ class _ModeCard extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(HorizontSymbols.chevronRight, color: GameColors.accentText),
+              Icon(HorizontSymbols.chevronRight, color: GameColors.text),
             ],
           ),
         ),

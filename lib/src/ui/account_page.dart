@@ -227,11 +227,8 @@ class _AccountPageState extends State<AccountPage> {
                       : IconButton(
                           tooltip: tr('Rufnamen speichern', 'Save call sign'),
                           onPressed: dirty && _nameValid ? _rename : null,
-                          // Dim until there is something to save.
-                          style: IconButton.styleFrom(
-                            foregroundColor: GameColors.accentText,
-                            disabledForegroundColor: GameColors.textFaint,
-                          ),
+                          // Ink from the theme, faint until there is
+                          // something to save.
                           icon: const Icon(HorizontSymbols.check),
                         ),
                 ),

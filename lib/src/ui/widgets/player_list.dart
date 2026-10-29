@@ -61,7 +61,7 @@ class PlayerList extends StatelessWidget {
                   Icon(
                     HorizontSymbols.star,
                     size: HzIconSize.badge,
-                    color: GameColors.accentText,
+                    color: GameColors.text,
                   ),
                 ],
                 if (member.team > 0) ...[
