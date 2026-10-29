@@ -8,7 +8,7 @@
 <title>{{ if .IsHome }}{{ $name }} – {{ $subtitle }}{{ else }}{{ .Title }} · {{ $name }}{{ end }}</title>
 <meta name="description" content="{{ $promo }}">
 {{- /* Browser chrome in the page's ground, the Gelände of the tokens. */}}
-<meta name="theme-color" content="{{ $pz.neutralDark.bg }}">
+{{ partial "horizont/theme-color.html" (dict "product" "panzergefecht" "scheme" "dark") }}
 <meta name="color-scheme" content="dark">
 <meta property="og:type" content="website">
 <meta property="og:title" content="{{ $name }} – {{ $subtitle }}">
