@@ -43,17 +43,7 @@ cmd="${1:-}"
 [ $# -gt 0 ] && shift
 case "$cmd" in
   verify)
-    case "${1:-}" in
-      "") "$wb" verify ;;
-      --quick)
-        "$wb" verify --quick
-        # werkbank skips verify_extra with --quick; the floor belongs to
-        # the quick check all the same, as in CI.
-        coverage_floor
-        say "Quick check green, coverage floor included"
-        ;;
-      *) usage ;;
-    esac
+    case "${1:-}" in "" | --quick) "$wb" verify "$@" ;; *) usage ;; esac
     ;;
   android) exec tool/release_android.sh "$@" ;;
   ios) exec tool/archive_ios.sh "$@" ;;

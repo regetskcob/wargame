@@ -105,11 +105,9 @@ Ordnerstruktur (Teil von `verify` und der CI).
 
 Ausnahmen vom Standard:
 
-- **Wurzel** (`WB_TOP_EXTRA`): `tvos/` (Apple-TV-App, flutter-tvos),
-  `watchos/` (Apple-Watch-App, flutter-watchos), `apple/` (gemeinsame
-  Signier-Einstellung der drei Xcode-Projekte), `.mcp.json` (MCP-Server
-  für Claude Code). `tvos/` und `watchos/` dürfen Bilder enthalten
-  (`WB_MEDIA_EXTRA`, App-Icons in den Asset-Katalogen).
+- **Wurzel** (`WB_TOP_EXTRA`): `apple/` (gemeinsame Signier-Einstellung der
+  drei Xcode-Projekte). `tvos/`, `watchos/` und `.mcp.json` sind
+  Standard.
 - **`store/ios/`** hat neben `metadata/` und `screenshots/` noch `header/`,
   `icon/`, `mac/`, `tv/`, `watch/`, `license.txt` und
   `apple-app-site-association`, statt `store/macos/screenshots/` und
