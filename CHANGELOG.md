@@ -9,6 +9,8 @@ step, point for point.
 
 ## Unreleased
 
+## 1.8.2 (19) – 2026-10-29
+
 - Tanks drive a little slower, about a tenth forwards and in reverse,
   so rounds feel less hectic
 - The licence terms name the design system Horizont under the MIT
@@ -25,6 +27,10 @@ step, point for point.
   safe margin from the edge of the panel, the HUD inside it in the
   corners; icon buttons are in ink, the accent marks only what is chosen
 - The browser bar of the web game takes the page's ground, light or dark
+- The web game loads nothing from Google any more: its renderer and
+  fallback fonts come from panzergefecht.de itself
+- The apps carry Apple's privacy manifests, and the privacy notice names
+  every platform, Google Play and the online counter
 
 ## 1.8.1 (18) – 2026-10-27
 

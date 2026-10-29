@@ -1,7 +1,10 @@
 BETA DESCRIPTION
 Panzergefecht is a top-down tank duel for iPhone, iPad, Mac, Apple TV and Apple Watch: single player against CPU tanks, multiplayer in a shared room, defense against eight waves and more, and capture the flag, red against blue.
 
-WHAT TO TEST (1.8.1)
+WHAT TO TEST (1.8.2)
+• Tanks drive about a tenth slower: does it feel better?
+• Menus: the chosen option of a choice row is clearly marked; on the Apple TV the menus are larger and keep clear of the screen edge
+• No Live Activity appears after a round any more, the result in the iMessage chat still arrives
 • Multiplayer fix: after a lost round the other tanks no longer drive on straight, and won/lost comes at once, also after a single heavy hit
 • The mini map moves with the round
 • New design: calm olive surfaces, new type, slim symbols and the new app icon. Does it all fit together, is any text cut off or a button hard to hit?

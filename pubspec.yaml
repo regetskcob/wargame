@@ -1,7 +1,7 @@
 name: wargame
 description: "Last-tank-standing multiplayer Panzergefecht built with Flame and Supabase."
 publish_to: none
-version: 1.8.1+18
+version: 1.8.2+19
 
 environment:
   sdk: ^3.13.0

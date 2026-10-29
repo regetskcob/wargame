@@ -10,6 +10,8 @@ gepflegt.
 
 ## Unveröffentlicht
 
+## 1.8.2 (19) – 29.10.2026
+
 - Panzer fahren etwas langsamer, vorwärts wie rückwärts um etwa ein
   Zehntel, damit Runden weniger hektisch wirken
 - Die Lizenzbedingungen nennen das Designsystem Horizont unter der
@@ -27,6 +29,10 @@ gepflegt.
   Symbolknöpfe stehen in Textfarbe, der Akzent markiert nur Gewähltes
 - Die Browserleiste des Web-Spiels nimmt den Seitengrund an, hell oder
   dunkel
+- Das Web-Spiel lädt nichts mehr von Google: Renderer und Ersatzschriften
+  kommen von panzergefecht.de selbst
+- Die Apps tragen Apples Privacy Manifests, und die Datenschutzerklärung
+  nennt alle Plattformen, Google Play und den Online-Zähler
 
 ## 1.8.1 (18) – 27.10.2026
 
