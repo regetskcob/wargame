@@ -108,6 +108,10 @@ class Env {
   /// `de` or `en` for the scene, the language of the device otherwise.
   static String? shotLang;
 
+  static const _sceneDefine = String.fromEnvironment('SHOT_SCENE');
+  static const _langDefine = String.fromEnvironment('SHOT_LANG');
+  static String? _defined(String value) => value.isEmpty ? null : value;
+
   /// Where the finished frame goes, a path the app may write to.
   static String? shotOut;
 
@@ -120,13 +124,16 @@ class Env {
   static int? shotLayout;
 
   /// Reads the launch arguments of a screenshot build, see [shotScene].
+  /// Android has no launch arguments that reach the preferences, so a Wear
+  /// OS build takes scene and language as defines instead
+  /// (`--dart-define=SHOT_SCENE=battle`, store/android/README.md).
   static Future<void> loadShots() async {
     if (!shots || kIsWeb) {
       return;
     }
     final prefs = SharedPreferencesAsync();
-    shotScene = await prefs.getString('SHOT_SCENE');
-    shotLang = await prefs.getString('SHOT_LANG');
+    shotScene = await prefs.getString('SHOT_SCENE') ?? _defined(_sceneDefine);
+    shotLang = await prefs.getString('SHOT_LANG') ?? _defined(_langDefine);
     shotOut = await prefs.getString('SHOT_OUT');
     shotMap = int.tryParse(await prefs.getString('SHOT_MAP') ?? '');
     shotTank = int.tryParse(await prefs.getString('SHOT_TANK') ?? '');

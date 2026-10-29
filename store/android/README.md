@@ -132,6 +132,27 @@ die `wear:`-Tracks. Wear OS braucht eigene Screenshots (quadratisch, nur die
 App ohne Rahmen und ohne runde Maske), die Prüfung schaut sich die App auf
 einer Uhr an.
 
+### Wear-Screenshots
+
+Die Bilder unter `wearScreenshots/` (454 × 454, `wear-01-menu` bis
+`wear-04-defense`) entstehen im runden Emulator (Gerät
+`wearos_large_round`, Systemabbild `android-36;android-wear-signed`).
+Startargumente erreichen die Einstellungen auf Android nicht, darum kommen
+Szene und Sprache als Define in einen Debug-Build, einer je Bild:
+
+```sh
+flutter build apk --debug --android-project-arg=wear=true \
+  --dart-define=SHOTS=true --dart-define=SHOT_SCENE=battle --dart-define=SHOT_LANG=de
+adb install -r -d build/app/outputs/flutter-apk/app-debug.apk
+adb shell am start -n de.regetskcob.wargame/.MainActivity
+# rund 25 s warten, bis die Szene steht (Gefecht 18 s, sonst ist die Runde vorbei)
+adb exec-out screencap -p > wear-03-battle.png
+```
+
+Szenen wie bei der Apple Watch: `menu`, `lobby`, `battle`, `defense`.
+`screencap` liefert das ganze Quadrat ohne Rahmen. Die schwarzen Ecken
+zeichnet das runde Layout der App selbst, wie auf jeder runden Uhr.
+
 ## Angaben in der Play Console
 
 **Datensicherheit:** Keine Weitergabe an Dritte, kein Tracking, Übertragung
@@ -188,5 +209,6 @@ sie nennt die Löschung per E-Mail.
    iOS-Ordner taugt als Testhinweis.
 2. **Einrichtung oben:** App anlegen, erster Upload von Hand, Dienstkonto und
    Secrets.
-3. **Wear OS:** Formfaktor in der Play Console hinzufügen, Wear-Screenshots
-   unter `wearScreenshots/`, die App einmal auf einer echten Uhr spielen.
+3. **Wear OS:** Formfaktor in der Play Console hinzufügen, die
+   Wear-Screenshots aus `wearScreenshots/` hochladen, die App einmal auf
+   einer echten Uhr spielen.
