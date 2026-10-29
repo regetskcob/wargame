@@ -10,7 +10,7 @@ import 'theme.dart';
 /// launch screen on its ground, with a spinner below. Without it the screen
 /// stayed dark while the app reached the server, between the launch screen
 /// and the start page. The images come from Horizont
-/// (`store/tool/horizont_icons.py`).
+/// (`tool/store/horizont_icons.py`).
 class LoadingView extends StatelessWidget {
   const LoadingView({super.key});
 
@@ -20,7 +20,7 @@ class LoadingView extends StatelessWidget {
   static ui.Image? tank;
 
   /// Width of the tank in points, as on the launch screen
-  /// (`LAUNCH_TANK` in `store/tool/horizont_icons.py`).
+  /// (`LAUNCH_TANK` in `tool/store/horizont_icons.py`).
   static const tankWidth = 160.0;
 
   /// The middle colour of the ground, behind it while it loads: the

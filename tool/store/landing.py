@@ -1,6 +1,6 @@
 """Builds the device artwork at the top of the landing page (site/).
 
-    python3 store/tool/landing.py <raw dir>
+    python3 tool/store/landing.py <raw dir>
 
 Unlike the App Store header it shows every platform the game runs on or
 is about to, all alike: the page says below what is out today, the picture

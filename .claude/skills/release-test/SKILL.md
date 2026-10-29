@@ -16,7 +16,7 @@ each case with an id, where it comes from (#12, #21, #23), how it is checked
    `CLAUDE.md`). Say the scope and why in one line before starting.
 2. **Build identity (section 1)** and the **automated gate (section 2)**:
    run them yourself, in this order, and stop at the first blocker:
-   `tool/verify.sh` (full), the three-run flake check, the balance and
+   `tool/release.sh verify` (full), the three-run flake check, the balance and
    trench simulations with the bands of the plan, the long defense
    benchmark (L3, tag `benchmark`), `--tags supabase` when Docker is there.
    L4 runs `integration_test/frame_timing_test.dart` through

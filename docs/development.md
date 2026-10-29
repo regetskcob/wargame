@@ -1,5 +1,32 @@
 # Development
 
+## Commands and folder layout
+
+The repository follows the shared standard of regetskcob's app repositories
+in `tool/werkbank/STANDARD.md` (folders, the `store/` layout, release flow,
+keys). `tool/werkbank/` is a vendored copy of the private werkbank
+repository and is never edited here; `tool/werkbank.conf` holds this
+project's settings, and `CLAUDE.md` lists where the project departs from the
+standard and why. Every check, build and store step starts from one script:
+
+| Command | What |
+| --- | --- |
+| `tool/release.sh verify --quick` | layout, format, analyze, tests without the `supabase` tag (with coverage), coverage floor of 75 % |
+| `tool/release.sh verify` | the same, then web, landing page, iOS, macOS, Android and Wear OS builds, unsigned |
+| `tool/release.sh android phone\|wear [--upload <track>] [--metadata] [--completed]` | signed App Bundle to `build/release/`, upload through fastlane (`tool/release_android.sh`) |
+| `tool/release.sh ios [--upload]` | App Store archive with the watch app inside, to the Xcode Organizer (`tool/archive_ios.sh`) |
+| `tool/release.sh tvos\|macos [--upload]` | the same for the Apple TV or the Mac app (`tool/archive_apple.sh`) |
+| `tool/release.sh upload <path.xcarchive>` | send a checked archive to App Store Connect (`tool/upload_archive.sh`) |
+| `tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac]` | raw store pictures from the simulators (`tool/store_shots.sh`) |
+| `tool/release.sh graphics <raw dir>` | store images from the raw pictures (`tool/store/compose.py`) |
+
+Version, keytool and signature check, and the store simulators come from
+the werkbank (`werkbank version`, `wb_check_signature`, `werkbank sim`);
+the watch embedding, the Supabase URL check, the dart-define check in Xcode
+and the uploads stay in the project's scripts. The store image tools live in
+`tool/store/`, the Play listing in `store/android/metadata/<de-DE|en-US>/`
+(fastlane supply layout).
+
 ## Tests
 
 `test/net/message_budget_test.dart` plays real rounds on a `TankGame` and
@@ -39,7 +66,7 @@ solo waiting room and the sender over the legal links, on a phone, a
 tablet held sideways (both the iOS app) and a Mac window, with pictures
 under `test/ui/goldens/`, in the dark theme only, since the game has no
 light one. Fonts render differently on Linux, so the tag `golden` stays
-out of CI and runs in `tool/verify.sh` on the Mac. After a wanted change
+out of CI and runs in `tool/release.sh verify` on the Mac. After a wanted change
 of the menus, renew them with `flutter test test/ui/goldens_test.dart
 --update-goldens` and look at the pictures before committing.
 
@@ -60,7 +87,7 @@ asynchronously and only mount if the test yields between frames
 (`await Future<void>.delayed(Duration.zero)`); and inside `testWidgets`
 game changes that start timers belong in `tester.runAsync`.
 
-The `pages` workflow and `tool/verify.sh` run the tests with `--coverage` and
+The `pages` workflow and `tool/release.sh verify` run the tests with `--coverage` and
 `dart run tool/coverage.dart --min 75` fails below 75 % of the lines.
 It leaves generated code out, prints the files with the most uncovered
 lines, and lists the files no test loads at all (the app shell, the
@@ -269,17 +296,17 @@ six hours of a hung macOS job), and artifacts are kept for a day (the
 site) or a week (store builds, which live on in TestFlight and Play).
 
 CI only validates; nothing is released from it. The native builds are
-checked locally, by the full `tool/verify.sh` before a push that touches
+checked locally, by the full `tool/release.sh verify` before a push that touches
 `pubspec.*`, `ios/`, `android/`, `tvos/`, the watch, assets or plugins, and
 store builds are made and uploaded on the Mac (a TestFlight run on a macOS
 runner would cost some 250 minutes per platform):
 
 | Store | Script |
 | --- | --- |
-| TestFlight, iOS with the watch app | `tool/archive_ios.sh [--upload]` |
-| TestFlight, Apple TV or Mac | `tool/archive_apple.sh tvos\|macos [--upload]` |
+| TestFlight, iOS with the watch app | `tool/release.sh ios [--upload]` |
+| TestFlight, Apple TV or Mac | `tool/release.sh tvos\|macos [--upload]` |
 | App Store texts and screenshots | `bundle exec fastlane ios metadata` in `ios/` |
-| Google Play, phone or Wear OS | `tool/release_android.sh phone\|wear [--upload <track>] [--metadata] [--completed]` |
+| Google Play, phone or Wear OS | `tool/release.sh android phone\|wear [--upload <track>] [--metadata] [--completed]` |
 
 Each builds with the release defines, checks the result (versions,
 Supabase URL, signature) and uploads only with its flag. The keys stay on
@@ -304,7 +331,7 @@ its `docs/web.md`): the head with the lockup and a quiet nav, a hero with
 a Kennung, the headline in Literata, "Jetzt spielen" as the one primary
 button, below it every device in one picture on the horizon line
 (`site/assets/header/<lang>/devices.png` and `devices-narrow.png`, drawn
-by `store/tool/landing.py` from the raw shots of `tool/store_shots.sh`),
+by `tool/store/landing.py` from the raw shots of `tool/release.sh shots`),
 then numbered sections
 (`02 — Modi`, `03 — Geräte`, `04 — Beta`, `05 — Fair`) with facts in mono
 and the store screenshots in Horizont's device frames, which open at full
@@ -344,7 +371,7 @@ text and description come from `store/ios/metadata/<lang>/`, the shots
 from `store/ios/screenshots/`, `mac/`, `tv/` and `watch/` (Hugo mounts in
 `site/hugo.toml`). The store images carry a caption and a drawn device, so
 `site/layouts/_partials/shot.html` cuts the bare screen out of them (the
-rectangles in `site/data/screens.yaml` follow `store/tool/compose.py`;
+rectangles in `site/data/screens.yaml` follow `tool/store/compose.py`;
 measure again if its layout changes) and sets it in Horizont's device
 frame, resized to WebP at build time. The description is read into its
 parts, so its layout matters: an opening paragraph (the text of `02 —
@@ -417,8 +444,8 @@ its own. `GameType` in `lib/src/ui/theme.dart` names the styles the game
 uses; widgets never set a `fontFamily` themselves.
 
 Tests that measure text load the real fonts with `loadHorizontFonts()` from
-`package:horizont/testing.dart`. The store tool `store/tool/compose.py`
-finds the same files through `store/tool/horizont_fonts.py`,
+`package:horizont/testing.dart`. The store tool `tool/store/compose.py`
+finds the same files through `tool/store/horizont_fonts.py`,
 so run `flutter pub get` before them.
 
 Since v0.6.3 Horizont cuts its fonts down to Latin with extensions,

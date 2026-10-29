@@ -7,7 +7,7 @@
 # builds it into build/watchos/<conf>/Runner.app and this phase copies it to
 # Panzergefecht.app/Watch. Build 5 went to App Store Connect without a watch
 # app because the archive was made before the watch build existed and the
-# phase only printed a warning. A plain `flutter build ios` (CI, verify.sh)
+# phase only printed a warning. A plain `flutter build ios` (CI, tool/release.sh verify)
 # may still go without the watch; an archive (ACTION=install) may not, unless
 # ALLOW_NO_WATCH=1 says so on purpose.
 

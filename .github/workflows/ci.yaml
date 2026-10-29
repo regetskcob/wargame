@@ -4,7 +4,7 @@ name: ci
 # job. This one checks pull requests on Linux and builds the native apps
 # only when started by hand (Actions > ci > Run workflow, or
 # `gh workflow run ci`): a macOS minute costs ten Linux minutes in a private
-# repository, and tool/verify.sh builds iOS, the Mac app and Android locally
+# repository, and tool/release.sh verify builds iOS, the Mac app and Android locally
 # before a push that needs them. See "CI minutes" in docs/development.md.
 on:
   pull_request:
@@ -41,6 +41,8 @@ jobs:
           flutter-version: 3.47.0
           cache: true
       - run: dart pub get
+      # Folder structure as in tool/werkbank/STANDARD.md.
+      - run: tool/werkbank/bin/werkbank layout
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test --exclude-tags supabase,golden --coverage

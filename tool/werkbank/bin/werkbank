@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# werkbank – shared build, release and screenshot steps of the app repos.
+#
+#   werkbank layout                    folder structure as in STANDARD.md
+#   werkbank verify [--quick]          layout, l10n, format, analyze, tests, then the
+#                                      project's verify_extra (skipped with --quick)
+#   werkbank version [name|build]      version from pubspec.yaml
+#   werkbank android [-- <flutter args>]
+#                                      signed AAB, checked against the debug key,
+#                                      copied to build/release/
+#   werkbank ios [--upload] [-- <flutter args>]
+#                                      IPA, copied to build/release/; --upload sends
+#                                      it to App Store Connect (API key)
+#   werkbank symbols <platform>        keep build/symbols/<platform> outside the repo
+#   werkbank sim <name> <device type> <runtime>
+#                                      find or create the simulator, boot it, print
+#                                      its UDID (e.g. "Store iPhone 6.9"
+#                                      com.apple.CoreSimulator.SimDeviceType.iPhone-16-Pro-Max iOS)
+#   werkbank doctor                    which tools and keys are there
+#
+# Run from anywhere inside the repository. Project settings come from
+# tool/werkbank.conf (a bash file, see STANDARD.md); tool/werkbank/ itself is a
+# copy of the werkbank repository and is never edited in the project.
+set -euo pipefail
+
+WB_HOME="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source-path=SCRIPTDIR/..
+# shellcheck source=lib/common.sh
+. "$WB_HOME/lib/common.sh"
+
+wb_enter_repo
+wb_load_conf
+
+cmd="${1:-}"
+[ $# -gt 0 ] && shift
+case "$cmd" in
+  layout) wb_layout ;;
+  verify) wb_verify "$@" ;;
+  version) wb_version "${1:-}" ;;
+  android) wb_android "$@" ;;
+  ios) wb_ios "$@" ;;
+  symbols) wb_symbols "${1:?platform}" ;;
+  sim) wb_sim "$@" ;;
+  doctor) wb_doctor ;;
+  *) sed -n '2,24p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2 ;;
+esac

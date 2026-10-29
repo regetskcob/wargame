@@ -50,8 +50,8 @@ All **blocker**.
 | B2 | `CHANGELOG.md` and `CHANGELOG.de.md` have the same version, sections and number of points | auto: diff the headings and bullet counts |
 | B3 | `main` is clean and equal to `origin/main`, Pages and build-status green on that commit (the native builds are A1, locally) | auto: `git status`, `gh run list --branch main --limit 5` |
 | B4 | Every migration in `supabase/migrations` is live | auto: `supabase migration list` shows each on both sides |
-| B5 | The archive was built with the right defines: `tool/check_dart_defines.sh` passed in the Xcode build, `Env` points at the live project (build 4 shipped with all defines glued into `SUPABASE_URL`) | auto: `tool/archive_ios.sh` checks URL, versions, watch app and signature |
-| B6 | The iOS archive contains the watch app (build 5 went out without one) | auto: `tool/archive_ios.sh`; after processing App Store Connect → TestFlight → "Apple Watch: yes" (owner) |
+| B5 | The archive was built with the right defines: `tool/check_dart_defines.sh` passed in the Xcode build, `Env` points at the live project (build 4 shipped with all defines glued into `SUPABASE_URL`) | auto: `tool/release.sh ios` checks URL, versions, watch app and signature |
+| B6 | The iOS archive contains the watch app (build 5 went out without one) | auto: `tool/release.sh ios`; after processing App Store Connect → TestFlight → "Apple Watch: yes" (owner) |
 | B7 | No secret in the repo or the bundle (`key.properties`, service keys) | auto: `git grep -nE "service_role|sb_secret|BEGIN (RSA|EC) PRIVATE"` finds nothing |
 
 ## 2. Automated gate
@@ -60,7 +60,7 @@ All **blocker** unless marked. Runs on the release commit.
 
 | Id | Check | Command |
 | --- | --- | --- |
-| A1 | Format, analyze, all tests without the `supabase` tag, coverage ≥ 75 %, builds for web, landing page, iOS, macOS, Android, Wear OS | `tool/verify.sh` |
+| A1 | Format, analyze, all tests without the `supabase` tag, coverage ≥ 75 %, builds for web, landing page, iOS, macOS, Android, Wear OS | `tool/release.sh verify` |
 | A2 | Every mode on every bot level plays through without a throw; two real games in one room over `LoopbackNet`; every overlay on desktop and phone, DE and EN, without overflow | part of A1: `smoke_test`, `two_player_smoke_test`, `overlays_smoke_test` |
 | A3 | Wire format and RPC contract unchanged for older clients | part of A1: `wire_format_test`, `rpc_contract_test` |
 | A4 | Realtime budget: rooms, phones, presence bursts stay within `GameConfig.roomLoad` / `padLoad` | part of A1: `message_budget_test`, `pad_budget_test`, `presence_throttle_test`, `room_capacity_test`, `pad_screen_test`, `rooms_busy_test` |
@@ -240,7 +240,7 @@ Per platform the smoke path S1–S6 where the platform has it, plus:
 | Id | Case | From | How | Sev |
 | --- | --- | --- | --- | --- |
 | F12.1 | Store texts (iOS, Play) and the landing page name things as the game does (glossary above); the English and German promo say the same | #23 W7 | sim: read `store/`, `site/` | M |
-| F12.2 | Screenshots show the current build (`tool/store_shots.sh` + contact sheet), no real vehicle names, no "Bundeswehr" | memory | sim | M |
+| F12.2 | Screenshots show the current build (`tool/release.sh shots` + contact sheet), no real vehicle names, no "Bundeswehr" | memory | sim | M |
 | F12.3 | Release notes match the changelog of this version | release skill | sim | M |
 
 ### 3.13 Older versions against this release

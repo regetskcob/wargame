@@ -89,7 +89,7 @@ view finds them in the browser cache. Android draws only the ground colour behin
 (`@color/launch_ground`); since Android 12 the system splash shows the tank
 as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
 does. The images come from Horizont, the tank standing on the horizon
-in the middle of its ground: `python3 store/tool/horizont_icons.py` copies
+in the middle of its ground: `python3 tool/store/horizont_icons.py` copies
 them for all of them (iOS image sets, Android drawables, `assets/images/`).
 
 You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
@@ -126,7 +126,7 @@ your upload key; without it Gradle signs with the debug key, which Google Play
 rejects. Store texts, icons and screenshots for both stores live in
 `store/ios` and `store/android`, each with a README of what goes where. The
 release bundle is built, checked and uploaded to a Google Play track on
-this machine with `tool/release_android.sh` (fastlane underneath), see
+this machine with `tool/release.sh android` (fastlane underneath), see
 `store/android/README.md`. To play
 a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
 phone the LAN address of your Mac.
@@ -183,8 +183,8 @@ To try it, build for the simulator, install the app, open Messages, a chat
 with one of its fake numbers and the app list behind "+". After installing
 a new build, quit Messages once, or it keeps looking for the old extension.
 The icons in `iMessage App Icon.stickersiconset` come from Horizont
-(`store/tool/horizont_icons.py`), the square app icon and its 4:3 version.
-`python3 store/tool/imessage.py` draws the two pictures of the bubble: tanks of three colours on the battle ground for
+(`tool/store/horizont_icons.py`), the square app icon and its 4:3 version.
+`python3 tool/store/imessage.py` draws the two pictures of the bubble: tanks of three colours on the battle ground for
 Last Tank Standing and capture the flag, the red defence holding its base
 on a sandy road against blue tanks for the defense and the duel. Both app
 and extension carry the app group in their entitlements; signing in the
@@ -222,7 +222,7 @@ entitlement needs a development or distribution certificate, so CI, which
 signs ad hoc, takes it out before its Mac build. Links clicked in Messages,
 Mail or Notes open the app; `open` in the Terminal always goes to the
 browser. The Mac icon set comes from the design system Horizont like all app
-icons (`python3 store/tool/horizont_icons.py`): the square on Apple's rounded
+icons (`python3 tool/store/horizont_icons.py`): the square on Apple's rounded
 plate with a shadow, since macOS does not round icons itself.
 
 ```sh
@@ -233,7 +233,7 @@ flutter build macos --release \
 
 The build signs with the team's development certificate from
 `apple/Signing.xcconfig`. To hand it on, run
-`tool/archive_apple.sh macos [--upload]`, which archives with the release
+`tool/release.sh macos [--upload]`, which archives with the release
 defines, checks version, Supabase URL and team, puts the archive into the
 Organizer and with `--upload` sends it to TestFlight, or archive in Xcode (Product > Archive) and from the organizer either upload to
 App Store Connect or export with Developer ID, which Xcode notarizes. A
@@ -335,7 +335,7 @@ flutter-watchos run -d <watch-simulator-id>  # hot reload
 flutter-watchos run -d <watch-id> --release  # real watch: Series 9+, watchOS 26+
 ```
 
-For the App Store, `tool/archive_ios.sh` builds the watch app first, then the
+For the App Store, `tool/release.sh ios` builds the watch app first, then the
 iOS archive, checks that `Panzergefecht.app/Watch/Runner.app` is inside with
 the same version and build, and copies the archive into the Organizer as
 "Panzergefecht <version> (<build>)"; with `--upload` it also sends it to App
@@ -350,7 +350,7 @@ builds the watch app for the Simulator with the toolchain tag
 `v3.47.5-watchos.0.1.1`, which needs no account, so a broken watch build
 shows up there. Release builds need a signed-in
 `flutter-watchos` account and stay local, like every release build
-(`tool/archive_ios.sh`).
+(`tool/release.sh ios`).
 
 Use `onWatch` from `lib/src/watch/watch_support.dart` to branch for a watch
 (the Apple Watch or Wear OS), `FlutterWatchosPlatform.isWatch` only for what
@@ -399,9 +399,9 @@ The Wear OS build is the Android app with `-P wear=true`: it merges the
 manifest of the library module `android/wear/` (`android.hardware.type.watch`,
 `com.google.android.wearable.standalone`, `VIBRATE`), raises minSdk to 30 (Wear OS 3)
 and adds 100000 to the version code. Play takes it as a form factor of its
-own with `wear:` tracks, uploaded with `tool/release_android.sh wear`
+own with `wear:` tracks, uploaded with `tool/release.sh android wear`
 (see `store/android/README.md`). The phone bundle carries
-none of this. `tool/verify.sh` and a manual run of `ci` build both.
+none of this. `tool/release.sh verify` and a manual run of `ci` build both.
 
 State: tried in the Wear OS 6 emulator (small round, 384 px), not on a real
 watch yet; the Wear OS form factor still has to be added in the Play Console.
@@ -427,7 +427,7 @@ screens as the browser, drawn larger (`tvScale`), and shares the bundle id
 `de.regetskcob.wargame` with the iOS app, so both can be one universal
 purchase. The icon, a back and a front layer, the top shelf with the name on the
 horizon and the launch image come from Horizont
-(`store/tool/horizont_icons.py`). State: tried in the Apple TV Simulator only.
+(`tool/store/horizont_icons.py`). State: tried in the Apple TV Simulator only.
 
 Nothing scrolls on the television. The menus use its width: the start page puts
 the controllers, the phone pairing and the leaderboard in a column beside the
@@ -522,7 +522,7 @@ export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
 flutter-tvos build tvos --debug --simulator  # debug, Simulator only
 flutter-tvos run -d <apple-tv-simulator-id>  # hot reload
 flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
-python3 store/tool/horizont_icons.py         # icon, top shelf, launch image
+python3 tool/store/horizont_icons.py         # icon, top shelf, launch image
 ```
 
 Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the
@@ -542,7 +542,7 @@ breaks the sound on the Apple TV until the next `flutter-tvos` build.
 
 Signing comes from `apple/Signing.xcconfig` like on iOS, automatic as well:
 the team has an Apple TV registered, which Xcode needs for a tvOS
-development profile. `tool/archive_apple.sh tvos [--upload]` puts a checked
+development profile. `tool/release.sh tvos [--upload]` puts a checked
 archive into the Organizer and with `--upload` sends it to TestFlight.
 flutter-tvos signs the engine with the Apple Distribution certificate (Apple
 rejects an unsigned one with ITMS-91065), so that certificate has to be in
@@ -552,6 +552,6 @@ the engine, and an upload without them warns "Upload Symbols Failed".
 `tool/make_dsym.sh` makes them while archiving, from the tvOS project's embed
 phases and from `tool/embed_watch_app.sh` (which also copies the watch app's
 own dSYM): the binary's symbol table under its UUID, so crash reports name
-the functions, without line numbers. `tool/archive_ios.sh` and
-`tool/archive_apple.sh tvos` refuse an archive without them.
+the functions, without line numbers. `tool/release.sh ios` and
+`tool/release.sh tvos` refuse an archive without them.
 

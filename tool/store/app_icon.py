@@ -1,7 +1,7 @@
 """The old app icon: the tank from above on the plain ground of the battle map.
 
 The app icons themselves now come from the design system Horizont
-(store/tool/horizont_icons.py copies them). This module only keeps the
+(tool/store/horizont_icons.py copies them). This module only keeps the
 layers the other drawings still use: the tank and its ground for the store
 graphics (compose.py) and the bubbles of the iMessage app (imessage.py). Needs Pillow.
 """

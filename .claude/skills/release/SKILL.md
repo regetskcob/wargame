@@ -19,9 +19,9 @@ description: Prepare a store release of Panzergefecht - version bump, local Test
   workflows (docs/development.md "CI minutes"). Every script below checks
   its result and uploads only with its flag; pass the flag only on the
   user's word.
-- **Apple TV, Mac**: `tool/archive_apple.sh tvos|macos [--upload]`, same
+- **Apple TV, Mac**: `tool/release.sh tvos|macos [--upload]`, same
   checks and Organizer copy as for iOS.
-- **Google Play**: `tool/release_android.sh phone|wear [--upload internal]
+- **Google Play**: `tool/release.sh android phone|wear [--upload internal]
   [--metadata] [--completed]` builds with `android/key.properties`, refuses
   a debug-signed bundle or a glued Supabase URL, keeps a copy in
   `build/release/` and uploads through fastlane with
@@ -31,11 +31,11 @@ description: Prepare a store release of Panzergefecht - version bump, local Test
   in `ios/` with an App Store Connect API key in `ASC_KEY_ID`,
   `ASC_ISSUER_ID`, `ASC_KEY_PATH`.
 - **iOS with the watch app**: from an up to date main checkout run
-  `tool/archive_ios.sh`.
+  `tool/release.sh ios`.
   It builds the watch app, then `flutter build ipa` (both with
   `--dart-define=ACCOUNTS=true`), checks watch app, versions, Supabase URL
   and signature, and copies the archive to the Organizer as
-  `Panzergefecht <version> (<build>) <time>`. `tool/archive_ios.sh --upload`
+  `Panzergefecht <version> (<build>) <time>`. `tool/release.sh ios --upload`
   also sends it to App Store Connect (Apple account signed in to Xcode, one
   retry on a broken connection); pass it only on the user's word. Upload
   exactly that archive, never another one; build

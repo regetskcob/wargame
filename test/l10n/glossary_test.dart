@@ -110,8 +110,8 @@ void main() {
   for (final (dir, lang) in const [
     ('store/ios/metadata/de-DE', 'de'),
     ('store/ios/metadata/en-US', 'en'),
-    ('store/android/metadata/android/de-DE', 'de'),
-    ('store/android/metadata/android/en-US', 'en'),
+    ('store/android/metadata/de-DE', 'de'),
+    ('store/android/metadata/en-US', 'en'),
   ]) {
     final folder = Directory(dir);
     if (!folder.existsSync()) {

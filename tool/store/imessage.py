@@ -1,8 +1,8 @@
 """Draws the bubbles of the iMessage app.
 
-    python3 store/tool/imessage.py
+    python3 tool/store/imessage.py
 
-Its icons come from Horizont (store/tool/horizont_icons.py). The bubbles
+Its icons come from Horizont (tool/store/horizont_icons.py). The bubbles
 show a scene of the mode without any of the game's buttons: tanks of three
 colours fighting on the olive ground of the battle map, and the red defence
 holding its base on a sandy road against the blue waves. Writes into

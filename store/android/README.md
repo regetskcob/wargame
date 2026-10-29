@@ -1,37 +1,37 @@
 # Google Play
 
 Alles, was die Play Console für Panzergefecht braucht. Die Ordner folgen dem
-Aufbau von `fastlane supply`: `tool/release_android.sh` lädt Bundle, Texte
+Aufbau von `fastlane supply`: `tool/release.sh android` lädt Bundle, Texte
 und Bilder vom Mac hoch (siehe [Deployment](#deployment)). Von Hand lassen sie sich genauso
 in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
 
 | Feld in der Play Console | Datei |
 | --- | --- |
-| App-Name (max. 30) | `metadata/android/de-DE/title.txt` |
-| Kurzbeschreibung (max. 80) | `metadata/android/de-DE/short_description.txt` |
-| Vollständige Beschreibung (max. 4000) | `metadata/android/de-DE/full_description.txt` |
-| Versionshinweise (max. 500) | `metadata/android/de-DE/changelogs/default.txt`, für eine bestimmte Version `<versionCode>.txt` |
-| App-Symbol 512 × 512 | `metadata/android/de-DE/images/icon.png` |
-| Vorstellungsgrafik 1024 × 500 | `metadata/android/de-DE/images/featureGraphic.png` |
-| Smartphone-Screenshots (1080 × 1920) | `metadata/android/de-DE/images/phoneScreenshots/*.png` |
-| Tablet-Screenshots 7" (1920 × 1200) | `metadata/android/de-DE/images/sevenInchScreenshots/*.png` |
-| Tablet-Screenshots 10" (2560 × 1600) | `metadata/android/de-DE/images/tenInchScreenshots/*.png` |
-| Wear-OS-Screenshots (quadratisch, mindestens 384 × 384) | `metadata/android/de-DE/images/wearScreenshots/*.png` |
+| App-Name (max. 30) | `metadata/de-DE/title.txt` |
+| Kurzbeschreibung (max. 80) | `metadata/de-DE/short_description.txt` |
+| Vollständige Beschreibung (max. 4000) | `metadata/de-DE/full_description.txt` |
+| Versionshinweise (max. 500) | `metadata/de-DE/changelogs/default.txt`, für eine bestimmte Version `<versionCode>.txt` |
+| App-Symbol 512 × 512 | `metadata/de-DE/images/icon.png` |
+| Vorstellungsgrafik 1024 × 500 | `metadata/de-DE/images/featureGraphic.png` |
+| Smartphone-Screenshots (1080 × 1920) | `metadata/de-DE/images/phoneScreenshots/*.png` |
+| Tablet-Screenshots 7" (1920 × 1200) | `metadata/de-DE/images/sevenInchScreenshots/*.png` |
+| Tablet-Screenshots 10" (2560 × 1600) | `metadata/de-DE/images/tenInchScreenshots/*.png` |
+| Wear-OS-Screenshots (quadratisch, mindestens 384 × 384) | `metadata/de-DE/images/wearScreenshots/*.png` |
 
 Play erlaubt keine Seite, die mehr als doppelt so lang ist wie die andere, die
-6,9"-Bilder aus dem App Store passen deshalb nicht. `../tool/compose.py`
+6,9"-Bilder aus dem App Store passen deshalb nicht. `tool/store/compose.py`
 baut aus denselben Rohaufnahmen beide Sätze und die Vorstellungsgrafik,
-`../tool/horizont_icons.py` kopiert die Launcher-Icons (klassisch und adaptiv
+`tool/store/horizont_icons.py` kopiert die Launcher-Icons (klassisch und adaptiv
 mit monochromer Ebene) und das Play-Symbol aus dem Design-System Horizont:
 
 ```sh
 pip3 install --user pillow
-python3 store/tool/compose.py <ordner-mit-rohaufnahmen>
-python3 store/tool/horizont_icons.py ../horizont
+tool/release.sh graphics <ordner-mit-rohaufnahmen>
+python3 tool/store/horizont_icons.py ../horizont
 ```
 
 Englische Screenshots und Vorstellungsgrafik liegen genauso unter
-`metadata/android/en-US/images/`. Die Screenshots zeigen die
+`metadata/en-US/images/`. Die Screenshots zeigen die
 iOS-Rohaufnahmen ohne Statusleiste, das Spiel
 zeichnet auf Android dasselbe Bild.
 
@@ -57,17 +57,17 @@ Hand-Lauf von `ci`, Play nimmt ein solches Bundle aber nicht an.
 ## Deployment
 
 Gebaut und hochgeladen wird nur lokal, nie in der CI (siehe
-`docs/development.md` „CI minutes“): `tool/release_android.sh` baut das
+`docs/development.md` „CI minutes“): `tool/release.sh android` baut das
 signierte Bundle mit `--dart-define=ACCOUNTS=true` (URL und Schlüssel von
 Supabase sind die Vorgaben in `Env`), prüft Signatur und Supabase-URL, legt
 eine Kopie in `build/release/` ab und lädt es mit `--upload` per
 `fastlane supply` aus `android/fastlane` hoch:
 
 ```sh
-tool/release_android.sh phone                          # nur bauen und prüfen
-tool/release_android.sh phone --upload internal         # Entwurf im internen Test
-tool/release_android.sh phone --upload internal --metadata --completed
-tool/release_android.sh wear --upload internal          # Wear OS, eigener Track
+tool/release.sh android phone                          # nur bauen und prüfen
+tool/release.sh android phone --upload internal         # Entwurf im internen Test
+tool/release.sh android phone --upload internal --metadata --completed
+tool/release.sh android wear --upload internal          # Wear OS, eigener Track
 ```
 
 | Option | Bedeutung |
@@ -100,7 +100,7 @@ tool/release_android.sh wear --upload internal          # Wear OS, eigener Track
 
 ### Lokal hochladen
 
-Bundles baut `tool/release_android.sh` (oben). Die übrigen Lanes laufen in
+Bundles baut `tool/release.sh android` (oben). Die übrigen Lanes laufen in
 `android/` von Hand:
 
 ```sh
@@ -123,7 +123,7 @@ als eigenen Formfaktor mit eigenen Tracks (`wear:internal`,
   das Manifest aus `android/wear/` an (`android.hardware.type.watch`,
   standalone, Vibration), setzt minSdk 30 (Wear OS 3) und schlägt 100000 auf den
   versionCode, damit er sich nie mit dem Handy-Bundle überschneidet.
-- `tool/release_android.sh wear --upload internal`, genauso in `android/`
+- `tool/release.sh android wear --upload internal`, genauso in `android/`
   `promote form_factor:wear from:internal to:production`.
 
 Einmalig in der Play Console: Test und Release > Einstellungen > Formfaktoren

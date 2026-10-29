@@ -1,4 +1,4 @@
-# Where the screen sits in the composed store images (store/tool/compose.py,
+# Where the screen sits in the composed store images (tool/store/compose.py,
 # device() and compose()), as x, y, width and height in pixels. The page cuts
 # the bare screen out and sets it in Horizont's device frame instead of
 # showing a drawn device inside a drawn device. The rectangles follow from
