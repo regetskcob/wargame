@@ -12,7 +12,9 @@
 # with --all, it was not used within the last 12 hours. Its merged branch,
 # its Xcode DerivedData and the Claude scratchpad of its session go with
 # it. Run by /ship and /release as their last step; the session's working
-# directory and scratchpad are gone afterwards.
+# directory and scratchpad are gone afterwards. The main checkout is
+# fast-forwarded to origin/main at the end (tool/sync_main.sh), so the
+# user's editor shows what the session shipped.
 
 set -uo pipefail
 
@@ -31,6 +33,7 @@ common=$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || {
   exit 2
 }
 main_dir=$(dirname "$common")
+sync_main="$main_dir/tool/sync_main.sh"
 worktrees_dir="$main_dir/.claude/worktrees"
 derived="$HOME/Library/Developer/Xcode/DerivedData"
 # Claude Code keeps a scratchpad per working directory, named after the path
@@ -99,13 +102,17 @@ if $all; then
     finish "$w"
   done
   git -C "$main_dir" worktree prune
+  $dry || "$sync_main"
   exit 0
 fi
 
 here=$(git rev-parse --show-toplevel)
 case "$here" in
   "$worktrees_dir"/*) ;;
-  *) echo "not in an app-made worktree ($here), nothing to remove"; exit 0 ;;
+  *) echo "not in an app-made worktree ($here), nothing to remove"; $dry || "$sync_main"; exit 0 ;;
 esac
 cd "$main_dir" || exit 1
 finish "$here"
+status=$?
+$dry || "$sync_main"
+exit $status

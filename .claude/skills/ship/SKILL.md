@@ -28,7 +28,10 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    `/db-migration`, it must have passed the PGlite check), because the
    client must never call functions the database lacks.
 5. `git push origin HEAD:main`. If main moved meanwhile, merge again and
-   repeat from 3.
+   repeat from 3. Then `tool/sync_main.sh`: it fast-forwards the user's
+   main checkout (`~/dev/wargame`) to the pushed `main`, so their editor
+   does not show the old files; it leaves a dirty or diverged checkout
+   alone and says so, pass that on in the report.
 6. `gh run list --branch main --limit 3` and `gh run watch <id>` for `pages`
    once, without polling loops. `pages` is the only check on `main` (format,
    analyze, tests, build, deploy in one Linux job); `ci` builds the native

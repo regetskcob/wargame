@@ -60,7 +60,8 @@ description: Prepare a store release of Panzergefecht - version bump, local Test
   after NO GO.
 - Afterwards: report the build number, and update the
   store memory entries with what is still open in the store consoles.
-- Last, once the upload is through: `tool/finish_worktree.sh` removes this
+- Last, once the upload is through: `tool/finish_worktree.sh` fast-forwards
+  the main checkout to `origin/main` and removes this
   session's worktree with its DerivedData and scratchpad, as at the end
   of `/ship`. The archive in the
   Organizer lives outside it and stays.
