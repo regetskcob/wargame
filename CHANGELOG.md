@@ -9,7 +9,7 @@ step, point for point.
 
 ## Unreleased
 
-## 1.8.2 (19) – 2026-10-29
+## 1.8.2 (19, Google Play 20) – 2026-10-29
 
 - Tanks drive a little slower, about a tenth forwards and in reverse,
   so rounds feel less hectic

@@ -10,7 +10,7 @@ gepflegt.
 
 ## Unveröffentlicht
 
-## 1.8.2 (19) – 29.10.2026
+## 1.8.2 (19, Google Play 20) – 29.10.2026
 
 - Panzer fahren etwas langsamer, vorwärts wie rückwärts um etwa ein
   Zehntel, damit Runden weniger hektisch wirken
