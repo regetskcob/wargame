@@ -1,7 +1,7 @@
 # Standard für App-Repos
 
 Gilt für alle Flutter-App-Repos (KNX Monitor, Panzergefecht, Jagdaufseher, Kalkar
-informiert und alle neuen). Ziel: Jedes Projekt läuft gleich ab und legt gleich ab. Was ein
+kompakt und alle neuen). Ziel: Jedes Projekt läuft gleich ab und legt gleich ab. Was ein
 Projekt anders macht, steht in seiner `CLAUDE.md` und in `tool/werkbank.conf`.
 
 ## Ordnerstruktur

@@ -330,6 +330,10 @@ wb_site_blog() {
   say "Copied to $web/static/$sub ($(du -sh "$web/static/$sub" | cut -f1))"
   if $push; then
     git -C "$web" add "static/$sub"
+    if git -C "$web" diff --cached --quiet -- "static/$sub"; then
+      say "Blog repository unchanged – nothing to push"
+      return 0
+    fi
     git -C "$web" commit -q -m "$WB_APP: Landingpage aktualisieren"
     git -C "$web" push -q
     say "Blog repository pushed – GitHub Pages publishes it"
