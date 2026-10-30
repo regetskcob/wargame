@@ -16,7 +16,8 @@
   },
   "permissions": {
     "allow": [
-      "Bash(tool/verify.sh:*)",
+      "Bash(tool/release.sh verify:*)",
+      "Bash(tool/werkbank/bin/werkbank layout)",
       "Bash(tool/session_context.sh)",
       "Bash(tool/finish_worktree.sh:*)",
       "Bash(flutter analyze:*)",

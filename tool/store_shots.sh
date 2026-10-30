@@ -5,15 +5,17 @@
 # (Env.shotScene, lib/src/game/tank_game/shots.dart). The scene goes in as
 # launch arguments, which land in the app's user defaults.
 #
-#   tool/store_shots.sh <raw dir> [ios] [ipad] [tv] [mac]   (default: all)
-#   python3 store/tool/compose.py <raw dir>
+#   tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac]   (default: all)
+#   tool/release.sh graphics <raw dir>         (tool/store/compose.py)
 #
 # Writes <raw dir>/<de-DE|en-US>/<name>.png with the names compose.py reads,
 # and copies the Apple Watch frames from store/ios/watch/, which the watch
 # app does not take itself.
+# $defines splits on purpose; the build folders hold one app each.
+# shellcheck disable=SC2086,SC2012
 set -eu
 
-raw="${1:?usage: tool/store_shots.sh <raw dir> [ios] [ipad] [tv] [mac]}"
+raw="${1:?usage: tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac]}"
 shift
 targets="${*:-ios ipad tv mac}"
 root="$(cd "$(dirname "$0")/.." && pwd)"
@@ -31,17 +33,9 @@ mac_scenes="${MAC_SCENES:-m_battle:battle m_defense:defense m_room:room}"
 langs() { echo "${SHOT_LANGS:-de:de-DE en:en-US}"; }
 
 # The id of the simulator named $1, created from device type $2 and the
-# newest runtime of family $3 (iOS, tvOS) when missing.
+# newest runtime of family $3 (iOS, tvOS) when missing, and booted.
 simulator() {
-  id=$(xcrun simctl list devices available | grep "    $1 (" | head -1 |
-    sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
-  if [ -z "$id" ]; then
-    runtime=$(xcrun simctl list runtimes available | grep "^$3 " | tail -1 |
-      awk '{print $NF}')
-    id=$(xcrun simctl create "$1" "$2" "$runtime")
-  fi
-  xcrun simctl bootstatus "$id" -b >/dev/null
-  echo "$id"
+  "$root/tool/werkbank/bin/werkbank" sim "$1" "$2" "$3"
 }
 
 # Waits up to $2 seconds for the file $1.
@@ -63,7 +57,7 @@ shoot_sim() {
     for entry in $2; do
       out="$raw/${pair#*:}/${entry%%:*}.png"
       # A second try: the first launch after installing can take long.
-      for try in 1 2; do
+      for _ in 1 2; do
         rm -f "$tmp/shot.png"
         xcrun simctl launch --terminate-running-process "$sim" $bundle \
           -ignoreGamepads YES -SHOT_SCENE "${entry#*:}" \

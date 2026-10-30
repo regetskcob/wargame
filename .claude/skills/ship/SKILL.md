@@ -15,8 +15,8 @@ deploys the web game at once (GitHub Pages), so nothing goes up red.
    `sync_with_base_branch` tool). Resolve conflicts; the files under `lib/src/game/tank_game/`,
    `l10n.dart` and `README.md` are the usual hot spots, keep both sides.
 3. Pick the check by the size of the change. Small changes to Dart code or
-   docs only: `tool/verify.sh --quick` (format, analyze, tests); the `pages`
-   workflow builds the web app anyway. The full `tool/verify.sh` (plus web,
+   docs only: `tool/release.sh verify --quick` (format, analyze, tests); the `pages`
+   workflow builds the web app anyway. The full `tool/release.sh verify` (plus web,
    iOS, Android, several minutes) is for changes to `pubspec.*`, `ios/`,
    `android/`, `tvos/`, the watch app, assets, plugins or the version, for
    larger refactors and before store releases; run it in the background and

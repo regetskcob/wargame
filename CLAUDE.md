@@ -68,14 +68,14 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Navigation | go_router in `lib/src/app/routes.dart`: `/` = Spiel (alles in der Runde bleibt Flame-Overlay), darüber `/pad/:code` (Handy-Controller) und `/scan/room\|pad` (QR-Kamera). Raum bleibt im Web in `?room=` vor dem `#`, Dialoge weiter per `showDialog` |
 | Watch | `lib/src/watch/` für Apple Watch und Wear OS (Android-App mit Watch-Screens, Krone über `WearPlugin.kt` → `wear_crown.dart`, runde Uhren mit `watchRound`/`watchInsets`, Wear-Bundle mit `--android-project-arg=wear=true` und Manifest aus `android/wear/`), verzweigen mit `onWatch` (beide Uhren), `onWear` bzw. `FlutterWatchosPlatform.isWatch` nur für eine |
 | Apple TV | `tvos/` (flutter-tvos), `lib/src/tv/` (Steuerung, Fokusrahmen, zweiter Spieler mit eigener Spielinstanz im selben Raum + Split-Screen; Stützpunkt-Duell = Verteidigung mit `lanes`, Teams über `RoundState.teamOf`), verzweigen nur mit `onTv` (jeder Fernseher, auch Android TV/Fire TV) bzw. `onAppleTv`, nie `Platform.isIOS` allein; Native-Seite `tvos/Runner/GamepadPlugin.swift`, auf Android `GamepadPlugin.kt` (Fernbedienung als Pad); Stand aller TV-Plattformen in `docs/tv.md` |
-| iMessage | `ios/MessagesExtension` (Swift, lädt nur ein: Blase mit Raum-Link, öffnet die App per `panzergefecht://play?room=…&mode=…&host=1`), Dart-Seite `listenForRoomLinks` + `chooseInvitedMode`; Rundenergebnis über App Group `group.de.regetskcob.wargame` (`ios/Shared/ChatResult.swift`, geschrieben in `ChatResultPlugin.swift` aus `lib/src/app/chat_result.dart`); Bilder aus `store/tool/imessage.py`; `docs/platforms.md` „iMessage“ |
+| iMessage | `ios/MessagesExtension` (Swift, lädt nur ein: Blase mit Raum-Link, öffnet die App per `panzergefecht://play?room=…&mode=…&host=1`), Dart-Seite `listenForRoomLinks` + `chooseInvitedMode`; Rundenergebnis über App Group `group.de.regetskcob.wargame` (`ios/Shared/ChatResult.swift`, geschrieben in `ChatResultPlugin.swift` aus `lib/src/app/chat_result.dart`); Bilder aus `tool/store/imessage.py`; `docs/platforms.md` „iMessage“ |
 | Design | Designsystem Horizont (`~/dev/horizont`, Repo `regetskcob/horizont`, Paket per Git-Tag in `pubspec.yaml`, Landingpage als Hugo-Modul in `site/go.mod`); im Spiel `lib/src/ui/theme.dart` (`GameColors` liest die Slots aus `HorizontColors.resolve`, `GameType` = Schriftstile), Formen in `widgets/panel.dart`, Hinweise mit `HorizontNotice`, Kartenauswahl mit `HorizontSelectableCard`. Keine rohen Farben, Radien, Schriften in Widgets; Spielwelt-Farben bleiben beim Spiel |
 | Texte DE/EN | `lib/src/l10n/l10n.dart` – jeder sichtbare Text in beiden Sprachen |
 | DB | `supabase/migrations/NNNN_*.sql`, Dienste in `lib/src/db/`, generiert: `supabase_schema.g.dart` |
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
 | Landingpage | `site/` (Hugo) an der Wurzel von panzergefecht.de, Spiel unter `/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | In-App-Käufe | `lib/src/store/` (`Shop`, `Product`), `lib/src/db/purchase_service.dart`, Edge Function `supabase/functions/verify-purchase`, Tabelle `entitlements` (0021); vorbereitet, aus per `PURCHASES`, nur mit Konto; `docs/purchases.md` |
-| Store/Release | `store/ios`, `store/android` (je README), Release-Builds nur lokal (`tool/archive_ios.sh`, `tool/archive_apple.sh`, `tool/release_android.sh`, je `--upload`), CI validiert nur; vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
+| Store/Release | `store/ios`, `store/android` (je README), Release-Builds nur lokal (`tool/release.sh ios`, `tvos`, `macos`, `android phone\|wear`, je `--upload`), CI validiert nur; vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Apple-Signierung | `apple/Signing.xcconfig` für alle drei Xcode-Projekte (Team, automatisch), lokal überschreibbar per `apple/Signing.local.xcconfig`; keine Signier-Werte in die `project.pbxproj` (nur `tvos/` trägt das Team zusätzlich, flutter-tvos liest es dort) |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 
@@ -83,12 +83,51 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 
 ```sh
 flutter pub get
-tool/verify.sh --quick        # format, analyze, test (ohne supabase-Tag)
-tool/verify.sh                # + web, iOS (no-codesign), Android appbundle
+tool/release.sh verify --quick        # Layout, format, analyze, test (ohne supabase-Tag), Coverage ≥ 75 %
+tool/release.sh verify                # + web, Landingpage, iOS, macOS (no-codesign), Android, Wear OS
 flutter run -d chrome --dart-define=ROOM=dev   # zweimal starten = 2 Spieler
 ```
 
+`tool/release.sh` ist der eine Einstieg für Prüfen, Release-Builds und
+Store-Bilder (`verify`, `android`, `ios`, `tvos`, `macos`, `upload`,
+`shots`, `graphics`; Übersicht mit `tool/release.sh` ohne Argument).
+
 Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
+
+## Ordnerstruktur und Werkzeuge
+
+Es gilt der gemeinsame Standard aller App-Repos, `tool/werkbank/STANDARD.md`
+(Ordner, `store/`-Aufbau, Ablauf, Schlüssel). `tool/werkbank/` ist eine Kopie
+des privaten werkbank-Repos und wird hier nie bearbeitet; Änderungen dort,
+dann `~/dev/werkbank/install.sh ~/dev/wargame` und ein PR. Einstellungen in
+`tool/werkbank.conf`; `tool/werkbank/bin/werkbank layout` prüft die
+Ordnerstruktur (Teil von `verify` und der CI).
+
+Ausnahmen vom Standard:
+
+- **Wurzel** (`WB_TOP_EXTRA`): `apple/` (gemeinsame Signier-Einstellung der
+  drei Xcode-Projekte). `tvos/`, `watchos/` und `.mcp.json` sind
+  Standard.
+- **`store/ios/`** hat neben `metadata/` und `screenshots/` noch `header/`,
+  `icon/`, `mac/`, `tv/`, `watch/`, `license.txt` und
+  `apple-app-site-association`, statt `store/macos/screenshots/` und
+  `store/graphics/`: Die Landingpage bindet `header/`, `mac/`, `tv/` und
+  `watch/` per Hugo-Mount ein (`site/hugo.toml`), `tool/store/compose.py`
+  und `tool/store_shots.sh` schreiben bzw. lesen dort. Ein Umzug ginge
+  nur zusammen mit Seite und Werkzeugen.
+- **Rohaufnahmen** liegen nicht unter `store/raw/`, sondern in einem
+  frei gewählten Ordner (`tool/release.sh shots /tmp/raw`), weil sie
+  nicht eingecheckt werden.
+- **Release-Dateien:** `build/release/panzergefecht-<phone|wear>-<version>-<build>.aab`
+  (zwei Bundles je Version) statt `panzergefecht-<version>.aab`; iOS, Apple
+  TV und Mac gehen als Archiv in den Xcode-Organizer statt als IPA nach
+  `build/release/`, weil die Watch-App eingebettet und geprüft werden muss.
+  Darum rufen `android` und `ios` nicht `werkbank android|ios` auf, sondern
+  die Skripte des Projekts, die Version, Signaturprüfung und Simulatoren
+  aus der werkbank nehmen.
+- **Hochladen** mit dem in Xcode angemeldeten Apple-Konto
+  (`tool/upload_archive.sh`) bzw. fastlane für Google Play, nicht mit
+  `werkbank ios --upload`.
 
 ## Arbeitsweise (vom Nutzer festgelegt)
 
@@ -96,8 +135,8 @@ Tests mit Tag `supabase` brauchen `supabase start` (lokaler Stack, Port 54621).
   pushen. Push auf `main` deployt sofort per GitHub Pages.
 - **Vor jedem Push grün, im Umfang passend zur Änderung**, im Abschluss
   nennen, was lief. Skill `/ship`. Kleine Änderungen nur an Dart-Code oder
-  Doku: `tool/verify.sh --quick` reicht (den Web-Build macht `pages`).
-  Voller Lauf (`tool/verify.sh`: Web, iOS, Android) bei `pubspec.*`,
+  Doku: `tool/release.sh verify --quick` reicht (den Web-Build macht `pages`).
+  Voller Lauf (`tool/release.sh verify`: Web, iOS, Android) bei `pubspec.*`,
   `ios/`, `android/`, `tvos/`, Watch, Assets, Plugins, Versionsnummer,
   größeren Umbauten und vor Store-Releases. Auf `main` prüft nur der
   Workflow `pages` (Linux, ein Job); native Builds in CI nur von Hand

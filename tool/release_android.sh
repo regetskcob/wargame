@@ -4,9 +4,9 @@
 # The Android counterpart of tool/archive_ios.sh: releases are built locally
 # only, CI just validates (docs/development.md "CI minutes").
 #
-# Usage: tool/release_android.sh phone|wear [--upload <track>] [--metadata]
-#                                [--completed]
-#   (from the repository root, on an up to date main)
+# Usage: tool/release.sh android phone|wear [--upload <track>] [--metadata]
+#                                  [--completed]
+#   (on an up to date main; tool/release.sh calls this script)
 #
 #   phone|wear   the phone and tablet bundle, or the Wear OS one for the
 #                watch's own wear: tracks
@@ -50,11 +50,15 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# Version, keytool and the signature check come from the werkbank.
 cd "$(dirname "$0")/.."
+# shellcheck source=tool/werkbank/lib/common.sh
+. tool/werkbank/lib/common.sh
+wb_enter_repo
+wb_load_conf
 
-version=$(sed -n 's/^version: *//p' pubspec.yaml)
-name="${version%%+*}"
-number="${version##*+}"
+name=$(wb_version name)
+number=$(wb_version build)
 build_args=(--dart-define=ACCOUNTS=true)
 [ "$form_factor" = "wear" ] && build_args+=(--android-project-arg=wear=true)
 
@@ -70,29 +74,16 @@ bundle=build/app/outputs/bundle/release/app-release.aab
 [ -f "$bundle" ] || fail "no bundle at $bundle"
 
 step "checks"
-# /usr/bin/keytool on macOS is a stub that needs a system Java; Gradle runs
-# on the one inside Android Studio.
-keytool=""
-for candidate in "${JAVA_HOME:+$JAVA_HOME/bin/keytool}" \
-  "/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool" \
-  "$(command -v keytool || true)"; do
-  if [ -n "$candidate" ] && "$candidate" -help > /dev/null 2>&1; then
-    keytool="$candidate"
-    break
-  fi
-done
-[ -n "$keytool" ] || fail "no working keytool, set JAVA_HOME to a JDK"
-# English output whatever the system language ("Eigentümer:" otherwise).
-signer=$("$keytool" -J-Duser.language=en -printcert -jarfile "$bundle" | sed -n 's/^Owner: //p' | head -1)
-[ -n "$signer" ] || fail "the bundle is not signed"
-[[ "$signer" != *"Android Debug"* ]] || fail "the bundle is signed with the debug key"
+# Signed, and not with the debug key (a keytool that really runs: the one in
+# /usr/bin is a stub on macOS).
+wb_check_signature "$bundle"
 # Env falls back to the live project; a glued define would show here. grep -c
 # reads everything, see tool/archive_ios.sh.
 [ "$(unzip -p "$bundle" base/lib/arm64-v8a/libapp.so | strings | grep -c 'https://[a-z0-9]*\.supabase\.co$')" -gt 0 ] ||
   fail "the bundle carries no plain Supabase URL"
-echo "signature ($signer), Supabase URL: ok"
+echo "signature, Supabase URL: ok"
 
-target="build/release/panzergefecht-$form_factor-$name-$number.aab"
+target="build/release/$WB_APP-$form_factor-$name-$number.aab"
 mkdir -p build/release
 cp "$bundle" "$target"
 echo "$target"

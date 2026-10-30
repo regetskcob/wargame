@@ -33,7 +33,7 @@ Kopfzeile liegen außerhalb von `screenshots/`, weil `fastlane deliver` diesen O
 und nur Größen kennt, die es schon unterstützt.
 
 App Store Connect verlangt inzwischen die 6,3"-Größe als Pflichtfeld; `compose.py`
-python3 store/tool/landing.py /tmp/raw    # Geräte-Bild der Landingpage
+python3 tool/store/landing.py /tmp/raw    # Geräte-Bild der Landingpage
 schreibt die `iphone63-*`-Bilder mit. Für alle kleineren Geräte skaliert
 Apple selbst. Ist der Name „Panzergefecht“ im App Store
 schon vergeben, meldet App Store Connect das beim Anlegen, dann etwa
@@ -47,13 +47,13 @@ Herstellernamen.
 
 Das Icon (Panzer in Seitenansicht auf dem Horizont) zeichnet das
 Design-System Horizont, die App zeichnet und skaliert es nicht selbst.
-`store/tool/horizont_icons.py` kopiert die fertigen Sätze aus
+`tool/store/horizont_icons.py` kopiert die fertigen Sätze aus
 `icons/export/panzergefecht/` eines Horizont-Checkouts nach `icon/`, in die
 Icon-Sets für iOS, Watch, macOS und Apple TV, nach Android, `web/` und in
 die Play-Metadaten:
 
 ```sh
-python3 store/tool/horizont_icons.py ../horizont
+python3 tool/store/horizont_icons.py ../horizont
 ```
 
 ## Screenshots neu erzeugen
@@ -61,11 +61,11 @@ python3 store/tool/horizont_icons.py ../horizont
 Zwei Befehle, ohne Hand am Simulator:
 
 ```sh
-tool/store_shots.sh /tmp/raw              # alle Rohbilder, ca. 15 Minuten
-python3 store/tool/compose.py /tmp/raw    # alle Store-Bilder daraus
+tool/release.sh shots /tmp/raw      # alle Rohbilder, ca. 15 Minuten
+tool/release.sh graphics /tmp/raw   # alle Store-Bilder daraus (tool/store/compose.py)
 ```
 
-`tool/store_shots.sh` baut je Plattform einen Debug-Build mit
+`tool/release.sh shots` baut je Plattform einen Debug-Build mit
 `--dart-define=SHOTS=true` und startet ihn pro Szene und Sprache einmal,
 die Szene als Startargument (`-SHOT_SCENE battle -SHOT_LANG en -SHOT_OUT
 <datei>`). Die App geht selbst in die Szene (Startseite, Warteraum,
@@ -74,7 +74,7 @@ ihr eigenes Bild, ohne Statusleiste und Simulator-Rahmen
 (`lib/src/game/tank_game/shots.dart`). Das sind 24 Aufnahmen: iPhone 17 Pro
 Max hochkant (4 Szenen), iPad Pro 13" quer (3), Apple TV 4K (2), Mac im
 Fenster mit 1440 × 900 Punkten (3), je Deutsch und Englisch. Nur einzelne
-Geräte: `tool/store_shots.sh /tmp/raw ios ipad tv mac` mit einer Auswahl.
+Geräte: `tool/release.sh shots /tmp/raw ios ipad tv mac` mit einer Auswahl.
 Für Einzelbilder nimmt ein Screenshot-Build außerdem `-SHOT_MAP <n>`
 (Gelände, Index in `MapTheme.all`, 4 = Bergwald, 5 = Inseln),
 `-SHOT_TANK <n>` (Fahrzeug, Index in `TankType`, 8 = Igel, auch gesperrt)
@@ -150,8 +150,8 @@ die aus `pubspec.yaml`.
 
 | Was | Befehl |
 | --- | --- |
-| iOS samt Watch-App | `tool/archive_ios.sh --upload` |
-| Apple TV / Mac | `tool/archive_apple.sh tvos --upload` bzw. `macos --upload` |
+| iOS samt Watch-App | `tool/release.sh ios --upload` |
+| Apple TV / Mac | `tool/release.sh tvos --upload` bzw. `macos --upload` |
 | Texte und Screenshots | in `ios/`: `bundle exec fastlane ios metadata` |
 
 Ohne `--upload` landet das geprüfte Archiv nur im Organizer. Signiert wird

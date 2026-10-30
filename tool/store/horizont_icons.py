@@ -1,6 +1,6 @@
 """Copies the app icons of the design system Horizont into every platform.
 
-    python3 store/tool/horizont_icons.py [path/to/horizont]
+    python3 tool/store/horizont_icons.py [path/to/horizont]
 
 Horizont draws the icon of each product and exports finished sets in
 icons/export/panzergefecht/; the apps copy them and never draw or scale
@@ -119,7 +119,7 @@ def android(export):
         for file in folder.iterdir():
             shutil.copyfile(file, target / file.name)
     for lang in ("de-DE", "en-US"):
-        images = ROOT / f"store/android/metadata/android/{lang}/images"
+        images = ROOT / f"store/android/metadata/{lang}/images"
         images.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(export / "android/playstore-512.png", images / "icon.png")
 

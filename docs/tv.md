@@ -54,7 +54,7 @@ Done:
 - **Game controllers** come through the gamepad path that already serves
   Android phones and tablets.
 - **Manifest:** `LEANBACK_LAUNCHER`, a banner (`@drawable/tv_banner`, the tank on the horizon
-  from Horizont, copied by `store/tool/horizont_icons.py`), and touch screen, camera, gamepad and
+  from Horizont, copied by `tool/store/horizont_icons.py`), and touch screen, camera, gamepad and
   leanback declared as not required, so Google Play and the Amazon Appstore
   list the app for televisions.
 - **Texts:** the tutorial, the controls dialog, the duel help and the
@@ -148,7 +148,7 @@ adb connect <ip-of-the-stick>
 flutter run -d <ip-of-the-stick>:5555
 
 # Copy the banner, the icons and the Apple TV top shelf from Horizont
-python3 store/tool/horizont_icons.py
+python3 tool/store/horizont_icons.py
 ```
 
 In the emulator the arrow keys of the computer are the d-pad, Enter is OK,

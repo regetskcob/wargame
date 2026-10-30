@@ -8,8 +8,8 @@
 # the one order that works and refuses to hand over an archive it has not
 # checked.
 #
-# Usage: tool/archive_ios.sh [--upload]   (from the repository root, on an
-# up to date main)
+# Usage: tool/release.sh ios [--upload]   (on an up to date main;
+# tool/release.sh calls this script)
 #
 # --upload also sends the checked archive to App Store Connect
 # (tool/upload_archive.sh). Without the flag nothing leaves the machine.
@@ -24,12 +24,16 @@ for arg in "$@"; do
   esac
 done
 
+# Version from the werkbank (tool/werkbank/STANDARD.md).
 cd "$(dirname "$0")/.."
+# shellcheck source=tool/werkbank/lib/common.sh
+. tool/werkbank/lib/common.sh
+wb_enter_repo
+wb_load_conf
 
 flutter_watchos="${FLUTTER_WATCHOS:-$HOME/flutter/flutter-watchos/bin/flutter-watchos}"
-version=$(sed -n 's/^version: *//p' pubspec.yaml)
-name="${version%%+*}"
-number="${version##*+}"
+name=$(wb_version name)
+number=$(wb_version build)
 defines=(--dart-define=ACCOUNTS=true)
 
 step() { printf '\n== %s\n' "$*"; }

@@ -1,11 +1,11 @@
 """Builds the store screenshots: a caption over a framed simulator shot.
 
-    python3 store/tool/compose.py <raw dir>
+    python3 tool/store/compose.py <raw dir>
 
 Reads the raw simulator screenshots named in SHOTS from <raw dir>/de-DE and
 <raw dir>/en-US and writes the finished images for each language to
 store/ios/screenshots/<lang>/ for the App Store and to
-store/android/metadata/android/<lang>/images/ for Google Play, plus the Play
+store/android/metadata/<lang>/images/ for Google Play, plus the Play
 feature graphic, the Mac and Apple TV shots (store/ios/mac|tv/<lang>/) and
 the App Store header artwork (store/ios/header/<lang>/). The raw shots come
 from tool/store_shots.sh. The Apple Watch shots in store/ios/watch/<lang>/
@@ -32,7 +32,7 @@ def ios_dir(lang):
 
 
 def play_dir(lang):
-    return ROOT / "store" / "android" / "metadata" / "android" / lang / "images"
+    return ROOT / "store" / "android" / "metadata" / lang / "images"
 
 
 BACKGROUND = (22, 28, 15)
@@ -400,7 +400,7 @@ def feature_graphic(lang):
     w, h = 1024, 500
     canvas = backdrop((w, h), "feature")
     # Horizont's tank from the side, as on the icon and the Apple TV's
-    # launch image (store/tool/horizont_icons.py copies it there).
+    # launch image (tool/store/horizont_icons.py copies it there).
     tank = Image.open(ROOT / "tvos/Runner/Assets.xcassets/LaunchImage.imageset"
                       / "LaunchImage@2x.png").convert("RGBA")
     tank = tank.resize((240, round(tank.height * 240 / tank.width)),

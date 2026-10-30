@@ -1,7 +1,7 @@
 // Pictures of the menus in Horizont, compared pixel by pixel. The game has
 // only its dark theme (lib/src/ui/theme.dart), so there is no light set.
 // Fonts render differently on Linux, so CI leaves the tag out and
-// tool/verify.sh runs it on the Mac. After a wanted change:
+// tool/release.sh verify runs it on the Mac. After a wanted change:
 //   flutter test test/ui/goldens_test.dart --update-goldens
 @Tags(['golden'])
 library;

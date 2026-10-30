@@ -57,8 +57,9 @@ jobs:
         env:
           HUGO_VERSION: 0.154.5
       - run: dart pub get
-      # The same checks as tool/verify.sh --quick. Anything red stops the
+      # The same checks as tool/release.sh verify --quick. Anything red stops the
       # deploy.
+      - run: tool/werkbank/bin/werkbank layout
       - run: dart format --set-exit-if-changed .
       - run: flutter analyze
       - run: flutter test --exclude-tags supabase,golden --coverage

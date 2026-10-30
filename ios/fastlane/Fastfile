@@ -5,7 +5,7 @@
 #   bundle exec fastlane ios metadata
 #
 # The builds themselves are archived and uploaded on this Mac by
-# tool/archive_ios.sh and tool/archive_apple.sh (--upload), signed with the
+# tool/release.sh ios, tvos or macos (--upload), signed with the
 # Apple account in Xcode; nothing is built in CI.
 
 default_platform(:ios)
