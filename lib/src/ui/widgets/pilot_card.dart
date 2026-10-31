@@ -1,9 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:horizont/horizont.dart';
 
 import '../../game/pilot_progress.dart';
 import '../../game/progress.dart';
+import '../../game/components/tank_painter.dart';
+import '../../db/supabase_schema.g.dart';
 import '../../store/product.dart';
 import '../theme.dart';
 import 'panel.dart';
@@ -28,6 +32,9 @@ class PilotCard extends StatefulWidget {
 class _PilotCardState extends State<PilotCard> {
   var _badgesOpen = false;
 
+  /// The service record of the commander pack, read when the card opens.
+  List<TankScoresRow>? _record;
+
   PilotProgress get progress => widget.progress;
 
   @override
@@ -44,6 +51,8 @@ class _PilotCardState extends State<PilotCard> {
         final rating = progress.rating.value;
         final supporter =
             widget.owned?.value.contains(Product.supporter) ?? false;
+        final commander =
+            widget.owned?.value.contains(Product.commander) ?? false;
         return Container(
           padding: const EdgeInsets.symmetric(
             horizontal: HzSpace.s12,
@@ -66,7 +75,7 @@ class _PilotCardState extends State<PilotCard> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${supporter ? '★ ' : ''}'
+                          '${supporter ? '★ ' : ''}${commander ? '◆ ' : ''}'
                           '${rank.title.toUpperCase()} · ${tr('STUFE', 'LEVEL')} ${rank.level}',
                           style: GameType.kennung,
                         ),
@@ -129,12 +138,63 @@ class _PilotCardState extends State<PilotCard> {
                       ),
                   ],
                 ),
+                if (commander) ..._serviceRecord(),
               ],
             ],
           ),
         );
       },
     );
+  }
+
+  void _toggle() {
+    setState(() => _badgesOpen = !_badgesOpen);
+    if (_badgesOpen &&
+        widget.owned?.value.contains(Product.commander) == true) {
+      unawaited(_readRecord());
+    }
+  }
+
+  Future<void> _readRecord() async {
+    final rows = await progress.scores.myTankScores();
+    if (mounted) {
+      setState(() => _record = rows);
+    }
+  }
+
+  /// The score per vehicle, most rounds first; the server has kept these
+  /// numbers all along, the pack opens them up.
+  List<Widget> _serviceRecord() {
+    final rows = [...?_record]
+      ..sort((a, b) => (b.rounds ?? 0).compareTo(a.rounds ?? 0));
+    return [
+      const SizedBox(height: HzSpace.s12),
+      Kennung(tr('Einsatzakte', 'Service record')),
+      const SizedBox(height: HzSpace.s4),
+      if (rows.isEmpty)
+        Text(
+          tr('Noch keine gewerteten Runden.', 'No rated rounds yet.'),
+          style: GameType.caption,
+        ),
+      for (final row in rows)
+        if (row.tankType != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            child: Text(
+              '${TankType.values[row.tankType! % TankType.values.length].label}'
+              '$horizontMetaSeparator${row.rounds ?? 0} ${tr('Runden', 'rounds')}'
+              '$horizontMetaSeparator${row.wins ?? 0} ${tr('gewonnen', 'won')}'
+              '$horizontMetaSeparator${row.kills ?? 0} ${tr('Abschüsse', 'kills')}'
+              '$horizontMetaSeparator${_accuracy(row)} ${tr('Treffer', 'hits')}',
+              style: GameType.data.copyWith(fontSize: 12),
+            ),
+          ),
+    ];
+  }
+
+  String _accuracy(TankScoresRow row) {
+    final shots = row.shots ?? 0;
+    return shots == 0 ? '–' : '${(100 * (row.hits ?? 0) / shots).round()} %';
   }
 
   /// Earned badges out of all, opens and closes the list of them.
@@ -146,7 +206,7 @@ class _PilotCardState extends State<PilotCard> {
     return Tooltip(
       message: tr('Abzeichen', 'Badges'),
       child: InkWell(
-        onTap: () => setState(() => _badgesOpen = !_badgesOpen),
+        onTap: _toggle,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
           child: Row(

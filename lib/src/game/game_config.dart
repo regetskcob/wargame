@@ -585,6 +585,35 @@ class GameConfig {
   /// Rank a paint scheme needs.
   static const colorLevels = [1, 1, 1, 1, 3, 5, 7, 10];
 
+  /// Paints of the supporter pack. They stay out of [tankColors]: the look
+  /// on the wire is a vehicle times the number of schemes plus a scheme, and
+  /// a longer list would change it for every older client. Paints only show
+  /// in rounds alone anyway, with others the hull tells players apart, so
+  /// these need no message at all.
+  static const supporterColors = [
+    Color(0xFF4A3F6B),
+    Color(0xFF1F5C57),
+    Color(0xFFB8B6AF),
+    Color(0xFF7A1F2B),
+  ];
+
+  static const _supporterNamesDe = [
+    'DÄMMERVIOLETT',
+    'TIEFSEEGRÜN',
+    'PLATIN',
+    'BORDEAUX',
+  ];
+  static const _supporterNamesEn = [
+    'DUSK VIOLET',
+    'DEEP SEA GREEN',
+    'PLATINUM',
+    'BORDEAUX',
+  ];
+
+  /// Name of the supporter paint at [index].
+  static String supporterColorName(int index) =>
+      tr(_supporterNamesDe[index], _supporterNamesEn[index]);
+
   /// A player's look travels as one number, the vehicle times the number of
   /// paint schemes plus the scheme, so the wire format stays a single int.
   static final styleCount = TankType.values.length * tankColors.length;

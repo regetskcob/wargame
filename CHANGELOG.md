@@ -9,6 +9,12 @@ step, point for point.
 
 ## Unreleased
 
+- Prepared, still off in every build: two packs instead of one, bought apart
+  or together, neither with an advantage in battle. Supporter (2.99 €): four
+  exclusive paints, a mark on the tank, a mark in the room list. Commander
+  (7.99 €): the host sets the opening weather and time of day for the whole
+  room, a battle archive of the last ten rounds and the score per vehicle
+
 ## 1.8.2 (19, Google Play 20) – 2026-10-29
 
 - Tanks drive a little slower, about a tenth forwards and in reverse,

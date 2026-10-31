@@ -68,7 +68,7 @@ class Env {
   /// Build with `--dart-define=ACCOUNTS=true` to switch it on.
   static const accounts = bool.fromEnvironment('ACCOUNTS');
 
-  /// In-app purchases: the supporter pack on the account page. Prepared,
+  /// In-app purchases: the two packs on the account page. Prepared,
   /// not live: the products, the paid apps agreement and the edge function
   /// verify-purchase come first (docs/purchases.md). Build with
   /// `--dart-define=PURCHASES=true` to try it against the store's sandbox.

@@ -243,6 +243,7 @@ extension TankGameLobby on TankGame {
       pad: padSteered.value,
       mode: isHost.value ? mode.value.name : null,
       content: GameConfig.contentLevel,
+      star: owns(Product.supporter),
       level: isHost.value ? botLevel.value.name : null,
       map: isHost.value ? mapChoice.value ?? -1 : null,
       teams: isHost.value && teamMode.value,
@@ -472,7 +473,8 @@ extension TankGameLobby on TankGame {
       return GameConfig.teamColors[team.clamp(0, 2)];
     }
     if (!mode.value.withOthers) {
-      return GameConfig.colorOf(style);
+      final paint = id == myId ? _myPaint : null;
+      return paint ?? GameConfig.colorOf(style);
     }
     final seats = {myId, for (final member in roster.value) member.id}.toList()
       ..sort();
@@ -494,8 +496,60 @@ extension TankGameLobby on TankGame {
         return GameConfig.playerColor(seat);
       }
     }
-    return GameConfig.colorOf(_styleFor(id));
+    final paint = id == myId ? _myPaint : null;
+    return paint ?? GameConfig.colorOf(_styleFor(id));
   }
+
+  /// The supporter paint in use, as long as the account owns the pack.
+  Color? get _myPaint => switch (supporterPaint.value) {
+    // A round with others shows the same look on every screen, and they
+    // only know the style on the wire.
+    final index? when owns(Product.supporter) && !mode.value.withOthers =>
+      GameConfig.supporterColors[index],
+    _ => null,
+  };
+
+  /// Takes the supporter paint at [index], or back to the usual schemes
+  /// with null. Without the pack only the way back works.
+  void chooseSupporterPaint(int? index) {
+    if (index != null &&
+        (!owns(Product.supporter) ||
+            index < 0 ||
+            index >= GameConfig.supporterColors.length)) {
+      return;
+    }
+    supporterPaint.value = index;
+    unawaited(_saveSupporterPaint(index));
+  }
+
+  Future<void> _loadSupporterPaint() async {
+    if (shop == null) {
+      return;
+    }
+    try {
+      final index = await SharedPreferencesAsync().getInt(TankGame._paintKey);
+      if (index != null &&
+          index >= 0 &&
+          index < GameConfig.supporterColors.length) {
+        supporterPaint.value = index;
+      }
+    } on Object {
+      // The usual paints then.
+    }
+  }
+
+  Future<void> _saveSupporterPaint(int? index) async {
+    try {
+      final store = SharedPreferencesAsync();
+      await (index == null
+          ? store.remove(TankGame._paintKey)
+          : store.setInt(TankGame._paintKey, index));
+    } on Object {
+      // Only forgotten at the next start.
+    }
+  }
+
+  void _pushOwned() => unawaited(pushPresence());
 
   LobbyPresence? _rosterMember(String id) {
     for (final member in roster.value) {

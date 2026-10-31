@@ -20,7 +20,7 @@ import { decodeJwt, importPKCS8, SignJWT } from 'npm:jose@5';
 const bundle = 'de.regetskcob.wargame';
 
 /// Products the function grants, by the key the game and the table use.
-const products = new Set(['supporter']);
+const products = new Set(['supporter', 'commander']);
 
 type Store = 'app_store' | 'play';
 

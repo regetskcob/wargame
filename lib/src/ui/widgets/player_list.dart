@@ -56,6 +56,17 @@ class PlayerList extends StatelessWidget {
                       ? '${member.name} (${tr('du', 'you')})'
                       : member.name,
                 ),
+                if (member.star) ...[
+                  const SizedBox(width: HzSpace.s8),
+                  Tooltip(
+                    message: tr('Unterstützt das Spiel', 'Supports the game'),
+                    child: Icon(
+                      HorizontSymbols.workspacePremium,
+                      size: HzIconSize.badge,
+                      color: GameColors.text,
+                    ),
+                  ),
+                ],
                 if (hostId == null ? member.host : member.id == hostId) ...[
                   const SizedBox(width: HzSpace.s8),
                   Icon(

@@ -204,6 +204,7 @@ extension TankGameRound on TankGame {
     final fresh = roomContent >= GameConfig.contentLevel;
     final maps = fresh ? MapTheme.all.length : MapTheme.classic;
     final layouts = fresh ? DefenseMap.layoutCount : DefenseMap.classicLayouts;
+    final wish = owns(Product.commander) ? skyWish.value : const SkyWish();
     for (var tries = 0; ; tries++) {
       final picked = mapChoice.value;
       final map = picked != null && picked < maps
@@ -216,9 +217,13 @@ extension TankGameRound on TankGame {
         ),
         fresh: fresh,
       );
-      // About one seed in eleven qualifies, so 200 tries all but never
-      // run out.
-      if (_roundsStarted > 0 || tries >= 200 || TankGame._gentle(seed)) {
+      // The hardest wish, a night in fog, fits one seed in thirty, so 400
+      // tries all but never run out; of plain seeds about one in eleven is
+      // gentle. A wish outranks the gentle first round: the host asked.
+      final fits = wish.isEmpty
+          ? _roundsStarted > 0 || TankGame._gentle(seed)
+          : wish.fits(seed);
+      if (fits || tries >= 400) {
         return seed;
       }
     }
@@ -504,6 +509,7 @@ extension TankGameRound on TankGame {
     myTank = tank;
     tank
       ..own = true
+      ..emblem = owns(Product.supporter)
       ..team = round?.teamOf(myId) ?? 0
       ..usesFuel = usesFuel
       ..endlessAmmo = endlessAmmo;
@@ -526,7 +532,9 @@ extension TankGameRound on TankGame {
       position: at,
       angle: facing,
     );
-    tank.team = round?.teamOf(id) ?? 0;
+    tank
+      ..team = round?.teamOf(id) ?? 0
+      ..emblem = _rosterMember(id)?.star ?? false;
     remoteTanks[id] = tank;
     world.add(tank);
     return tank;
@@ -1374,10 +1382,7 @@ extension TankGameRound on TankGame {
 
   void _clearWorld() {
     _botStates.clear();
-    final recorded = _recorder.finish();
-    if (recorded != null) {
-      lastReplay.value = recorded;
-    }
+    _keepReplay(_recorder.finish());
     _setGround(MapTheme.forest);
     conditions = null;
     conditionsLabel.value = null;

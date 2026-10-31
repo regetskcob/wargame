@@ -9,6 +9,36 @@ import '../l10n/l10n.dart';
 /// in winter, sand in the desert, rain everywhere else.
 enum Sky { clear, precipitation, fog }
 
+/// How a host of the commander pack wants a round to open. The seed carries
+/// weather and light, so the host only looks for a seed that fits: nothing
+/// new travels, and guests and older clients play along without owning or
+/// knowing anything.
+class SkyWish {
+  const SkyWish({this.sky, this.night});
+
+  /// The opening weather, null for any.
+  final Sky? sky;
+
+  /// Night or day at the start, null for any.
+  final bool? night;
+
+  bool get isEmpty => sky == null && night == null;
+
+  /// Whether [seed] opens as wished. The light holds for a while, or a
+  /// night battle could turn to day after the first seconds; the weather
+  /// may turn later like in any round.
+  bool fits(int seed) {
+    if (sky != null && Conditions.forSeed(seed).sky != sky) {
+      return false;
+    }
+    return switch (night) {
+      null => true,
+      true => Conditions.nightAt(seed, 0) && Conditions.nightAt(seed, 20),
+      false => !Conditions.nightAt(seed, 0) && !Conditions.nightAt(seed, 60),
+    };
+  }
+}
+
 /// Weather and time of day of a round. Like the map they follow from the
 /// round seed and the round clock alone, so every client sees the same sky
 /// for free.

@@ -10,6 +10,8 @@ import '../game/bot_level.dart';
 import '../game/game_mode.dart';
 import '../game/map_theme.dart';
 import '../game/tank_game.dart';
+import '../game/weather.dart';
+import '../store/product.dart';
 import '../net/payloads/lobby_presence.dart';
 import '../game/components/tank_painter.dart';
 import 'theme.dart';
@@ -22,6 +24,7 @@ import 'widgets/game_dialog.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
 import 'widgets/player_list.dart';
+import 'widgets/replay_archive_dialog.dart';
 import 'widgets/room_invite.dart';
 import 'widgets/rooms_busy_notice.dart';
 import 'widgets/server_notice.dart';
@@ -71,6 +74,9 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     }
     if (type != null && !progress.vehicleUnlocked(TankType.values[type])) {
       return;
+    }
+    if (color != null) {
+      widget.game.chooseSupporterPaint(null);
     }
     setState(() {
       _colorIndex = GameConfig.styleOf(
@@ -324,6 +330,77 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
     );
   }
 
+  /// The paints of the supporter pack: for an owner to pick, for anybody
+  /// who could buy it to see, for nobody else.
+  List<Widget> _supporterSwatches() {
+    final game = widget.game;
+    final owned = game.owns(Product.supporter);
+    if (!owned && game.shop?.open.value != true) {
+      return const [];
+    }
+    return [
+      for (var i = 0; i < GameConfig.supporterColors.length; i++)
+        Tooltip(
+          message: owned
+              ? GameConfig.supporterColorName(i)
+              : '${GameConfig.supporterColorName(i)}: '
+                    '${tr('im Unterstützer-Paket', 'in the supporter pack')}',
+          child: ColorSwatchButton(
+            color: GameConfig.supporterColors[i],
+            selected: game.supporterPaint.value == i,
+            locked: !owned,
+            onTap: () {
+              game.chooseSupporterPaint(i);
+              setState(() {});
+            },
+          ),
+        ),
+    ];
+  }
+
+  /// Opening weather and light, with the commander pack. The whole room
+  /// plays it, whatever anybody else owns.
+  List<Widget> _skyChoice() {
+    final game = widget.game;
+    return [
+      const SizedBox(height: HzSpace.s12),
+      Text(tr('WETTER ZUM START', 'OPENING WEATHER'), style: GameType.kennung),
+      const SizedBox(height: HzSpace.s4),
+      ValueListenableBuilder<SkyWish>(
+        valueListenable: game.skyWish,
+        builder: (context, wish, _) => Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ChoiceRow<Sky>(
+              allowNone: true,
+              balance: true,
+              options: [
+                (Sky.clear, tr('KLAR', 'CLEAR'), null),
+                (Sky.precipitation, tr('NIEDERSCHLAG', 'RAIN, SNOW'), null),
+                (Sky.fog, tr('NEBEL', 'FOG'), null),
+              ],
+              selected: wish.sky,
+              onSelected: (v) =>
+                  game.skyWish.value = SkyWish(sky: v, night: wish.night),
+            ),
+            const SizedBox(height: HzSpace.s8),
+            ChoiceRow<bool>(
+              allowNone: true,
+              balance: true,
+              options: [
+                (false, tr('TAG', 'DAY'), null),
+                (true, tr('NACHT', 'NIGHT'), null),
+              ],
+              selected: wish.night,
+              onSelected: (v) =>
+                  game.skyWish.value = SkyWish(sky: wish.sky, night: v),
+            ),
+          ],
+        ),
+      ),
+    ];
+  }
+
   /// The ground. Host only.
   Widget _fieldSection(BuildContext context) {
     final game = widget.game;
@@ -355,6 +432,16 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                   'themselves.',
             ),
           ),
+          if (game.shop?.owned case final owned?)
+            ValueListenableBuilder(
+              valueListenable: owned,
+              builder: (context, _, _) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: game.owns(Product.commander)
+                    ? _skyChoice()
+                    : const [],
+              ),
+            ),
         ],
       ),
     );
@@ -390,9 +477,14 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _label(context, tr('TARNUNG', 'CAMOUFLAGE')),
-                      ValueListenableBuilder(
-                        valueListenable: game.progress.rank,
-                        builder: (context, rank, _) => _balanced(
+                      ListenableBuilder(
+                        listenable: Listenable.merge([
+                          game.progress.rank,
+                          game.supporterPaint,
+                          ?game.shop?.owned,
+                          ?game.shop?.open,
+                        ]),
+                        builder: (context, _) => _balanced(
                           children: [
                             for (
                               var i = 0;
@@ -408,13 +500,15 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                                 child: ColorSwatchButton(
                                   color: GameConfig.tankColors[i],
                                   selected:
+                                      game.supporterPaint.value == null &&
                                       i ==
-                                      _colorIndex %
-                                          GameConfig.tankColors.length,
+                                          _colorIndex %
+                                              GameConfig.tankColors.length,
                                   locked: !game.progress.unlocked(i),
                                   onTap: () => _pick(color: i),
                                 ),
                               ),
+                            ..._supporterSwatches(),
                           ],
                         ),
                       ),
@@ -625,7 +719,8 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
               // Without anything to watch the row keeps its room, unseen:
               // the menu sits in the middle and jumped up by half a row
               // when the first replay appeared.
-              builder: (context, replay, _) => live == null && replay == null
+              builder: (context, replay, _) =>
+                  live == null && replay == null && !_archive
                   ? Visibility(
                       visible: false,
                       maintainSize: true,
@@ -667,6 +762,12 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
                                 tr('WIEDERHOLUNG ANSEHEN', 'WATCH REPLAY'),
                               ),
                             ),
+                          if (_archive)
+                            OutlinedButton.icon(
+                              onPressed: () => showReplayArchive(context, game),
+                              icon: const Icon(HorizontSymbols.inventory2),
+                              label: Text(tr('ARCHIV', 'ARCHIVE')),
+                            ),
                         ],
                       ),
                     ),
@@ -676,6 +777,10 @@ class _LobbyOverlayState extends State<LobbyOverlay> {
       },
     );
   }
+
+  /// The commander's way into the archive, where this device can keep one.
+  bool get _archive =>
+      widget.game.replayStore != null && widget.game.owns(Product.commander);
 
   /// A button label on one line, shrinking where the half width is too
   /// narrow, so both buttons in the row stay as tall.

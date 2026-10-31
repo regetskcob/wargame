@@ -22,7 +22,11 @@ class _Store implements StoreGateway {
 
   @override
   Future<List<Offer>> offers(Set<Product> products) async => [
-    for (final product in products) Offer(product: product, price: '2,99 €'),
+    for (final product in products)
+      Offer(
+        product: product,
+        price: product == Product.supporter ? '2,99 €' : '7,99 €',
+      ),
   ];
 
   @override
@@ -92,7 +96,7 @@ void main() {
       final s = shop();
       await s.start();
       expect(s.open.value, isTrue);
-      expect(s.offers.value.single.price, '2,99 €');
+      expect(s.offers.value.map((o) => o.price), ['2,99 €', '7,99 €']);
       expect(s.owns(Product.supporter), isTrue);
     },
   );
@@ -166,6 +170,22 @@ void main() {
     expect(server.checked, isEmpty);
   });
 
+  test('both packs can be bought one after the other', () async {
+    final s = shop();
+    await s.start();
+    await s.buy(Product.supporter);
+    await deliver(_purchase());
+    await s.buy(Product.commander);
+    await deliver(
+      const StorePurchase(
+        product: Product.commander,
+        transactionId: '2000000124',
+        proof: 'jws',
+      ),
+    );
+    expect(s.owned.value, {Product.supporter, Product.commander});
+  });
+
   test('signing out forgets what the account owns', () async {
     server.owns = {Product.supporter};
     final s = shop();
@@ -191,15 +211,32 @@ void main() {
       await s.start();
       await pump(tester, s, guest: true);
       expect(find.textContaining('2,99 €'), findsOneWidget);
+      expect(find.textContaining('7,99 €'), findsOneWidget);
       expect(find.textContaining('nur mit Konto'), findsOneWidget);
-      final buy = tester.widget<FilledButton>(find.byType(FilledButton));
-      expect(buy.onPressed, isNull);
+      for (final buy in tester.widgetList<FilledButton>(
+        find.byType(FilledButton),
+      )) {
+        expect(buy.onPressed, isNull);
+      }
     });
 
     testWidgets('an account buys with one tap', (tester) async {
       final s = shop();
       await s.start();
       await pump(tester, s, guest: false);
+      await tester.tap(find.byType(FilledButton).first);
+      await tester.pump();
+      expect(store.bought, [Product.supporter]);
+    });
+
+    testWidgets('either pack sells without the other', (tester) async {
+      server.owns = {Product.commander};
+      final s = shop();
+      await s.start();
+      await pump(tester, s, guest: false);
+      expect(find.byType(FilledButton), findsOneWidget);
+      expect(find.textContaining('2,99 €'), findsOneWidget);
+      expect(find.textContaining('7,99 €'), findsNothing);
       await tester.tap(find.byType(FilledButton));
       await tester.pump();
       expect(store.bought, [Product.supporter]);
@@ -208,12 +245,13 @@ void main() {
     testWidgets('after buying it thanks and offers no second purchase', (
       tester,
     ) async {
-      server.owns = {Product.supporter};
+      server.owns = {Product.supporter, Product.commander};
       final s = shop();
       await s.start();
       await pump(tester, s, guest: false);
       expect(find.byType(FilledButton), findsNothing);
-      expect(find.textContaining('Danke'), findsOneWidget);
+      expect(find.textContaining('Danke'), findsNWidgets(2));
+      expect(find.byType(OutlinedButton), findsOneWidget);
     });
   });
 }

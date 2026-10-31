@@ -12,7 +12,7 @@ import 'store_gateway.dart';
 /// The shop for this build and device, or null while purchases are off
 /// (`PURCHASES`, see docs/purchases.md). Only phones, tablets and Macs get
 /// a store to buy in; the web, the watch and the TV have no store in the
-/// plugin, and what an account bought elsewhere does not show there yet.
+/// plugin, but what the account bought counts there all the same.
 Shop? openShop(AccountService accounts) {
   if (!Env.purchases) {
     return null;

@@ -10,6 +10,8 @@ import 'package:wargame/src/db/room_slots.dart';
 import 'package:wargame/src/db/score_service.dart';
 import 'package:wargame/src/db/supabase_schema.g.dart';
 import 'package:wargame/src/game/tank_game.dart';
+import 'package:wargame/src/net/replay_store.dart';
+import 'package:wargame/src/store/shop.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/net_events.dart';
 import 'package:wargame/src/net/net_service.dart';
@@ -272,6 +274,8 @@ TankGame offlineGame({
   NetService? net,
   RoomSlots? slots,
   ScoreService? scores,
+  Shop? shop,
+  ReplayStore? replayStore,
 }) => TankGame(
   net: net ?? FakeNet(),
   // The game is the player its connection speaks for.
@@ -281,13 +285,24 @@ TankGame offlineGame({
   accounts: accounts ?? FakeAccounts(),
   directory: FakeDirectory(),
   slots: slots ?? FakeSlots(),
+  shop: shop,
+  replayStore: replayStore,
 );
 
 /// A game loaded and mounted as the app would, with every overlay, so the
 /// net callbacks are wired and rounds can run.
-Future<TankGame> loadedGame({NetService? net, RoomSlots? slots}) async {
-  final game = offlineGame(net: net, slots: slots)
-    ..onGameResize(Vector2(1280, 720));
+Future<TankGame> loadedGame({
+  NetService? net,
+  RoomSlots? slots,
+  Shop? shop,
+  ReplayStore? replayStore,
+}) async {
+  final game = offlineGame(
+    net: net,
+    slots: slots,
+    shop: shop,
+    replayStore: replayStore,
+  )..onGameResize(Vector2(1280, 720));
   for (final id in [
     OverlayIds.lobby,
     OverlayIds.countdown,

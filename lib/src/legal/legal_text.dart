@@ -132,8 +132,11 @@ const privacy = [
     LegalBlock(
       'Käufe in den Apps',
       'In den Apps für iPhone, iPad, Mac und Android kannst du freiwillig '
-          'etwas kaufen, etwa die Unterstützung, die nur einen Stern auf '
-          'deiner Pilotenkarte bringt und keinen Vorteil im Spiel. Bezahlt '
+          'etwas kaufen: das Unterstützer-Paket (Tarnungen, ein Feldzeichen '
+          'auf deinem Panzer, das andere in der Runde sehen) und das '
+          'Kommandeur-Paket (Startwetter einer Runde, ein Einsatzarchiv nur '
+          'auf deinem Gerät, deine Bilanz je Fahrzeug). Beide bringen keinen '
+          'Vorteil im Spiel. Bezahlt '
           'wird allein über den App Store von Apple bzw. Google Play; '
           'Zahlungsdaten erhalten wir nie, es gelten die '
           'Datenschutzbestimmungen von Apple bzw. Google.\n\n'
@@ -312,8 +315,10 @@ const privacyEn = [
     LegalBlock(
       'Purchases in the apps',
       'In the apps for iPhone, iPad, Mac and Android you can buy things '
-          'voluntarily, such as the supporter pack, which only adds a star '
-          'to your pilot card and no advantage in the game. Payment runs '
+          'voluntarily: the supporter pack (paints, a mark on your tank, which '
+          'others in a round see) and the commander pack (the opening weather '
+          'of a round, a battle archive kept only on your device, your score '
+          'per vehicle). Neither brings an advantage in the game. Payment runs '
           'through Apple\'s App Store or Google Play alone; we never receive '
           'payment details, the privacy terms of Apple or Google apply.\n\n'
           'Purchases need an account, so that they are not lost with a '

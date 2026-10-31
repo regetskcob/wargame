@@ -8,10 +8,7 @@ extension TankGameReplay on TankGame {
     if (current != GamePhase.lobby && current != GamePhase.roundOver) {
       return;
     }
-    final recorded = _recorder.finish();
-    if (recorded != null) {
-      lastReplay.value = recorded;
-    }
+    _keepReplay(_recorder.finish());
     final replay = lastReplay.value;
     if (replay == null) {
       return;
@@ -34,6 +31,30 @@ extension TankGameReplay on TankGame {
       ),
       replay: true,
     );
+  }
+
+  /// The round that just ended becomes the last replay and, with the
+  /// commander pack, goes into the archive. Rounds left within seconds are
+  /// not worth a place among the kept ones.
+  void _keepReplay(Replay? recorded) {
+    if (recorded == null) {
+      return;
+    }
+    lastReplay.value = recorded;
+    if (owns(Product.commander) &&
+        recorded.length >= ReplayArchive.shortestMs) {
+      unawaited(replayStore?.save(recorded));
+    }
+  }
+
+  /// Plays a battle out of the archive.
+  Future<void> watchArchived(ArchivedReplay entry) async {
+    final replay = await replayStore?.load(entry);
+    if (replay == null) {
+      return;
+    }
+    lastReplay.value = replay;
+    watchReplay();
   }
 
   /// Switches the replay between the whole map from above and following

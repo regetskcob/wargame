@@ -10,6 +10,7 @@ import 'package:flame/components.dart';
 import 'package:flame/events.dart';
 import 'package:flame/experimental.dart' show Rectangle;
 import 'package:flame/game.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/rendering.dart' show OffsetLayer, RendererBinding;
 import 'package:flutter/services.dart';
@@ -24,6 +25,7 @@ import '../db/room_slots.dart';
 
 import '../db/score_service.dart';
 import '../store/open_shop.dart';
+import '../store/product.dart';
 import '../store/shop.dart';
 import '../db/supabase_schema.g.dart' show PlayersRow;
 import '../app/env.dart';
@@ -48,6 +50,7 @@ import '../net/payloads/tank_state_payload.dart';
 import '../net/payloads/shoot_payload.dart';
 import '../net/payloads/strike_payload.dart';
 import '../net/replay.dart';
+import '../net/replay_store.dart';
 import '../net/retry_backoff.dart';
 import '../net/room_directory.dart';
 import '../watch/account_link.dart';
@@ -142,7 +145,11 @@ class TankGame extends FlameGame
     required this.accounts,
     this._directory,
     this._slots,
-  }) : super(camera: CameraComponent()) {
+    Shop? shop,
+    ReplayStore? replayStore,
+  }) : _givenShop = shop,
+       _givenReplays = replayStore,
+       super(camera: CameraComponent()) {
     welcomed.addListener(_wake);
     choosingMode.addListener(_wake);
   }
@@ -160,9 +167,30 @@ class TankGame extends FlameGame
   /// Rank, rating and badges of the local pilot.
   late final progress = PilotProgress(scores: scoreService, profiles: profiles);
 
-  /// The supporter pack on the account page, null while purchases are off
-  /// for this build (docs/purchases.md).
-  late final Shop? shop = openShop(accounts);
+  final Shop? _givenShop;
+  final ReplayStore? _givenReplays;
+
+  /// The two packs on the account page, null while purchases are off for
+  /// this build (docs/purchases.md).
+  late final Shop? shop = _givenShop ?? openShop(accounts);
+
+  /// Whether the signed in account owns [product]; never while purchases
+  /// are off, so a build without them shows none of this.
+  bool owns(Product product) => shop?.owns(product) ?? false;
+
+  /// The commander's archive on this device, null where there is no file
+  /// system to keep it in: the web and the watch.
+  late final ReplayStore? replayStore =
+      _givenReplays ?? (onWatch ? null : openReplayStore());
+
+  /// How the host wants the next round to open, with the commander pack.
+  final skyWish = ValueNotifier<SkyWish>(const SkyWish());
+
+  /// The chosen paint of the supporter pack, an index into
+  /// `GameConfig.supporterColors`; null for the usual schemes. Only on this
+  /// device: paints show in rounds alone, nobody else ever sees it.
+  final supporterPaint = ValueNotifier<int?>(null);
+  static const _paintKey = 'supporter_paint';
 
   /// Account ids of the players in the current round, for the rating.
   final _uids = <String, String>{};
@@ -657,6 +685,9 @@ class TankGame extends FlameGame
     _adoptStoredPilot();
     accounts.user.addListener(_onAccountChanged);
     unawaited(shop?.start());
+    // A pack bought or restored shows in the room at once.
+    shop?.owned.addListener(_pushOwned);
+    unawaited(_loadSupporterPaint());
     _adoptLanguage();
     L10n.lang.addListener(_saveLanguage);
     net.recorder = _recorder;

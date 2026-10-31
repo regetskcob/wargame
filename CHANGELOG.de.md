@@ -10,6 +10,13 @@ gepflegt.
 
 ## Unveröffentlicht
 
+- Vorbereitet, in jedem Build noch aus: zwei Pakete statt einem, getrennt oder
+  zusammen zu kaufen, beide ohne Vorteil im Gefecht. Unterstützer (2,99 €): vier
+  exklusive Tarnungen, ein Feldzeichen auf dem Panzer, ein Ehrenzeichen in der
+  Raumliste. Kommandeur (7,99 €): Der Gastgeber bestimmt Startwetter und
+  Tageszeit für den ganzen Raum, dazu ein Einsatzarchiv der letzten zehn Runden
+  und die Bilanz je Fahrzeug
+
 ## 1.8.2 (19, Google Play 20) – 29.10.2026
 
 - Panzer fahren etwas langsamer, vorwärts wie rückwärts um etwa ein

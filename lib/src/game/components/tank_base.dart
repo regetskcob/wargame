@@ -30,6 +30,10 @@ abstract class TankBase extends PositionComponent {
   final Color tankColor;
   final TankType tankType;
 
+  /// The supporter pack's mark on the hull. Colours stay with team and seat,
+  /// so it never gets in the way of telling friend from foe.
+  bool emblem = false;
+
   late final TankStats stats = TankStats.of(tankType);
   late double hp = stats.maxHp;
 
@@ -352,6 +356,9 @@ abstract class TankBase extends PositionComponent {
       scarSeed: _scarSeed,
       flame: damage.stage == DamageStage.burning ? _clock : null,
     );
+    if (emblem) {
+      _paintEmblem(canvas);
+    }
     if (shifted) {
       canvas.restore();
     }
@@ -373,6 +380,32 @@ abstract class TankBase extends PositionComponent {
       );
     }
   }
+
+  /// A small star on the rear of the hull, clear of the turret.
+  void _paintEmblem(Canvas canvas) {
+    final star = _starPath(size.x * 0.2, size.y / 2, size.x * 0.1);
+    canvas
+      ..drawPath(star, _emblemFill)
+      ..drawPath(star, _emblemEdge);
+  }
+}
+
+final _emblemFill = Paint()..color = const Color(0xFFF2D675);
+final _emblemEdge = Paint()
+  ..color = const Color(0xCC000000)
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 0.8;
+
+Path _starPath(double x, double y, double radius) {
+  final path = Path();
+  for (var i = 0; i < 10; i++) {
+    final r = i.isEven ? radius : radius * 0.45;
+    final a = -pi / 2 + i * pi / 5;
+    final px = x + cos(a) * r;
+    final py = y + sin(a) * r;
+    i == 0 ? path.moveTo(px, py) : path.lineTo(px, py);
+  }
+  return path..close();
 }
 
 class TankTag extends PositionComponent {

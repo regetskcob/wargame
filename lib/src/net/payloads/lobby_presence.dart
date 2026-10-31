@@ -20,6 +20,7 @@ class LobbyPresence {
     this.map,
     this.teams = false,
     this.content = 0,
+    this.star = false,
   });
 
   factory LobbyPresence.fromJson(Map<String, dynamic> json) {
@@ -45,6 +46,7 @@ class LobbyPresence {
       map: json['map'] is int ? json['map'] as int : null,
       teams: json['teams'] == true,
       content: json['content'] is int ? json['content'] as int : 0,
+      star: json['star'] == true,
     );
   }
 
@@ -166,6 +168,10 @@ class LobbyPresence {
   /// `GameConfig.contentLevel`; 0 for clients from before it was sent.
   final int content;
 
+  /// Owns the supporter pack: a star in the room list and a mark on the
+  /// tank. The client's own word, like the name: faking it fakes a picture.
+  final bool star;
+
   bool get inMatch => seed != null && startedAt != null;
 
   Map<String, dynamic> toJson() {
@@ -190,6 +196,7 @@ class LobbyPresence {
       if (map != null) 'map': map,
       if (teams) 'teams': true,
       if (content > 0) 'content': content,
+      if (star) 'star': true,
     };
   }
 }
