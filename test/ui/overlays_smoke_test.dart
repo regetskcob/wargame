@@ -22,6 +22,8 @@ import 'package:wargame/src/game/kill_feed.dart';
 import 'package:wargame/src/game/tank_game.dart';
 import 'package:wargame/src/l10n/l10n.dart';
 import 'package:wargame/src/net/room.dart';
+import 'package:wargame/src/store/product.dart';
+import 'package:wargame/src/store/shop.dart';
 import 'package:wargame/src/tv/tv_input.dart';
 import 'package:wargame/src/ui/closed_overlay.dart';
 import 'package:wargame/src/ui/countdown_overlay.dart';
@@ -157,9 +159,9 @@ Future<void> _page(WidgetTester tester, Widget page, Size size) async {
   await tester.pumpWidget(const SizedBox());
 }
 
-Future<TankGame> _game(WidgetTester tester) async {
+Future<TankGame> _game(WidgetTester tester, {Shop? shop}) async {
   final game = await tester.runAsync(
-    () => loadedGame(net: FakeNet()..othersPresent = true),
+    () => loadedGame(net: FakeNet()..othersPresent = true, shop: shop),
   );
   return game!;
 }
@@ -193,8 +195,12 @@ Future<void> _everyLobbyPage(
   WidgetTester tester,
   Size size, {
   bool tv = false,
+  Shop? shop,
 }) async {
-  final game = await _game(tester);
+  final game = await _game(tester, shop: shop);
+  if (shop != null) {
+    await tester.runAsync(shop.refresh);
+  }
   expect(game.overlays.isActive(OverlayIds.lobby), isTrue);
   game.welcomed.value = false;
   await _show(tester, game, size, tv: tv);
@@ -214,6 +220,14 @@ Future<void> _everyLobbyPage(
     expect(find.byType(LobbyOverlay), findsOneWidget, reason: '$mode');
   }
   await tester.pumpWidget(const SizedBox());
+}
+
+class _OwnsAll implements PurchaseServer {
+  @override
+  Future<Set<Product>> owned() async => Product.values.toSet();
+
+  @override
+  Future<bool> verify(String store, StorePurchase purchase) async => true;
 }
 
 void main() {
@@ -267,6 +281,18 @@ void main() {
         L10n.lang.value = lang;
         addTearDown(tester.view.reset);
         await _everyLobbyPage(tester, size);
+      });
+
+      testWidgets('the waiting room lays out with both packs ($where)', (
+        tester,
+      ) async {
+        L10n.lang.value = lang;
+        addTearDown(tester.view.reset);
+        await _everyLobbyPage(
+          tester,
+          size,
+          shop: Shop.closed(server: _OwnsAll(), signedIn: () => true),
+        );
       });
 
       testWidgets('the countdown lays out ($where)', (tester) async {

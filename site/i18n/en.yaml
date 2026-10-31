@@ -95,3 +95,11 @@ changelog: Changelog
 changelog-kennung: 02 — Changelog
 changelogHeadline: What is new.
 changelogLead: What the latest versions of the apps brought, newest first. The game in the browser is always up to date.
+open-kennung: 06 — Open source
+open-title: Built in the open, to read along.
+open-code: Code
+open-code-text: "All the source under the MIT licence: [on GitHub](https://github.com/regetskcob/wargame)."
+open-flutter: Flutter
+open-flutter-text: One Dart code base for browser, phone, Mac, television and watch, a showcase of what Flutter can do.
+open-costs: Costs
+open-costs-text: The game stays free. Voluntary packs in the apps pay for server, domain and hosting.

@@ -25,6 +25,11 @@ const _mail = 'info@panzergefecht.de';
 /// the same as every app.
 const purchasesOffered = false;
 
+/// Whether the source code is under the MIT licence
+/// (docs/open-source/README.md). Off until every author agreed; it changes
+/// the licence page only, together with the files at the root.
+const openSourced = false;
+
 const imprint = [
   LegalBlock('Angaben gemäß § 5 DDG', _owner),
   LegalBlock('Kontakt', 'E-Mail: $_mail'),
@@ -394,19 +399,28 @@ const licensesUrl = 'https://panzergefecht.de/lizenzen/';
 const licenses = [
   LegalBlock(
     'Panzergefecht',
-    '© 2026 Daniel Bocksteger. Alle Rechte vorbehalten.\n\n'
-        'Spiel, Quelltext, Grafiken, Klänge und Texte sind urheberrechtlich '
-        'geschützt. Du darfst das Spiel über die Website und die offiziellen '
-        'App-Stores kostenlos privat spielen. Jede weitere Nutzung, '
-        'insbesondere Vervielfältigen, Bearbeiten, Weitergeben, öffentliches '
-        'Zugänglichmachen oder eigene Builds und Server, ist ohne vorherige '
-        'schriftliche Zustimmung nicht erlaubt.',
+    openSourced
+        ? '© 2026 Daniel Bocksteger und die Mitwirkenden.\n\n'
+              'Das Spiel ist Open Source und ein Schaufenster dafür, was '
+              'Flutter kann. Freiwillige Käufe tragen Server, Domain und '
+              'Hosting. Name und App-Icon sind von der Lizenz ausgenommen.'
+        : '© 2026 Daniel Bocksteger. Alle Rechte vorbehalten.\n\n'
+              'Spiel, Quelltext, Grafiken, Klänge und Texte sind '
+              'urheberrechtlich geschützt. Du darfst das Spiel über die '
+              'Website und die offiziellen App-Stores kostenlos privat '
+              'spielen. Jede weitere Nutzung, insbesondere Vervielfältigen, '
+              'Bearbeiten, Weitergeben, öffentliches Zugänglichmachen oder '
+              'eigene Builds und Server, ist ohne vorherige schriftliche '
+              'Zustimmung nicht erlaubt.',
   ),
   LegalBlock(
     'Quelltext',
-    'Der Quelltext ist nicht Open Source: Es wird kein Recht eingeräumt, '
-        'ihn ganz oder in Teilen zu nutzen, zu kopieren, zu verändern oder zu '
-        'verbreiten.',
+    openSourced
+        ? 'Der Quelltext steht unter der MIT-Lizenz: '
+              'https://github.com/regetskcob/wargame'
+        : 'Der Quelltext ist nicht Open Source: Es wird kein Recht '
+              'eingeräumt, ihn ganz oder in Teilen zu nutzen, zu kopieren, zu '
+              'verändern oder zu verbreiten.',
   ),
   LegalBlock(
     'Komponenten von Dritten',
@@ -446,18 +460,26 @@ const licenses = [
 const licensesEn = [
   LegalBlock(
     'Panzergefecht',
-    '© 2026 Daniel Bocksteger. All rights reserved.\n\n'
-        'The game, its source code, graphics, sounds and texts are protected '
-        'by copyright. You may play the game privately and free of charge '
-        'through the website and the official app stores. Any other use, in '
-        'particular copying, modifying, passing on, making it publicly '
-        'available or running your own builds and servers, is not permitted '
-        'without prior written consent.',
+    openSourced
+        ? '© 2026 Daniel Bocksteger and the contributors.\n\n'
+              'The game is open source and a showcase of what Flutter can do. '
+              'Voluntary purchases pay for server, domain and hosting. Name '
+              'and app icon are not covered by the licence.'
+        : '© 2026 Daniel Bocksteger. All rights reserved.\n\n'
+              'The game, its source code, graphics, sounds and texts are '
+              'protected by copyright. You may play the game privately and '
+              'free of charge through the website and the official app stores. '
+              'Any other use, in particular copying, modifying, passing on, '
+              'making it publicly available or running your own builds and '
+              'servers, is not permitted without prior written consent.',
   ),
   LegalBlock(
     'Source code',
-    'The source code is not open source: no right is granted to use, '
-        'copy, modify or distribute it in whole or in part.',
+    openSourced
+        ? 'The source code is under the MIT licence: '
+              'https://github.com/regetskcob/wargame'
+        : 'The source code is not open source: no right is granted to use, '
+              'copy, modify or distribute it in whole or in part.',
   ),
   LegalBlock(
     'Third-party components',

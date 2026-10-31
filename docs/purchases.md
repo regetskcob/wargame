@@ -7,7 +7,9 @@ works and what going live takes.
 ## What is sold, and what never is
 
 Two packs, each a one-time purchase, bought apart or together. Neither
-contains the other, so no buyer ever pays twice for the same thing.
+contains the other, so no buyer ever pays twice for the same thing. They exist
+to pay the running costs (Supabase Pro, domain, hosting), and their texts say
+so.
 
 | Pack | Store id | Kind | Price | Idea |
 | --- | --- | --- | --- | --- |

@@ -28,16 +28,16 @@ enum Product {
 
   String get benefit => switch (this) {
     supporter => tr(
-      'Zeig, dass du dabei bist. Einmal zahlen, kein Abo, kein Vorteil im '
-          'Gefecht.',
-      'Show that you are in. Pay once, no subscription, no advantage in '
-          'battle.',
+      'Zeig, dass du dabei bist. Dein Beitrag trägt Server, Domain und '
+          'Hosting. Einmal zahlen, kein Abo, kein Vorteil im Gefecht.',
+      'Show that you are in. Your share pays for server, domain and '
+          'hosting. Pay once, no subscription, no advantage in battle.',
     ),
     commander => tr(
-      'Bestimme das Gefecht und behalte es. Einmal zahlen, kein Abo, kein '
-          'Vorteil im Gefecht.',
-      'Set the battle and keep it. Pay once, no subscription, no advantage '
-          'in battle.',
+      'Bestimme das Gefecht und behalte es. Dein Beitrag trägt Server, Domain '
+          'und Hosting. Einmal zahlen, kein Abo, kein Vorteil im Gefecht.',
+      'Set the battle and keep it. Your share pays for server, domain and '
+          'hosting. Pay once, no subscription, no advantage in battle.',
     ),
   };
 

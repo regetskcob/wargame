@@ -1,0 +1,10 @@
+Panzergefecht began as a fork of the Flame and Supabase workshop by Lukas
+Klingsbo (spydon/supabase_flame_workshop), with contributions by Henrik Stamm.
+Both agreed to this licence: <REPLACE WITH THE DATES OF THEIR CONSENT>.
+
+The MIT licence in LICENSE covers the source code. It does not cover:
+
+- The name "Panzergefecht", the app icon and the store listings
+  (store/). Forks publish under their own name, icon and bundle id.
+- Third-party components, which keep their own licences, listed in the game
+  under "Licences" and at https://panzergefecht.de/lizenzen/.

@@ -98,6 +98,16 @@
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "fair" "kennung" (i18n "fair-kennung") "title" (index $notes 0) "text" (index $notes 1) "facts" $facts) }}
 
+{{- /* 06 — Open source and what pays for it; off until the licence is
+   switched, docs/open-source/README.md. */}}
+{{- if site.Params.openSource }}
+{{- $facts = slice }}
+{{- range slice "code" "flutter" "costs" }}
+  {{- $facts = $facts | append (dict "term" (i18n (printf "open-%s" .)) "value" (i18n (printf "open-%s-text" .))) }}
+{{- end }}
+{{ partial "horizont/feld/section.html" (dict "id" "open" "kennung" (i18n "open-kennung") "title" (i18n "open-title") "facts" $facts) }}
+{{- end }}
+
 {{- /* The screenshots open at full size in Horizont's lightbox, paged per
    section. */}}
 {{ partial "horizont/lightbox.html" (dict "lang" site.Language.Lang) }}

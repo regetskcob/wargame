@@ -134,6 +134,8 @@ flutter run -d chrome \
   what works where and what is next.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
+- [What this game shows about Flutter](docs/flutter-showcase.md)
+- [Going open source](docs/open-source/README.md): prepared, not active
 - [In-app purchases](docs/purchases.md): two packs, prepared but
   not live, and what going live takes.
 - [Development](docs/development.md): tests, regenerating the typed models,

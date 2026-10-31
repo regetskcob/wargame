@@ -104,6 +104,10 @@ enableRobotsTXT = false
   # the one to a new domain. Impressum, privacy and licences stay.
   maintenance = false
 
+  # The section on the code and what pays for it (home.html). Off until the
+  # licence is switched, docs/open-source/README.md.
+  openSource = false
+
   # Where support requests go. The page has no server of its own, so the
   # form opens a written mail in the visitor's mail app.
   supportMail = 'review@panzergefecht.de'
