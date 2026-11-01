@@ -417,6 +417,36 @@ def feature_graphic(lang):
     save(canvas, play_dir(lang) / "featureGraphic")
 
 
+def tv_banner(lang):
+    """The 1280 x 720 banner Google Play asks of a TV app, the name large
+    enough to read from the sofa. The same in both languages but for the
+    folder: it has no sentence to translate."""
+    w, h = 1280, 720
+    canvas = backdrop((w, h), "feature")
+    tank = Image.open(ROOT / "tvos/Runner/Assets.xcassets/LaunchImage.imageset"
+                      / "LaunchImage@2x.png").convert("RGBA")
+    tank = tank.resize((420, round(tank.height * 420 / tank.width)),
+                       Image.LANCZOS)
+    canvas.paste(tank, ((w - tank.width) // 2, 120), tank)
+    draw = ImageDraw.Draw(canvas)
+    spaced(draw, (w / 2, 120 + tank.height + 50), "PANZERGEFECHT",
+           font(horizont_fonts.HEADLINE, 92), SAND, 7)
+    save(canvas, play_dir(lang) / "tvBanner")
+
+
+def tv_shots(lang, raw_dir):
+    """Android TV screenshots as the emulator shows them, at 1920 x 1080;
+    left alone when no raw pictures were taken (`shots <dir> atv`)."""
+    for name, raw in (("01-gefecht", "atv_battle"),
+                      ("02-verteidigung", "atv_defense"),
+                      ("03-warteraum", "atv_room")):
+        source = raw_dir / lang / f"{raw}.png"
+        if source.exists():
+            shot = Image.open(source).convert("RGB").resize((1920, 1080),
+                                                            Image.LANCZOS)
+            save(shot, play_dir(lang) / "tvScreenshots" / name)
+
+
 # App Store header artwork ("Kopfzeile"): gameplay without captions, as the
 # store lays the app's name and icon over it. The interesting part stays in
 # the middle, where every crop of the header keeps it.
@@ -528,6 +558,8 @@ if __name__ == "__main__":
         compose(*entry, source)
     for lang in LANGS:
         feature_graphic(lang)
+        tv_banner(lang)
+        tv_shots(lang, source)
         for size in HEADERS:
             header(lang, size, source)
             search_header(lang, size, source)

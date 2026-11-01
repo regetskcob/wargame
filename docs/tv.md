@@ -81,8 +81,9 @@ Open:
   it.
 - Sign-in on a television: typing an e-mail with the d-pad is slow. A code
   shown on the TV and confirmed on the phone would fit better.
-- Google Play: opt in to the TV form factor in the console, add TV
-  screenshots (1920×1080) and a TV banner to the listing, pass the TV review.
+- Google Play: opt in to the TV form factor in the console and pass the TV
+  review. Screenshots and banner are ready in `store/android/metadata/`,
+  taken in the emulator (store/android/README.md).
 - The Wear OS bundle merges the same manifest; check that the launcher
   category and banner do no harm there.
 

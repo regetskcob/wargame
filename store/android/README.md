@@ -17,6 +17,8 @@ in der Play Console einfügen (Store-Präsenz > Haupteintrag im Play Store).
 | Tablet-Screenshots 7" (1920 × 1200) | `metadata/de-DE/images/sevenInchScreenshots/*.png` |
 | Tablet-Screenshots 10" (2560 × 1600) | `metadata/de-DE/images/tenInchScreenshots/*.png` |
 | Wear-OS-Screenshots (quadratisch, mindestens 384 × 384) | `metadata/de-DE/images/wearScreenshots/*.png` |
+| Android-TV-Screenshots (1920 × 1080, ohne Beschriftung) | `metadata/de-DE/images/tvScreenshots/*.png` |
+| Android-TV-Banner (1280 × 720) | `metadata/de-DE/images/tvBanner.png` |
 
 Play erlaubt keine Seite, die mehr als doppelt so lang ist wie die andere, die
 6,9"-Bilder aus dem App Store passen deshalb nicht. `tool/store/compose.py`
@@ -29,6 +31,10 @@ pip3 install --user pillow
 tool/release.sh graphics <ordner-mit-rohaufnahmen>
 python3 tool/store/horizont_icons.py ../horizont
 ```
+
+Die TV-Bilder stammen aus einem laufenden Android-TV-Emulator (Profil
+`tv_1080p`): `tool/release.sh shots <ordner> atv`, danach `tool/release.sh
+graphics <ordner>`.
 
 Englische Screenshots und Vorstellungsgrafik liegen genauso unter
 `metadata/en-US/images/`. Die Screenshots zeigen die

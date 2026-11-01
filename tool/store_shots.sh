@@ -5,7 +5,8 @@
 # (Env.shotScene, lib/src/game/tank_game/shots.dart). The scene goes in as
 # launch arguments, which land in the app's user defaults.
 #
-#   tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac]   (default: all)
+#   tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac] [atv]
+#                                              (default: all but atv)
 #   tool/release.sh graphics <raw dir>         (tool/store/compose.py)
 #
 # Writes <raw dir>/<de-DE|en-US>/<name>.png with the names compose.py reads,
@@ -29,6 +30,7 @@ phone_scenes="${PHONE_SCENES:-i_battle:battle i_defense:defense i_lobby:lobby i_
 tablet_scenes="${TABLET_SCENES:-p_battle:battle p_defense:defense p_room:room}"
 tv_scenes="${TV_SCENES:-tv_battle:battle tv_defense:defense}"
 mac_scenes="${MAC_SCENES:-m_battle:battle m_defense:defense m_room:room}"
+atv_scenes="${ATV_SCENES:-atv_battle:battle atv_defense:defense atv_room:room}"
 
 langs() { echo "${SHOT_LANGS:-de:de-DE en:en-US}"; }
 
@@ -145,6 +147,32 @@ case " $targets " in *" mac "*)
       fi
       kill "$pid" 2>/dev/null || true
       wait "$pid" 2>/dev/null || true
+    done
+  done
+  ;;
+esac
+
+case " $targets " in *" atv "*)
+  # A running Android TV emulator (ANDROID_SERIAL, or the only emulator).
+  # Android launch arguments never reach the preferences, so each picture
+  # takes its own build, and the screen itself is the picture: no captions,
+  # as Google asks of TV screenshots.
+  serial="${ANDROID_SERIAL:-$(adb devices | awk '/^emulator-/ { print $1; exit }')}"
+  [ -n "$serial" ] || { echo "no Android TV emulator running" >&2; exit 1; }
+  for pair in $(langs); do
+    for entry in $atv_scenes; do
+      out="$raw/${pair#*:}/${entry%%:*}.png"
+      mkdir -p "$(dirname "$out")"
+      flutter build apk --debug --target-platform android-arm64 $defines \
+        "--dart-define=SHOT_SCENE=${entry#*:}" "--dart-define=SHOT_LANG=${pair%%:*}"
+      adb -s "$serial" install -r build/app/outputs/flutter-apk/app-debug.apk >/dev/null
+      adb -s "$serial" shell am force-stop $bundle
+      adb -s "$serial" shell am start -n "$bundle/.MainActivity" >/dev/null
+      # The longest settle of a scene (shots.dart) plus the start. Not more:
+      # nothing ends the app here, and on easy a battle can be over at 40 s.
+      sleep "${ATV_WAIT:-24}"
+      adb -s "$serial" exec-out screencap -p >"$out"
+      echo "$out"
     done
   done
   ;;
