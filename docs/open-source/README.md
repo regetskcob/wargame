@@ -17,10 +17,10 @@ two packs (docs/purchases.md) pay for Supabase Pro, the domain and hosting.
 | What | State |
 | --- | --- |
 | Henrik Stamm's code (fork history) | Rights assigned, says the owner. Keep the written assignment. |
-| Lukas Klingsbo's code, about 1,400 lines still in the tree. The upstream repository has no licence, so nothing here may be relicensed without him. | Mail sent, **no consent on record yet**. |
-| Licence | Proposed: MIT for code, name and icon kept (`NOTICE`). The owner's call. |
-| `tool/werkbank/`, a copy of a private repository | The owner decides: covered by MIT as well, or excluded in `NOTICE`. |
-| Horizont (git dependency) | Public, but GitHub detects its licence as "other"; check that it carries a plain MIT file, or forks cannot rely on it. |
+| Lukas Klingsbo's code, about 1,400 lines still in the tree. All 21 of his commits are in the upstream repository, which had no licence. | Consent by mail on 2026-11-03: MIT for the workshop repository. PR [spydon/supabase_flame_workshop#1](https://github.com/spydon/supabase_flame_workshop/pull/1) open, **switch once it is merged**. Keep the mail. |
+| Licence | Confirmed by the owner (2026-11-03): MIT for code, name and icon kept (`NOTICE`). |
+| `tool/werkbank/`, a copy of a private repository | Gets an MIT licence of its own soon (separate work); wait for the owner's go. |
+| Horizont (git dependency) | Gets a plain MIT licence soon (separate work); wait for the owner's go. |
 
 ## The switch, in one change
 
@@ -42,5 +42,9 @@ two packs (docs/purchases.md) pay for Supabase Pro, the domain and hosting.
 Do not rewrite history: the search for secrets in the tree and the history
 (private keys, service role keys, tokens) came back empty, and the publishable
 Supabase key and project ref in the repository are meant to be public, guarded
-by row level security. A dedicated scanner such as gitleaks has not run yet;
-run one before the switch.
+by row level security. gitleaks 8.30 ran on 2026-11-03 over all branches and
+the working tree: its only hits are that publishable key (in
+`ios/OnlineWidget/OnlineWidget.swift`) and the ignored, never committed
+`android/key.properties`. No keystore, `.p8`, `.p12` or `.env` file was ever
+committed. Run it again right before the switch:
+`gitleaks git . --log-opts=--all --redact` and `gitleaks dir . --redact`.
