@@ -28,9 +28,10 @@ add a new one.
    column and degrade.
 5. **Push** without asking (the user has given a standing go-ahead), as
    soon as step 2 passed and before the client code reaches main. Say in
-   the report that it went live. From a worktree first copy the link state:
-   `cp -R /Users/regetskcob/dev/wargame/supabase/.temp supabase/.temp`, then
-   `supabase db push`. Confirm with `supabase migration list`.
+   the report that it went live. From a worktree first copy the link state
+   from the main checkout, which holds the link:
+   `cp -R "$(git worktree list | head -1 | cut -d' ' -f1)/supabase/.temp" supabase/.temp`,
+   then `supabase db push`. Confirm with `supabase migration list`.
 6. Record the new live migration in memory and, if behaviour changed, in the
    README or `docs/`.
 

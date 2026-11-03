@@ -167,8 +167,8 @@ Ausnahmen vom Standard:
 
 ## Stolperfallen
 
-- `supabase db push` aus einem Worktree: vorher
-  `/Users/regetskcob/dev/wargame/supabase/.temp` in den Worktree kopieren.
+- `supabase db push` aus einem Worktree: vorher `supabase/.temp` aus dem
+  Hauptcheckout (erste Zeile von `git worktree list`) in den Worktree kopieren.
 - Nach `supabase_typegen` die Default-Fallbacks für nachträglich ergänzte
   Spalten in `supabase_schema.g.dart` wiederherstellen (siehe `docs/development.md`).
 - SQL ohne Docker prüfen: PGlite (npm) im Scratchpad mit auth-Stub.

@@ -1,410 +1,379 @@
 # Platforms
 
-The web game is the main target. The same code runs as apps on iOS, Android, the Mac, the Apple Watch and the Apple TV, and the iPad app on the Apple Vision Pro.
+One Flutter code base, one `lib/main.dart`, runs the game in the browser and
+as apps on iOS and iPadOS, Android, the Mac, the Apple Watch, Wear OS, the
+Apple TV and Android TV, and (as the iPad app) on the Apple Vision Pro. This
+page is for developers who want to run the game on a given platform or need
+to know what is special there: how to start it, what differs from the
+browser, what has been tried and what has not. Televisions have a page of
+their own, [tv.md](tv.md). How the game plays is in
+[gameplay.md](gameplay.md), the network side in [netcode.md](netcode.md),
+tests and deployment in [development.md](development.md).
 
-## Mobile apps (iOS and Android)
+Contents:
 
-The project carries `ios/` and `android/` next to `macos/` and `web/`. The
-apps are called Panzergefecht, with the bundle and app id
-`de.regetskcob.wargame` on iOS and Android (kept from an earlier name, store
-ids cannot change). The iOS product is `Panzergefecht.app`, the Xcode target
-and scheme stay `Runner`, which `flutter build ios` expects. On phones
-and tablets the game plays upright or sideways, hides the system bars, and
-shows the on-screen touch controls. The camera shows the same stretch of the
-world along the shorter side, so upright shows more of the field above and
-below; in a defense round the field's height fills an upright screen. The
-phone and tablet apps have no mute button: the sounds follow the silent
-switch and the volume keys, and mix with music from other apps. The browser
-and the Mac app have one beside the account. Phones vibrate with the game
-(`lib/src/haptics.dart`, Flutter's `HapticFeedback`: the Taptic Engine on the
-iPhone, the vibration motor on Android): a light tap for a blast close by, a
-hard knock for a heavy hit, the own tank destroyed and the end of a round, a
-click per second of the countdown and a firm tap at the start. A switch in the
-account page turns it off, Android also follows the system setting for touch
-vibration. iPads and most Android tablets have no motor and stay still, and
-their account page shows no switch.
-The player's own moments always tap; blasts out on the field only when
-strong enough, at most twice a second and never right after an own tap, so
-a late defense wave does not buzz without a pause (`Haptics.admits`).
+- [At a glance](#at-a-glance)
+- [Web](#web)
+- [iOS and Android](#ios-and-android)
+- [Home screen widget](#home-screen-widget)
+- [iMessage](#imessage)
+- [Mac](#mac)
+- [Apple Vision Pro](#apple-vision-pro)
+- [Apple Watch](#apple-watch)
+- [Wear OS](#wear-os)
+- [Apple TV](#apple-tv)
+- [Controllers and two players on one screen](#controllers-and-two-players-on-one-screen)
+- [Writing code for several platforms](#writing-code-for-several-platforms)
+- [Release builds (maintainer)](#release-builds-maintainer)
 
-Tablets use their screen for the menus (issue 18). Everything is decided by
-size, not platform: a tablet is a shorter side of 600 points or more
-(`tabletShortSide`). The start page and the waiting room start at the top
-and take the whole width. Held sideways, the start page puts the ways to play
-on the left and the open rooms and the leaderboard on the right, from 1000
-points of width. The waiting room puts the invite and the crews beside the
-tank, and from 720 points upright it uses two columns where a phone held
-sideways at that width stacks them. The vehicle cards grow into the free
-width up to 168 points, the bars and the paint stand beside them, and
-cards that do not fit in one row are split evenly (two by two instead of
-three and one). Large tablets also draw the menus larger, as they draw the
-HUD: `MenuScale`, up to 1.25 on a 13" iPad (`menuScaleFor`), while the 11"
-iPad, phones and a browser of 1280 by 800 keep 1. The browser and the
-desktop keep their centred menu of 1040 at most, and the television keeps
-its layout.
+## At a glance
 
-The account is a page of its own over the game (route `/account`,
-`lib/src/ui/account_page.dart`), not a dialog. From 760 points of width
-the account sits on the left and this device (vibration, controllers,
-deleting the account, legal links) on the right, so a tablet shows all of
-it without scrolling. Deleting the account comes last on the page, on a
-phone too.
-The cross in the title is the only way to close it, besides the system
-back gesture and Menu on the remote.
+| Platform | Folder | Run it | State |
+| --- | --- | --- | --- |
+| Web | `web/` | `flutter run -d chrome` | Live at <https://panzergefecht.de/play/> |
+| iPhone, iPad | `ios/` | `flutter run -d <device-id>` | Plays; tried on a real iPhone and iPad |
+| Android phones, tablets | `android/` | `flutter run -d <device-id>` | Plays; game controllers not tried on a real pad |
+| Mac | `macos/` | `flutter run -d macos` | Plays |
+| Apple Vision Pro | the iPad app | install the iOS simulator build | Simulator only; look and pinch not tried on a headset |
+| Apple Watch | `watchos/` | `flutter-watchos run` | Watch Simulator only |
+| Wear OS | `android/` + `android/wear/` | `flutter run --android-project-arg=wear=true` | Wear OS emulator only |
+| Apple TV | `tvos/` | `flutter-tvos run` | Apple TV Simulator only, see [tv.md](tv.md) |
+| Android TV, Fire TV | the Android app | `flutter run -d <device-id>` | Android TV emulator only, see [tv.md](tv.md) |
 
-Sounds work the same way (`lib/src/audio/sound_mixer.dart`): the player's
-own play at once on voices of their own; sounds on the field fall off with
-the square of the distance and share a budget of five per quarter second,
-a quieter one waiting behind louder ones. On the phones each sound has a
-few voices, and a new sound takes a free one or the quietest playing one,
-never a louder one in the middle of its sound: restarted in turn they cut
-each other off and stuttered in a late defense wave. Every call to a player
-crosses to the phone's main thread, so the field waits in no queue: with
-three restarts under way a sound of the field is left out, and no sound,
-the own neither, that is not through to its player within 120 ms is
-started at all (`VoiceTraffic`). The player's own sounds have three voices
-per sound and only take one that played through, since stopping a voice
-halfway and winding it back took iOS up to 19 seconds in a late wave. The
-players never ask for their position (audioplayers does that every frame
-for each playing player otherwise). The engine loop
-changes volume and pitch only when the speed moves by a twentieth
-(`EngineThrottle`), not ten times a second. Measured on a real iPad in
-[Device QA](development.md#device-qa). The browser runs all
-sounds through a limiter against crackling.
+Every build talks to the hosted Supabase project unless you pass your own
+(`--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...`, see
+[`lib/src/app/env.dart`](../lib/src/app/env.dart)). A fork that runs its
+own backend passes these to every build below. Without a reachable server the
+game still starts and plays alone against CPU tanks (`ServerStatus`, see
+[netcode.md → Running without the server](netcode.md#running-without-the-server)).
 
-Android has the `INTERNET` permission in the main manifest, so release
-builds can reach Supabase.
+## Web
 
-The start page does not wait for the server: a first visit signs in as a
-guest in the background (`ServerStatus.ensureSession`, shared with the
-first heartbeat), the call sign and style kept on the device
-(`rememberPilot`) show at once, and the server's profile and progress
-follow side by side when they arrive. The sounds load after the first
-frame of the start page. The launch screen shows the tank of the app icon on a calm version of its
-ground, and `LoadingView` (`lib/src/ui/loading_view.dart`) keeps exactly
-that with a spinner below, from the first Flutter frame until the game has
-loaded; the web page shows the same from `web/index.html` before Flutter
-starts, from the built assets under `assets/assets/images/`, so the loading
-view finds them in the browser cache. Android draws only the ground colour behind the tank
-(`@color/launch_ground`); since Android 12 the system splash shows the tank
-as its icon (`values-v31/styles.xml`), before that `launch_background.xml`
-does. The images come from Horizont, the tank standing on the horizon
-in the middle of its ground: `python3 tool/store/horizont_icons.py` copies
-them for all of them (iOS image sets, Android drawables, `assets/images/`).
-
-You need a full Xcode (iOS) and a JDK with the Android SDK (Android), see
-`flutter doctor`. Then:
+The browser game is the main target and the reference for every other
+platform. Push to `main` deploys it with GitHub Pages under `/play/` of the
+landing page ([development.md → Deploying](development.md#deploying)).
 
 ```sh
-flutter run -d <device-id>   # a simulator, an emulator, or a plugged in phone
-flutter build apk --release        # Android APK
-flutter build appbundle --release  # Android App Bundle for Google Play
-flutter build ios --release        # iOS, set your signing team in Xcode first
+flutter run -d chrome --dart-define=ROOM=dev   # start twice for two players
+flutter build web --no-web-resources-cdn --base-href /play/
 ```
 
-Pass `--dart-define=SUPABASE_URL=...` and `--dart-define=SUPABASE_KEY=...` as
-for the web build. The `ci` workflow, started by hand, builds the iOS app
-without signing (`flutter build ios --release --no-codesign`) and the Android
-App Bundle with the debug key. Signing for every Apple platform (iOS with its
-widget and iMessage extension, Apple TV, Mac) is set once in
-`apple/Signing.xcconfig`: team, automatic signing, the development
-certificate. Flutter keeps one Xcode project per platform, so each project's
-base xcconfig includes that file, and the `project.pbxproj` files carry no
-signing settings of their own (only `tvos/` repeats the team on the project
-level, since flutter-tvos reads it from there). To sign with another team,
-add your Apple ID in Xcode (Settings > Accounts) and put
-`DEVELOPMENT_TEAM = <id>` into `apple/Signing.local.xcconfig`, which git
-ignores and which overrides the shared file; `CODE_SIGN_IDENTITY = -` there
-signs ad hoc, as CI does for the Mac. Leave the team field in Xcode's Signing
-& Capabilities alone: it writes into the project and wins over the shared
-file. The app declares that it uses no non-exempt
-encryption, so App Store Connect skips the export compliance question. On
-iOS and Android sign-in mails are confirmed with the code from the mail, the
-link in it opens the web game. To sign the Android release, copy
-`android/key.properties.example` to `android/key.properties` and point it at
-your upload key; without it Gradle signs with the debug key, which Google Play
-rejects. Store texts, icons and screenshots for both stores live in
-`store/ios` and `store/android`, each with a README of what goes where. The
-release bundle is built, checked and uploaded to a Google Play track on
-this machine with `tool/release.sh android` (fastlane underneath), see
-`store/android/README.md`. To play
-a local stack from an Android emulator use `http://10.0.2.2:54621`, from a real
-phone the LAN address of your Mac.
+What is special in the browser:
+
+- **Rooms live in the address**: `?room=CODE` before the `#`, so a link or a
+  QR code leads into the same room from any device.
+- **Keyboard and mouse** play; touch sticks appear after the first touch.
+  Game controllers come in through the Gamepad API
+  ([`lib/src/tv/web_pads.dart`](../lib/src/tv/web_pads.dart)); a controller
+  shows up once one of its buttons was pressed, as browsers require.
+- **Sound** runs through a limiter against crackling
+  (`lib/src/audio/audio_backend_web.dart`), and a mute button sits beside
+  the account. The apps on phones have none: there the silent switch and
+  the volume keys decide.
+- **Loading**: `web/index.html` shows the launch picture (the tank of the
+  app icon on its ground) before Flutter starts. It loads the pictures from
+  the built assets under `assets/assets/images/`, so Flutter's own
+  `LoadingView` ([`lib/src/ui/loading_view.dart`](../lib/src/ui/loading_view.dart))
+  finds them in the browser cache and takes over without a flash.
+- **The browser pairs phones as controllers but never is one**, see
+  [The phone as a controller](#the-phone-as-a-controller).
+
+## iOS and Android
+
+The apps are called Panzergefecht, with the id `de.regetskcob.wargame` on
+both stores (kept from an earlier name, since store ids cannot change). The
+iOS product is `Panzergefecht.app`; the Xcode target and scheme stay
+`Runner`, which `flutter build ios` expects.
+
+### Running
+
+You need a full Xcode for iOS and a JDK with the Android SDK for Android
+(`flutter doctor` tells you what is missing).
+
+```sh
+flutter run -d <device-id>          # a simulator, an emulator or a phone
+flutter build ios --release         # set a signing team first, see below
+flutter build apk --release
+flutter build appbundle --release
+```
+
+To play against a local Supabase stack (`supabase start`) from the Android
+emulator, use `http://10.0.2.2:54621` as `SUPABASE_URL`; from a real phone,
+the LAN address of your computer.
+
+**Signing for iOS** (and every other Apple platform) is set once in
+[`apple/Signing.xcconfig`](../apple/Signing.xcconfig): team, automatic
+signing, development certificate. Each Xcode project includes it, and no
+`project.pbxproj` carries signing settings of its own (only `tvos/` repeats
+the team, because flutter-tvos reads it from there). To sign with your own
+team, add your Apple ID in Xcode (Settings > Accounts) and put
+`DEVELOPMENT_TEAM = <your team id>` into `apple/Signing.local.xcconfig`,
+which git ignores and which overrides the shared file.
+`CODE_SIGN_IDENTITY = -` there signs ad hoc. Leave the team field in Xcode's
+Signing & Capabilities alone: it writes into the project and wins over the
+shared file.
+
+**Signing for Android**: without `android/key.properties` Gradle signs
+release builds with the debug key, which is fine for trying but rejected by
+Google Play. Copy `android/key.properties.example` and point it at your own
+upload key. Never commit the file.
+
+### What is special on phones and tablets
+
+- **Orientation**: the game plays upright or sideways and hides the system
+  bars. The camera shows the same stretch of the world along the shorter
+  side, so upright shows more of the field above and below; upright phones
+  look 20 % closer outside defense rounds (`GameConfig.uprightPhoneZoom`).
+- **Touch sticks** on the screen, or a game controller, which takes over
+  until the screen is touched again (`TankGame.touchOverPad`).
+- **Tablets are decided by size, not platform**: a shorter side of 600
+  points or more (`tabletShortSide` in
+  [`lib/src/ui/widgets/tablet_scale.dart`](../lib/src/ui/widgets/tablet_scale.dart)).
+  Tablets lay the start page and the waiting room out in columns from 1000
+  points of width, and large tablets draw menus and HUD larger
+  (`MenuScale`, up to 1.25 on a 13" iPad via `menuScaleFor`). Phones, the
+  11" iPad and a 1280 × 800 browser keep a scale of 1. The browser and the
+  Mac keep a centred menu of at most 1040 points.
+- **The account page** is a route of its own over the game (`/account`,
+  [`lib/src/ui/account_page.dart`](../lib/src/ui/account_page.dart)); from
+  760 points of width it shows the account and this device's settings side
+  by side.
+- **Vibration** ([`lib/src/haptics.dart`](../lib/src/haptics.dart), Flutter's
+  `HapticFeedback`): a light tap for a blast close by, a hard knock for a
+  heavy hit, the own tank destroyed and the end of a round, a click per
+  countdown second and a firm tap at the start. The player's own moments
+  always tap; blasts on the field at most twice a second and never right
+  after an own tap (`Haptics.admits`), so a late defense wave does not buzz
+  without pause. Phones get a switch on the account page; iPads and most
+  Android tablets have no motor and show none.
+- **Sound** ([`lib/src/audio/sound_mixer.dart`](../lib/src/audio/sound_mixer.dart))
+  follows the silent switch and mixes with music from other apps. Sounds
+  on the field fall off with the square of the distance and share a budget
+  of five per quarter second. Each native player call crosses to the main
+  thread, and restarting an iOS player halfway took up to 19 seconds in a
+  late wave, so `VoiceTraffic` gives each sound a few voices, never cuts off
+  a louder one, and drops any sound not started within 120 ms rather than
+  playing it late. `EngineThrottle` changes the engine loop only when the
+  speed moves by a twentieth. Measurements are in
+  [development.md → Device QA](development.md#device-qa).
+- **Room links**: on iOS, links to `panzergefecht.de` with `?room=` or
+  `?pad=` open the app (associated domains in `Runner.entitlements`, the
+  file `store/ios/apple-app-site-association` on the site), and the scheme
+  `panzergefecht://` serves the iMessage extension. Android has no app
+  links: room links open the browser game there. A fork with its own domain
+  replaces both entries and hosts its own association file.
+- **Sign-in mails** are confirmed with the code from the mail in the apps;
+  the link in the mail opens the web game.
+- **A fast start**: the start page does not wait for the server. A first
+  visit signs in as a guest in the background (`ServerStatus.ensureSession`),
+  the call sign kept on the device shows at once (`rememberPilot`), and the
+  sounds load after the first frame.
+- **Launch screen**: the tank of the app icon on its ground, held by
+  `LoadingView` until the game has loaded. Android draws the ground colour
+  (`@color/launch_ground`) and, from Android 12, the system splash shows the
+  tank as its icon (`values-v31/styles.xml`). All launch images and icons
+  come from the design system Horizont: `python3 tool/store/horizont_icons.py`
+  copies them into every platform folder.
+
+## Home screen widget
+
+`ios/OnlineWidget` is a WidgetKit extension in Swift that shows how many
+pilots are online, how many are in a round and how many rounds were played
+today. It comes in the small and medium home screen sizes and the three
+lock screen sizes.
+
+- **Where the number comes from**: every running game calls the RPC
+  `ping_online` once a minute (`lib/src/db/online_service.dart`, migration
+  0013). The widget asks `online_status`, which only returns counts, so
+  nobody learns who is online.
+- **Refresh**: every ten minutes, five after a failed request; WidgetKit
+  hands out only a few dozen refreshes a day.
+- **Forks**: the widget does not read the Dart defines. Its project address
+  and publishable key are written into `OnlineWidget.swift` and must be
+  changed there.
+
+To try it, run the iOS app in the simulator, then add the widget from the
+home screen's edit mode.
 
 ## iMessage
 
 `ios/MessagesExtension` is a Messages extension in plain Swift and SwiftUI
-that ships inside the iOS app. It only invites, the game never runs in
-Messages: Flutter recommends at least 100 MB for an extension's UI, Apple
-names no limit for Messages extensions and ends one that takes too much
-without warning, and Messages starts an instance of the extension for every
-interactive bubble.
+that ships inside the iOS app. It only invites; the game never runs in
+Messages. Flutter recommends at least 100 MB for an extension's UI, Messages
+ends extensions that take too much without warning, and it starts one
+instance per interactive bubble, so a Flutter view there was not an option.
 
-1. In a chat the extension offers what fits who is in it, read from
-   `remoteParticipantIdentifiers` (Messages hides who they are). In a chat
-   for two: tower defense together, the base duel and Last Tank Standing. In
-   a group: Last Tank Standing and capture the flag, with a note when the
-   chat has more people than `MAX_PILOTS` (later ones watch).
-2. A choice puts a bubble with a fresh room code into the input field. The
-   link in it is the usual room link with the mode added,
-   `https://panzergefecht.de/play/?room=CODE&mode=defense`, so it
-   also opens the browser game on a phone without the app.
+How an invitation works:
+
+1. The extension offers what fits the chat, read from
+   `remoteParticipantIdentifiers` (Messages hides who the people are). A chat
+   for two gets defense together, the base duel and Last Tank Standing; a
+   group gets Last Tank Standing and capture the flag, with a note when the
+   chat has more people than a room holds (four, as the default of
+   `MAX_PILOTS`; later ones watch).
+2. A choice puts a bubble with a fresh room code into the input field. Its
+   link is the usual room link plus the mode, for example
+   `https://panzergefecht.de/play/?room=CODE&mode=defense`, so it opens the
+   browser game on a phone without the app.
 3. Once the player sends it, the extension opens the app at
    `panzergefecht://play?room=CODE&mode=defense&host=1`. An extension may
-   only open its own app, and only while that sits on the home screen.
-   `listenForRoomLinks` (`room_stub.dart`) then opens the room as its host
-   (`hostRoom`) and `chooseInvitedMode` skips the start page in that mode:
-   `multi`, `flag`, `defense` or `duel`.
-4. Tapping the bubble opens the extension with the invitation and a button
-   into the room. Whoever sent it goes back in as the host: the extension
-   keeps the rooms it sent in its own `UserDefaults`, because the simulator
-   hands out a different participant id for the sender of a message than
-   for the local player. Everybody else joins as a guest, and the lobby
-   gives each their own tank as with any other room link.
-
+   only open its own app. `listenForRoomLinks` (`room_stub.dart`) opens the
+   room as its host and `chooseInvitedMode` skips the start page in that
+   mode: `multi`, `flag`, `defense` or `duel`.
+4. Tapping the bubble opens the extension with a button into the room. The
+   sender goes back in as host: the extension remembers the rooms it sent in
+   its own `UserDefaults`, because the simulator gives the sender of a message
+   a different participant id than the local player. Everybody else joins
+   as a guest.
 5. When a round ends, `ChatResultPlugin.swift` (fed by
-   `lib/src/app/chat_result.dart`) leaves its result in the defaults of the app group
-   `group.de.regetskcob.wargame`, as `ChatResult` (`ios/Shared`). The app
-   writes every round, it knows nothing of chats. The extension keeps the
-   session of every bubble it sent or followed, archived with the chat it
-   came from, and offers the newest result of such a room the next time it
-   opens in that chat: "Ergebnis in den Chat" puts a bubble with the same
-   picture and the result line in the same session into the input field,
-   so once it is sent the chat shows it in place of the invitation, which
-   collapses to a line. The link still leads into the room for another
-   round. Results older than a day are not offered.
+   [`lib/src/app/chat_result.dart`](../lib/src/app/chat_result.dart))
+   writes the result as `ChatResult` (`ios/Shared`) into the app group
+   `group.de.regetskcob.wargame`. The next time the extension opens in that
+   chat it offers the newest result of a room from there, if it is less
+   than a day old. Sent, it replaces the invitation bubble in the same
+   session; the link still leads into the room for another round.
 
-Guests learn the mode when the round starts, as with every room, so their
-waiting room shows the default text until then. While the host's app sits
-in the background behind Messages, a guest who comes in first stands in as
-host and hands back once the owner returns.
+Guests learn the mode when the round starts, as in every room. While the
+host's app sits behind Messages, a guest who came in first stands in as host
+and hands back when the owner returns.
 
-To try it, build for the simulator, install the app, open Messages, a chat
-with one of its fake numbers and the app list behind "+". After installing
-a new build, quit Messages once, or it keeps looking for the old extension.
-The icons in `iMessage App Icon.stickersiconset` come from Horizont
-(`tool/store/horizont_icons.py`), the square app icon and its 4:3 version.
-`python3 tool/store/imessage.py` draws the two pictures of the bubble: tanks of three colours on the battle ground for
-Last Tank Standing and capture the flag, the red defence holding its base
-on a sandy road against blue tanks for the defense and the duel. Both app
-and extension carry the app group in their entitlements; signing in the
-archive with `-allowProvisioningUpdates` registers it.
+To try it, run the iOS app in the simulator, open Messages, a chat with one
+of the fake contacts and the app list behind "+". After installing a new
+build, quit Messages once, or it keeps the old extension. The bubble pictures
+come from `python3 tool/store/imessage.py`, the icons from
+`tool/store/horizont_icons.py`.
+
+**Not tried yet:** two real devices in one chat, and a group chat on real
+devices.
 
 ## Mac
 
-`macos/` builds the game as a Mac app, `Panzergefecht.app`, with the same
-bundle id `de.regetskcob.wargame` as the iOS app, so both can share one App
-Store record as a universal purchase. It runs the same screens as the
-browser: keyboard and mouse, no touch controls (they appear after the first
-touch, as in the browser), the start page as on a large screen. It starts in
-full screen every time (state restoration is off, so macOS cannot reopen it
-as a window); View > Exit Full Screen or ⌃⌘F leaves it for a 1280 x 800
-window that keeps at least 720 x 480.
-
-Game controllers work as on the iPad: `macos/Runner/GamepadPlugin.swift`
-reads them through GameController and streams them to the same
-`lib/src/tv/tv_input.dart`, the first one steers the own tank, two of them
-play on a split screen (see **Two players** below), and the display stays
-awake during a round. Only pads with two sticks count. The menus stay with
-keyboard and mouse, as in the browser. Phones pair as controllers too, the
-Mac is the screen.
-
-The app is sandboxed and asks for two things in `Runner/*.entitlements`:
-outgoing connections (`network.client`, without it Supabase is out of reach
-and the app plays offline) and the camera, for the QR code button in the room
-list (`mobile_scanner`, text in `NSCameraUsageDescription`). Room links from
-the web open the app as on iOS: both entitlements files carry the associated
-domains `applinks:panzergefecht.de` and, for links shared before the move,
-`applinks:www.regetskcob.de`; the AASA file already names the shared app id, and `AppDelegate.swift` hands the browsing activity to `app_links`,
-which on the Mac leaves universal links to the app. A pairing link
-(`?pad=`) opened on the Mac only says that phones are the controllers. The
-entitlement needs a development or distribution certificate, so CI, which
-signs ad hoc, takes it out before its Mac build. Links clicked in Messages,
-Mail or Notes open the app; `open` in the Terminal always goes to the
-browser. The Mac icon set comes from the design system Horizont like all app
-icons (`python3 tool/store/horizont_icons.py`): the square on Apple's rounded
-plate with a shadow, since macOS does not round icons itself.
+`macos/` builds `Panzergefecht.app` with the same bundle id as the iOS app,
+so both can share one App Store record. It runs the browser's screens:
+keyboard and mouse, the touch sticks only after a touch.
 
 ```sh
 flutter run -d macos
-flutter build macos --release \
-  --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_KEY=... --dart-define=ACCOUNTS=true
 ```
 
-The build signs with the team's development certificate from
-`apple/Signing.xcconfig`. To hand it on, run
-`tool/release.sh macos [--upload]`, which archives with the release
-defines, checks version, Supabase URL and team, puts the archive into the
-Organizer and with `--upload` sends it to TestFlight, or archive in Xcode (Product > Archive) and from the organizer either upload to
-App Store Connect or export with Developer ID, which Xcode notarizes. A
-manual run of `ci` builds it ad hoc signed next to the iOS app.
+What is special on the Mac:
+
+- **Full screen at every start**: state restoration is off, so macOS cannot
+  reopen it as a window. View > Exit Full Screen (⌃⌘F) leaves it for a
+  1280 × 800 window of at least 720 × 480.
+- **Game controllers** through GameController
+  (`macos/Runner/GamepadPlugin.swift`), streamed to the same
+  [`lib/src/tv/tv_input.dart`](../lib/src/tv/tv_input.dart) as on the Apple
+  TV. Only pads with two sticks count. The menus stay with keyboard and
+  mouse.
+- **Sandboxed**, with two entitlements in `macos/Runner/*.entitlements`:
+  outgoing connections (`network.client`; without it the app plays offline)
+  and the camera for the QR button in the room list (`mobile_scanner`).
+- **Room links** open the app as on iOS (the same associated domains;
+  `AppDelegate.swift` hands the activity to `app_links`). Links clicked in
+  Messages, Mail or Notes open the app; `open` in the Terminal always goes
+  to the browser. A pairing link (`?pad=`) only says that phones are the
+  controllers. Associated domains need a real certificate, so the ad hoc
+  CI build deletes them from the entitlements first.
+- **Icon**: the square icon on Apple's rounded plate with a shadow, since
+  macOS does not round icons itself.
 
 ## Apple Vision Pro
 
-Flutter has no visionOS build: there is no fork like flutter-tvos, and the
-engine leans on `UIScreen`, which visionOS lacks. So the iPad app runs on the
-Vision Pro as a compatible app in a window, and a pinch arrives as a tap where
-the player looks. `GamepadPlugin.swift` answers `vision` on the `wargame/tv`
-channel with `ProcessInfo.isiOSAppOnVision` (iOS 26.1), and
-`lib/src/vision/vision_support.dart` keeps it as `onVision` before the game
-starts. Branch on `onVision` only.
+Flutter has no visionOS build (no fork like flutter-tvos, and the engine
+relies on `UIScreen`, which visionOS lacks). So the iPad app runs on the
+Vision Pro as a compatible app in a window, where a pinch arrives as a tap
+at the spot the player looks at. `ios/Runner/GamepadPlugin.swift` answers
+`vision` on the `wargame/tv` channel with `ProcessInfo.isiOSAppOnVision`
+(iOS 26.1), and [`lib/src/vision/vision_support.dart`](../lib/src/vision/vision_support.dart)
+keeps the answer as `onVision` before the game starts.
 
-On the Vision Pro the round changes in three ways:
+On the Vision Pro a round changes in three ways:
 
-- **Look to aim, pinch to fire.** The right stick gives way to the whole
-  window: a pinch aims the turret at the spot looked at (`TankGame.lookAt`,
-  the same pointer the mouse sets) and fires while the fingers stay
-  together. Moving the pinched hand does not move the aim, since visionOS
-  reports the hand after the first touch. Grenades and the barrage land on
-  that spot as they do on the mouse cursor. A pinch in the lower left still
-  drives with the floating stick, so both hands play at once.
-- **A still window.** The screen shake is off (a window rattling in the room
-  makes people feel sick); the red edge of a hit stays.
+- **Look to aim, pinch to fire.** A pinch anywhere aims the turret at the
+  spot looked at (`TankGame.lookAt`, the same pointer the mouse sets) and
+  fires while the fingers stay together. Moving the pinched hand does not
+  move the aim, since visionOS reports the hand only at the first touch. A
+  pinch in the lower left still drives with the floating stick, so both
+  hands play at once.
+- **A still window.** No screen shake: a window rattling in the room makes
+  people feel sick. The red edge of a hit stays.
 - **Its own tutorial cards** for driving, looking and pinching.
 
-Game controllers and a paired phone work as on the iPad. The simulator build
-for iOS installs on an Apple Vision Pro simulator (visionOS runtime from Xcode
-Settings > Components) with `xcrun simctl install`, runs online there and
-reports `onVision`. Taps cannot be injected into that simulator, so looking
-and pinching are tried by hand in its window, and not yet on a real headset.
-A native shell with SwiftUI ornaments around the game would need Flutter on
-visionOS first.
+To try it, install the iOS simulator build on an Apple Vision Pro simulator
+(visionOS runtime from Xcode Settings > Components) with
+`xcrun simctl install`. It runs online there and reports `onVision`. Taps
+cannot be injected into that simulator, so look and pinch are tried by hand.
+
+**Not tried yet:** a real headset. A native shell with SwiftUI ornaments
+around the game would need Flutter on visionOS first.
 
 ## Apple Watch
 
-`watchos` is the watchOS runner of the same game, built with the
+`watchos/` is the watchOS runner of the same game, built with the
 [flutter-watchos](https://github.com/flutterwatch/flutter-watchos) toolchain
-(Flutter 3.47.5, Apple Silicon, `flutter-watchos login` once). The watch app is
-a companion of the iOS app (`de.regetskcob.wargame.watchkitapp`, embedded by the
-"Embed Prebuilt watchOS App" phase of the iOS Runner) and runs the same
-`lib/main.dart`. State: first version, not tried on a real watch yet. The game starts in the watch Simulator and
-reaches Supabase and plays its sounds (`audioplayers_watchos`,
-`path_provider_watchos`, `shared_preferences_watchos`) and taps the wrist
-(`lib/src/haptics.dart`: hits and blasts close by, countdown, start, own tank
-destroyed, round won or lost).
-
-The watch has its own screens (`lib/src/watch`), used instead of the phone
-overlays when `FlutterWatchosPlatform.isWatch`: a start page with the call sign
-(a tap opens the watch keyboard) and the four ways to play, all alone,
-a waiting room with vehicle, difficulty and public or private, a slim HUD (tanks
-left or wave, armour, magazine, up to three inventory items, in a defense
-round a button to build a gun), and an end screen. The Digital Crown scrolls
-the menus. In a round it steers: the tank drives all the time and fires by
-itself at the nearest enemy (the aim assist, on every level), and turning the crown turns the direction of travel. The crown reports scroll
-distance with the system's acceleration (about 0.75 per detent, thousands for
-a flick), so `WatchSteering.steer` takes its logarithm: a detent corrects by
-about two degrees, a quick turn swings at full speed. The heading stays within
-`maxLead` of the hull, so the tank never overshoots far or turns the wrong way
-round. Measured in the watch Simulator through Device Hub, still to be tried
-on a real watch. The watch camera looks 12 % closer than the phone's
-(`GameConfig.watchZoom`), and in a solo round every tank tops out 15 % slower
-(`GameConfig.watchSoloSpeed`), since the crown steers slower than a thumb;
-shared rounds keep the same speed for all.
-
-The watch plays every mode alone against CPU tanks: watchOS gives an app no
-WebSocket, so a room channel never connected there and retried every 30 s.
-`NetService.offline` leaves the channel and the room list out, the player
-is the room's only member and host, battle and capture the flag fill up
-with CPU tanks, and the watch offers no open rooms and no public room.
-
-Rounds on the watch count for the account signed in in the iPhone app; the
-watch signs in to nothing itself (`lib/src/watch/account_link.dart`, over
-WatchConnectivity with `flutter_watch_link`). The phone hands over who is
-signed in and the current access token on every change of its session, as
-the latest-wins application context, and answers when the watch asks. Only
-the access token travels, never the refresh token: Supabase turns refresh
-tokens over on every use, and two devices sharing one would sign each other
-out. The watch records its rounds with that token on a connection of its
-own (`LinkedScores`, `LinkedProfiles`); a round that ends after the token
-ran out (an hour) waits on the watch (`PendingRounds`, up to 30) and goes in
-once the phone sends a fresh one, nine seconds apart as `record_round`
-asks. The round's ticket (`start_round`, taken with the phone's token at
-the round's start, see `docs/netcode.md`) waits with it, so the server still
-measures the round by when it was played. The start page says whether the watch plays for the iPhone account or
-as a guest. In the paired Simulators the context arrives, the watch's own
-asking fails with "Companion app is not installed" (a Simulator limit);
-both apps must come from the same build, the watch app embedded in the
-iPhone app.
-The app icon is Horizont's watchOS set, the picture of the phone icon drawn
-to the edges, since the watch cuts it to a circle itself.
+(tag `v3.47.5-watchos.0.1.1`, Apple Silicon; release builds need
+`flutter-watchos login` once). The watch app
+(`de.regetskcob.wargame.watchkitapp`) is a companion embedded in the iOS app
+and runs the same `lib/main.dart`. It needs a Series 9 or later on watchOS
+26; older watches get a stub that says so.
 
 ```sh
 export PATH="$HOME/path/to/flutter-watchos/bin:$PATH"
 flutter-watchos build watchos --simulator    # debug, Simulator only
 flutter-watchos run -d <watch-simulator-id>  # hot reload
-flutter-watchos run -d <watch-id> --release  # real watch: Series 9+, watchOS 26+
+flutter-watchos run -d <watch-id> --release  # a real watch
 ```
 
-For the App Store, `tool/release.sh ios` builds the watch app first, then the
-iOS archive, checks that `Panzergefecht.app/Watch/Runner.app` is inside with
-the same version and build, and copies the archive into the Organizer as
-"Panzergefecht <version> (<build>)"; with `--upload` it also sends it to App
-Store Connect. The embed phase
-(`tool/embed_watch_app.sh`) stops an archive without a watch app or with a
-stale one; `ALLOW_NO_WATCH=1` lets one through on purpose. Older watches
-(Series 4 to 8, SE 1/2, Ultra 1) get the stub slice flutter-watchos adds, which
-only says that the app needs a Series 9.
+What is special on the watch:
 
-CI (job `watchos` in `ci.yaml`, ticked by hand when starting the workflow)
-builds the watch app for the Simulator with the toolchain tag
-`v3.47.5-watchos.0.1.1`, which needs no account, so a broken watch build
-shows up there. Release builds need a signed-in
-`flutter-watchos` account and stay local, like every release build
-(`tool/release.sh ios`).
+- **Screens of its own** ([`lib/src/watch`](../lib/src/watch)): a start page
+  with the call sign (a tap opens the watch keyboard) and the four ways to
+  play, a waiting room with vehicle, difficulty and public or private, a
+  slim HUD (tanks left or wave, armour, magazine, up to three items, a build
+  button in defense) and an end screen.
+- **Crown steering**: the tank drives all the time and the aim assist fires
+  at the nearest enemy; turning the Digital Crown turns the direction of
+  travel. The crown reports scroll distance with the system's acceleration,
+  so `WatchSteering.steer` takes its logarithm: a detent corrects by about
+  two degrees, a quick turn swings at full speed, and the heading stays
+  within `maxLead` of the hull. Between rounds the crown scrolls the menus.
+- **Closer and slower**: the camera looks 12 % closer
+  (`GameConfig.watchZoom`), and in a solo round every tank tops out 15 %
+  slower (`GameConfig.watchSoloSpeed`), since the crown steers slower than
+  a thumb. Shared rounds keep the same speed for all.
+- **Alone against CPU tanks in every mode**: watchOS gives an app no
+  WebSocket, so `NetService(offline: true)` leaves out the room channel and
+  the room list. The player is the room's only member and host.
+- **Rounds count for the iPhone's account**
+  ([`lib/src/watch/account_link.dart`](../lib/src/watch/account_link.dart),
+  WatchConnectivity via `flutter_watch_link`). The phone sends who is signed
+  in and the current access token on every session change. Only the access
+  token travels, never the refresh token: Supabase rotates refresh tokens on
+  every use, and two devices sharing one would sign each other out. The
+  watch records rounds with that token (`LinkedScores`, `LinkedProfiles`);
+  a round that ends after the token expired (an hour) waits on the watch
+  (`PendingRounds`, up to 30) together with its round ticket and goes in,
+  nine seconds apart, once the phone sends a fresh token.
+- **Haptics** for hits and blasts close by, the countdown, the start, the
+  own tank destroyed and the end of a round.
+- **Missing plugins**: `app_links`, `share_plus` and `mobile_scanner` have
+  no watchOS package, so no room links, sharing or QR scanning.
 
-Use `onWatch` from `lib/src/watch/watch_support.dart` to branch for a watch
-(the Apple Watch or Wear OS), `FlutterWatchosPlatform.isWatch` only for what
-is Apple's alone, never `Platform.isWatchOS` in shared code. Plugins need a `*_watchos`
-package; without one calls throw `MissingPluginException`.
-`app_links`, `share_plus` and `mobile_scanner` have none, so no room links, no
-sharing and no QR scanning on the watch.
+In the paired simulators the phone's context arrives, but the watch's own
+request fails with "Companion app is not installed" (a simulator limit).
+Both apps must come from the same build. CI builds the watch app for the
+simulator when the `watchos` box is ticked on a manual run of `ci`.
+
+**Not tried yet:** a real watch, including crown steering.
 
 ## Wear OS
 
 A Wear OS watch (Galaxy Watch 4 and later, Pixel Watch) runs the Android
-app itself. Before the game starts, `detectWear` asks `WearPlugin.kt` whether
-the device has `FEATURE_WATCH`; then `onWear` and `onWatch` are true and the
-watch gets the same screens and crown steering as the Apple Watch. Other
-watches (Garmin, Huawei, Fitbit) cannot run Flutter and get nothing.
-
-Flutter's Android embedding only takes motion events from pointing devices
-and drops the rotary encoder of a watch. `MainActivity` hands those events to
-`WearPlugin.kt`, which streams them to `WearCrown` (`lib/src/watch/wear_crown.dart`)
-as detents (forward positive, one per click of a Galaxy bezel) and the
-system's scroll distance for them. Between rounds `WearCrown` turns them into
-scroll events in the middle of the screen, so the menus scroll as native
-lists do; while a round runs it keeps the detents for `WatchSteering`.
-Without the Digital Crown's acceleration one click turns the heading by
-`bezelTurn` (15 degrees, as far as the bezel itself turns), and the heading
-may run up to `bezelMaxLead` (135 degrees) ahead of the hull, so a quarter
-turn of the bezel turns the tank a quarter however quick the hand was.
-
-The wrist is tapped for the same moments as on the Apple Watch
-(`lib/src/haptics.dart`): `WearHaptics` asks `WearPlugin.kt` to vibrate, a
-click for a countdown second or a hit close by, a heavy click for a heavy
-hit, a 150 ms pulse for the start, two short pulses for a win and a long
-double for the own tank destroyed or a lost round. Only the Wear OS manifest
-asks for `VIBRATE`, the phone build stays without it.
-
-On a round screen (`watchRound`, from Android's `isScreenRound`) the
-screens keep to the circle. `watchInsets` keeps the menus inside the largest
-square of the circle. The HUD draws armour and magazine as arcs along the rim
-(`WatchRimPainter`: armour on the left, the magazine on the right, both
-filling from the bottom, no magazine arc when shells never run out), puts the
-status at the top, the inventory on a ring above the bottom with the first
-slot on the left, and in a defense round the build button under the own
-tank. The Apple Watch keeps its rectangular layout.
-
-The Wear OS build is the Android app with `-P wear=true`: it merges the
-manifest of the library module `android/wear/` (`android.hardware.type.watch`,
-`com.google.android.wearable.standalone`, `VIBRATE`), raises minSdk to 30 (Wear OS 3)
-and adds 100000 to the version code. Play takes it as a form factor of its
-own with `wear:` tracks, uploaded with `tool/release.sh android wear`
-(see `store/android/README.md`). The phone bundle carries
-none of this. `tool/release.sh verify` and a manual run of `ci` build both.
-
-State: tried in the Wear OS 6 emulator (small round, 384 px), not on a real
-watch yet; the Wear OS form factor still has to be added in the Play Console.
+app itself. Before the game starts, `detectWear` asks `WearPlugin.kt`
+whether the device has `FEATURE_WATCH`; then `onWear` and `onWatch` are true
+and the watch gets the same screens and crown steering as the Apple Watch.
+Other watches (Garmin, Huawei, Fitbit) cannot run Flutter.
 
 ```sh
 sdkmanager "system-images;android-36;android-wear-signed;arm64-v8a"
@@ -415,143 +384,180 @@ flutter run -d emulator-5554 --android-project-arg=wear=true
 adb shell input scroll --axis SCROLL,-1    # one click of the bezel, clockwise
 ```
 
+What is special on Wear OS:
+
+- **A build of its own**: `wear=true` merges the manifest of the library
+  module `android/wear/` (`android.hardware.type.watch`, standalone,
+  `VIBRATE`), raises minSdk to 30 (Wear OS 3) and adds 100000 to the version
+  code, so Google Play takes it as a separate form factor. The phone bundle
+  carries none of this; a watch feature in it would hide the app from
+  phones.
+- **The rotary input**: Flutter's Android embedding drops it, so
+  `MainActivity` hands it to `WearPlugin.kt`, which streams detents to
+  `WearCrown` ([`lib/src/watch/wear_crown.dart`](../lib/src/watch/wear_crown.dart)).
+  Between rounds they become scroll events; in a round one click turns the
+  heading by `bezelTurn` (15°), up to `bezelMaxLead` (135°) ahead of the
+  hull, because there is no crown acceleration to read.
+- **Round screens** (`watchRound`, from Android's `isScreenRound`): menus
+  stay inside the largest square of the circle (`watchInsets`), and the HUD
+  draws armour and magazine as arcs along the rim (`WatchRimPainter`). The
+  Apple Watch keeps its rectangular layout.
+- **Vibration** through `WearHaptics` and `WearPlugin.kt`, for the same
+  moments as on the Apple Watch.
+
+**Not tried yet:** a real watch. The Wear OS form factor still has to be
+added in the Play Console.
+
 ## Apple TV
 
-All televisions, Android TV and Fire TV included, are summed up in
-[tv.md](tv.md).
+`tvos/` is the tvOS runner, built with the
+[flutter-tvos](https://github.com/fluttertv/flutter-tvos) toolchain. It runs
+the same screens as the browser, drawn larger, with the Siri Remote or a game
+controller, and shares the bundle id of the iOS app. Everything about it
+(running it, the controls, the focus, the round menu, what is untested) is in
+[tv.md → Apple TV](tv.md#apple-tv), together with Android TV and Fire TV.
 
-`tvos` is the tvOS runner of the same game, built with the
-[flutter-tvos](https://github.com/fluttertv/flutter-tvos) toolchain (Flutter
-3.47.6, no account needed). It runs the same `lib/main.dart` and the same
-screens as the browser, drawn larger (`tvScale`), and shares the bundle id
-`de.regetskcob.wargame` with the iOS app, so both can be one universal
-purchase. The icon, a back and a front layer, the top shelf with the name on the
-horizon and the launch image come from Horizont
-(`tool/store/horizont_icons.py`). State: tried in the Apple TV Simulator only.
+Two players on one screen and the base duel started on the Apple TV but run
+on several platforms; they are described below.
 
-Nothing scrolls on the television. The menus use its width: the start page puts
-the controllers, the phone pairing and the leaderboard in a column beside the
-four ways to play, the account page has two columns, and a page that is still
-too tall shrinks to fit (`FitOrScroll`) instead of scrolling. Only the legal
-texts scroll.
+## Controllers and two players on one screen
 
-It plays with the Siri Remote or a game controller, whichever is in hand:
+### Game controllers
 
-| | Controller | Siri Remote |
+One game controller steers the own tank in every mode, in the browser, on
+iPhone, iPad, Android, the Mac and the televisions. The native side reads it
+and streams it to [`lib/src/tv/tv_input.dart`](../lib/src/tv/tv_input.dart):
+
+| Platform | Reads controllers with |
+| --- | --- |
+| Browser | Gamepad API, [`lib/src/tv/web_pads.dart`](../lib/src/tv/web_pads.dart) |
+| iPhone, iPad, Vision Pro | GameController, `ios/Runner/GamepadPlugin.swift` |
+| Mac | GameController, `macos/Runner/GamepadPlugin.swift` |
+| Apple TV | GameController, `tvos/Runner/GamepadPlugin.swift` (also the Siri Remote) |
+| Android, Android TV | key and motion events from `MainActivity` to `GamepadPlugin.kt` |
+
+Android with a real controller has not been tried yet.
+
+### The phone as a controller
+
+The app on a phone can steer the game on a computer, tablet or television:
+the screen shows a pairing QR code, the phone scans it (Account, Use as
+controller) and shows the sticks, the gauges and, in defense, the shop. Only
+the app on a phone becomes a controller (shorter side under 600 points); the
+browser game and tablets pair phones, they never are one. What the phone
+shows is in [gameplay.md](gameplay.md); the channels (`pad-<CODE>`, one lane
+per phone) and their message budget are in
+[netcode.md → Realtime limits](netcode.md#realtime-limits).
+
+### Two players on one screen
+
+On the Apple TV, in the browser, on an iPad or Android tablet and on the
+Mac, two controllers give the second player a game of their own
+([`lib/src/tv/second_player.dart`](../lib/src/tv/second_player.dart)) that
+joins the first player's room. Phones count as controllers; seats go to game
+controllers first, then phones, the Siri Remote last. Phones themselves are
+too small for two halves.
+
+- **Split screen**: rounds play side by side or, on a tablet held upright,
+  one above the other, each half following its own tank
+  ([`lib/src/tv/split_view.dart`](../lib/src/tv/split_view.dart)). The
+  menus stay with the first player.
+- **Modes**: single player puts both against CPU tanks, multiplayer and
+  defense take both pilots along, and capture the flag puts both on one
+  side or, as the host picks, one red and one blue, with CPU tanks evening
+  out the sides.
+- **Keyboard as a seat**: in the browser and the Mac app, with one controller
+  or phone in, the controllers panel offers "two with the keyboard"
+  (`KeyboardSeat` in [`lib/src/tv/seats.dart`](../lib/src/tv/seats.dart)).
+  It is off by default, so somebody alone with a controller keeps the whole
+  screen.
+- **No Realtime cost**: the two games talk on the device (`LocalLink` in
+  `lib/src/net/net_service.dart`), and the room takes no slot. The first
+  player's presence carries the second's, so others count both. Only when
+  somebody from another device joins does the second player connect to
+  Supabase on their own, between rounds.
+
+### Duel
+
+With two players on one screen the start page shows a fourth card, the duel:
+a defense round with a base at either end of the road
+(`DefenseMap.duelForSeed`), red on the left, blue on the right. Each side's
+waves roll against the other's base, and every gun, tank and squad fights the
+other side. Y on a controller, T on a keyboard sends an extra tank for 120
+coins (`GameConfig.troopCost`, event `troops`, run by the host). Instead of a
+split screen the camera holds still over the whole map (`TankGame.overview`),
+with each player's tank, coins and inventory in their corner
+([`lib/src/tv/duel_hud.dart`](../lib/src/tv/duel_hud.dart)). Whose base falls
+first loses; the waves go on past wave 8. Duels are unranked. The iMessage
+extension offers the duel for chats of two.
+
+## Writing code for several platforms
+
+| Ask | For | Defined in |
 | --- | --- | --- |
-| Drive | left stick, the tank turns and drives that way | thumb on the touch surface, where it rests is the direction |
-| Aim | right stick, released the aim assist takes over | aim assist |
-| Fire | R2 or A | click |
-| Special weapon | L2 | play/pause |
-| Inventory | X, Y, then ←, ↑, →, ↓ for slots 1 to 6 | play/pause, the top slot, when no weapon is armed |
-| Defense | R1 builds or upgrades, L1 switches the gun | play/pause builds while the inventory is empty |
-| Menus | pad or stick, A selects, B back | swipe, click selects, Menu back |
+| `onTv` | every television (Apple TV, Android TV, Fire TV) | `lib/src/tv/tv_input.dart` |
+| `onAppleTv` | the Apple TV alone (Siri Remote) | `lib/src/tv/tv_input.dart` |
+| `onWatch` | every watch (Apple Watch, Wear OS) | `lib/src/watch/watch_support.dart` |
+| `onWear` | Wear OS alone | `lib/src/watch/wear_crown.dart` |
+| `FlutterWatchosPlatform.isWatch` | the Apple Watch alone | `flutter_watchos` |
+| `onVision` | the iPad app on a Vision Pro | `lib/src/vision/vision_support.dart` |
+| `tabletShortSide` | a tablet layout, by size | `lib/src/ui/widgets/tablet_scale.dart` |
 
-`tvos/Runner/GamepadPlugin.swift` reads both through GameController and streams
-them to `lib/src/tv/tv_input.dart`, which steers the tank in a round and keeps
-the screen saver away. The menus take the arrow keys and enter the engine makes
-of swipes and presses: up and down walk them in reading order, an amber frame
-(`lib/src/tv/tv_focus_frame.dart`) shows the focus, and Menu or B steps back
-from the settings to the waiting room to the start page and leaves the app only
-from there. In a running round Menu or B open the round menu instead
-(`TankGame.tvMenu`, `lib/src/tv/tv_menu_scope.dart`): the tank stops
-taking the remote, the focus moves into the menu and stays there, swipes
-walk its buttons, the click or play/pause presses one, Menu closes it
-again. In a defense round the menu is the defense panel with KEEP PLAYING
-and LEAVE ROUND on top, so every gun, upgrade and the next wave can be
-picked; in the other modes a small panel with the two. Leaving still asks
-first. The Apple TV can also pair phones as
-controllers, like the browser: the first steers the game, a second waits for a
-duel. No camera, so no QR scanning, and no room links. The briefing explains
-the controls of what is in hand, the controller or the Siri Remote, and
-switches when another one is picked up. The menus sit in the middle of the
-screen.
+Rules that save trouble:
 
-**Two players** on the Apple TV, in the browser, on an iPad or Android
-tablet and on the Mac: with two
-controllers in (or phones, the Siri Remote counting as one, handed out
-controllers first, then phones, the remote last), the second player gets a game of their own (`lib/src/tv/second_player.dart`) that
-joins the first player's room. Rounds then play on a split screen, side by side
-or, on a tablet held upright, one above the other, each half from its own tank
-(`lib/src/tv/split_view.dart`); the menus stay with the first player. Single
-player puts both against the CPU tanks, multiplayer and defense take both
-pilots along, and capture the flag puts both on the same side against the
-CPU tanks or, as the host picks in the settings, one red and one blue, with
-CPU tanks evening out the sides. The browser reads controllers through its Gamepad API
-(`lib/src/tv/web_pads.dart`, a controller shows once a button on it was
-pressed), the iPhone and iPad through GameController (`ios/Runner/GamepadPlugin.swift`),
-the Mac the same way (`macos/Runner/GamepadPlugin.swift`), and Android from
-the key and motion events of its gamepads, which `MainActivity` hands to
-`android/.../GamepadPlugin.kt` (same channels and state as on iOS; not yet
-tried with a real controller).
-Phones are too small for two halves. One controller alone, a phone or a
-game controller, steers the own tank in every mode, and the touch sticks of
-a tablet step aside for it. On a computer, in the browser or the Mac app,
-the keyboard and mouse can be the first player's seat: with one controller
-or phone in, the controllers panel on the start page offers "two with the
-keyboard" (`KeyboardSeat` in `lib/src/tv/seats.dart`), and the controller
-or phone steers the second half. It is off until switched on, so somebody
-alone with a controller keeps the whole screen. The keyboard only reaches
-the first player's game, which holds the focus.
+- Never branch on `Platform.isIOS` alone: it is true on the Apple TV and the
+  Vision Pro as well. Never use `Platform.isWatchOS` in shared code.
+- Decide layouts by size, not by platform; the television, the watch and the
+  Vision Pro are the exceptions above.
+- A plugin needs a `*_tvos` or `*_watchos` package to work there
+  (`shared_preferences`, `path_provider`, `audioplayers` have both,
+  `url_launcher` has tvOS). `app_links`, `share_plus` and `mobile_scanner`
+  have neither and throw `MissingPluginException` on the TV and the watch.
+- Text fields go through `SelectToType`
+  ([`lib/src/tv/select_to_type.dart`](../lib/src/tv/select_to_type.dart)),
+  which keeps them read-only on a television until a click, see
+  [tv.md](tv.md#apple-tv).
+- After `flutter pub get` or `flutter test`, run `flutter-tvos` before a hot
+  restart on the Apple TV: both write the Dart plugin registrant for iOS,
+  which breaks the sound on the Apple TV until the next `flutter-tvos` build.
 
-The two games talk on the device (`LocalLink` in `net_service.dart`): nothing
-goes over Realtime and the room takes no slot. The first player's presence
-carries the second's, so people on other devices count them, and a room of two
-is full for them. Only with somebody from another device in the room does the
-second player join over a Supabase connection of their own, between rounds,
-and the room costs what any room of that many pilots costs.
+## Release builds (maintainer)
 
-**Duel** (fourth card on the start page with two players): a defense round with
-a base at either end of the road of a common layout
-(`DefenseMap.duelForSeed`), red on the left, blue on the right. The waves stay
-as they are, but each side's roll along the road against the other's base, so
-they meet on the way, and every gun, tank and squad fights the other side. Y on
-a controller, T on a keyboard, sends an extra tank against the other base for
-120 coins (`troops` event, run by the host). Bases grow on their
-own. Two players on one screen watch their duel on the whole field at once
-instead of a split screen: the camera holds still over the map
-(`TankGame.overview`), the wave and both bases on top, each player's tank,
-coins and inventory in their corner (`lib/src/tv/duel_hud.dart`). Whose base
-falls first loses, and the waves go on past
-wave 8 by themselves. Duels are unranked. The host runs the waves and keeps the
-score of every base and gun, also of the other player's shots. Phones as
-the two players' controllers talk to the television on a lane each.
+Release builds and uploads run on the maintainer's Mac only; CI just
+validates. A fork uses its own store accounts, bundle ids and signing team
+and can follow the same scripts. Every entry goes through
+[`tool/release.sh`](../tool/release.sh); run it without arguments for the
+list. Before an upload the [release test plan](release-test-plan.md) runs.
 
-```sh
-export PATH="$HOME/path/to/flutter-tvos/bin:$PATH"
-flutter-tvos build tvos --debug --simulator  # debug, Simulator only
-flutter-tvos run -d <apple-tv-simulator-id>  # hot reload
-flutter-tvos run -d <apple-tv-id> --release  # real Apple TV
-python3 tool/store/horizont_icons.py         # icon, top shelf, launch image
-```
+| Command | Builds |
+| --- | --- |
+| `tool/release.sh ios [--upload]` | the watch app, then the iOS archive with the watch app, widget and iMessage extension inside |
+| `tool/release.sh macos [--upload]` | the Mac archive |
+| `tool/release.sh tvos [--upload]` | the Apple TV archive |
+| `tool/release.sh android phone\|wear [--upload <track>]` | a Google Play bundle for phones or Wear OS (fastlane) |
 
-Use `onTv` from `lib/src/tv/tv_input.dart` to branch for a television (the
-Apple TV and Android TV), `onAppleTv` for the Apple TV alone, never
-`Platform.isIOS` alone: it is true there as well. Text fields are built
-through `SelectToType` (`lib/src/tv/select_to_type.dart`): on a television
-they stay read-only until a click, so the focus passes over them without
-opening the keyboard. A focused field on the Apple TV otherwise put the
-engine's keyboard stand-in in front of the remote, which swallowed the end
-of the swipe, and the engine's key repeat walked the focus round the page
-every 80 ms. Plugins need a `*_tvos`
-package (`shared_preferences_tvos`, `path_provider_tvos`, `audioplayers_tvos`,
-`url_launcher_tvos` are in), `app_links`, `share_plus` and `mobile_scanner`
-have none. Run `flutter-tvos` after a plain `flutter pub get` or `flutter test`
-before a hot restart: both write the Dart plugin registrant for iOS, which
-breaks the sound on the Apple TV until the next `flutter-tvos` build.
+The Apple commands check version, Supabase address and team, put the archive
+into Xcode's Organizer and with `--upload` send it to App Store Connect.
+Details that matter:
 
-Signing comes from `apple/Signing.xcconfig` like on iOS, automatic as well:
-the team has an Apple TV registered, which Xcode needs for a tvOS
-development profile. `tool/release.sh tvos [--upload]` puts a checked
-archive into the Organizer and with `--upload` sends it to TestFlight.
-flutter-tvos signs the engine with the Apple Distribution certificate (Apple
-rejects an unsigned one with ITMS-91065), so that certificate has to be in
-the keychain of this Mac before the build.
-Neither flutter-tvos nor flutter-watchos ships dSYMs for App.framework and
-the engine, and an upload without them warns "Upload Symbols Failed".
-`tool/make_dsym.sh` makes them while archiving, from the tvOS project's embed
-phases and from `tool/embed_watch_app.sh` (which also copies the watch app's
-own dSYM): the binary's symbol table under its UUID, so crash reports name
-the functions, without line numbers. `tool/release.sh ios` and
-`tool/release.sh tvos` refuse an archive without them.
+- `tool/embed_watch_app.sh` stops an iOS archive without the watch app or
+  with one of another version or build; `ALLOW_NO_WATCH=1` lets it through
+  on purpose.
+- flutter-tvos and flutter-watchos ship no dSYMs for `App.framework` and the
+  engine, so uploads would warn "Upload Symbols Failed".
+  `tool/make_dsym.sh` makes them while archiving (symbol tables, no line
+  numbers), and the `ios` and `tvos` commands refuse an archive without
+  them.
+- flutter-tvos signs the engine with the Apple Distribution certificate
+  (Apple rejects an unsigned one with ITMS-91065), so that certificate must
+  be in the keychain. A tvOS development profile needs an Apple TV
+  registered with the team.
+- The apps declare no non-exempt encryption, so App Store Connect skips the
+  export compliance question.
+- Store texts, icons and screenshots live in `store/ios` and
+  `store/android`, each with a README of what goes where.
 
+A manual run of the `ci` workflow builds iOS without signing, the Mac ad hoc
+signed, both Android bundles with the debug key and, when ticked, the watch
+app; see [development.md → CI minutes](development.md#ci-minutes) for why it
+does not run on every push.

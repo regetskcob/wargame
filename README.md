@@ -6,7 +6,13 @@ mode, or red against blue in capture the flag. In German and English,
 without ads.
 
 **[▶ Play in the browser](https://panzergefecht.de/)** · iOS and
-Android apps · Mac · Apple TV · Apple Watch and Android TV (in progress)
+Android apps · Mac · Apple TV, Android TV and Fire TV · Apple Watch and
+Wear OS (in progress)
+
+One Flutter code base for all of them, no game server: Flame draws the
+battle, Supabase carries the multiplayer. If you are here for the code,
+start with [what this game shows about Flutter](docs/flutter-showcase.md)
+and [the netcode](docs/netcode.md).
 
 <p align="center">
   <img src="store/ios/screenshots/en-US/ipad-02-verteidigung.png" alt="A defense round on an iPad in the snow: the road, a river with bridges, the base and its guns" width="720">
@@ -88,26 +94,29 @@ dependency pinned to a tag, and there are no `dependency_overrides`.
 
 ## Getting started
 
-You need [Flutter](https://flutter.dev) 3.47 or newer; for a local backend
-also the [Supabase CLI](https://supabase.com/docs/guides/local-development)
-2.x and Docker.
+You need [Flutter](https://flutter.dev) 3.47 or newer, and for a local
+backend the [Supabase CLI](https://supabase.com/docs/guides/local-development)
+2.x with Docker.
 
 ```sh
 flutter pub get
-flutter run -d chrome
-```
-
-The game talks to the hosted Supabase project by default (see
-`lib/src/app/env.dart`). Run it twice to play against yourself; players with
-the same `ROOM` meet in the same arena. To use a local stack instead:
-
-```sh
-supabase start   # API on port 54621, applies the migrations
+supabase start   # local stack, API on port 54621, applies the migrations
 flutter run -d chrome \
   --dart-define=SUPABASE_URL=http://127.0.0.1:54621 \
-  --dart-define=SUPABASE_KEY=sb_publishable_... \
+  --dart-define=SUPABASE_KEY=<publishable key printed by supabase start> \
   --dart-define=ROOM=dev
 ```
+
+Start it twice to play against yourself: games with the same `ROOM` meet in
+the same arena. Without the defines a build talks to the live game's
+Supabase project (`lib/src/app/env.dart`), whose message budget all players
+share, so please develop against the local stack or your own project. With
+no backend at all the game still starts and single player works offline.
+
+- [Development](docs/development.md): tests, checks, the typed models,
+  migrations and the landing page.
+- [Running your own copy](docs/forking.md): your own Supabase project,
+  domain, app ids and signing.
 
 ## Project structure
 
@@ -118,11 +127,16 @@ flutter run -d chrome \
 | `lib/src/db` | Supabase services and the generated schema |
 | `lib/src/ui` | Overlays, widgets, tutorial and theme |
 | `lib/src/app`, `audio`, `l10n`, `legal` | App shell and environment, sound, German and English texts, legal pages |
-| `lib/src/watch`, `lib/src/tv` | Apple Watch screens, Apple TV controls and two players on one screen |
-| `test` | Unit and widget tests, mirroring `lib/src` |
-| `android`, `ios`, `macos`, `web`, `watchos`, `tvos` | Platform runners |
+| `lib/src/watch`, `lib/src/tv` | Apple Watch and Wear OS screens; TV controls, focus and two players on one screen |
+| `lib/src/store` | In-app purchases (prepared, off) |
+| `test`, `integration_test` | Unit, widget and golden tests mirroring `lib/src`; whole-app tests on a device |
+| `android`, `ios`, `macos`, `web`, `watchos`, `tvos` | Platform runners, with the iOS widget and the iMessage extension under `ios` |
+| `apple` | Signing settings shared by the Xcode projects |
+| `supabase` | Migrations, edge functions, config and mail templates |
+| `site` | The landing page at panzergefecht.de (Hugo) |
 | `store` | App Store and Google Play texts, icons and screenshots |
-| `supabase` | Migrations, config and mail templates |
+| `tool` | `release.sh` (checks, release builds, store pictures) and its helpers |
+| `docs` | The reference behind this page |
 
 ## Documentation
 
@@ -134,12 +148,17 @@ flutter run -d chrome \
   what works where and what is next.
 - [Netcode and Realtime limits](docs/netcode.md): events, authority, rooms,
   and what fits which Supabase plan.
-- [What this game shows about Flutter](docs/flutter-showcase.md)
-- [Going open source](docs/open-source/README.md): prepared, not active
-- [In-app purchases](docs/purchases.md): two packs, prepared but
-  not live, and what going live takes.
-- [Development](docs/development.md): tests, regenerating the typed models,
+- [What this game shows about Flutter](docs/flutter-showcase.md): where to
+  read which technique.
+- [In-app purchases](docs/purchases.md): two packs, prepared but not live,
+  and what going live takes.
+- [Development](docs/development.md): tests, checks, the typed models,
   deploying.
+- [Running your own copy](docs/forking.md): backend, domain, app ids and
+  signing of a fork.
+- [Release test plan](docs/release-test-plan.md): what the maintainer checks
+  before a store upload.
+- [Going open source](docs/open-source/README.md): prepared, not active.
 
 ## Roadmap
 
@@ -164,11 +183,10 @@ flutter run -d chrome \
   `record_round` and the policies with pgTAP in CI, golden tests for HUD,
   shop, lobby and leaderboards, and the app shell and Apple TV split screen,
   which no test loads yet.
-
 - In-app purchases: a supporter pack (paints, a mark on the tank) and a
   commander pack (opening weather for the whole room, battle archive, service
-  record), no advantage in play, prepared but off,
-  [docs/purchases.md](docs/purchases.md).
+  record), no advantage in play; prepared but off
+  ([docs/purchases.md](docs/purchases.md)).
 
 **Ideas**
 

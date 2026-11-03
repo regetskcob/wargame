@@ -30,13 +30,12 @@ two packs (docs/purchases.md) pay for Supabase Pro, the domain and hosting.
    game and at /lizenzen/).
 3. `site/hugo.toml`: `openSource = true` (the landing page section).
 4. `README.md`: replace the section "License", add the showcase link.
+   `docs/forking.md`: point its `open-source/NOTICE` links at `../NOTICE`.
 5. `store/ios/license.txt`, `store/ios/metadata/*/description.txt`,
    `store/ios/metadata/review_information/notes.txt`,
    `store/android/metadata/*/full_description.txt`: drop "all rights reserved"
    and "not open source". Once purchases are on, also "non-commercial".
-6. `CLAUDE.md` and `.claude/skills/db-migration`: replace the absolute
-   `/Users/...` paths.
-7. GitHub: description and homepage (`gh repo edit`), topics `flutter`,
+6. GitHub: description and homepage (`gh repo edit`), topics `flutter`,
    `flame`, `supabase`.
 
 Do not rewrite history: the search for secrets in the tree and the history

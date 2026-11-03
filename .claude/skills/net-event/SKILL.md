@@ -39,4 +39,4 @@ event touches these places, in this order:
 7. **Tests**: round trip in `test/net/payloads/`, hostile input in
    `test/net/hostile_payload_test.dart`, game behaviour in `test/game/`
    with the fakes in `test/helpers/fakes.dart`.
-8. **docs/netcode.md**: add the event to the list in "How the netcode works".
+8. **docs/netcode.md**: add a row to the events table under "How the netcode works" → "Events".
