@@ -16,3 +16,6 @@ PRODUCT_COPYRIGHT = Copyright © 2026 regetskcob. All rights reserved.
 
 // Team and signing style, shared with iOS and tvOS.
 #include "../../../apple/Signing.xcconfig"
+
+// The link domain of the entitlements, shared with iOS.
+#include "../../../apple/App.xcconfig"

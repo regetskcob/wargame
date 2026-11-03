@@ -34,7 +34,9 @@ wb_load_conf
 flutter_watchos="${FLUTTER_WATCHOS:-$HOME/flutter/flutter-watchos/bin/flutter-watchos}"
 name=$(wb_version name)
 number=$(wb_version build)
-defines=(--dart-define=ACCOUNTS=true)
+# shellcheck source=tool/release_env.sh
+. tool/release_env.sh
+defines=("${release_defines[@]}")
 
 step() { printf '\n== %s\n' "$*"; }
 fail() { printf 'error: %s\n' "$*" >&2; exit 1; }
@@ -58,10 +60,8 @@ for bundle in "$app" "$watch"; do
   [ "$(plist CFBundleShortVersionString "$bundle/Info.plist")" = "$name" ] || fail "$bundle is not version $name"
   [ "$(plist CFBundleVersion "$bundle/Info.plist")" = "$number" ] || fail "$bundle is not build $number"
   # Env falls back to the live project; a glued define would show here.
-  # grep -c reads everything: grep -q would quit early and, with pipefail,
-  # turn the SIGPIPE of strings into a failure.
-  [ "$(strings "$bundle/Frameworks/App.framework/App" | grep -c 'https://[a-z0-9]*\.supabase\.co$')" -gt 0 ] ||
-    fail "$bundle carries no plain Supabase URL"
+  [ "$(strings "$bundle/Frameworks/App.framework/App" | release_url_count)" -gt 0 ] ||
+    fail "$bundle does not carry $release_supabase_url as a plain string"
 done
 [ "$(plist WKCompanionAppBundleIdentifier "$watch/Info.plist")" = "$(plist CFBundleIdentifier "$app/Info.plist")" ] ||
   fail "the watch app names another companion app"

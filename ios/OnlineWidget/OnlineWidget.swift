@@ -1,14 +1,15 @@
 import SwiftUI
 import WidgetKit
 
-/// The same hosted project as `lib/src/env.dart`. The publishable key only
-/// reaches what row level security and the granted functions allow.
+/// The project of apple/App.xcconfig, the default of `lib/src/app/env.dart`.
+/// The publishable key only reaches what row level security and the granted
+/// functions allow.
 private enum Backend {
-  static let url = URL(string: "https://wowtrfleffnfaiadhujj.supabase.co/rest/v1/rpc/online_status")!
-  static let key = "sb_publishable__f2Lb3vqafUovQCsYilkiQ_nVNkoNhS"
+  static let url = AppConfig.supabaseURL.appendingPathComponent("rest/v1/rpc/online_status")
+  static let key = AppConfig.supabaseKey
 }
 
-/// Colours of the training ground, as `GameColors` in `lib/src/theme.dart`.
+/// Colours of the training ground, as `GameColors` in `lib/src/ui/theme.dart`.
 enum WidgetPalette {
   static let background = Color(red: 0x16 / 255, green: 0x1C / 255, blue: 0x0F / 255)
   static let surface = Color(red: 0x2A / 255, green: 0x35 / 255, blue: 0x20 / 255)

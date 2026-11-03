@@ -1,0 +1,26 @@
+// What the native Apple code needs to know about the game, in one place: the
+// home screen widget asks the backend for the pilots online, the iMessage
+// app links the browser game and opens the app by its scheme, and app and
+// iMessage app share the round result through an app group. The values
+// reach Swift through the targets' Info.plist and entitlements as
+// $(APP_...) build settings, read with `AppConfig` (ios/Shared/AppConfig.swift).
+//
+// The first four mirror the defaults in lib/src/app/env.dart, which the Dart
+// side uses; test/app/apple_config_test.dart fails when the two drift apart.
+// A fork changes both (docs/forking.md). In an xcconfig `//` starts a
+// comment, hence the empty $() inside each address.
+
+APP_SUPABASE_URL = https:/$()/wowtrfleffnfaiadhujj.supabase.co
+APP_SUPABASE_KEY = sb_publishable__f2Lb3vqafUovQCsYilkiQ_nVNkoNhS
+APP_WEB_URL = https:/$()/panzergefecht.de/play/
+APP_MAX_PILOTS = 4
+
+APP_URL_SCHEME = panzergefecht
+APP_GROUP = group.de.regetskcob.wargame
+
+// Room links on this domain open the app (universal links); the domain
+// serves /.well-known/apple-app-site-association from
+// store/ios/apple-app-site-association. The entitlements also list the old
+// address www.regetskcob.de, whose /wargame/ links are still in the wild;
+// a fork deletes that line.
+APP_LINK_DOMAIN = panzergefecht.de

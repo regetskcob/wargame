@@ -17,6 +17,9 @@
 		5B1E5A062F0A000100C0FFEE /* MessagesExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		5B1E5A072F0A000100C0FFEE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 5B1E5A042F0A000100C0FFEE /* Assets.xcassets */; };
 		5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
+		5B1E5A312F0A000100C0FFEE /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A302F0A000100C0FFEE /* AppConfig.swift */; };
+		5B1E5A322F0A000100C0FFEE /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A302F0A000100C0FFEE /* AppConfig.swift */; };
+		5B1E5A332F0A000100C0FFEE /* AppConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A302F0A000100C0FFEE /* AppConfig.swift */; };
 		5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B1E5A202F0A000100C0FFEE /* ChatResult.swift */; };
 		74858FAF1ED2DC5600515810 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74858FAE1ED2DC5600515810 /* AppDelegate.swift */; };
 		7884E8682EC3CC0700C636F2 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7884E8672EC3CC0400C636F2 /* SceneDelegate.swift */; };
@@ -95,6 +98,7 @@
 		5B1E5A032F0A000100C0FFEE /* MessagesExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MessagesExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		5B1E5A042F0A000100C0FFEE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		5B1E5A202F0A000100C0FFEE /* ChatResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChatResult.swift; sourceTree = "<group>"; };
+		5B1E5A302F0A000100C0FFEE /* AppConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppConfig.swift; sourceTree = "<group>"; };
 		5B1E5A232F0A000100C0FFEE /* MessagesExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MessagesExtension.entitlements; sourceTree = "<group>"; };
 		74858FAD1ED2DC5600515810 /* Runner-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Runner-Bridging-Header.h"; sourceTree = "<group>"; };
 		74858FAE1ED2DC5600515810 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -157,6 +161,7 @@
 		4F0E1A272E9A000100A1B2C3 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5B1E5A302F0A000100C0FFEE /* AppConfig.swift */,
 				5B1E5A202F0A000100C0FFEE /* ChatResult.swift */,
 			);
 			path = Shared;
@@ -461,6 +466,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				4F0E1A042E9A000100A1B2C3 /* OnlineWidget.swift in Sources */,
+				5B1E5A312F0A000100C0FFEE /* AppConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -470,6 +476,7 @@
 			files = (
 				5B1E5A052F0A000100C0FFEE /* MessagesViewController.swift in Sources */,
 				5B1E5A222F0A000100C0FFEE /* ChatResult.swift in Sources */,
+				5B1E5A322F0A000100C0FFEE /* AppConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -483,6 +490,7 @@
 				4F0E1A242E9A000100A1B2C3 /* ChatResultPlugin.swift in Sources */,
 				A1D0001A2F00000200C0FFEE /* GamepadPlugin.swift in Sources */,
 				5B1E5A212F0A000100C0FFEE /* ChatResult.swift in Sources */,
+				5B1E5A332F0A000100C0FFEE /* AppConfig.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

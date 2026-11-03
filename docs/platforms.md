@@ -188,9 +188,9 @@ lock screen sizes.
   nobody learns who is online.
 - **Refresh**: every ten minutes, five after a failed request; WidgetKit
   hands out only a few dozen refreshes a day.
-- **Forks**: the widget does not read the Dart defines. Its project address
-  and publishable key are written into `OnlineWidget.swift` and must be
-  changed there.
+- **Forks**: the widget cannot read the Dart defines. It asks the project
+  in [`apple/App.xcconfig`](../apple/App.xcconfig), which mirrors the
+  defaults of `lib/src/app/env.dart` (a test keeps the two equal).
 
 To try it, run the iOS app in the simulator, then add the widget from the
 home screen's edit mode.
@@ -228,7 +228,7 @@ How an invitation works:
 5. When a round ends, `ChatResultPlugin.swift` (fed by
    [`lib/src/app/chat_result.dart`](../lib/src/app/chat_result.dart))
    writes the result as `ChatResult` (`ios/Shared`) into the app group
-   `group.de.regetskcob.wargame`. The next time the extension opens in that
+   (`APP_GROUP` in `apple/App.xcconfig`). The next time the extension opens in that
    chat it offers the newest result of a room from there, if it is less
    than a day old. Sent, it replaces the invitation bubble in the same
    session; the link still leads into the room for another round.

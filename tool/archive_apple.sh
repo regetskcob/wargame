@@ -38,7 +38,9 @@ wb_load_conf
 
 name=$(wb_version name)
 number=$(wb_version build)
-defines=(--dart-define=ACCOUNTS=true)
+# shellcheck source=tool/release_env.sh
+. tool/release_env.sh
+defines=("${release_defines[@]}")
 
 step() { printf '\n== %s\n' "$*"; }
 fail() { printf 'error: %s\n' "$*" >&2; exit 1; }
@@ -74,12 +76,13 @@ step "checks"
 plist() { /usr/libexec/PlistBuddy -c "Print :$1" "$2"; }
 [ "$(plist CFBundleShortVersionString "$info")" = "$name" ] || fail "$app is not version $name"
 [ "$(plist CFBundleVersion "$info")" = "$number" ] || fail "$app is not build $number"
-# grep -c reads everything, see tool/archive_ios.sh.
-[ "$(strings "$dart" | grep -c 'https://[a-z0-9]*\.supabase\.co$')" -gt 0 ] ||
-  fail "$app carries no plain Supabase URL"
+[ "$(strings "$dart" | release_url_count)" -gt 0 ] ||
+  fail "$app does not carry $release_supabase_url as a plain string"
 codesign --verify --deep --strict "$app" || fail "the archived app has a broken signature"
 team=$(codesign -dv "$app" 2>&1 | sed -n 's/^TeamIdentifier=//p')
-[ "$team" = "86HB5U6788" ] || fail "the archived app is signed for team '$team'"
+# The Apple TV project carries its own team (flutter-tvos reads it from the
+# project.pbxproj); a fork that changed only apple/Signing.xcconfig ends here.
+[ "$team" = "$release_team" ] || fail "the archived app is signed for team '$team', not '$release_team'"
 if [ "$platform" = "tvos" ]; then
   # Without them the upload warns "Upload Symbols Failed" (tool/make_dsym.sh).
   for dsym in App.framework Flutter.framework; do

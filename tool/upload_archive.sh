@@ -12,17 +12,21 @@ set -euo pipefail
 
 archive="${1:-}"
 [ -d "$archive" ] || { printf 'usage: %s <path.xcarchive>\n' "$0" >&2; exit 2; }
+archive=$(cd "$archive" && pwd)
+cd "$(dirname "$0")/.."
+# shellcheck source=tool/release_env.sh
+. tool/release_env.sh
 
 work=$(mktemp -d)
 trap 'rm -rf "$work"' EXIT
-cat > "$work/ExportOptions.plist" <<'PLIST'
+cat > "$work/ExportOptions.plist" <<PLIST
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
   <key>method</key><string>app-store-connect</string>
   <key>destination</key><string>upload</string>
-  <key>teamID</key><string>86HB5U6788</string>
+  <key>teamID</key><string>$release_team</string>
   <key>signingStyle</key><string>automatic</string>
   <key>uploadSymbols</key><true/>
   <key>manageAppVersionAndBuildNumber</key><false/>

@@ -6,7 +6,7 @@
     "background_color": "#141A0E",
     "theme_color": "#141A0E",
     "description": "Last-tank-standing Mehrspieler-Panzerspiel.",
-    "orientation": "portrait-primary",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

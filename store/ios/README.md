@@ -10,9 +10,9 @@ texts and pictures from here too (see
 
 **In a fork**, replace what belongs to the maintainer's account: the bundle
 id `de.regetskcob.wargame` (Xcode projects, `ios/fastlane/Appfile`,
-`tool/store_shots.sh`), the App Group `group.de.regetskcob.wargame`, the
-team in `apple/Signing.xcconfig` (or your own, untracked
-`apple/Signing.local.xcconfig`), the `applinks:` domains in
+`tool/store_shots.sh`), the app group, URL scheme and link domain in
+`apple/App.xcconfig`, the team in `apple/Signing.xcconfig` (or your own,
+untracked `apple/Signing.local.xcconfig`), the old `applinks:` domain in
 `ios/Runner/Runner.entitlements` and the app id in
 [`apple-app-site-association`](apple-app-site-association), and the names,
 URLs and texts under `metadata/`. More in
@@ -230,7 +230,7 @@ Status of the maintainer's account; a fork goes through the same steps.
 Room links (`https://panzergefecht.de/play/?room=CODE`) and pairing links
 (`?pad=CODE`) open the app when it is installed, also from the iPhone
 camera. The app asks for `applinks:panzergefecht.de`
-(`ios/Runner/Runner.entitlements`, team 86HB5U6788). Apple only reads the
+(`APP_LINK_DOMAIN` in `apple/App.xcconfig`, team 86HB5U6788). Apple only reads the
 association file at the root of the domain; the site is that root, and
 `site/hugo.toml` mounts
 [`apple-app-site-association`](apple-app-site-association) from this

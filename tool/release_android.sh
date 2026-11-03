@@ -59,7 +59,9 @@ wb_load_conf
 
 name=$(wb_version name)
 number=$(wb_version build)
-build_args=(--dart-define=ACCOUNTS=true)
+# shellcheck source=tool/release_env.sh
+. tool/release_env.sh
+build_args=("${release_defines[@]}")
 [ "$form_factor" = "wear" ] && build_args+=(--android-project-arg=wear=true)
 
 step() { printf '\n== %s\n' "$*"; }
@@ -77,10 +79,9 @@ step "checks"
 # Signed, and not with the debug key (a keytool that really runs: the one in
 # /usr/bin is a stub on macOS).
 wb_check_signature "$bundle"
-# Env falls back to the live project; a glued define would show here. grep -c
-# reads everything, see tool/archive_ios.sh.
-[ "$(unzip -p "$bundle" base/lib/arm64-v8a/libapp.so | strings | grep -c 'https://[a-z0-9]*\.supabase\.co$')" -gt 0 ] ||
-  fail "the bundle carries no plain Supabase URL"
+# Env falls back to the live project; a glued define would show here.
+[ "$(unzip -p "$bundle" base/lib/arm64-v8a/libapp.so | strings | release_url_count)" -gt 0 ] ||
+  fail "the bundle does not carry $release_supabase_url as a plain string"
 echo "signature, Supabase URL: ok"
 
 target="build/release/$WB_APP-$form_factor-$name-$number.aab"

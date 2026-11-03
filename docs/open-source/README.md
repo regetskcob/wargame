@@ -42,8 +42,9 @@ Do not rewrite history: the search for secrets in the tree and the history
 (private keys, service role keys, tokens) came back empty, and the publishable
 Supabase key and project ref in the repository are meant to be public, guarded
 by row level security. gitleaks 8.30 ran on 2026-11-03 over all branches and
-the working tree: its only hits are that publishable key (in
-`ios/OnlineWidget/OnlineWidget.swift`) and the ignored, never committed
+the working tree: its only hits are that publishable key (then in
+`ios/OnlineWidget/OnlineWidget.swift`, now in `apple/App.xcconfig`) and the
+ignored, never committed
 `android/key.properties`. No keystore, `.p8`, `.p12` or `.env` file was ever
 committed. Run it again right before the switch:
 `gitleaks git . --log-opts=--all --redact` and `gitleaks dir . --redact`.

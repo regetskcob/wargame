@@ -1,2 +1,3 @@
 #include "Generated.xcconfig"
 #include "../../apple/Signing.xcconfig"
+#include "../../apple/App.xcconfig"

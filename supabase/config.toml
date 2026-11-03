@@ -2,6 +2,9 @@
 # https://supabase.com/docs/guides/local-development/cli/config
 # A string used to distinguish different Supabase projects on the same host. Defaults to the
 # working directory name when running `supabase init`.
+# Still the name of the workshop this game grew from: the local stack names its
+# Docker containers and volumes after it, so renaming it starts with an empty
+# local database. A fork may pick its own name freely.
 project_id = "supabase_flame_workshop"
 
 [api]

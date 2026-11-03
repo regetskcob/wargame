@@ -1,2 +1,9 @@
 app_identifier("de.regetskcob.wargame")
-team_id("86HB5U6788")
+# The team of apple/Signing.xcconfig, or of apple/Signing.local.xcconfig where
+# that sets one, as tool/release_env.sh reads it. fastlane runs in ios/.
+team = %w[Signing.xcconfig Signing.local.xcconfig]
+  .map { |name| File.expand_path("../apple/#{name}", Dir.pwd) }
+  .select { |path| File.exist?(path) }
+  .flat_map { |path| File.readlines(path).grep(/\ADEVELOPMENT_TEAM *=/) }
+  .last
+team_id(team.split("=", 2).last.strip) if team

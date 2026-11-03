@@ -4,12 +4,13 @@
 <dict>
 	<key>com.apple.developer.associated-domains</key>
 	<array>
-		<string>applinks:panzergefecht.de</string>
+		<string>applinks:$(APP_LINK_DOMAIN)</string>
+		<!-- Old room links under www.regetskcob.de/wargame/; a fork deletes this. -->
 		<string>applinks:www.regetskcob.de</string>
 	</array>
 	<key>com.apple.security.application-groups</key>
 	<array>
-		<string>group.de.regetskcob.wargame</string>
+		<string>$(APP_GROUP)</string>
 	</array>
 </dict>
 </plist>

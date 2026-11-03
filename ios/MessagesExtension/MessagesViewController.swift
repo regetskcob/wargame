@@ -190,11 +190,12 @@ struct Invite {
     }
   }
 
-  /// The browser game, which the apps also open by universal link.
-  static let webGame = URL(string: "https://panzergefecht.de/play/")!
+  /// The browser game, which the apps also open by universal link: the
+  /// default of `WEB_URL` in `lib/src/app/env.dart`, kept in apple/App.xcconfig.
+  static let webGame = AppConfig.webGame
 
   /// Tanks per room, the default of `MAX_PILOTS` in `lib/src/app/env.dart`.
-  static let maxPilots = 4
+  static let maxPilots = AppConfig.maxPilots
 
   let room: String
   let mode: Mode
@@ -248,7 +249,7 @@ struct Invite {
   /// sender, who starts the round in the chosen mode.
   func appURL(host: Bool) -> URL {
     var components = URLComponents()
-    components.scheme = "panzergefecht"
+    components.scheme = AppConfig.urlScheme
     components.host = "play"
     components.queryItems = query + (host ? [URLQueryItem(name: "host", value: "1")] : [])
     return components.url!

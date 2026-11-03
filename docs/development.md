@@ -272,6 +272,11 @@ version, the keytool and signature checks and the store simulators come
 from the werkbank (`werkbank version`, `wb_check_signature`, `werkbank
 sim`); the watch embedding, the Supabase URL check, the dart-define check
 in Xcode and the uploads stay in the project's own scripts.
+[`tool/release_env.sh`](../tool/release_env.sh) gives them their shared
+defines (accounts on, and `SUPABASE_URL`, `SUPABASE_KEY`, `WEB_URL`,
+`MAX_PILOTS`, `REALTIME_BUDGET`, `PURCHASES` when set in the environment),
+the Supabase address the build must carry, and the Apple team of
+`apple/Signing.xcconfig`.
 
 Store texts and pictures are described in
 [`store/ios/README.md`](../store/ios/README.md) and

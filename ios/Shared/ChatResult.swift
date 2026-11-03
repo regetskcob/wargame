@@ -19,7 +19,7 @@ struct ChatResult: Codable, Equatable {
   let waves: Int
   let at: Date
 
-  static let group = "group.de.regetskcob.wargame"
+  static let group = AppConfig.group
   private static let key = "chatResults"
 
   /// The latest results, one per room, newest first.
