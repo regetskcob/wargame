@@ -17,15 +17,16 @@ two packs (docs/purchases.md) pay for Supabase Pro, the domain and hosting.
 | What | State |
 | --- | --- |
 | Henrik Stamm's code (fork history) | Rights assigned, says the owner. Keep the written assignment. |
-| Lukas Klingsbo's code, about 1,400 lines still in the tree. All 21 of his commits are in the upstream repository, which had no licence. | Consent by mail on 2026-11-03: MIT for the workshop repository. PR [spydon/supabase_flame_workshop#1](https://github.com/spydon/supabase_flame_workshop/pull/1) open, **switch once it is merged**. Keep the mail. |
+| Lukas Klingsbo's code, about 1,400 lines still in the tree. All 21 of his commits are in the upstream repository. | Done: MIT since [spydon/supabase_flame_workshop#1](https://github.com/spydon/supabase_flame_workshop/pull/1), merged by him on 2026-11-03 after his consent by mail the same day. Keep the mail. |
 | Licence | Confirmed by the owner (2026-11-03): MIT for code, name and icon kept (`NOTICE`). |
-| `tool/werkbank/`, a copy of a private repository | Gets an MIT licence of its own soon (separate work); wait for the owner's go. |
-| Horizont (git dependency) | Gets a plain MIT licence soon (separate work); wait for the owner's go. |
+| `tool/werkbank/`, a copy of the maintainer's werkbank repository | MIT since werkbank v0.1.3, whose copy brings its `LICENSE`; this repository still holds v0.1.2. Install v0.1.3 (`~/dev/werkbank/install.sh`) before the switch. |
+| Horizont (git dependency) | Done: the pinned tag v0.9.1 carries a plain MIT `LICENSE`. |
 
 ## The switch, in one change
 
 1. `git mv docs/open-source/{LICENSE,NOTICE,CONTRIBUTING.md,SECURITY.md} .`,
-   with the dates in `NOTICE` filled in. `NOTICE` is what keeps name and icon out.
+   with Henrik Stamm's date in `NOTICE` filled in. `NOTICE` is what keeps
+   name and icon out.
 2. `lib/src/legal/legal_text.dart`: `openSourced = true` (licence page in the
    game and at /lizenzen/).
 3. `site/hugo.toml`: `openSource = true` (the landing page section).
