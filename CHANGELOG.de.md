@@ -17,7 +17,7 @@ gepflegt.
   Tageszeit für den ganzen Raum, dazu ein Einsatzarchiv der letzten zehn Runden
   und die Bilanz je Fahrzeug
 
-## 1.8.2 (19, Google Play 20) – 29.10.2026
+## 1.8.2 (19, Google Play 20) – 2026-10-29
 
 - Panzer fahren etwas langsamer, vorwärts wie rückwärts um etwa ein
   Zehntel, damit Runden weniger hektisch wirken
@@ -41,7 +41,7 @@ gepflegt.
 - Die Apps tragen Apples Privacy Manifests, und die Datenschutzerklärung
   nennt alle Plattformen, Google Play und den Online-Zähler
 
-## 1.8.1 (18) – 27.10.2026
+## 1.8.1 (18) – 2026-10-27
 
 - Der Browser-Tab von Spiel und Landingpage zeigt wieder das App-Icon
   statt der Horizont-Glyphe
@@ -55,7 +55,7 @@ gepflegt.
   ist für alle sofort zerstört, sodass die Runde mit ihrem Ergebnis endet,
   statt dass die anderen acht Sekunden auf ein noch fahrendes Wrack warten
 
-## 1.8.0 (17) – 26.10.2026
+## 1.8.0 (17) – 2026-10-26
 
 - Panzergefecht hat eine eigene Adresse: Spiel, Raum-Links und QR-Codes
   zeigen jetzt auf <https://panzergefecht.de/play/>, und früher geteilte
@@ -85,7 +85,7 @@ gepflegt.
   nicht mehr gleich wieder, und Apple Watch und Fokusrahmen des Apple TV
   laufen ruhiger
 
-## 1.7.0 (15) – 18.10.2026
+## 1.7.0 (15) – 2026-10-18
 
 - Die geschlossene Zone eines Gefechts hält 30 Sekunden und zieht sich
   dann ganz zusammen, mit jeder Sekunde mehr Schaden, so endet jede Runde
@@ -100,7 +100,7 @@ gepflegt.
 - Raum-Links aus dem Web öffnen die Mac-App, und ein Mac zählt nie als
   Handy, wie klein sein Fenster auch ist
 
-## 1.6.1 (13) – 12.10.2026
+## 1.6.1 (13) – 2026-10-12
 
 - Auf dem Apple TV öffnet die Menü-Taste ein Rundenmenü: in der
   Verteidigung das Feld mit allen Geschützen und Upgrades, und immer den
@@ -116,7 +116,7 @@ gepflegt.
 - CPU-Panzer, die sich an einem Gebäude am Inselufer vorbeidrücken, werden
   nicht mehr ins tiefe Wasser geschoben
 
-## 1.6.0 (12) – 11.10.2026
+## 1.6.0 (12) – 2026-10-11
 
 - Zwei neue Gelände: der Bergwald mit dichtem Wald, Geröll und Hügeln,
   und die Inseln mit mehr Wasser als Land, verbunden durch Holzbrücken,
@@ -148,7 +148,7 @@ gepflegt.
   einer vollen Verteidigung nicht mehr zu spät, und ein zweiter Daumen
   übernimmt einen Stick
 
-## 1.5.0 (11) – 11.10.2026
+## 1.5.0 (11) – 2026-10-11
 
 - Gräben sind besetzt: drei Schützen und ein MG feuern auf Soldaten und
   Panzer, jeder zielt selbst und blickt dorthin, woher der Feind kommt, und
@@ -171,7 +171,7 @@ gepflegt.
   nächsten Panzer
 - Konto löschen steht ganz unten auf der Kontoseite
 
-## 1.4.1 (10) – 11.10.2026
+## 1.4.1 (10) – 2026-10-11
 
 - Tablets nutzen ihren Bildschirm in den Menüs: Startseite und Warteraum
   beginnen oben und nehmen die ganze Breite, zwei Spalten, wo Platz ist,
@@ -184,7 +184,7 @@ gepflegt.
 - Tablets zeigen keinen Vibrationsschalter mehr, für den ihnen der Motor
   fehlt
 
-## 1.4.0 (9) – 10.10.2026
+## 1.4.0 (9) – 2026-10-10
 
 - Ruhiger, schlanker Look: Rahmen nur noch an den äußeren Flächen, rahmenlose
   Kästen für Modi, Abschnitte und Panzerkarten, feine Linien an Knöpfen,
@@ -256,7 +256,7 @@ gepflegt.
   keine leere Hälfte mehr, und das Inventar hält sich von der Bauleiste der
   Verteidigung fern
 
-## 1.3.0 (8) – 10.10.2026
+## 1.3.0 (8) – 2026-10-10
 
 - Aus iMessage einen Chat in einen Raum einladen, das Rundenergebnis
   erscheint dort
@@ -271,7 +271,7 @@ gepflegt.
 - Auf hochkant gehaltenen Handys sitzt die Zielhilfe direkt über dem
   Ziel-Stick
 
-## 1.2.1 (7) – 09.10.2026
+## 1.2.1 (7) – 2026-10-09
 
 - Fahnenraub als vierter Modus, Rot gegen Blau mit CPU-Panzern auf beiden
   Seiten
@@ -282,7 +282,7 @@ gepflegt.
 - Die Bestenliste passt auf ein Handy
 - Aufgeräumteres Starten, Beitreten und Einweisen
 
-## 1.2.0 (6) – 09.10.2026
+## 1.2.0 (6) – 2026-10-09
 
 - Die Apple-Watch-App ist in jedem Build eingebettet und geprüft (Build 5
   war ohne sie hinausgegangen), gebaut von `tool/archive_ios.sh`
@@ -303,7 +303,7 @@ gepflegt.
 - Builds mit zusammengeklebten dart-defines brechen in Xcode ab (Build 4
   erreichte deswegen den Server nicht)
 
-## 1.0.0 (1–2) – 08.10.2026
+## 1.0.0 (1–2) – 2026-10-08
 
 - Die erste Version für iPhone und iPad
 - Einzelspieler, Mehrspieler und Verteidigung

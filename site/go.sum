@@ -4,3 +4,5 @@ github.com/regetskcob/horizont v0.9.0 h1:QVf/RA2zetNdSs8u5Qz9zd9a7aRJwgByNNQ/fUf
 github.com/regetskcob/horizont v0.9.0/go.mod h1:T5yVy8OGTUHOy56+cqNUbjSFpsG2xkPb3CGvnLcOYU8=
 github.com/regetskcob/horizont v0.9.1 h1:Ii431kiGaGSqlJejcf8wPgmJl8jcBIULone1gyuwetA=
 github.com/regetskcob/horizont v0.9.1/go.mod h1:T5yVy8OGTUHOy56+cqNUbjSFpsG2xkPb3CGvnLcOYU8=
+github.com/regetskcob/horizont v0.11.0 h1:81WV4A77LzhYBkDsM+diNDUjfMsSCgj4S5ltgBnYA8c=
+github.com/regetskcob/horizont v0.11.0/go.mod h1:T5yVy8OGTUHOy56+cqNUbjSFpsG2xkPb3CGvnLcOYU8=

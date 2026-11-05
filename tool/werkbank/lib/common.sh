@@ -677,6 +677,13 @@ wb_release_build() {
     return
   fi
   for platform in $(wb_platforms "$p"); do
+    # A project hook build_<platform> replaces werkbank's own build, also for
+    # android and ios (watch app inside the IPA, phone plus Wear OS bundle, …).
+    if wb_has_hook "build_$platform"; then
+      "build_$platform" "$upload"
+      wb_resolved_guard after-hook
+      continue
+    fi
     case "$platform" in
       android)
         wb_android
@@ -686,12 +693,7 @@ wb_release_build() {
         wb_ios
         if $upload; then wb_upload_apple build/ios/archive/Runner.xcarchive; fi
         ;;
-      *)
-        wb_has_hook "build_$platform" || die "no werkbank build for $platform – define build_$platform in tool/werkbank.conf"
-        "build_$platform" "$upload"
-        wb_resolved_guard after-hook
-        continue
-        ;;
+      *) die "no werkbank build for $platform – define build_$platform in tool/werkbank.conf" ;;
     esac
     wb_resolved_guard
   done

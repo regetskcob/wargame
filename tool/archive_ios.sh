@@ -12,7 +12,8 @@
 # tool/release.sh calls this script)
 #
 # --upload also sends the checked archive to App Store Connect
-# (tool/upload_archive.sh). Without the flag nothing leaves the machine.
+# (werkbank upload-apple). Without the flag nothing leaves the machine.
+# A build that rewrote ios/**/Package.resolved stops before the upload.
 
 set -euo pipefail
 
@@ -87,7 +88,8 @@ if [ "$upload" = "0" ]; then
   exit 0
 fi
 
+wb_resolved_guard
 step "upload $name ($number) to App Store Connect"
-tool/upload_archive.sh "$target"
+wb_upload_apple "$target"
 step "done"
 echo "Uploaded. Once App Store Connect has processed it, TestFlight > build $number must say Apple Watch: yes."

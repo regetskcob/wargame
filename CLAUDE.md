@@ -75,7 +75,7 @@ vorschlagen: Vieles, was nach "neuer Idee" klingt, existiert schon
 | Build-Flags | `lib/src/app/env.dart` (`SUPABASE_URL`, `SUPABASE_KEY`, `ROOM`, `ACCOUNTS`, `WEB_URL`) |
 | Landingpage | `site/` (Hugo) an der Wurzel von panzergefecht.de, Spiel unter `/play/`; Texte und Bilder aus `store/ios/`, Ablauf in `docs/development.md` „Landing page“ |
 | In-App-Käufe | `lib/src/store/` (`Shop`, `Product`), `lib/src/db/purchase_service.dart`, Edge Function `supabase/functions/verify-purchase`, Tabelle `entitlements` (0021); vorbereitet, aus per `PURCHASES`, nur mit Konto; `docs/purchases.md` |
-| Store/Release | `store/ios`, `store/android` (je README), Release-Builds nur lokal (`tool/release.sh ios`, `tvos`, `macos`, `android phone\|wear`, je `--upload`), CI validiert nur; vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
+| Store/Release | `store/ios`, `store/android` (je README), Release-Builds nur lokal (`tool/release.sh release [--upload]`, einzeln `ios`, `tvos`, `macos`, `android phone\|wear`, je `--upload`), CI validiert nur; vor jedem Upload `/release-test` nach `docs/release-test-plan.md` |
 | Apple-Signierung | `apple/Signing.xcconfig` für alle drei Xcode-Projekte (Team, automatisch), lokal überschreibbar per `apple/Signing.local.xcconfig`; Werte für Widget, iMessage, App Group, URL-Schema und Link-Domain in `apple/App.xcconfig` (spiegelt `env.dart`, Test `apple_config_test.dart`); keine Signier-Werte in die `project.pbxproj` (nur `tvos/` trägt das Team zusätzlich, flutter-tvos liest es dort) |
 | Tests | `test/` spiegelt `lib/src`, Fakes in `test/helpers/fakes.dart` |
 
@@ -125,9 +125,14 @@ Ausnahmen vom Standard:
   Darum rufen `android` und `ios` nicht `werkbank android|ios` auf, sondern
   die Skripte des Projekts, die Version, Signaturprüfung und Simulatoren
   aus der werkbank nehmen.
-- **Hochladen** mit dem in Xcode angemeldeten Apple-Konto
-  (`tool/upload_archive.sh`) bzw. fastlane für Google Play, nicht mit
-  `werkbank ios --upload`.
+- **Hochladen** über die werkbank: Apple mit dem in Xcode angemeldeten Konto
+  (`upload-apple`), Google Play mit dem Dienstkonto (`upload-play`, Texte aus
+  `store/android/play-notes-<build>.txt`); fastlane nur noch für den
+  Store-Eintrag (`android … --metadata`).
+- **Release** wie in allen Projekten: `tool/release.sh release --dry-run`, dann
+  `release --upload` (Vorprüfung mit Changelog und Release-Texten, alle vier
+  Plattformen über `build_<plattform>` in `tool/werkbank.conf`, Tag
+  `v<version>`, Bericht in `build/release/`).
 
 ## Arbeitsweise (vom Nutzer festgelegt)
 

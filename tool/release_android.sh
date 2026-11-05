@@ -1,6 +1,7 @@
 #!/bin/bash
 # Builds the signed App Bundle for Google Play on this machine, checks it and,
-# with --upload, sends it to a Play track through fastlane (android/fastlane).
+# with --upload, sends it to a Play track (werkbank upload-play) with the
+# release notes store/android/play-notes-<build>.txt (werkbank notes).
 # The Android counterpart of tool/archive_ios.sh: releases are built locally
 # only, CI just validates (docs/development.md "CI minutes").
 #
@@ -12,7 +13,8 @@
 #                watch's own wear: tracks
 #   --upload     internal, alpha, beta or production; without it nothing
 #                leaves the machine
-#   --metadata   upload the store texts, icon and screenshots too
+#   --metadata   then upload the store texts, icon and screenshots too
+#                (fastlane metadata lane, android/fastlane)
 #   --completed  release at once instead of as a draft (Play accepts only
 #                drafts until the app was released once)
 #
@@ -96,12 +98,17 @@ if [ -z "$track" ]; then
 fi
 
 step "upload $form_factor $name ($number) to the $track track as $status"
-key="${PLAY_JSON_KEY:-$PWD/android/play-service-account.json}"
-[ -f "$key" ] || fail "no service account key at $key"
-args=(deploy "form_factor:$form_factor" "track:$track" "release_status:$status")
-[ "$metadata" = "1" ] && args+=(metadata:true)
-(cd android && PLAY_JSON_KEY="$key" FASTLANE_SKIP_UPDATE_CHECK=1 \
-  FASTLANE_OPT_OUT_USAGE=1 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
-  bundle exec fastlane "${args[@]}")
+play_track=$track
+[ "$form_factor" = "wear" ] && play_track="wear:$track"
+WB_PLAY_STATUS=$status
+wb_upload_play "$target" "$play_track"
+
+if [ "$metadata" = "1" ]; then
+  step "store listing"
+  (cd android && PLAY_JSON_KEY="$WB_PLAY_KEY" FASTLANE_SKIP_UPDATE_CHECK=1 \
+    FASTLANE_OPT_OUT_USAGE=1 LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8 \
+    bundle exec fastlane metadata)
+fi
+
 step "done"
 echo "Uploaded. A draft still has to be released in the Play Console."
