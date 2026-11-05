@@ -256,10 +256,13 @@ Nothing leaves the machine without `--upload`.
 | --- | --- |
 | `tool/release.sh verify --quick` | layout, format, analyze, tests without the `supabase` tag, coverage floor of 75 % |
 | `tool/release.sh verify` | the same, then the web, landing page, iOS, macOS, Android and Wear OS builds without store signing |
-| `tool/release.sh android phone\|wear [--upload <track>] [--metadata] [--completed]` | signed App Bundle to `build/release/`, upload through fastlane (`tool/release_android.sh`) |
+| `tool/release.sh release [--dry-run] [--upload]` | the whole release: preflight (clean `main`, changelog, release texts, verify), every store build below, tag `v<version>`, report in `build/release/` |
+| `tool/release.sh changelog\|notes [--draft]` | check or draft the changelogs and the TestFlight and Play texts of this build |
+| `tool/release.sh site panzergefecht [--live]` | build the landing page; `--live` starts the `pages` workflow |
+| `tool/release.sh android phone\|wear [--upload <track>] [--metadata] [--completed]` | signed App Bundle to `build/release/`, upload through werkbank (`tool/release_android.sh`) |
 | `tool/release.sh ios [--upload]` | App Store archive with the watch app inside, to the Xcode Organizer (`tool/archive_ios.sh`) |
 | `tool/release.sh tvos\|macos [--upload]` | the same for the Apple TV or the Mac app (`tool/archive_apple.sh`) |
-| `tool/release.sh upload <path.xcarchive>` | send a checked archive to App Store Connect (`tool/upload_archive.sh`) |
+| `tool/release.sh upload <path.xcarchive>` | send a checked archive to App Store Connect (werkbank `upload-apple`) |
 | `tool/release.sh shots <raw dir> [ios] [ipad] [tv] [mac] [atv]` | raw store pictures from the simulators, and with `atv` from an Android TV emulator (`tool/store_shots.sh`) |
 | `tool/release.sh graphics <raw dir>` | store images from the raw pictures (`tool/store/compose.py`) |
 

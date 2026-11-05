@@ -32,7 +32,7 @@ after the first upload. More in [forking.md](../../docs/forking.md).
 | App name (max. 30) | `metadata/<lang>/title.txt` |
 | Short description (max. 80) | `metadata/<lang>/short_description.txt` |
 | Full description (max. 4000) | `metadata/<lang>/full_description.txt` |
-| Release notes (max. 500) | `metadata/<lang>/changelogs/default.txt`, for one version `<versionCode>.txt` |
+| Release notes (max. 500 per language) | `play-notes-<versionCode>.txt`, one `<de-DE>…</de-DE>` block per language (`tool/release.sh notes --draft`) |
 | App icon 512 × 512 | `metadata/<lang>/images/icon.png` |
 | Feature graphic 1024 × 500 | `metadata/<lang>/images/featureGraphic.png` |
 | Phone screenshots (1080 × 1920) | `metadata/<lang>/images/phoneScreenshots/*.png` |
@@ -91,7 +91,10 @@ Builds are made and uploaded locally only, never in CI (see
 android` builds the signed bundle with `--dart-define=ACCOUNTS=true` (the
 Supabase URL and key are the defaults in `Env`), checks the signature and
 the Supabase URL, keeps a copy in `build/release/` and, with `--upload`,
-sends it through `fastlane supply` from `android/fastlane`:
+sends it to Play through werkbank (`upload-play`, with the release notes
+above); `--metadata` then uploads the store listing through `fastlane supply`
+from `android/fastlane`. The whole release of every platform is
+`tool/release.sh release [--upload]` (`--dry-run` shows the plan):
 
 ```sh
 tool/release.sh android phone                          # build and check only

@@ -237,8 +237,8 @@ printf 'DEVELOPMENT_TEAM = <your team id>\n' > apple/Signing.local.xcconfig
 printf 'DEVELOPMENT_TEAM =\nCODE_SIGN_IDENTITY = -\n' > apple/Signing.local.xcconfig
 ```
 
-The release scripts, the upload (`tool/upload_archive.sh`) and
-`ios/fastlane/Appfile` read the team from these two files. The Apple TV and
+The release scripts and `ios/fastlane/Appfile` read the team from these two
+files; the upload (werkbank `upload-apple`) takes it from the signed archive. The Apple TV and
 watch projects carry `DEVELOPMENT_TEAM` in their own `project.pbxproj` files
 (`tvos/`, `watchos/`) as well, because flutter-tvos reads it there; change it
 in both, or `tool/archive_apple.sh` stops at a team that does not match. The

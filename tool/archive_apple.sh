@@ -8,7 +8,7 @@
 # tool/release.sh calls this script)
 #
 # --upload sends the checked archive to App Store Connect
-# (tool/upload_archive.sh); without it, upload it from the Organizer
+# (werkbank upload-apple); without it, upload it from the Organizer
 # (Distribute App) or not at all. The tvOS engine has
 # to carry an Apple Distribution signature for the App Store (ITMS-91065):
 # flutter-tvos signs it when that certificate is in the keychain and warns
@@ -104,7 +104,8 @@ if [ "$upload" = "0" ]; then
   exit 0
 fi
 
+wb_resolved_guard
 step "upload $platform $name ($number) to App Store Connect"
-tool/upload_archive.sh "$target"
+wb_upload_apple "$target"
 step "done"
 echo "Uploaded. App Store Connect lists it under TestFlight once processed."

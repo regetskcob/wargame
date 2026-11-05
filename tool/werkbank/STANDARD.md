@@ -94,7 +94,7 @@ tool/release.sh release [--upload]    # dann wirklich
 | Phase | Was |
 |---|---|
 | Vorprüfung | sauberer `main` gleich `origin/main`, Abschnitt `## <version>` im `CHANGELOG.md`, Release-Texte vollständig (bei iOS/Android), dann `verify` (oder Hook `verify_release`) |
-| Bauen | je Produkt und Plattform: `android` und `ios` aus der werkbank, andere über `build_<plattform>`; ein Produkt mit Hook `release_<produkt>` baut ganz selbst (z. B. per CI) |
+| Bauen | je Produkt und Plattform: `android` und `ios` aus der werkbank, andere über `build_<plattform>`; ein Hook `build_<plattform>` ersetzt auch den werkbank-Weg für `android`/`ios` (z. B. Watch-App im IPA, Phone- und Wear-Bundle); ein Produkt mit Hook `release_<produkt>` baut ganz selbst (z. B. per CI) |
 | Hochladen | mit `--upload`: Apple über das Xcode-Konto, Play über das Dienstkonto |
 | Tag | `<präfix><version>` je Produkt, erst nach Bauen und Hochladen, gepusht |
 | GitHub-Release | mit `WB_GH_RELEASE_REPO`: Changelog-Abschnitt als Text, Dateien aus `build/release/` |

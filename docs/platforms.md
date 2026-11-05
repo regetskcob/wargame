@@ -534,7 +534,7 @@ list. Before an upload the [release test plan](release-test-plan.md) runs.
 | `tool/release.sh ios [--upload]` | the watch app, then the iOS archive with the watch app, widget and iMessage extension inside |
 | `tool/release.sh macos [--upload]` | the Mac archive |
 | `tool/release.sh tvos [--upload]` | the Apple TV archive |
-| `tool/release.sh android phone\|wear [--upload <track>]` | a Google Play bundle for phones or Wear OS (fastlane) |
+| `tool/release.sh android phone\|wear [--upload <track>]` | a Google Play bundle for phones or Wear OS (werkbank `upload-play`) |
 
 The Apple commands check version, Supabase address and team, put the archive
 into Xcode's Organizer and with `--upload` send it to App Store Connect.
