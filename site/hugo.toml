@@ -36,7 +36,7 @@ enableRobotsTXT = false
   [[module.mounts]]
     source = '..'
     target = 'assets/changelog'
-    includeFiles = ['/CHANGELOG.md', '/CHANGELOG.de.md']
+    files = ['/CHANGELOG.md', '/CHANGELOG.de.md']
   [[module.mounts]]
     source = '../store/ios/metadata'
     target = 'assets/store/metadata'
@@ -61,13 +61,13 @@ enableRobotsTXT = false
   [[module.mounts]]
     source = '../web'
     target = 'static'
-    includeFiles = ['/favicon-32.png', '/icons/apple-touch-icon.png']
+    files = ['/favicon-32.png', '/icons/apple-touch-icon.png']
   # Apple reads the association file of the universal links only at the root
   # of the domain, and the site is that root.
   [[module.mounts]]
     source = '../store/ios'
     target = 'static/.well-known'
-    includeFiles = ['/apple-app-site-association']
+    files = ['/apple-app-site-association']
   # The mounts of docs/web.md in Horizont: tokens, icon names, CSS, partials,
   # shortcodes and the fonts, served from here (no font service).
   [[module.imports]]
@@ -78,7 +78,7 @@ enableRobotsTXT = false
     [[module.imports.mounts]]
       source = 'icons'
       target = 'data/horizont_icons'
-      includeFiles = ['*.json']
+      files = ['*.json']
     [[module.imports.mounts]]
       source = 'web/css'
       target = 'assets/css/horizont'
