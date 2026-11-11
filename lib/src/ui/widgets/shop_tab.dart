@@ -79,7 +79,10 @@ class ShopTab extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           ExcludeSemantics(
-            child: Visibility.maintain(visible: false, child: _openRow()),
+            child: Visibility.maintain(
+              visible: false,
+              child: _openRow(sizer: true),
+            ),
           ),
           if (open) _openRow() else _content(bold: false),
         ],
@@ -88,24 +91,32 @@ class ShopTab extends StatelessWidget {
   }
 
   /// The check, a small gap and the content in its open weight.
-  Widget _openRow() => Row(
+  Widget _openRow({bool sizer = false}) => Row(
     mainAxisSize: MainAxisSize.min,
     children: [
-      ExcludeSemantics(
-        child: Icon(
-          HorizontSymbols.check,
-          size: HzIconSize.inline,
-          color: GameColors.accentText,
+      if (sizer)
+        const SizedBox.square(dimension: HzIconSize.inline)
+      else
+        ExcludeSemantics(
+          child: Icon(
+            HorizontSymbols.check,
+            size: HzIconSize.inline,
+            color: GameColors.accentText,
+          ),
         ),
-      ),
       const SizedBox(width: HzSpace.s4),
-      _content(bold: true),
+      _content(bold: true, sizer: sizer),
     ],
   );
 
   /// The icon, or the label semibold when open and at 500 when closed.
-  Widget _content({required bool bold}) {
-    if (icon case final icon?) return Icon(icon, size: HzIconSize.row);
+  /// As [sizer] only the room of the icon, so finders see one icon per tab.
+  Widget _content({required bool bold, bool sizer = false}) {
+    if (icon case final icon?) {
+      return sizer
+          ? const SizedBox.square(dimension: HzIconSize.row)
+          : Icon(icon, size: HzIconSize.row);
+    }
     final base = labelStyle ?? const TextStyle();
     return Text(
       label!,
