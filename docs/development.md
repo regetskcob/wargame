@@ -509,8 +509,10 @@ python3 -m http.server -d /tmp/site 8000
 The game uses the four typefaces of the design system
 [Horizont](https://github.com/regetskcob/horizont): Mona Sans for everything
 you operate, Mona Sans Display Expanded in capitals for headlines,
-Monaspace Argon with tabular figures for every value that is counted or
-measured, and Literata for long reading text. They come with the
+Monaspace Argon with tabular figures for every value that is measured
+(scores, times, codes, the HUD's marks), and Literata for long reading text.
+The menus follow Horizont's soft style: section labels (Kennungen) and
+counts beside a label are in Mona Sans. They come with the
 `horizont` package (`pubspec.yaml`, pinned to a tag) together with their
 licences (`registerHorizontLicenses()`), so the app bundles no font of its
 own. `GameType` in `lib/src/ui/theme.dart` names the styles the game uses;

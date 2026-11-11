@@ -24,11 +24,14 @@ abstract final class GameColors {
   /// Sunken surfaces: wells inside a card, bands, tracks of a bar.
   static final sunken = _c.sunken;
 
-  /// Hairlines between rows and sections.
+  /// Hairlines between rows and sections, and the outline of everything
+  /// framed in the menus (card, field, button, chip, dialog): Horizont's soft
+  /// style, where the tinted ground gives the order, not the outline.
   static final line = _c.line;
 
-  /// The one outline of everything framed (card, field, button, chip,
-  /// dialog), at least 3:1 on every surface.
+  /// The strong outline, at least 3:1 on every surface: only where a frame
+  /// has to stand out against the moving round (HUD controls, the mini map)
+  /// or tells enabled from disabled.
   static final lineStrong = _c.lineStrong;
 
   /// Ink.
@@ -122,9 +125,18 @@ abstract final class GameType {
   /// Title of a panel or a dialog. In capitals.
   static final title = _expanded(18, 24, FontWeight.w700);
 
-  /// Kennung: small tracked mono capitals naming a section, an ID or a
-  /// situation (`WARTERAUM · CODE UNM3C`). Uppercase the text.
+  /// Kennung: small tracked capitals naming a section or a situation
+  /// (`WARTERAUM · CODE UNM3C`). In Mona Sans, as Horizont's soft style sets
+  /// it: a heading in a menu is operated, not measured. Uppercase the text.
   static final kennung = horizontTextStyle(
+    HzType.caption,
+    GameColors.textMuted,
+  ).copyWith(fontWeight: FontWeight.w600, letterSpacing: 0.5);
+
+  /// A small mark on the HUD over the running round, mostly with a measured
+  /// value beside it (`STÜTZPUNKT · NORD  120`, `85 %`, `340 m`): Horizont's
+  /// Kennung in Monaspace, so digits keep their width while they count.
+  static final hudMark = horizontTextStyle(
     HzType.kennung,
     GameColors.textMuted,
   );
@@ -162,10 +174,13 @@ abstract final class GameType {
 }
 
 /// The outline of everything framed, as a side for borders that are built
-/// by hand (Horizont's components carry it already).
-final hairline = BorderSide(color: GameColors.lineStrong);
+/// by hand (Horizont's components carry it already): `line`, as in
+/// Horizont's soft style.
+final hairline = BorderSide(color: GameColors.line);
 
-/// Horizont's dark theme for Panzergefecht with the game's headlines.
+/// Horizont's dark theme for Panzergefecht with the game's headlines, in
+/// Horizont's soft style (the default since 0.13.0): rounder corners, quiet
+/// outlines, the selection as a tint.
 ///
 /// The game has no light mode: it is played on its ground, and menus sit on
 /// top of a round. Its menus keep touch density everywhere, also with a

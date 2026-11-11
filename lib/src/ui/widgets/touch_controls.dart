@@ -289,7 +289,7 @@ class _AssistToggleState extends State<_AssistToggle> {
         height: _AssistToggle.height,
         padding: const EdgeInsets.symmetric(horizontal: HzSpace.s12),
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(HzRadius.r6),
+          borderRadius: BorderRadius.circular(HzSoft.control),
           // Dark in both states, so the label reads on snow and sand too.
           color: (on ? GameColors.accentTint : GameColors.bg).withValues(
             alpha: 0.85,
@@ -297,7 +297,7 @@ class _AssistToggleState extends State<_AssistToggle> {
         ),
         // Over the face, so switching never shifts the label.
         foregroundDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(HzRadius.r6),
+          borderRadius: BorderRadius.circular(HzSoft.control),
           border: on
               ? Border.all(color: color, width: HzLine.selection)
               : Border.all(color: GameColors.lineStrong),
@@ -315,7 +315,7 @@ class _AssistToggleState extends State<_AssistToggle> {
                   on
                       ? tr('ZIELHILFE AN', 'AIM ASSIST ON')
                       : tr('ZIELHILFE AUS', 'AIM ASSIST OFF'),
-                  style: GameType.kennung.copyWith(color: color),
+                  style: GameType.hudMark.copyWith(color: color),
                 ),
                 // It also pulls the trigger, which spends the shells: say so.
                 Text(
@@ -388,7 +388,7 @@ class _SpecialButtonState extends State<_SpecialButton> {
   @override
   Widget build(BuildContext context) {
     final color = widget.weapon.color;
-    final mark = GameType.kennung.copyWith(
+    final mark = GameType.hudMark.copyWith(
       color: GameColors.text,
       letterSpacing: 0,
     );
@@ -403,13 +403,13 @@ class _SpecialButtonState extends State<_SpecialButton> {
         // Held, it shows the selection: the accent line on its tint. The
         // line lies over the face, so pressing never moves the label.
         decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(HzRadius.r10),
+          borderRadius: BorderRadius.circular(HzSoft.card),
           color: (_down ? GameColors.accentTint : GameColors.sunken).withValues(
             alpha: 0.85,
           ),
         ),
         foregroundDecoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(HzRadius.r10),
+          borderRadius: BorderRadius.circular(HzSoft.card),
           border: _down
               ? Border.all(
                   color: GameColors.accentText,
@@ -662,7 +662,7 @@ class _StickLabel extends StatelessWidget {
     return DecoratedBox(
       decoration: BoxDecoration(
         color: GameColors.sunken.withValues(alpha: 0.7),
-        borderRadius: BorderRadius.circular(HzRadius.r6),
+        borderRadius: BorderRadius.circular(HzSoft.control),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -673,7 +673,7 @@ class _StickLabel extends StatelessWidget {
           text,
           maxLines: 1,
           softWrap: false,
-          style: GameType.kennung.copyWith(color: GameColors.text),
+          style: GameType.hudMark.copyWith(color: GameColors.text),
         ),
       ),
     );

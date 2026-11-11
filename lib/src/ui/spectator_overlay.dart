@@ -109,7 +109,7 @@ class SpectatorOverlay extends StatelessWidget {
           color: GameColors.textMuted,
         ),
         const SizedBox(width: HzSpace.s8),
-        Text(tr('WIEDERHOLUNG', 'REPLAY'), style: GameType.kennung),
+        Text(tr('WIEDERHOLUNG', 'REPLAY'), style: GameType.hudMark),
         const SizedBox(width: HzSpace.s12),
       ] else ...[
         Icon(

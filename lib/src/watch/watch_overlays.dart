@@ -119,7 +119,7 @@ class _WatchHudState extends State<WatchHud> {
   static Widget _onPlate(Widget child) => DecoratedBox(
     decoration: BoxDecoration(
       color: GameColors.sunken.withValues(alpha: 0.7),
-      borderRadius: BorderRadius.circular(HzRadius.r6),
+      borderRadius: BorderRadius.circular(HzSoft.control),
     ),
     child: Padding(
       padding: const EdgeInsets.symmetric(
@@ -141,7 +141,7 @@ class _WatchHudState extends State<WatchHud> {
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: GameColors.panel,
-        borderRadius: BorderRadius.circular(HzRadius.r6),
+        borderRadius: BorderRadius.circular(HzSoft.control),
         border: Border.all(color: slot.type.color, width: HzLine.selection),
       ),
       child: Text(

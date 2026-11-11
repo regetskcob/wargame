@@ -14,6 +14,12 @@ step, point for point.
   exclusive paints, a mark on the tank, a mark in the room list. Commander
   (7.99 €): the host sets the opening weather and time of day for the whole
   room, a battle archive of the last ten rounds and the score per vehicle
+- Menus in Horizont's soft style (Horizont 0.13.0): rounder corners, quieter
+  outlines, section labels in Mona Sans instead of mono. The chosen option of
+  a choice row and the open tab of the defense shop are a tint with a check
+  and a semibold label, without the line along the foot, so they stay
+  clear next to the focus on the television. The HUD of a running round
+  keeps its strong outlines and mono values
 
 ## 1.8.2 (19, Google Play 20) – 2026-10-29
 

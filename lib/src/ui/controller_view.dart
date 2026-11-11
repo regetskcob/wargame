@@ -408,7 +408,7 @@ class _ControllerViewState extends State<ControllerView> {
               textAlign: TextAlign.right,
               maxLines: 1,
               softWrap: false,
-              style: GameType.kennung.copyWith(color: color, letterSpacing: 0),
+              style: GameType.hudMark.copyWith(color: color, letterSpacing: 0),
             ),
           ),
         ],

@@ -220,7 +220,9 @@ class _PilotCardState extends State<PilotCard> {
               const SizedBox(width: HzSpace.s4),
               Text(
                 '$earned/${Achievement.all.length}',
-                style: GameType.data.copyWith(fontSize: 12),
+                // A count beside a symbol, not a measurement.
+                style: HorizontTheme.of(context).count
+                    .copyWith(fontSize: 12, color: GameColors.text),
               ),
               Icon(
                 _badgesOpen
@@ -304,7 +306,7 @@ class BadgeChip extends StatelessWidget {
           color: highlight ? GameColors.accentTint : null,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(HzRadius.r2),
-            side: BorderSide(color: earned ? GameColors.lineStrong : color),
+            side: BorderSide(color: earned ? GameColors.line : color),
           ),
         ),
         child: Row(

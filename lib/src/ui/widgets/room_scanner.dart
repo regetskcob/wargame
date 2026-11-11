@@ -115,7 +115,7 @@ class _RoomScannerState extends State<RoomScanner> {
                   color: GameColors.accentText,
                   width: HzLine.selection,
                 ),
-                borderRadius: BorderRadius.circular(HzRadius.r10),
+                borderRadius: BorderRadius.circular(HzSoft.card),
               ),
             ),
           ),

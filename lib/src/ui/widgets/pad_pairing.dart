@@ -376,7 +376,7 @@ class _PadPairingDialogState extends State<PadPairingDialog> {
                     DecoratedBox(
                       decoration: BoxDecoration(
                         color: GameColors.text,
-                        borderRadius: BorderRadius.circular(HzRadius.r6),
+                        borderRadius: BorderRadius.circular(HzSoft.control),
                       ),
                       child: Padding(
                         padding: const EdgeInsets.all(HzSpace.s12),

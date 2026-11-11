@@ -291,7 +291,7 @@ class _LeaderboardState extends State<Leaderboard> {
   TableRow _headerOf(List<String> labels) {
     return TableRow(
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: GameColors.lineStrong)),
+        border: Border(bottom: BorderSide(color: GameColors.line)),
       ),
       children: [
         for (var i = 0; i < labels.length; i++)

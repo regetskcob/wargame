@@ -120,9 +120,9 @@ class _TvFocusFrameState extends State<TvFocusFrame>
                     color: GameColors.accentText,
                     width: _ring,
                   ),
-                  // Follows the radius 6 of buttons and fields at the gap's
-                  // distance.
-                  borderRadius: BorderRadius.circular(HzRadius.r10),
+                  // Follows the soft radius of buttons and fields
+                  // (`HzSoft.control`) at the gap's distance.
+                  borderRadius: BorderRadius.circular(HzSoft.control + _gap),
                 ),
               ),
             ),

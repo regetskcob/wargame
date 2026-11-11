@@ -95,7 +95,7 @@ class _Chip extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: GameColors.panel,
-        shape: GameShapes.chip(edge: GameColors.lineStrong),
+        shape: GameShapes.chip(),
       ),
       child: Padding(
         padding: const EdgeInsets.symmetric(

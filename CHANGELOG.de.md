@@ -16,6 +16,12 @@ gepflegt.
   Raumliste. Kommandeur (7,99 €): Der Gastgeber bestimmt Startwetter und
   Tageszeit für den ganzen Raum, dazu ein Einsatzarchiv der letzten zehn Runden
   und die Bilanz je Fahrzeug
+- Menüs in der weichen Stufe von Horizont (Horizont 0.13.0): rundere Ecken,
+  ruhigere Umrisse, Abschnittskennungen in Mona Sans statt Mono. Die gewählte
+  Option einer Auswahlzeile und der offene Reiter im Laden der Verteidigung
+  sind eine Tönung mit Häkchen und halbfettem Wort, ohne Linie am Fuß, damit
+  sie neben dem Fokus auf dem Fernseher erkennbar bleiben. Das HUD einer
+  laufenden Runde behält seine kräftigen Umrisse und Mono-Werte
 
 ## 1.8.2 (19, Google Play 20) – 2026-10-29
 

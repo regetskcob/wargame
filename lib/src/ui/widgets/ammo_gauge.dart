@@ -178,7 +178,7 @@ class SpecialPlate extends StatelessWidget {
                   horizontal: HzSpace.s4,
                   vertical: HzSpace.s2,
                 ),
-                child: Text(keyHint!, style: GameType.kennung),
+                child: Text(keyHint!, style: GameType.hudMark),
               ),
             ),
           ],

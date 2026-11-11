@@ -89,10 +89,8 @@ class PlayerList extends StatelessWidget {
                   member.inMatch
                       ? tr('im Einsatz', 'in battle')
                       : tr('wartet', 'waiting'),
-                  style: GameType.data.copyWith(
-                    color: GameColors.textMuted,
-                    fontSize: 12,
-                  ),
+                  // A word, not a measurement: Mona Sans.
+                  style: GameType.caption,
                 ),
               ],
             ),

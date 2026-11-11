@@ -258,7 +258,7 @@ class _Items extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (pad && i < tvDuelSlotLabels.length)
-                  Text('${tvDuelSlotLabels[i]} ', style: GameType.kennung),
+                  Text('${tvDuelSlotLabels[i]} ', style: GameType.hudMark),
                 // The icon keeps the colour of the item's crate in the field.
                 Icon(
                   slot.type.icon,
@@ -268,7 +268,7 @@ class _Items extends StatelessWidget {
                 if (slot.count > 1)
                   Text(
                     ' ×${slot.count}',
-                    style: GameType.kennung.copyWith(color: GameColors.text),
+                    style: GameType.hudMark.copyWith(color: GameColors.text),
                   ),
               ],
             ),

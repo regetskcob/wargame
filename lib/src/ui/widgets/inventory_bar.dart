@@ -103,7 +103,7 @@ class _Slot extends StatelessWidget {
   Widget build(BuildContext context) {
     final type = slot.type;
     final size = compact ? HzSize.touch : 56.0;
-    final mark = GameType.kennung.copyWith(letterSpacing: 0);
+    final mark = GameType.hudMark.copyWith(letterSpacing: 0);
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
