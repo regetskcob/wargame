@@ -109,7 +109,7 @@ class VitalsPlate extends StatelessWidget {
               textAlign: TextAlign.end,
               maxLines: 1,
               softWrap: false,
-              style: GameType.kennung.copyWith(color: color, letterSpacing: 0),
+              style: GameType.hudMark.copyWith(color: color, letterSpacing: 0),
             ),
           ),
         ],

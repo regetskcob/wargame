@@ -78,7 +78,7 @@ class _RoomInviteState extends State<RoomInvite> {
         Container(
           decoration: BoxDecoration(
             color: GameColors.text,
-            borderRadius: BorderRadius.circular(HzRadius.r6),
+            borderRadius: BorderRadius.circular(HzSoft.control),
           ),
           padding: const EdgeInsets.all(HzSpace.s8),
           child: QrImageView(

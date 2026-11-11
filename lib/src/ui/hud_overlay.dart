@@ -24,6 +24,7 @@ import 'widgets/leave_round.dart';
 import 'widgets/mini_map.dart';
 import 'widgets/mute_button.dart';
 import 'widgets/panel.dart';
+import 'widgets/shop_tab.dart';
 import 'widgets/touch_controls.dart';
 import 'widgets/vitals_plate.dart';
 import '../l10n/l10n.dart';
@@ -496,7 +497,7 @@ class _HudOverlayState extends State<HudOverlay> {
                             children: [
                               _alive(
                                 game,
-                                GameType.kennung.copyWith(
+                                GameType.hudMark.copyWith(
                                   color: GameColors.text,
                                 ),
                               ),
@@ -949,30 +950,6 @@ class _DefensePanelState extends State<_DefensePanel> {
     ),
   );
 
-  /// An open list is the selection: its tint and the 2 px accent line along
-  /// the foot, never the fill of the primary action. Not a frame in the
-  /// accent either: on the television that read as the focus ring, which
-  /// sits around the button in focus in the same colour.
-  ButtonStyle _tabStyle(ButtonStyle base, {required bool open}) => open
-      ? base.copyWith(
-          backgroundColor: WidgetStatePropertyAll(GameColors.accentTint),
-          foregroundColor: WidgetStatePropertyAll(GameColors.text),
-          backgroundBuilder: (context, states, child) => Stack(
-            alignment: Alignment.center,
-            children: [
-              ?child,
-              Positioned(
-                left: HzRadius.r6,
-                right: HzRadius.r6,
-                bottom: 0,
-                height: HzLine.selection,
-                child: ColoredBox(color: GameColors.accentText),
-              ),
-            ],
-          ),
-        )
-      : base;
-
   Widget _nearTower(Tower near, int credits) {
     return FilledButton.icon(
       style: _buttonStyle,
@@ -1105,10 +1082,12 @@ class _DefensePanelState extends State<_DefensePanel> {
     final open = _desk == shop;
     return _ready(
       shop,
-      OutlinedButton(
-        style: _tabStyle(_buttonStyle, open: open),
+      ShopTab.label(
+        label: label,
+        open: open,
+        style: _buttonStyle,
+        labelStyle: _small,
         onPressed: () => setState(() => _desk = shop),
-        child: Text(label, style: _small),
       ),
     );
   }
@@ -1162,11 +1141,12 @@ class _DefensePanelState extends State<_DefensePanel> {
         child: ExcludeSemantics(
           child: _ready(
             shop,
-            OutlinedButton(
-              style: _tabStyle(_iconStyle, open: open),
+            ShopTab.icon(
+              icon: icon,
+              open: open,
+              style: _iconStyle,
               onPressed: () =>
                   setState(() => _shop = open ? _Shop.closed : shop),
-              child: Icon(icon, size: HzIconSize.row),
             ),
           ),
         ),
@@ -1416,7 +1396,7 @@ class _DefensePanelState extends State<_DefensePanel> {
         Text(
           '${tr('GEGNER', 'RIVAL')} · ${GameConfig.hqName(state.hqOf(lane))}'
           '  ${hp.ceil()}',
-          style: GameType.kennung.copyWith(
+          style: GameType.hudMark.copyWith(
             color: GameConfig.teamColors[lane + 1],
           ),
         ),
@@ -1459,7 +1439,7 @@ class _DefensePanelState extends State<_DefensePanel> {
                 touch
                     ? '${hp.ceil()}'
                     : '${tr('STÜTZPUNKT', 'BASE')} · ${GameConfig.hqName(hq)}  ${hp.ceil()}',
-                style: GameType.kennung.copyWith(color: stockColor(status)),
+                style: GameType.hudMark.copyWith(color: stockColor(status)),
               ),
             ),
             StockSign(status, size: HzIconSize.badge),
@@ -1530,7 +1510,7 @@ class _DefensePanelState extends State<_DefensePanel> {
             Text(
               widget.counts,
               textAlign: TextAlign.end,
-              style: GameType.kennung.copyWith(color: GameColors.text),
+              style: GameType.hudMark.copyWith(color: GameColors.text),
             ),
             const SizedBox(height: HzSpace.s4),
           ],

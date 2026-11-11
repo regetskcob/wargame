@@ -100,7 +100,7 @@ class _KillFeedViewState extends State<KillFeedView> {
         decoration: ShapeDecoration(
           color: GameColors.sunken.withValues(alpha: 0.7),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(HzRadius.r6),
+            borderRadius: BorderRadius.circular(HzSoft.control),
             side: edge == null
                 ? BorderSide.none
                 : BorderSide(color: edge, width: HzLine.hairline),

@@ -3,25 +3,26 @@ import 'package:horizont/horizont.dart';
 
 import '../theme.dart';
 
-/// The shapes of every box in the game, Horizont's: no bevels, no shadows,
-/// one hairline in the outline colour. A free-standing card or plate takes
-/// radius 10, whatever stands in a row with buttons and fields (a slot, a
-/// chip, a plate inside a panel) takes their radius 6.
+/// The shapes of every box in the game, Horizont's soft style: no bevels, no
+/// shadows, one quiet hairline in `line`. A free-standing card or plate takes
+/// the card radius (`HzSoft.card`, 14), whatever stands in a row with buttons
+/// and fields (a slot, a chip, a plate inside a panel) takes their radius
+/// (`HzSoft.control`, 12).
 class GameShapes {
   static RoundedRectangleBorder card({
     Color? edge,
     double width = HzLine.hairline,
   }) => RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(HzRadius.r10),
-    side: BorderSide(color: edge ?? GameColors.lineStrong, width: width),
+    borderRadius: BorderRadius.circular(HzSoft.card),
+    side: BorderSide(color: edge ?? GameColors.line, width: width),
   );
 
   static RoundedRectangleBorder chip({
     Color? edge,
     double width = HzLine.hairline,
   }) => RoundedRectangleBorder(
-    borderRadius: BorderRadius.circular(HzRadius.r6),
-    side: BorderSide(color: edge ?? GameColors.lineStrong, width: width),
+    borderRadius: BorderRadius.circular(HzSoft.control),
+    side: BorderSide(color: edge ?? GameColors.line, width: width),
   );
 }
 
@@ -42,7 +43,7 @@ class Plate extends StatelessWidget {
   /// The ground; [GameColors.sunken] by default.
   final Color? color;
 
-  /// The outline; [GameColors.lineStrong] by default.
+  /// The outline; [GameColors.line] by default.
   final Color? edge;
 
   @override
@@ -50,7 +51,7 @@ class Plate extends StatelessWidget {
     return DecoratedBox(
       decoration: ShapeDecoration(
         color: color ?? GameColors.sunken,
-        shape: GameShapes.chip(edge: edge ?? GameColors.lineStrong),
+        shape: GameShapes.chip(edge: edge),
       ),
       child: Padding(padding: padding, child: child),
     );

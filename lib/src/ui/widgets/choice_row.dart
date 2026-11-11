@@ -124,7 +124,9 @@ class ChoiceRow<T> extends StatelessWidget {
           painter
             ..text = TextSpan(text: label, style: _style(null, false))
             ..layout();
-          return painter.width + 2 * (_padding + HzLine.hairline);
+          // Every option is measured with the check of the chosen one, so
+          // the rows do not change when the choice does.
+          return painter.width + _check + 2 * (_padding + HzLine.hairline);
         }(),
     ];
     painter.dispose();
@@ -153,6 +155,9 @@ class ChoiceRow<T> extends StatelessWidget {
 
   static const _padding = HzSpace.s12;
 
+  /// The width the check of the chosen option takes before its label.
+  static const _check = HzIconSize.inline + HzSpace.s4;
+
   TextStyle _style(Color? color, bool on) => GameType.label.copyWith(
     fontWeight: on ? FontWeight.w600 : FontWeight.w500,
     color: color ?? GameColors.text,
@@ -166,20 +171,28 @@ class ChoiceRow<T> extends StatelessWidget {
     bool fill = false,
   }) {
     final centred = expand || fill;
-    // Horizont's segment: every option in the outline, the chosen one as
-    // Horizont's selection (tint and the 2 px line along its foot) inside
-    // it, so the outline stays visible around the tint.
+    final text = Text(
+      label,
+      textAlign: centred ? TextAlign.center : null,
+      style: _style(color, on),
+    );
+    // Horizont's segment in the soft style: every option in the quiet
+    // outline, the chosen one as Horizont's selection inside it, which is
+    // now the tint alone. A control in focus takes the same tint (the
+    // theme's focusColor, for the television), so the chosen option also
+    // carries a check and a semibold label: with the remote on another
+    // option, the tint alone did not say which of the two is chosen.
     return DecoratedBox(
       decoration: ShapeDecoration(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(HzRadius.r6),
+          borderRadius: BorderRadius.circular(HzSoft.control),
           side: hairline,
         ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(HzLine.hairline),
         child: ClipRRect(
-          borderRadius: BorderRadius.circular(HzRadius.r6 - HzLine.hairline),
+          borderRadius: BorderRadius.circular(HzSoft.control - HzLine.hairline),
           child: HorizontSelectable(
             selected: on,
             edge: HorizontSelectionEdge.bottom,
@@ -196,11 +209,22 @@ class ChoiceRow<T> extends StatelessWidget {
             // text.
             child: Align(
               widthFactor: centred ? null : 1,
-              child: Text(
-                label,
-                textAlign: centred ? TextAlign.center : null,
-                style: _style(color, on),
-              ),
+              child: on
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ExcludeSemantics(
+                          child: Icon(
+                            HorizontSymbols.check,
+                            size: HzIconSize.inline,
+                            color: GameColors.accentText,
+                          ),
+                        ),
+                        const SizedBox(width: HzSpace.s4),
+                        Flexible(child: text),
+                      ],
+                    )
+                  : text,
             ),
           ),
         ),

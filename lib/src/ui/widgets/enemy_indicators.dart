@@ -369,7 +369,7 @@ class _IndicatorPainter extends CustomPainter {
     final label = TextPainter(
       text: TextSpan(
         text: '${marker.metres} m',
-        style: GameType.kennung.copyWith(
+        style: GameType.hudMark.copyWith(
           color: marker.color.withValues(alpha: alpha),
           letterSpacing: 0,
         ),
