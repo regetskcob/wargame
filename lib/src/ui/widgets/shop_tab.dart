@@ -10,9 +10,9 @@ import '../theme.dart';
 /// without a line along the foot. On the television a control in focus
 /// carries a ring in the accent, so the open tab also takes a check in
 /// `accent-text` before its content and a semibold label: tint, check and
-/// weight say "open", the ring says "here". The check's place and the
-/// semibold width are kept on every tab, so nothing moves when the choice
-/// changes.
+/// weight say "open", the ring says "here". Every tab is as wide as its open
+/// form, so nothing moves when the choice changes; a closed tab centres its
+/// content in that width.
 class ShopTab extends StatelessWidget {
   /// A tab with a spelled-out [label].
   const ShopTab.label({
@@ -54,58 +54,64 @@ class ShopTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // An icon tab carries the check of the open one too: a little room on
+    // both sides, so it does not touch the edge.
+    final base = icon == null
+        ? style
+        : style.copyWith(
+            padding: const WidgetStatePropertyAll(
+              EdgeInsets.symmetric(horizontal: HzSpace.s4),
+            ),
+          );
     return OutlinedButton(
       style: open
-          ? style.copyWith(
+          ? base.copyWith(
               backgroundColor: WidgetStatePropertyAll(GameColors.accentTint),
               foregroundColor: WidgetStatePropertyAll(GameColors.text),
             )
-          : style,
+          : base,
       onPressed: onPressed,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
+      // The open form (check and semibold content) sets the width on every
+      // tab, so nothing moves when the choice changes; a closed tab centres
+      // its content in that width instead of leaving the check's place as a
+      // gap at the start.
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: HzIconSize.inline,
-            child: open
-                ? ExcludeSemantics(
-                    child: Icon(
-                      HorizontSymbols.check,
-                      size: HzIconSize.inline,
-                      color: GameColors.accentText,
-                    ),
-                  )
-                : null,
+          ExcludeSemantics(
+            child: Visibility.maintain(visible: false, child: _openRow()),
           ),
-          const SizedBox(width: HzSpace.s4),
-          if (icon case final icon?)
-            Icon(icon, size: HzIconSize.row)
-          else
-            _label(),
+          if (open) _openRow() else _content(bold: false),
         ],
       ),
     );
   }
 
-  /// The label at its weight, over an invisible semibold copy that keeps
-  /// the width the same open or closed.
-  Widget _label() {
+  /// The check, a small gap and the content in its open weight.
+  Widget _openRow() => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      ExcludeSemantics(
+        child: Icon(
+          HorizontSymbols.check,
+          size: HzIconSize.inline,
+          color: GameColors.accentText,
+        ),
+      ),
+      const SizedBox(width: HzSpace.s4),
+      _content(bold: true),
+    ],
+  );
+
+  /// The icon, or the label semibold when open and at 500 when closed.
+  Widget _content({required bool bold}) {
+    if (icon case final icon?) return Icon(icon, size: HzIconSize.row);
     final base = labelStyle ?? const TextStyle();
-    final bold = base.copyWith(fontWeight: FontWeight.w600);
-    return Stack(
-      alignment: AlignmentDirectional.centerStart,
-      children: [
-        ExcludeSemantics(
-          child: Visibility.maintain(
-            visible: false,
-            child: Text(label!, style: bold),
-          ),
-        ),
-        Text(
-          label!,
-          style: open ? bold : base.copyWith(fontWeight: FontWeight.w500),
-        ),
-      ],
+    return Text(
+      label!,
+      style: base.copyWith(
+        fontWeight: bold ? FontWeight.w600 : FontWeight.w500,
+      ),
     );
   }
 }
