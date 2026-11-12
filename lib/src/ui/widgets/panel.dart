@@ -7,7 +7,7 @@ import '../theme.dart';
 /// shadows, one quiet hairline in `line`. A free-standing card or plate takes
 /// the card radius (`HzSoft.card`, 14), whatever stands in a row with buttons
 /// and fields (a slot, a chip, a plate inside a panel) takes their radius
-/// (`HzSoft.control`, 12).
+/// (`HzSoft.control`, 8).
 class GameShapes {
   static RoundedRectangleBorder card({
     Color? edge,

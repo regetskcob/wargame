@@ -30,7 +30,7 @@ dependencies:
     git:
       url: https://github.com/regetskcob/horizont.git
       path: flutter
-      ref: v0.13.0
+      ref: v0.13.2
   http: ^1.6.0
   in_app_purchase: ^3.3.1
   path_provider: ^2.1.5

@@ -16,7 +16,7 @@ gepflegt.
   Raumliste. Kommandeur (7,99 €): Der Gastgeber bestimmt Startwetter und
   Tageszeit für den ganzen Raum, dazu ein Einsatzarchiv der letzten zehn Runden
   und die Bilanz je Fahrzeug
-- Menüs in der weichen Stufe von Horizont (Horizont 0.13.0): rundere Ecken,
+- Menüs in der weichen Stufe von Horizont (Horizont 0.13.2): rundere Ecken,
   ruhigere Umrisse, Abschnittskennungen in Mona Sans statt Mono. Die gewählte
   Option einer Auswahlzeile und der offene Reiter im Laden der Verteidigung
   sind eine Tönung mit Häkchen und halbfettem Wort, ohne Linie am Fuß, damit
