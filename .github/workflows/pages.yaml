@@ -30,18 +30,18 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       # The base path and address of the site (empty, served at the custom
       # domain panzergefecht.de set in the repository's Pages settings). The
       # landing page sits at its root, the game below it in play/.
       - id: pages
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
       # The cache keeps the SDK and the pub packages between runs, which
       # saves about a minute per push.
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.47.0
+          flutter-version: 3.47.9
           cache: true
       # Hugo straight from its releases: the repository only allows GitHub's
       # own actions and the Flutter one. The landing page imports Horizont,
@@ -55,7 +55,7 @@ jobs:
           hugo version
           go version
         env:
-          HUGO_VERSION: 0.154.5
+          HUGO_VERSION: 0.169.0
       - run: dart pub get
       # The same checks as tool/release.sh verify --quick. Anything red stops the
       # deploy.
@@ -99,9 +99,12 @@ jobs:
       - name: Write the Impressum and privacy pages
         run: dart run tool/legal_pages.dart build/site
       # Kept one day only: artifact storage beyond the plan's 1 GB is billed.
-      - uses: actions/upload-pages-artifact@v3
+      # Hidden files stay in: .well-known/ carries the app links of iOS and
+      # Android, and the action leaves dot files out unless asked.
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: build/site
           retention-days: 1
+          include-hidden-files: true
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

@@ -1,0 +1,3 @@
+Please look at the softer menus (start page, room list, settings, defense shop) on phone, iPad, Mac and television. The chosen option is now a tinted surface with a check.
+
+Please play once: a multiplayer room, sign-in and the leaderboard. The Supabase client and several plugins (QR scanner, purchases) are new.

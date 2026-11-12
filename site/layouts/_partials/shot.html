@@ -16,7 +16,7 @@
 {{- if in (slice "iphone" "ipad") .kind }}{{ $path = printf "store/screenshots/%s/%s.png" $store .file }}{{ end -}}
 {{- $img := resources.Get $path -}}
 {{- if not $img }}{{ errorf "shot.html: %s is missing" $path }}{{ end -}}
-{{- with index site.Data.screens.crops .kind }}
+{{- with index hugo.Data.screens.crops .kind }}
   {{- $x := index . 0 }}{{ $y := index . 1 }}{{ $w := index . 2 }}{{ $h := index . 3 }}
   {{- $img = $img.Crop (printf "%dx%d TopLeft" (add $x $w) (add $y $h)) }}
   {{- $img = $img.Crop (printf "%dx%d BottomRight" $w $h) }}

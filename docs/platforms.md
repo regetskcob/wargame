@@ -312,7 +312,7 @@ around the game would need Flutter on visionOS first.
 
 `watchos/` is the watchOS runner of the same game, built with the
 [flutter-watchos](https://github.com/flutterwatch/flutter-watchos) toolchain
-(tag `v3.47.5-watchos.0.1.1`, Apple Silicon; release builds need
+(tag `v3.47.5-watchos.0.1.2`, Apple Silicon; release builds need
 `flutter-watchos login` once). The watch app
 (`de.regetskcob.wargame.watchkitapp`) is a companion embedded in the iOS app
 and runs the same `lib/main.dart`. It needs a Series 9 or later on watchOS

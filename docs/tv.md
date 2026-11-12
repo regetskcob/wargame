@@ -65,7 +65,7 @@ for what the Apple TV alone has, the Siri Remote and its settings.
 
 `tvos/` is the tvOS runner of the same game, built with the
 [flutter-tvos](https://github.com/fluttertv/flutter-tvos) toolchain (tag
-`v3.47.6-tvos.1.11.1`, no account needed). It runs the same `lib/main.dart`
+`v3.47.9-tvos.1.11.5`, no account needed). It runs the same `lib/main.dart`
 as every other platform and shares the bundle id `de.regetskcob.wargame`
 with the iOS app, so both can be one universal purchase.
 

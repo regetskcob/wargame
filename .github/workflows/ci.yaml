@@ -28,17 +28,49 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# The gate reads the commit statuses of the pull request head.
+permissions:
+  contents: read
+  statuses: read
+
 jobs:
-  check:
+  # tool/release.sh push marks a commit that tool/release.sh verify checked
+  # on this Mac with the status werkbank/verify (tool/werkbank/STANDARD.md,
+  # "Stempel statt doppelter Prüfung"). With it the check below is skipped;
+  # without it, or when GitHub cannot be asked, the check runs.
+  gate:
     if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    outputs:
+      verified: ${{ steps.stamp.outputs.verified }}
+    steps:
+      - id: stamp
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          verified=false
+          for _ in 1 2 3; do
+            state=$(gh api "repos/$GITHUB_REPOSITORY/commits/$SHA/statuses" \
+              --jq '[.[] | select(.context == "werkbank/verify" and .creator.login == "'"$GITHUB_REPOSITORY_OWNER"'")][0].state // ""' \
+              2>/dev/null || true)
+            if [ "$state" = success ]; then verified=true; break; fi
+            sleep 10
+          done
+          echo "verified=$verified" >> "$GITHUB_OUTPUT"
+
+  check:
+    needs: gate
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.gate.outputs.verified != 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.47.0
+          flutter-version: 3.47.9
           cache: true
       - run: dart pub get
       # Folder structure as in tool/werkbank/STANDARD.md.
@@ -53,11 +85,11 @@ jobs:
     runs-on: macos-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.47.0
+          flutter-version: 3.47.9
           cache: true
       - run: dart pub get
       - run: flutter build ios --release --no-codesign
@@ -73,15 +105,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: 17
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
-          flutter-version: 3.47.0
+          flutter-version: 3.47.9
           cache: true
       - run: dart pub get
       - run: flutter build appbundle --release
@@ -98,13 +130,13 @@ jobs:
     env:
       FLUTTER_WATCHOS_VERSION: v3.47.5-watchos.0.1.1
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Install flutter-watchos
         run: |
           git clone --depth 1 --branch "$FLUTTER_WATCHOS_VERSION" \
             https://github.com/flutterwatch/flutter-watchos.git "$RUNNER_TEMP/flutter-watchos"
           echo "$RUNNER_TEMP/flutter-watchos/bin" >> "$GITHUB_PATH"
-      - uses: actions/cache@v4
+      - uses: actions/cache@v6
         with:
           path: ${{ runner.temp }}/flutter-watchos/engine_artifacts
           key: flutter-watchos-${{ env.FLUTTER_WATCHOS_VERSION }}

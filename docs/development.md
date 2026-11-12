@@ -27,11 +27,11 @@ and for running a fork under your own name [forking.md](forking.md).
 
 | Tool | Needed for |
 | --- | --- |
-| [Flutter](https://flutter.dev) 3.47 (stable, Dart 3.13) | everything; CI pins 3.47.0 |
+| [Flutter](https://flutter.dev) 3.47 (stable, Dart 3.13) | everything; CI pins 3.47.9 |
 | [Supabase CLI](https://supabase.com/docs/guides/local-development) 2.x and Docker | a local backend and the tests tagged `supabase` |
 | Xcode | iOS, macOS, Apple TV and Apple Watch builds |
 | Android SDK and Java 17 | Android and Wear OS builds |
-| [Hugo](https://gohugo.io) extended (CI uses 0.154.5) and Go | the landing page in `site/` |
+| [Hugo](https://gohugo.io) extended (CI uses 0.169.0) and Go | the landing page in `site/` |
 | Python 3 with Pillow | the store image tools in `tool/store/` |
 | [flutter-tvos](https://github.com/fluttertv/flutter-tvos), [flutter-watchos](https://github.com/flutterwatch/flutter-watchos) | only Apple TV and Apple Watch builds, see [platforms.md](platforms.md) |
 
@@ -383,6 +383,10 @@ push near ten Linux minutes:
 - One Linux job checks and deploys a push to `main`; native builds run
   only by hand.
 - A newer push cancels the run still going (`cancel-in-progress`).
+- A pull request that `tool/release.sh verify --quick` checked on the Mac
+  and `tool/release.sh push` pushed carries the status `werkbank/verify`;
+  the job `gate` in `ci.yaml` reads it and skips the check. A plain
+  `git push`, or a commit changed after the check, runs it as before.
 - The Flutter SDK and pub packages come from the Actions cache.
 - Every job has a `timeout-minutes` (the default would bill six hours of a
   hung macOS job).

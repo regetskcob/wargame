@@ -17,7 +17,7 @@
         try { localStorage.setItem(key, otherLang); } catch (e) {}
       });
     });
-    if (here !== {{ site.Sites.Default.Language.Lang }}) return;
+    if (here !== {{ hugo.Sites.Default.Language.Lang }}) return;
     var chosen = null;
     try { chosen = localStorage.getItem(key); } catch (e) {}
     var wanted = chosen || ((navigator.language || '').toLowerCase().indexOf('de') === 0 ? 'de' : 'en');

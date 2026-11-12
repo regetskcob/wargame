@@ -1,0 +1,3 @@
+Bitte ansehen: die weicher gezeichneten Menüs (Startseite, Raumliste, Einstellungen, Laden der Verteidigung) auf Handy, iPad, Mac und Fernseher. Die gewählte Option ist jetzt eine getönte Fläche mit Häkchen.
+
+Bitte einmal spielen: Mehrspieler-Raum, Anmeldung und Bestenliste. Der Supabase-Client und mehrere Plugins (QR-Scanner, Käufe) sind neu.

@@ -10,14 +10,14 @@ enableRobotsTXT = false
 
 [languages]
   [languages.de]
-    languageName = 'Deutsch'
-    languageCode = 'de'
+    label = 'Deutsch'
+    locale = 'de'
     weight = 1
     [languages.de.params]
       store = 'de-DE'
   [languages.en]
-    languageName = 'English'
-    languageCode = 'en'
+    label = 'English'
+    locale = 'en'
     weight = 2
     [languages.en.params]
       store = 'en-US'
@@ -96,7 +96,10 @@ enableRobotsTXT = false
       target = 'static/fonts'
 
 [imaging]
-  quality = 82
+  [imaging.jpeg]
+    quality = 82
+  [imaging.webp]
+    quality = 82
 
 [params]
   # Every page, the game under play/ included, shows the maintenance page

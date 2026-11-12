@@ -9,6 +9,10 @@
 #       before every push: layout, format, analyze, tests without the
 #       supabase tag, coverage floor; without --quick also the web, landing
 #       page, iOS, macOS, Android and Wear OS builds (unsigned)
+#   tool/release.sh push [args] | push-tag <tag>
+#       git push; when verify checked exactly this commit, it also sets the
+#       status werkbank/verify on GitHub, and the pull request CI skips its
+#       check
 #   tool/release.sh release [--dry-run] [--upload]
 #       the release, the same in every project: preflight (clean main,
 #       changelog, release texts, verify), every store build below, with
@@ -46,7 +50,7 @@ cd "$here/.."
 wb_enter_repo
 wb_load_conf
 
-usage() { sed -n '2,37p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
+usage() { sed -n '2,41p' "${BASH_SOURCE[0]}" | sed 's/^# \{0,1\}//'; exit 2; }
 
 cmd="${1:-}"
 [ $# -gt 0 ] && shift
@@ -57,7 +61,7 @@ case "$cmd" in
   android) exec tool/release_android.sh "$@" ;;
   ios) exec tool/archive_ios.sh "$@" ;;
   tvos | macos) exec tool/archive_apple.sh "$cmd" "$@" ;;
-  release | changelog | notes | resolved) exec "$wb" "$cmd" "$@" ;;
+  release | changelog | notes | resolved | push | push-tag) exec "$wb" "$cmd" "$@" ;;
   site) exec "$wb" site-deploy "$@" ;;
   upload) exec "$wb" upload-apple "$@" ;;
   shots) exec tool/store_shots.sh "$@" ;;
