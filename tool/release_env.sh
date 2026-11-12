@@ -15,12 +15,15 @@
 # The scripts that source this file use the variables.
 # shellcheck disable=SC2034
 
+# The loop variable has a name of its own: the scripts sourcing this file
+# keep the version in $name, and the loop once left it at PURCHASES.
 release_defines=(--dart-define=ACCOUNTS=true)
-for name in SUPABASE_URL SUPABASE_KEY WEB_URL MAX_PILOTS REALTIME_BUDGET PURCHASES; do
-  if [ -n "${!name:-}" ]; then
-    release_defines+=("--dart-define=$name=${!name}")
+for release_define in SUPABASE_URL SUPABASE_KEY WEB_URL MAX_PILOTS REALTIME_BUDGET PURCHASES; do
+  if [ -n "${!release_define:-}" ]; then
+    release_defines+=("--dart-define=$release_define=${!release_define}")
   fi
 done
+unset release_define
 
 release_supabase_url="${SUPABASE_URL:-$(sed -n "s/.*defaultSupabaseUrl = '\(.*\)';/\1/p" lib/src/app/env.dart)}"
 [ -n "$release_supabase_url" ] || {
