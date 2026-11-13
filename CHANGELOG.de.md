@@ -8,7 +8,7 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## 1.8.3 (21) – 2026-11-12
+## 1.8.3 (22) – 2026-11-13
 
 - Vorbereitet, in jedem Build noch aus: zwei Pakete statt einem, getrennt oder
   zusammen zu kaufen, beide ohne Vorteil im Gefecht. Unterstützer (2,99 €): vier
@@ -22,10 +22,13 @@ gepflegt.
   sind eine Tönung mit Häkchen und halbfettem Wort, ohne Linie am Fuß, damit
   sie neben dem Fokus auf dem Fernseher erkennbar bleiben. Das HUD einer
   laufenden Runde behält seine kräftigen Umrisse und Mono-Werte
-- Gebaut mit aktuellen Werkzeugen: Flutter 3.47.9 auf allen Plattformen, der
-  neueste Supabase-Client für Räume, Konten und Wertung, neuere Plugins für
-  QR-Scanner und Käufe. Auch die Landingpage nimmt Rahmen und Schriften aus
-  Horizont 0.13.0
+- Gebaut mit aktuellen Werkzeugen: Flutter 3.47.9 auf allen Plattformen,
+  neuere Plugins für QR-Scanner und Käufe. Auch die Landingpage nimmt Rahmen
+  und Schriften aus Horizont 0.13.0
+- Build 21 und die Web-Version vom 12. November hatten einen neueren
+  Supabase-Client, der Spielnachrichten in anderer Form übergibt: Spieler in
+  einem Raum sahen einander nicht mehr. Build 22 nimmt wieder den Client von
+  1.8.2, und ein Test hält die Form fest
 
 ## 1.8.2 (19, Google Play 20) – 2026-10-29
 

@@ -81,7 +81,7 @@ All **blocker** unless marked. Runs on the release commit.
 | --- | --- | --- |
 | A1 | Format, analyze, all tests without the `supabase` tag, coverage ≥ 75 %, builds for web, landing page, iOS, macOS, Android, Wear OS | `tool/release.sh verify` |
 | A2 | Every mode on every bot level plays through without a throw; two real games in one room over `LoopbackNet`; every overlay on desktop and phone, DE and EN, without overflow | part of A1: `smoke_test`, `two_player_smoke_test`, `overlays_smoke_test` |
-| A3 | Wire format and RPC contract unchanged for older clients | part of A1: `wire_format_test`, `rpc_contract_test` |
+| A3 | Wire format and RPC contract unchanged for older clients; the Realtime client hands a broadcast over with its fields on top (1.8.3 build 21: a newer client wrapped every message and players in one room no longer saw each other) | part of A1: `wire_format_test`, `rpc_contract_test`, `broadcast_shape_test` |
 | A4 | Realtime budget: rooms, phones, presence bursts stay within `GameConfig.roomLoad` / `padLoad` | part of A1: `message_budget_test`, `pad_budget_test`, `presence_throttle_test`, `room_capacity_test`, `pad_screen_test`, `rooms_busy_test` |
 | A5 | Hostile peers: ~14,000 bent messages and input chaos in every mode throw nothing; forged close, round start, blasts, floods, spoofed flags are refused (#12 A1–A14) | part of A1: `hostile_fuzz_test`, `hostile_room_test`, `hostile_payload_test`, `plausibility_test` |
 | A6 | Against a local stack: Broadcast, Presence, `scores`, phone controller | `supabase start`, then `flutter test --tags supabase` (**major**; skip only if Docker is missing and say so) |
@@ -300,6 +300,7 @@ current store build on a real device and does not update it before the run
 | F13.6 | Database: the old client's `record_round`, `claim_load`, heartbeat and leaderboard calls succeed against every migration of this release (no renamed parameter, no new required one) | auto: `rpc_contract_test` (functions and parameters the client calls exist); owner: a round on the old store build signed in raises XP once | B |
 | F13.7 | Watch and iMessage: the old watch app with the new iPhone app (token handover, rounds count); an iMessage bubble sent from the old version opens the new app in the right room and mode | owner: real watch and two devices in one chat | M |
 | F13.8 | Two versions back (the store build before the last one) can still start, play solo and see the leaderboard | owner: oldest TestFlight build still installable, or sim from a worktree | m |
+| F13.9 | A raised `supabase_*` package: before the push, old ↔ new in one room (F13.1), because the fakes of the test suite never pass through the real Realtime client (release test 1.8.3, build 21) | sim: old web build against the new one, the browser console shows no `Dropped … message` | B |
 
 Where the two versions behave differently in one room (the old side drops a
 new message kind, or plays without a new feature), the release notes say so.

@@ -1,6 +1,0 @@
-<de-DE>
-Die Menüs sind weicher gezeichnet: rundere Ecken, ruhigere Umrisse, und die gewählte Option ist eine getönte Fläche mit Häkchen. Das HUD der laufenden Runde bleibt kräftig. Darunter stecken aktuelle Werkzeuge und der neueste Supabase-Client für Räume, Konten und Wertung.
-</de-DE>
-<en-US>
-The menus are drawn softer: rounder corners, quieter outlines, and the chosen option is a tinted surface with a check. The HUD of a running round stays strong. Underneath sit current tools and the latest Supabase client for rooms, accounts and scores.
-</en-US>

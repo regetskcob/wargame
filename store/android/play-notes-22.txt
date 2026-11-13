@@ -1,0 +1,6 @@
+<de-DE>
+Die Menüs sind weicher gezeichnet: rundere Ecken, ruhigere Umrisse, und die gewählte Option ist eine getönte Fläche mit Häkchen. Das HUD der laufenden Runde bleibt kräftig. Gebaut mit aktuellen Werkzeugen.
+</de-DE>
+<en-US>
+The menus are drawn softer: rounder corners, quieter outlines, and the chosen option is a tinted surface with a check. The HUD of a running round stays strong. Built with current tools.
+</en-US>

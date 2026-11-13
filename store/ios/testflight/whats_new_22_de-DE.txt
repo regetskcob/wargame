@@ -1,0 +1,3 @@
+Bitte einmal spielen: einen Mehrspieler-Raum mit zwei Geräten. In Build 21 sahen sich Spieler im selben Raum nicht; Build 22 behebt das.
+
+Bitte ansehen: die weicher gezeichneten Menüs (Startseite, Raumliste, Einstellungen, Laden der Verteidigung) auf Handy, iPad, Mac und Fernseher.

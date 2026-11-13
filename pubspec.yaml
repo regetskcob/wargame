@@ -1,7 +1,7 @@
 name: wargame
 description: "Last-tank-standing multiplayer Panzergefecht built with Flame and Supabase."
 publish_to: none
-version: 1.8.3+21
+version: 1.8.3+22
 
 environment:
   sdk: ^3.13.0
@@ -42,7 +42,13 @@ dependencies:
   shared_preferences: ^2.5.5
   shared_preferences_tvos: ^0.0.2
   shared_preferences_watchos: ^0.1.1
-  supabase_flutter: ^3.0.0-dev.9
+  # Pinned: from 3.0.0-dev.10 on, onBroadcast hands out the envelope
+  # {type, event, payload: {...}} instead of the message itself, and
+  # sendBroadcastMessage nests what it sends under "payload". Every game
+  # message then arrived without its fields (1.8.3, build 21) and old and new
+  # clients stopped hearing each other. Upgrade only together with a reader
+  # for both shapes; test/net/broadcast_shape_test.dart guards it.
+  supabase_flutter: 3.0.0-dev.9
   url_launcher_tvos: ^0.0.1
   web: ^1.1.1
   x25519: ^0.1.2
@@ -57,7 +63,8 @@ dev_dependencies:
   integration_test:
     sdk: flutter
   shared_preferences_platform_interface: ^2.4.1
-  supabase: ^3.0.0-dev.9
+  # The same pin as supabase_flutter above.
+  supabase: 3.0.0-dev.9
   supabase_typegen: ^0.5.2
 
 flutter:

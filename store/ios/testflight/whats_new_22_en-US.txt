@@ -1,0 +1,3 @@
+Please play once: a multiplayer room with two devices. In build 21 players in one room did not see each other; build 22 fixes that.
+
+Please look at the softer menus (start page, room list, settings, defense shop) on phone, iPad, Mac and television.

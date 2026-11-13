@@ -7,7 +7,7 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## 1.8.3 (21) – 2026-11-12
+## 1.8.3 (22) – 2026-11-13
 
 - Prepared, still off in every build: two packs instead of one, bought apart
   or together, neither with an advantage in battle. Supporter (2.99 €): four
@@ -20,10 +20,13 @@ step, point for point.
   and a semibold label, without the line along the foot, so they stay
   clear next to the focus on the television. The HUD of a running round
   keeps its strong outlines and mono values
-- Built on the current tools: Flutter 3.47.9 on every platform, the latest
-  Supabase client for rooms, accounts and scores, newer QR scanner and
-  purchase plugins. The landing page takes its frames and fonts from
-  Horizont 0.13.0 as well
+- Built on the current tools: Flutter 3.47.9 on every platform, newer QR
+  scanner and purchase plugins. The landing page takes its frames and fonts
+  from Horizont 0.13.0 as well
+- Build 21 and the web version of 12 November took a newer Supabase client
+  that hands game messages over in another shape: players in one room no
+  longer saw each other. Build 22 goes back to the client of 1.8.2, and a
+  test keeps the shape from changing unnoticed
 
 ## 1.8.2 (19, Google Play 20) – 2026-10-29
 
