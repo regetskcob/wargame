@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:horizont/horizont.dart';
+import 'package:wargame/src/ui/product.dart';
 import 'package:wargame/src/ui/theme.dart';
 
 void main() {
@@ -10,7 +11,7 @@ void main() {
     expect(theme.colorScheme.primary, GameColors.accent);
     expect(theme.colorScheme.surface, GameColors.bg);
     final ext = theme.extension<HorizontTheme>();
-    expect(ext?.product, HorizontProduct.panzergefecht);
+    expect(ext?.product, panzergefecht);
     expect(
       theme.textTheme.headlineLarge?.fontFamily,
       'packages/horizont/${HzFont.sansExpanded}',

@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:horizont/horizont.dart';
 
+import 'product.dart';
+
 /// The colour slots of Horizont for Panzergefecht: always dark, on the
 /// game's own olive "Gelände" neutrals, with signal yellow as the one accent.
 ///
 /// Every slot is read from `HorizontColors.resolve(panzergefecht, dark)`, so
-/// the values live only in Horizont's `tokens/horizont.json`. They are
+/// the accent and the Gelände neutrals live only in `product.dart`. They are
 /// `final`, not `const`: overlays read them at build time like any theme
 /// value. The colours of the world itself (ground, teams, camouflage) belong
 /// to the game and live in `game_config.dart` and `map_theme.dart`.
 abstract final class GameColors {
-  static final _c = HorizontColors.resolve(
-    HorizontProduct.panzergefecht,
-    Brightness.dark,
-  );
+  static final _c = HorizontColors.resolve(panzergefecht, Brightness.dark);
 
   /// Page background: the ground behind every menu.
   static final bg = _c.bg;
@@ -188,7 +187,7 @@ final hairline = BorderSide(color: GameColors.line);
 /// thumb as often as with a mouse, and 28 pt controls looked lost on them.
 ThemeData buildGameTheme() {
   final base = buildHorizontTheme(
-    HorizontProduct.panzergefecht,
+    panzergefecht,
     Brightness.dark,
     density: HorizontDensity.touch,
   );
