@@ -1,0 +1,49 @@
+{
+  "id": "panzergefecht",
+  "horizont": "0.16.0",
+  "name": "Panzergefecht",
+  "role": "Spiel, Web, Apple-Geräte und Android",
+  "accentName": "Signalgelb",
+  "light": {
+    "accent": "#8F6400",
+    "on-accent": "#FFFFFF",
+    "accent-tint": "#F5ECD6",
+    "accent-text": "#7F5900"
+  },
+  "dark": {
+    "accent": "#FFB300",
+    "on-accent": "#1A1405",
+    "accent-tint": "#2E2810",
+    "accent-text": "#FFC233"
+  },
+  "_neutralDark": "Die eine Ausnahme: ein Spiel darf eine eigene, getoente Flaeche haben (Gelaende). Nur dunkel, nur die Neutralen, Linien und Typografie bleiben.",
+  "neutralDark": {
+    "bg": "#141A0E",
+    "surface": "#1E2616",
+    "sunken": "#0E120A",
+    "line": "#2F3A24",
+    "line-strong": "#667154",
+    "text": "#E6E2D3",
+    "text-muted": "#B4BA9E",
+    "text-faint": "#7D8466"
+  },
+  "icon": {
+    "field": "#1E2616",
+    "glyph": "#FFB300",
+    "sky": "#A3A877",
+    "sky2": "#7B8A4C",
+    "ground": "#55603A",
+    "ground2": "#3A4426",
+    "horizon": "#D9C48F",
+    "outline": "#1C2416",
+    "obj": {
+      "light": "#7FA843",
+      "mid": "#6B9038",
+      "dark": "#4E6B2A",
+      "muzzle": "#3A5520",
+      "track": "#3D3D3B",
+      "tread": "#2A2A28",
+      "wheel": "#5A5B55"
+    }
+  }
+}
