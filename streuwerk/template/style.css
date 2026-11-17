@@ -2,7 +2,8 @@
    (dark: neutralDark + accent), type from Horizont. */
 @font-face { font-family: "Mona Sans"; src: url(fonts/MonaSans-Regular.woff2) format("woff2"); font-weight: 400; }
 @font-face { font-family: "Mona Sans"; src: url(fonts/MonaSans-SemiBold.woff2) format("woff2"); font-weight: 600; }
-@font-face { font-family: "Mona Display"; src: url(fonts/MonaSansDisplayExpanded-Bold.ttf) format("truetype"); font-weight: 700; }
+@font-face { font-family: "Literata"; src: url(fonts/Literata-Light.woff2) format("woff2"); font-weight: 300; }
+@font-face { font-family: "Literata"; src: url(fonts/Literata-SemiBold.woff2) format("woff2"); font-weight: 600; }
 @font-face { font-family: "Monaspace"; src: url(fonts/MonaspaceArgon-Regular.woff2) format("woff2"); font-weight: 400; }
 @font-face { font-family: "Monaspace"; src: url(fonts/MonaspaceArgon-SemiBold.woff2) format("woff2"); font-weight: 600; }
 
@@ -54,11 +55,11 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 .slide .page { padding: 88px 80px 160px; }
 
 .kicker {
-  font-family: "Monaspace", monospace; font-weight: 600; font-size: 30px;
-  letter-spacing: .08em; text-transform: uppercase; color: var(--accent);
+  font-family: "Monaspace", monospace; font-weight: 600; font-size: 28px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--muted);
 }
-.title { font-family: "Mona Display", "Mona Sans", sans-serif; font-weight: 700; font-size: 76px; line-height: 1.04; letter-spacing: -.01em; }
-.title.xl { font-size: 104px; }
+.title { font-family: "Literata", Georgia, serif; font-weight: 300; font-size: 80px; line-height: 1.08; letter-spacing: -.01em; }
+.title.xl { font-size: 108px; }
 .text { font-size: 40px; line-height: 1.32; color: var(--muted); max-width: 900px; }
 .mono { font-family: "Monaspace", monospace; color: var(--faint); font-size: 28px; }
 .count { margin-left: auto; }
@@ -74,7 +75,7 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 .cover .body { margin-top: auto; margin-bottom: 48px; }
 
 /* Point: a big number in signal yellow. */
-.point .number { font-size: 180px; line-height: 1; color: var(--accent); font-weight: 600; }
+.point .number { font-size: 180px; line-height: 1; color: var(--accent); font-weight: 400; }
 
 /* Shot: copy left, the phone right. */
 .slide .shot { flex-direction: row; align-items: center; gap: 56px; }
@@ -104,8 +105,8 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 /* End: the call to play. */
 .end .body { align-items: flex-start; }
 .cta {
-  background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 40px;
-  padding: 20px 36px; border-radius: 14px;
+  background: var(--accent); color: var(--on-accent); font-weight: 500; font-size: 38px;
+  padding: 20px 36px; border-radius: 12px;
 }
 .url { font-size: 34px; color: var(--text); }
 
@@ -120,8 +121,8 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 .scene .phone { width: 540px; }
 .note-wrap { position: absolute; left: 96px; right: 120px; bottom: 470px; display: flex; justify-content: center; }
 .note {
-  background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 38px;
-  padding: 18px 30px; border-radius: 14px; text-align: center;
+  background: var(--accent); color: var(--on-accent); font-weight: 500; font-size: 38px;
+  padding: 18px 30px; border-radius: 12px; text-align: center;
 }
 .scene .items li { font-size: 48px; }
 
