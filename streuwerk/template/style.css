@@ -1,0 +1,153 @@
+/* Panzergefecht for Streuwerk. Colours from tool/horizont/horizont.product.json
+   (dark: neutralDark + accent), type from Horizont. */
+@font-face { font-family: "Mona Sans"; src: url(fonts/MonaSans-Regular.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: "Mona Sans"; src: url(fonts/MonaSans-SemiBold.woff2) format("woff2"); font-weight: 600; }
+@font-face { font-family: "Mona Display"; src: url(fonts/MonaSansDisplayExpanded-Bold.ttf) format("truetype"); font-weight: 700; }
+@font-face { font-family: "Monaspace"; src: url(fonts/MonaspaceArgon-Regular.woff2) format("woff2"); font-weight: 400; }
+@font-face { font-family: "Monaspace"; src: url(fonts/MonaspaceArgon-SemiBold.woff2) format("woff2"); font-weight: 600; }
+
+:root {
+  --bg: #141A0E;
+  --surface: #1E2616;
+  --sunken: #0E120A;
+  --line: #2F3A24;
+  --line-strong: #667154;
+  --text: #E6E2D3;
+  --muted: #B4BA9E;
+  --faint: #7D8466;
+  --accent: #FFB300;
+  --on-accent: #1A1405;
+  --horizon: #D9C48F;
+  --ground: #3A4426;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100vw; height: 100vh; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Mona Sans", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+.frame { position: relative; width: 100%; height: 100%; }
+
+/* The tank's horizon from the app icon: a hairline over a darker ground. */
+.horizon {
+  position: absolute; left: 0; right: 0; bottom: 0; height: 9%;
+  background: linear-gradient(var(--horizon), var(--horizon)) top / 100% 2px no-repeat, var(--sunken);
+  opacity: .9;
+}
+
+[data-slide], [data-scene] { display: none; }
+body[data-type="cover"] [data-slide="cover"],
+body[data-type="point"] [data-slide="point"],
+body[data-type="shot"] [data-slide="shot"],
+body[data-type="list"] [data-slide="list"],
+body[data-type="end"] [data-slide="end"],
+body[data-type="hook"] [data-scene="hook"],
+body[data-type="shot"] [data-scene="shot"],
+body[data-type="points"] [data-scene="points"],
+body[data-type="end"] [data-scene="end"] { display: flex; }
+
+.page { position: absolute; inset: 0; flex-direction: column; padding: 96px 88px; z-index: 1; }
+.slide .page { padding: 88px 80px 160px; }
+
+.kicker {
+  font-family: "Monaspace", monospace; font-weight: 600; font-size: 30px;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent);
+}
+.title { font-family: "Mona Display", "Mona Sans", sans-serif; font-weight: 700; font-size: 76px; line-height: 1.04; letter-spacing: -.01em; }
+.title.xl { font-size: 104px; }
+.text { font-size: 40px; line-height: 1.32; color: var(--muted); max-width: 900px; }
+.mono { font-family: "Monaspace", monospace; color: var(--faint); font-size: 28px; }
+.count { margin-left: auto; }
+.glyph { width: 64px; height: 64px; }
+.glyph.big { width: 132px; height: 132px; }
+.brand { font-weight: 600; font-size: 34px; letter-spacing: .02em; }
+
+.top { display: flex; align-items: center; gap: 20px; }
+.body { display: flex; flex-direction: column; gap: 36px; margin-top: auto; margin-bottom: auto; }
+.foot { display: flex; justify-content: space-between; }
+
+/* Cover: a heavy title over the horizon. */
+.cover .body { margin-top: auto; margin-bottom: 48px; }
+
+/* Point: a big number in signal yellow. */
+.point .number { font-size: 180px; line-height: 1; color: var(--accent); font-weight: 600; }
+
+/* Shot: copy left, the phone right. */
+.slide .shot { flex-direction: row; align-items: center; gap: 56px; }
+.slide .shot .copy { flex: 1; display: flex; flex-direction: column; gap: 28px; }
+.slide .shot .title { font-size: 64px; }
+.slide .shot .text { font-size: 34px; }
+.slide .shot .count { margin-left: 0; }
+.phone {
+  flex: none; aspect-ratio: 9 / 16; border-radius: 28px; overflow: hidden;
+  background: var(--sunken); border: 2px solid var(--line);
+}
+.slide .phone { width: 560px; }
+.phone img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+/* List: hairline rows, numbers in Monaspace. */
+.items { list-style: none; counter-reset: n; display: flex; flex-direction: column; }
+.items li {
+  counter-increment: n; display: flex; gap: 28px; align-items: baseline;
+  font-size: 42px; line-height: 1.25; padding: 26px 0; border-top: 2px solid var(--line);
+}
+.items li:last-child { border-bottom: 2px solid var(--line); }
+.items li::before {
+  content: counter(n, decimal-leading-zero); font-family: "Monaspace", monospace;
+  font-size: 30px; color: var(--accent); flex: none;
+}
+
+/* End: the call to play. */
+.end .body { align-items: flex-start; }
+.cta {
+  background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 40px;
+  padding: 20px 36px; border-radius: 14px;
+}
+.url { font-size: 34px; color: var(--text); }
+
+/* ---------- Reels ---------- */
+.scene .page { padding: 300px 120px 480px 96px; }
+.scene .title { font-size: 84px; }
+.scene .title.xl { font-size: 116px; }
+.scene .hook .body { margin-top: auto; margin-bottom: 0; }
+.scene .shot { align-items: center; gap: 48px; padding-top: 260px; }
+.scene .shot .copy { align-self: stretch; }
+.scene .shot .title { font-size: 64px; }
+.scene .phone { width: 700px; }
+.note-wrap { position: absolute; left: 96px; right: 120px; bottom: 470px; display: flex; justify-content: center; }
+.note {
+  background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 38px;
+  padding: 18px 30px; border-radius: 14px; text-align: center;
+}
+.scene .items li { font-size: 48px; }
+
+.progress {
+  position: absolute; left: 96px; right: 120px; top: 230px; height: 4px; z-index: 2;
+  background: var(--line);
+}
+.progress::after {
+  content: ""; position: absolute; inset: 0; background: var(--accent); transform-origin: left;
+  animation: grow calc(var(--reel-seconds, 10) * 1s) linear both;
+  animation-delay: calc(var(--scene-start, 0) * -1s);
+}
+
+.rise { animation: rise .5s cubic-bezier(.2,.7,.2,1) both; }
+.d1 { animation-delay: .15s; }
+.d2 { animation-delay: .35s; }
+.d3 { animation-delay: .55s; }
+.zoom { animation: zoom 4s ease-out both; }
+.stagger li { animation: rise .45s cubic-bezier(.2,.7,.2,1) both; }
+.stagger li:nth-child(2) { animation-delay: .5s; }
+.stagger li:nth-child(3) { animation-delay: 1s; }
+.stagger li:nth-child(4) { animation-delay: 1.5s; }
+
+@keyframes rise { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: none; } }
+@keyframes zoom { from { transform: scale(.94); } to { transform: scale(1); } }
+@keyframes grow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+
+.sw-subtitles { font-family: "Mona Sans", sans-serif; }
+.sw-cue { background: var(--sunken); color: var(--text); border: 2px solid var(--line-strong); }

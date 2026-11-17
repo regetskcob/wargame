@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="style.css">
+</head>
+<body data-type="{{type}}" class="slide">
+<div class="frame">
+  <div class="horizon" aria-hidden="true"></div>
+
+  <section data-slide="cover" class="page cover">
+    <div class="top" data-safe>
+      <img class="glyph" src="images/glyph.svg" alt="">
+      <span class="brand">Panzergefecht</span>
+    </div>
+    <div class="body" data-safe>
+      {{#kicker}}<p class="kicker" data-field="kicker">{{kicker}}</p>{{/kicker}}
+      <h1 class="title xl" data-field="title">{{title}}</h1>
+      {{#text}}<p class="text" data-field="text">{{text}}</p>{{/text}}
+    </div>
+    <div class="foot" data-safe><span class="mono">{{index}}/{{count}}</span><span class="mono">Wischen →</span></div>
+  </section>
+
+  <section data-slide="point" class="page point">
+    <div class="top" data-safe>
+      {{#kicker}}<span class="kicker" data-field="kicker">{{kicker}}</span>{{/kicker}}
+      <span class="mono count">{{index}}/{{count}}</span>
+    </div>
+    <div class="body" data-safe>
+      {{#number}}<p class="number mono" data-field="number">{{number}}</p>{{/number}}
+      <h2 class="title" data-field="title">{{title}}</h2>
+      {{#text}}<p class="text" data-field="text">{{text}}</p>{{/text}}
+    </div>
+  </section>
+
+  <section data-slide="shot" class="page shot">
+    <div class="copy" data-safe>
+      {{#kicker}}<p class="kicker" data-field="kicker">{{kicker}}</p>{{/kicker}}
+      <h2 class="title" data-field="title">{{title}}</h2>
+      {{#text}}<p class="text" data-field="text">{{text}}</p>{{/text}}
+      <span class="mono count">{{index}}/{{count}}</span>
+    </div>
+    <div class="phone" data-safe><img data-field="shot" src="{{shot}}" alt=""></div>
+  </section>
+
+  <section data-slide="list" class="page list">
+    <div class="top" data-safe>
+      {{#kicker}}<span class="kicker" data-field="kicker">{{kicker}}</span>{{/kicker}}
+      <span class="mono count">{{index}}/{{count}}</span>
+    </div>
+    <div class="body" data-safe>
+      <h2 class="title" data-field="title">{{title}}</h2>
+      <ol class="items" data-field="items">{{#items}}<li>{{.}}</li>{{/items}}</ol>
+    </div>
+  </section>
+
+  <section data-slide="end" class="page end">
+    <div class="body" data-safe>
+      <img class="glyph big" src="images/glyph.svg" alt="">
+      <h2 class="title" data-field="title">{{title}}</h2>
+      {{#text}}<p class="text" data-field="text">{{text}}</p>{{/text}}
+      {{#cta}}<p class="cta" data-field="cta">{{cta}}</p>{{/cta}}
+      <p class="url mono">panzergefecht.de</p>
+    </div>
+  </section>
+</div>
+</body>
+</html>

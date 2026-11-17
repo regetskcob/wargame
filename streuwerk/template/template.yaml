@@ -1,0 +1,66 @@
+# Panzergefecht template package for Streuwerk (regetskcob/streuwerk,
+# docs/templates.md). Look: Horizont with Panzergefecht's own dark terrain
+# (tool/horizont/horizont.product.json): olive surfaces, hairlines, signal
+# yellow only for the one accent, Mona Sans, every number in Monaspace.
+# House rules: no prices or paid packs, never "free", no real armies or flags.
+name: panzergefecht
+version: 1.0.0
+description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 mit Screenshots aus dem Spiel.
+
+formats: [image, reel]
+
+safe_zones:
+  image: {top: 64, right: 64, bottom: 140, left: 64}
+  reel: {top: 260, right: 120, bottom: 440, left: 80}
+
+slides:
+  cover:
+    fields:
+      kicker: {type: text, max: 32}
+      title: {type: text, max: 60, required: true}
+      text: {type: text, max: 120}
+  point:
+    fields:
+      kicker: {type: text, max: 32}
+      number: {type: text, max: 2}
+      title: {type: text, max: 44, required: true}
+      text: {type: text, max: 200}
+  shot:
+    fields:
+      kicker: {type: text, max: 32}
+      title: {type: text, max: 44, required: true}
+      text: {type: text, max: 110}
+      shot: {type: image, aspect: "9:16", required: true}
+  list:
+    fields:
+      kicker: {type: text, max: 32}
+      title: {type: text, max: 50, required: true}
+      items: {type: list, max_items: 5, max: 60, required: true}
+  end:
+    fields:
+      title: {type: text, max: 50, required: true}
+      text: {type: text, max: 120}
+      cta: {type: text, max: 32}
+
+scenes:
+  hook:
+    seconds: 2.5
+    fields:
+      kicker: {type: text, max: 32}
+      heading: {type: text, max: 56, required: true}
+  shot:
+    seconds: 4
+    fields:
+      heading: {type: text, max: 44, required: true}
+      picture: {type: image, aspect: "9:16", required: true}
+      note: {type: text, max: 70}
+  points:
+    seconds: 5
+    fields:
+      heading: {type: text, max: 44, required: true}
+      points: {type: list, max_items: 4, max: 48, required: true}
+  end:
+    seconds: 3
+    fields:
+      end_title: {type: text, max: 40, required: true}
+      end_text: {type: text, max: 100}
