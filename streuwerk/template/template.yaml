@@ -4,7 +4,7 @@
 # yellow only for the one accent, Mona Sans, every number in Monaspace.
 # House rules: no prices or paid packs, never "free", no real armies or flags.
 name: panzergefecht
-version: 1.0.0
+version: 1.0.1
 description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 mit Screenshots aus dem Spiel.
 
 formats: [image, reel]

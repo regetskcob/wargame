@@ -117,7 +117,7 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 .scene .shot { align-items: center; gap: 48px; padding-top: 260px; }
 .scene .shot .copy { align-self: stretch; }
 .scene .shot .title { font-size: 64px; }
-.scene .phone { width: 700px; }
+.scene .phone { width: 540px; }
 .note-wrap { position: absolute; left: 96px; right: 120px; bottom: 470px; display: flex; justify-content: center; }
 .note {
   background: var(--accent); color: var(--on-accent); font-weight: 600; font-size: 38px;
