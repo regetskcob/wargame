@@ -1,4 +1,6 @@
+import 'package:fake_async/fake_async.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:wargame/src/db/room_slots.dart';
 import 'package:wargame/src/game/game_config.dart';
 import 'package:wargame/src/game/game_mode.dart';
 import 'package:wargame/src/game/game_phase.dart';
@@ -194,6 +196,53 @@ void main() {
         expect(net.disposes, 1);
       },
     );
+
+    test(
+      'who is turned away waits in line and comes back in on their turn',
+      () {
+        fakeAsync((async) {
+          final slots = FakeSlots(free: false);
+          final net = FakeNet(isHost: false);
+          late TankGame game;
+          loadedGame(net: net, slots: slots).then((g) => game = g);
+          async.flushMicrotasks();
+          game.chooseMode(GameMode.multi);
+          net.onRosterChanged!([
+            _pilot('host', joined: 1, owner: true),
+            _pilot('me', joined: net.joinedAt),
+          ]);
+          async.flushMicrotasks();
+          expect(game.phase.value, GamePhase.closed);
+          expect(slots.queued.single.$1, net.room);
+          expect(
+            game.queueSpot.value,
+            const QueueSpot(3, Duration(minutes: 4)),
+          );
+
+          final connects = net.connects;
+          slots.spot = null;
+          async.elapse(TankGame.queuePoll);
+          expect(game.phase.value, GamePhase.lobby);
+          expect(game.queueSpot.value, isNull);
+          expect(net.connects, connects + 1);
+        });
+      },
+    );
+
+    test('back to the start page gives up the place in line', () async {
+      final slots = FakeSlots(free: false);
+      final net = FakeNet(isHost: false);
+      final game = await loadedGame(net: net, slots: slots);
+      game.chooseMode(GameMode.multi);
+      net.onRosterChanged!([
+        _pilot('host', joined: 1, owner: true),
+        _pilot('me', joined: net.joinedAt),
+      ]);
+      await settle();
+      await game.backToStart();
+      expect(slots.left, 1);
+      expect(game.queueSpot.value, isNull);
+    });
 
     test('the owner of the room stays and waits', () async {
       final slots = FakeSlots(free: false);

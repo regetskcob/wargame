@@ -1,7 +1,5 @@
 Panzergefecht ist ein schnelles Panzerduell von oben, auf Handy, Tablet, Fernseher und Uhr. Du fährst mit dem linken Daumen, zielst mit dem rechten und feuerst, sobald du den Stick über den Ring schiebst. Der letzte Panzer im Feld gewinnt.
 
-NEU: Panzergefecht hat ein neues Gesicht mit ruhigen Olivflächen, klarer Schrift, schlanken Symbolen und einem neuen App-Icon, und eine eigene Adresse: panzergefecht.de.
-
 VIER SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer in drei Schwierigkeiten. Auf Leicht ist das Gelände flach und die Munition reicht ewig, auf Mittel und Schwer wird es hügelig, und Treibstoff und Munition holst du an Tankstellen und Munitionsdepots.
 • Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. CPU-Panzer füllen auf Wunsch auf, wer zu spät kommt, schaut zu, und Android, iPhone und Browser spielen im selben Raum.

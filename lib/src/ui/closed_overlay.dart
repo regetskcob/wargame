@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:horizont/horizont.dart';
 
+import '../db/room_slots.dart';
 import '../game/tank_game.dart';
 import 'theme.dart';
 import 'widgets/fit_or_scroll.dart';
@@ -48,6 +49,12 @@ class ClosedOverlay extends StatelessWidget {
                     reason,
                     style: GameType.body.copyWith(color: GameColors.textMuted),
                   ),
+                  ValueListenableBuilder<QueueSpot?>(
+                    valueListenable: game.queueSpot,
+                    builder: (context, spot, _) => spot == null
+                        ? const SizedBox.shrink()
+                        : _QueueLine(spot: spot),
+                  ),
                   const SizedBox(height: HzSpace.s24),
                   FilledButton.icon(
                     onPressed: game.backToStart,
@@ -59,6 +66,38 @@ class ClosedOverlay extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Where the pilot stands in line and roughly how long it takes. Keeps its
+/// height while the numbers change, so nothing below it jumps.
+class _QueueLine extends StatelessWidget {
+  const _QueueLine({required this.spot});
+
+  final QueueSpot spot;
+
+  @override
+  Widget build(BuildContext context) {
+    final minutes = (spot.wait.inSeconds / 60).ceil();
+    final text = switch (spot.place) {
+      0 => tr('Platz wird ermittelt …', 'Finding your place …'),
+      1 => tr('Du bist als Nächstes dran.', 'You are next.'),
+      final place => tr(
+        'Platz $place in der Warteschlange · etwa $minutes Min.',
+        'Place $place in the queue · about $minutes min',
+      ),
+    };
+    return Padding(
+      padding: const EdgeInsets.only(top: HzSpace.s16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(text, style: GameType.body, semanticsLabel: text),
+          const SizedBox(height: HzSpace.s8),
+          const LinearProgressIndicator(),
+        ],
       ),
     );
   }

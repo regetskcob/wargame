@@ -8,6 +8,16 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
+## Nächste Version
+
+- Andrang zum Start: Sind alle Räume des Servers belegt, wartet, wer in
+  einen Raum kommt, in einer Warteschlange statt abgewiesen zu werden, sieht
+  seinen Platz und eine ungefähre Wartezeit und kommt von selbst in den
+  Raum, sobald er dran ist
+- Store-Texte ohne den Hinweis auf das neue Design von 1.8.0, die
+  Lizenzangaben nennen die Schriften Horizont Sans, Horizont Mono und
+  Literata
+
 ## 1.8.3 (22) – 2026-11-13
 
 - Vorbereitet, in jedem Build noch aus: zwei Pakete statt einem, getrennt oder

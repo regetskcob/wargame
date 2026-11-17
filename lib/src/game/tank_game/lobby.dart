@@ -730,6 +730,7 @@ extension TankGameLobby on TankGame {
   }
 
   void _enterClosed(String? reason) {
+    leaveQueue();
     _dropSlot();
     _clearWorld();
     round = null;
@@ -753,6 +754,7 @@ extension TankGameLobby on TankGame {
       }
     }
     _noticeTimer?.cancel();
+    leaveQueue();
     _dropSlot();
     pauseEngine();
     L10n.lang.removeListener(_saveLanguage);
@@ -764,7 +766,11 @@ extension TankGameLobby on TankGame {
   /// Leaves the closed screen for the start page of a new room, hosted by
   /// this player.
   Future<void> backToStart() async {
-    if (phase.value != GamePhase.closed || openFreshRoom()) {
+    if (phase.value != GamePhase.closed) {
+      return;
+    }
+    leaveQueue();
+    if (openFreshRoom()) {
       return;
     }
     // No address bar to start over from: meet in the same room again.
@@ -916,15 +922,68 @@ extension TankGameLobby on TankGame {
     if (_slotHeld || net.isHost || phase.value == GamePhase.closed) {
       return;
     }
+    // Out of the channel while waiting: a pilot in the room costs messages
+    // even before playing. The line itself runs over the database.
     _enterClosed(
       tr(
-        'Alle Räume sind gerade belegt. Versuch es in ein paar Minuten '
-            'noch einmal, Einzelspieler geht immer.',
-        'All rooms are taken right now. Try again in a few minutes, '
-            'single player always works.',
+        'Alle Räume sind gerade belegt. Du stehst in der Warteschlange und '
+            'kommst von selbst in den Raum, sobald du dran bist.',
+        'All rooms are taken right now. You are in the queue and join the '
+            'room by yourself as soon as it is your turn.',
       ),
     );
     fireAndForget(net.dispose(), 'Leaving the room');
+    _enterQueue(load);
+  }
+
+  void _enterQueue(int load) {
+    _queueLoad = load;
+    queueSpot.value = QueueSpot.unknown;
+    _queueTimer?.cancel();
+    _queueTimer = async.Timer.periodic(
+      TankGame.queuePoll,
+      (_) => unawaited(_pollQueue()),
+    );
+    unawaited(_pollQueue());
+  }
+
+  Future<void> _pollQueue() async {
+    final load = _queueLoad;
+    if (load == null) {
+      return;
+    }
+    final spot = await slots.queue(net.room, load);
+    if (_queueLoad == null) {
+      return;
+    }
+    if (spot != null) {
+      queueSpot.value = spot;
+      return;
+    }
+    // Our turn: the slot is held for the room, back in we go.
+    _stopQueue();
+    if (phase.value != GamePhase.closed) {
+      return;
+    }
+    closedReason.value = null;
+    _setPhase(GamePhase.lobby);
+    fireAndForget(net.connect(_presencePayload()), 'Joining after the queue');
+  }
+
+  void _stopQueue() {
+    _queueTimer?.cancel();
+    _queueTimer = null;
+    _queueLoad = null;
+    queueSpot.value = null;
+  }
+
+  /// Gives up the place in line.
+  void leaveQueue() {
+    if (_queueLoad == null) {
+      return;
+    }
+    _stopQueue();
+    fireAndForget(slots.leaveQueue(), 'Leaving the queue');
   }
 
   /// Whether the host [id] that sent a close has left the room, else checks

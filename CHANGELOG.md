@@ -7,6 +7,14 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
+## Next
+
+- Launch rush: when every room of the server is taken, a pilot who comes
+  into a room waits in a queue instead of being sent away, sees their place
+  and a rough wait, and joins the room by themselves on their turn
+- Store texts without the note on the new design of 1.8.0; the licence
+  notes name the fonts Horizont Sans, Horizont Mono and Literata
+
 ## 1.8.3 (22) – 2026-11-13
 
 - Prepared, still off in every build: two packs instead of one, bought apart

@@ -1,7 +1,5 @@
 Panzergefecht is a fast top-down tank duel on phone, tablet, TV and watch. Drive with your left thumb, aim with your right and fire as soon as you push the stick past the ring. The last tank in the field wins.
 
-NEW: Panzergefecht has a new face with calm olive surfaces, clear type, slim symbols and a new app icon, and an address of its own: panzergefecht.de.
-
 FOUR WAYS TO PLAY
 • Single player: you against up to four CPU tanks on three difficulties. On easy the land is flat and the shells never run out, on normal and hard it gets hilly, and you fill up fuel and shells at fuel stations and ammo depots.
 • Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. CPU tanks fill up on request, late joiners watch, and Android, iPhone and browser play in the same room.

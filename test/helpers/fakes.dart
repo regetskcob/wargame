@@ -247,6 +247,22 @@ class FakeSlots implements RoomSlots {
     return free;
   }
 
+  /// The answer of the next queue calls: null takes the slot.
+  QueueSpot? spot = const QueueSpot(3, Duration(minutes: 4));
+
+  /// Every queue call: the key and the load.
+  final queued = <(String, int)>[];
+  var left = 0;
+
+  @override
+  Future<QueueSpot?> queue(String key, int messages) async {
+    queued.add((key, messages));
+    return spot;
+  }
+
+  @override
+  Future<void> leaveQueue() async => left++;
+
   @override
   Future<void> count() async {}
 }

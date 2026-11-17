@@ -490,6 +490,16 @@ class TankGame extends FlameGame
   late final slots = _slots ?? RoomSlots(Supabase.instance.client);
   final RoomSlots? _slots;
   async.Timer? _slotTimer;
+
+  /// The place in line while this pilot waits for a slot to come into the
+  /// room (migration 0023), null when not waiting.
+  final queueSpot = ValueNotifier<QueueSpot?>(null);
+  async.Timer? _queueTimer;
+
+  /// How often a waiting pilot asks for their place. Database calls, not
+  /// Realtime messages, so a long line costs nothing of the budget.
+  static const queuePoll = Duration(seconds: 10);
+  int? _queueLoad;
   var _slotHeld = false;
   int? _claimedLoad;
 

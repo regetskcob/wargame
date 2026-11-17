@@ -661,6 +661,16 @@ defense on one's own go on, unrecorded.
   now, the multiplayer card reads `ALLE RÄUME BELEGT`, rooms in the list
   read `BELEGT`. A slot comes free up to two and a half minutes after its
   room ended.
+- **The queue** (migration 0023): who comes into a room while every slot is
+  taken leaves the channel and waits in line on the closed screen, with the
+  place and a rough wait ("Platz 3 in der Warteschlange · etwa 4 Min.").
+  The game asks every 10 seconds through `queue_claim`, a database call
+  that costs nothing of the Realtime budget, and joins the room by itself
+  once the slot is held for it. First come, first served: `claim_load`
+  refuses new rooms to anybody while somebody who came earlier waits, older
+  builds included. A place nobody asks for in 45 seconds is dropped; back
+  to the start page leaves the line at once (`queue_leave`). The wait
+  assumes a slot frees up about every two minutes per playing room.
 - **Phones that have to wait**: the pairing says so; the phone steers once
   there is room. Controllers, keyboard and touch always work.
 - **The phone controller**: about 40 ms, at most 80 ms more delay on the

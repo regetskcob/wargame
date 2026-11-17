@@ -18,6 +18,11 @@ const _owner =
 
 const _mail = 'info@panzergefecht.de';
 
+/// VAT identification number (USt-IdNr.) for the Impressum, § 5 (1) no. 6
+/// DDG. Empty until the tax office issues it; the line only shows once it is
+/// set, so filling it in is the whole change on launch day.
+const vatId = '';
+
 /// Whether the apps sell anything (docs/purchases.md). Off until the first
 /// build with `PURCHASES=true` goes out: it adds the purchase paragraphs to
 /// the privacy notice and the licence terms and drops "non-commercial" from
@@ -33,6 +38,12 @@ const openSourced = false;
 const imprint = [
   LegalBlock('Angaben gemäß § 5 DDG', _owner),
   LegalBlock('Kontakt', 'E-Mail: $_mail'),
+  if (vatId != '')
+    LegalBlock(
+      'Umsatzsteuer-ID',
+      'Umsatzsteuer-Identifikationsnummer gemäß § 27a Umsatzsteuergesetz: '
+          '$vatId',
+    ),
   LegalBlock(
     'Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV',
     'Daniel Bocksteger, Anschrift wie oben',
@@ -222,6 +233,12 @@ const _ownerEn =
 const imprintEn = [
   LegalBlock('Information pursuant to § 5 DDG', _ownerEn),
   LegalBlock('Contact', 'E-mail: $_mail'),
+  if (vatId != '')
+    LegalBlock(
+      'VAT ID',
+      'VAT identification number pursuant to § 27a of the German VAT Act: '
+          '$vatId',
+    ),
   LegalBlock(
     'Responsible for the content pursuant to § 18 (2) MStV',
     'Daniel Bocksteger, address as above',

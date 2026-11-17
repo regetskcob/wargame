@@ -52,6 +52,37 @@ class RoomSlots {
     }
   }
 
+  /// Waits in line for a slot of [messages] a second for the room [key]
+  /// (migration 0023): null once the slot is taken, else the place in line.
+  /// Null as well when the server cannot tell (offline, a database without
+  /// the migration), as [claim] lets in then too.
+  Future<QueueSpot?> queue(String key, int messages) async {
+    try {
+      final answer = await _client.rpc<Map<String, dynamic>>(
+        'queue_claim',
+        params: {
+          'p_room': key,
+          'p_load': messages,
+          'p_budget': GameConfig.realtimeBudget,
+        },
+      );
+      return QueueSpot.fromJson(answer);
+    } on Object catch (error) {
+      debugPrint('Waiting for slot $key failed, letting it in: $error');
+      return null;
+    }
+  }
+
+  /// Leaves the line, so those behind move up at once instead of after
+  /// the 45 seconds a silent place is kept.
+  Future<void> leaveQueue() async {
+    try {
+      await _client.rpc<void>('queue_leave');
+    } on Object catch (error) {
+      debugPrint('Leaving the queue failed: $error');
+    }
+  }
+
   /// Counts the loads of all slots into [load].
   Future<void> count() async {
     try {
@@ -61,4 +92,37 @@ class RoomSlots {
       return;
     }
   }
+}
+
+/// A place in the line for the Realtime budget.
+@immutable
+class QueueSpot {
+  const QueueSpot(this.place, this.wait);
+
+  /// Null when the answer says the slot is taken.
+  static QueueSpot? fromJson(Map<String, dynamic> json) {
+    if (json['granted'] == true) {
+      return null;
+    }
+    return QueueSpot(
+      (json['place'] as num?)?.toInt() ?? 0,
+      Duration(seconds: (json['wait'] as num?)?.toInt() ?? 0),
+    );
+  }
+
+  /// Not asked yet: the place is still unknown.
+  static const unknown = QueueSpot(0, Duration.zero);
+
+  /// 1 is next; 0 while unknown.
+  final int place;
+
+  /// A rough guess, shown as whole minutes.
+  final Duration wait;
+
+  @override
+  bool operator ==(Object other) =>
+      other is QueueSpot && other.place == place && other.wait == wait;
+
+  @override
+  int get hashCode => Object.hash(place, wait);
 }
