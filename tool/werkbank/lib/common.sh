@@ -229,12 +229,48 @@ wb_push() {
   wb_mark_stamped "$(git rev-parse HEAD)"
 }
 
+# Release review: a detailed code review of everything since the last tag runs
+# once before a release instead of a paid review on every pull request
+# (STANDARD.md, "Review"). `werkbank reviewed` notes the reviewed commit
+# (stamp "review"); push-tag refuses a tag whose commit was not reviewed, unless
+# only release files changed since (version, changelogs, store texts:
+# WB_REVIEW_RELEASE_FILES, a regex on paths) or WB_NO_REVIEW=1.
+WB_REVIEW_RELEASE_FILES_DEFAULT='^(pubspec\.yaml|(.*/)?CHANGELOG[^/]*\.md|(.*/)?config\.yaml|store/.*)$'
+
+# The range a release review covers: last tag before HEAD..HEAD (all of HEAD
+# when there is no tag yet).
+wb_review_range() {
+  local last
+  if last=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null); then echo "$last..HEAD"; else echo "HEAD"; fi
+}
+
+# 0 when commit $1 was reviewed or differs from the reviewed commit only in
+# release files.
+wb_reviewed_for() {
+  local sha=$1 file reviewed other
+  file=$(wb_stamp_named_file review)
+  [ -f "$file" ] || return 1
+  reviewed=$(cat "$file")
+  [ "$reviewed" = "$sha" ] && return 0
+  git merge-base --is-ancestor "$reviewed" "$sha" 2>/dev/null || return 1
+  other=$(git diff --name-only "$reviewed" "$sha" | grep -vE "${WB_REVIEW_RELEASE_FILES:-$WB_REVIEW_RELEASE_FILES_DEFAULT}" || true)
+  [ -z "$other" ]
+}
+
+wb_review_guard() {
+  local sha=$1
+  [ "${WB_NO_REVIEW:-}" = 1 ] && { warn "WB_NO_REVIEW=1 – tagging without release review"; return 0; }
+  wb_reviewed_for "$sha" && return 0
+  die "no release review for ${sha:0:7}: review $(wb_review_range) in detail (Claude: /code-review high), fix, then: werkbank reviewed (or WB_NO_REVIEW=1 for a hotfix)"
+}
+
 # Pushes tag $1 to origin and marks the tagged commit, so the tag's CI run skips
 # what verify (and other stamps) already checked for it. The gate asks a few
 # times, so setting the status right after the push is early enough.
 wb_push_tag() {
   local tag=${1:?tag} sha
   sha=$(git rev-list -n 1 "$tag")
+  wb_review_guard "$sha"
   git push -q origin "$tag"
   wb_mark_stamped "$sha"
 }
@@ -582,7 +618,9 @@ wb_site_build() {
   out="$PWD/build/site/$dir"
   rm -rf "$out"
   mkdir -p "$out"
-  hugo --quiet --source "$dir" --minify --baseURL "$url" --destination "$out" --cleanDestinationDir "$@" >/dev/null
+  # Runs in $(…), where set -e does not apply: report hugo's failure itself.
+  hugo --quiet --source "$dir" --minify --baseURL "$url" --destination "$out" --cleanDestinationDir "$@" >/dev/null ||
+    { warn "hugo failed for $dir"; return 1; }
   echo "$out"
 }
 
@@ -626,14 +664,18 @@ wb_site_blog() {
 # prints its UDID. Named simulators keep store shots on the same device.
 wb_sim() {
   local name=${1:?name} type=${2:?device type} family=${3:-iOS} id runtime
-  id=$(xcrun simctl list devices available | grep -F "    $name (" | head -1 |
+  # No match is the normal case for a new simulator: grep exits 1, which
+  # under pipefail would end the script silently before the create branch.
+  id=$(xcrun simctl list devices available | { grep -F "    $name (" || true; } | head -1 |
     sed -E 's/.*\(([0-9A-F-]{36})\).*/\1/')
   if [ -z "$id" ]; then
-    runtime=$(xcrun simctl list runtimes available | grep "^$family " | tail -1 | awk '{print $NF}')
+    runtime=$(xcrun simctl list runtimes available | { grep "^$family " || true; } | tail -1 | awk '{print $NF}')
     [ -n "$runtime" ] || die "no $family runtime installed (Xcode → Settings → Components)"
-    id=$(xcrun simctl create "$name" "$type" "$runtime")
+    echo "Creating simulator \"$name\" ($type, $runtime)" >&2
+    id=$(xcrun simctl create "$name" "$type" "$runtime") ||
+      die "could not create simulator \"$name\" ($type, $runtime)"
   fi
-  xcrun simctl bootstatus "$id" -b >/dev/null
+  xcrun simctl bootstatus "$id" -b >/dev/null || die "could not boot simulator \"$name\" ($id)"
   echo "$id"
 }
 
@@ -827,6 +869,7 @@ wb_release() {
   [ -z "$(git status --porcelain -- . ':(exclude,glob)ios/**/Package.resolved' ':(exclude,glob)macos/**/Package.resolved')" ] || problems+=("uncommitted changes")
   git fetch -q origin main 2>/dev/null || true
   [ "$(git rev-parse HEAD)" = "$(git rev-parse origin/main 2>/dev/null)" ] || problems+=("main differs from origin/main")
+  [ "${WB_NO_REVIEW:-}" = 1 ] || wb_reviewed_for "$(git rev-parse HEAD)" || problems+=("no release review for HEAD: review $(wb_review_range) (Claude: /code-review high), then werkbank reviewed")
   for p in "${todo[@]}"; do
     v=$(wb_product_version "$p")
     if ! (wb_changelog "${v%%+*}" >/dev/null 2>&1); then
@@ -920,7 +963,7 @@ wb_site_deploy() {
       die "WB_SITES entry $entry: <name>=<folder>|<url>|<target>"
     fi
     say "Site $key ($folder → $target)"
-    out=$(wb_site_build "$folder" "$url")
+    out=$(wb_site_build "$folder" "$url") || die "site $key: build failed"
     if wb_has_hook "site_post_$key"; then "site_post_$key" "$out"; fi
     if ! $live; then
       say "Preview: $out/index.html (--live deploys to $target)"
