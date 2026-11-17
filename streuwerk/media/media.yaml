@@ -1,0 +1,62 @@
+# Product media for Streuwerk (regetskcob/streuwerk, docs/product-media.md).
+# Paths are relative to the repository root; Streuwerk approves each medium itself.
+media:
+  - id: icon
+    path: ios/Runner/Assets.xcassets/AppIcon.appiconset/AppIcon-1024.png
+    kind: logo
+    size: [1024, 1024]
+    alt: App-Icon von Panzergefecht, ein Panzer von der Seite am Horizont
+  - id: phone-gefecht
+    path: store/android/metadata/de-DE/images/phoneScreenshots/01-gefecht.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1920]
+    alt: Ein Gefecht in der Stadt auf dem Handy, links fahren, rechts zielen, die Zone zieht sich zu
+  - id: phone-verteidigung
+    path: store/android/metadata/de-DE/images/phoneScreenshots/02-verteidigung.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1920]
+    alt: Verteidigung auf dem Handy, Geschütze am Stützpunkt am Fluss
+  - id: phone-fahrzeuge
+    path: store/android/metadata/de-DE/images/phoneScreenshots/03-fahrzeuge.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1920]
+    alt: Fahrzeugwahl mit Panzerkarten und Lackierung
+  - id: phone-modi
+    path: store/android/metadata/de-DE/images/phoneScreenshots/04-modi.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1920]
+    alt: Startseite mit den vier Spielarten
+  - id: tablet-gefecht
+    path: store/android/metadata/de-DE/images/sevenInchScreenshots/01-gefecht-7inch.png
+    kind: screenshot
+    device: tablet
+    size: [1920, 1200]
+    alt: Ein Gefecht auf dem Tablet
+  - id: tablet-verteidigung
+    path: store/android/metadata/de-DE/images/sevenInchScreenshots/02-verteidigung-7inch.png
+    kind: screenshot
+    device: tablet
+    size: [1920, 1200]
+    alt: Verteidigung auf dem Tablet
+  - id: tablet-warteraum
+    path: store/android/metadata/de-DE/images/sevenInchScreenshots/03-warteraum-7inch.png
+    kind: screenshot
+    device: tablet
+    size: [1920, 1200]
+    alt: Warteraum mit großem Raumcode und den Crews
+  - id: tv-gefecht
+    path: store/android/metadata/de-DE/images/tvScreenshots/01-gefecht.png
+    kind: screenshot
+    device: desktop
+    size: [1920, 1080]
+    alt: Ein Gefecht auf dem Fernseher
+  - id: tv-verteidigung
+    path: store/android/metadata/de-DE/images/tvScreenshots/02-verteidigung.png
+    kind: screenshot
+    device: desktop
+    size: [1920, 1080]
+    alt: Verteidigung auf dem Fernseher
