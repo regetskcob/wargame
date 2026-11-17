@@ -46,6 +46,9 @@ body[data-type="point"] [data-slide="point"],
 body[data-type="shot"] [data-slide="shot"],
 body[data-type="list"] [data-slide="list"],
 body[data-type="end"] [data-slide="end"],
+body[data-type="hero_left"] [data-slide="hero_left"],
+body[data-type="hero_middle"] [data-slide="hero_middle"],
+body[data-type="hero_right"] [data-slide="hero_right"],
 body[data-type="hook"] [data-scene="hook"],
 body[data-type="shot"] [data-scene="shot"],
 body[data-type="points"] [data-scene="points"],
@@ -152,3 +155,17 @@ body[data-type="end"] [data-scene="end"] { display: flex; }
 
 .sw-subtitles { font-family: "Mona Sans", sans-serif; }
 .sw-cue { background: var(--sunken); color: var(--text); border: 2px solid var(--line-strong); }
+
+/* ---------- Hero over three grid tiles ----------
+   The device picture of panzergefecht.de (3240 wide) runs across the three
+   tiles; each tile shows its third. The horizon line stays off here. */
+body[data-type^="hero"] .horizon { display: none; }
+.hero { background: url(images/hero.jpg) no-repeat; background-size: 3240px auto; background-position-y: 40%; }
+.hero-l { background-position-x: 0; }
+.hero-m { background-position-x: -1080px; }
+.hero-r { background-position-x: -2160px; }
+.slide .hero { padding: 96px 72px 160px; }
+.hero-copy { display: flex; flex-direction: column; gap: 26px; }
+.hero-title { font-size: 104px; line-height: 1.04; }
+.hero .text { font-size: 36px; }
+.hero-cta { align-items: flex-end; margin-top: 8px; gap: 22px; }

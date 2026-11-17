@@ -4,7 +4,7 @@
 # yellow only for the one accent, Mona Sans, every number in Monaspace.
 # House rules: no prices or paid packs, never "free", no real armies or flags.
 name: panzergefecht
-version: 1.1.0
+version: 1.2.0
 description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Literata-Überschriften wie auf panzergefecht.de, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 mit Screenshots aus dem Spiel.
 
 formats: [image, reel]
@@ -36,6 +36,20 @@ slides:
       kicker: {type: text, max: 32}
       title: {type: text, max: 50, required: true}
       items: {type: list, max_items: 5, max: 60, required: true}
+  # Three tiles of one panorama for the profile grid, posted right to left so
+  # they read left to right: the device picture of panzergefecht.de runs
+  # across all three, the text sits on the left tile, the button on the right.
+  hero_left:
+    fields:
+      kicker: {type: text, max: 40}
+      title: {type: text, max: 40, required: true}
+      text: {type: text, max: 90}
+  hero_middle:
+    fields:
+      caption: {type: text, max: 40}
+  hero_right:
+    fields:
+      cta: {type: text, max: 24, required: true}
   end:
     fields:
       title: {type: text, max: 50, required: true}
