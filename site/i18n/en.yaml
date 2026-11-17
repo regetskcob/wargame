@@ -59,16 +59,16 @@ sender: a project by regetskcob
 nav-modes: Modes
 nav-devices: Devices
 nav-beta: Beta
-hero-kennung: 01 — In the browser · iPhone · iPad · Apple Watch · iMessage · Android
+hero-kennung: In the browser · iPhone · iPad · Apple Watch · iMessage · Android
 hero-title: Battle in the living room.
-modes-kennung: 02 — Modes
+modes-kennung: Modes
 modes-title: Alone, against others or as a squad.
-devices-kennung: 03 — Devices
+devices-kennung: Devices
 devices-title: On every screen, in one room.
-beta-kennung: 04 — Beta
+beta-kennung: Beta
 store-ios: Get it on the App Store
 store-android: Get it on Google Play
-fair-kennung: 05 — Fair
+fair-kennung: Fair
 fair-price: Price
 fair-price-text: Free, in the browser and in the apps.
 fair-account: Sign-up
@@ -81,7 +81,7 @@ shot-ipad: The waiting room on the iPad with room code and vehicle choice
 shot-watch: Battle on the Apple Watch
 notFoundKennung: 404 — Page not found
 supportHeadline: We are here to help.
-support-kennung: 02 — Write
+support-kennung: Write
 supportFormTitle: Your message to us
 supportSentShort: Ready
 supportMailTerm: E-mail
@@ -92,10 +92,10 @@ maintenance-title: A short ceasefire.
 maintenance-text: Panzergefecht is moving to its own address, **panzergefecht.de**. While the move is under way, the game and this page rest; it will be back shortly. The apps for iPhone, iPad and Android keep running, and your account stays as it is.
 maintenance-mail: Write to support
 changelog: Changelog
-changelog-kennung: 02 — Changelog
+changelog-kennung: Changelog
 changelogHeadline: What is new.
 changelogLead: What the latest versions of the apps brought, newest first. The game in the browser is always up to date.
-open-kennung: 06 — Open source
+open-kennung: Open source
 open-title: Built in the open, to read along.
 open-code: Code
 open-code-text: "All the source under the MIT licence: [on GitHub](https://github.com/regetskcob/wargame)."

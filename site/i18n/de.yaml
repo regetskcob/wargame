@@ -59,16 +59,16 @@ sender: ein Projekt von regetskcob
 nav-modes: Modi
 nav-devices: Geräte
 nav-beta: Beta
-hero-kennung: 01 — Im Browser · iPhone · iPad · Apple Watch · iMessage · Android
+hero-kennung: Im Browser · iPhone · iPad · Apple Watch · iMessage · Android
 hero-title: Gefecht im Wohnzimmer.
-modes-kennung: 02 — Modi
+modes-kennung: Modi
 modes-title: Allein, gegeneinander oder im Trupp.
-devices-kennung: 03 — Geräte
+devices-kennung: Geräte
 devices-title: Auf jedem Bildschirm, in einem Raum.
-beta-kennung: 04 — Beta
+beta-kennung: Beta
 store-ios: Im App Store laden
 store-android: Bei Google Play laden
-fair-kennung: 05 — Fair
+fair-kennung: Fair
 fair-price: Preis
 fair-price-text: Kostenlos, im Browser wie in den Apps.
 fair-account: Anmeldung
@@ -81,7 +81,7 @@ shot-ipad: Der Warteraum auf dem iPad mit Raumcode und Fahrzeugwahl
 shot-watch: Gefecht auf der Apple Watch
 notFoundKennung: 404 — Seite nicht gefunden
 supportHeadline: Wir helfen weiter.
-support-kennung: 02 — Schreiben
+support-kennung: Schreiben
 supportFormTitle: Deine Nachricht an uns
 supportSentShort: Bereit
 supportMailTerm: E-Mail
@@ -92,10 +92,10 @@ maintenance-title: Kurze Feuerpause.
 maintenance-text: Panzergefecht zieht auf seine eigene Adresse **panzergefecht.de** um. Solange die Umstellung läuft, ruhen Spiel und Seite, gleich geht es weiter. Die Apps für iPhone, iPad und Android laufen weiter, dein Konto bleibt, wie es ist.
 maintenance-mail: Support schreiben
 changelog: Änderungen
-changelog-kennung: 02 — Änderungen
+changelog-kennung: Änderungen
 changelogHeadline: Was neu ist.
 changelogLead: Was die letzten Versionen der Apps gebracht haben, neueste zuerst. Das Spiel im Browser ist immer auf dem neuesten Stand.
-open-kennung: 06 — Open Source
+open-kennung: Open Source
 open-title: Offen gebaut, zum Mitlesen.
 open-code: Code
 open-code-text: "Der ganze Quelltext unter MIT-Lizenz: [auf GitHub](https://github.com/regetskcob/wargame)."

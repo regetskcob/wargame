@@ -45,7 +45,7 @@
     width="{{ $h1.Width }}" height="{{ $h1.Height }}" alt="{{ i18n "headerAlt" }}" fetchpriority="high">
 </picture>
 
-{{- /* 02 — The ways to play: name and first sentence of each, the store has
+{{- /* The ways to play: name and first sentence of each, the store has
    the rest; the four iPhone screenshots below. */}}
 {{- $facts := slice }}
 {{- range (index $sections 0).lines }}
@@ -62,7 +62,7 @@
   {{- end }}
 </div>
 
-{{- /* 03 — Every screen the game runs on, in the page's own words: the store
+{{- /* Every screen the game runs on, in the page's own words: the store
    description is the iOS app's and leaves out the browser, iMessage, the
    TVs and the Mac. */}}
 {{- $facts = slice }}
@@ -76,7 +76,7 @@
   {{ partial "shot.html" (dict "kind" "watch" "file" "watch-03-gefecht" "width" 110 "alt" (i18n "shot-watch")) }}
 </div>
 
-{{- /* 04 — Where to get the apps, in the order they have to be taken: the
+{{- /* Where to get the apps, in the order they have to be taken: the
    stores once they are set in hugo.toml, then the betas, Android's two
    steps one after the other (the closed test only lets in members of the
    tester group). */}}
@@ -91,14 +91,14 @@
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "beta" "kennung" (i18n "beta-kennung") "title" (i18n "betaTitle") "text" (i18n "betaLead") "facts" $facts) }}
 
-{{- /* 05 — The pledge and the disclaimer of the store description. */}}
+{{- /* The pledge and the disclaimer of the store description. */}}
 {{- $facts = slice }}
 {{- range slice "price" "account" "delete" }}
   {{- $facts = $facts | append (dict "term" (i18n (printf "fair-%s" .)) "value" (i18n (printf "fair-%s-text" .))) }}
 {{- end }}
 {{ partial "horizont/feld/section.html" (dict "id" "fair" "kennung" (i18n "fair-kennung") "title" (index $notes 0) "text" (index $notes 1) "facts" $facts) }}
 
-{{- /* 06 — Open source and what pays for it; off until the licence is
+{{- /* Open source and what pays for it; off until the licence is
    switched, docs/open-source/README.md. */}}
 {{- if site.Params.openSource }}
 {{- $facts = slice }}
