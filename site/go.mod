@@ -2,4 +2,4 @@ module github.com/regetskcob/wargame/site
 
 go 1.22
 
-require github.com/regetskcob/horizont v0.20.0 // indirect
+require github.com/regetskcob/horizont v0.20.1 // indirect
