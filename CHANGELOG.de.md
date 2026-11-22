@@ -10,6 +10,15 @@ gepflegt.
 
 ## Nächste Version
 
+- Feindliche Jets halten mehr aus (150 statt 80 Panzerung), werfen vier
+  Bomben und fliegen dorthin, wo deine Geschütze am dichtesten stehen,
+  Flak zuerst
+- CPU-Panzer auf „schwer“ zielen genauer und schießen schneller; allein auf
+  „leicht“ erfasst die Zielhilfe nur noch nahe Panzer
+- Wer schon da war, findet die Einweisung als kleines „?“ neben dem
+  Konto-Knopf auf der Startseite
+- Ton auf iPhone, iPad, Mac und Android läuft über einen Mischer, späte
+  Verteidigungswellen behalten ihre Bildrate
 - Andrang zum Start: Sind alle Räume des Servers belegt, wartet, wer in
   einen Raum kommt, in einer Warteschlange statt abgewiesen zu werden, sieht
   seinen Platz und eine ungefähre Wartezeit und kommt von selbst in den

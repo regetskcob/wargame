@@ -26,7 +26,7 @@ enum BotLevel {
   hard(
     'SCHWER',
     'HARD',
-    aimError: 0.09,
+    aimError: 0.075,
     reaction: 0.3,
     think: 0.1,
     lead: 1,
@@ -87,7 +87,15 @@ enum BotLevel {
   double get fireFactor => switch (this) {
     easy => 1,
     normal => 1.6,
-    hard => 1.4,
+    hard => 1.2,
+  };
+
+  /// How far the touch aim assist reaches against CPU tanks of this level.
+  /// On easy three in four idle phone players won with the full reach, so
+  /// there it only helps with tanks already close.
+  double get assistRange => switch (this) {
+    easy => GameConfig.assistRangeEasy,
+    normal || hard => GameConfig.assistRange,
   };
 
   /// Hard bots dodge barrages and keep their distance smarter.

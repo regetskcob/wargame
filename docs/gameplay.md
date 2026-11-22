@@ -490,7 +490,11 @@ tanks, drones last.
 - **At the base.** An enemy tank that reaches the base blows itself up and
   does 120 damage per 100 of its armour; a soldier does 25.
 - **Helicopters** (120 HP) fire a rocket of 10 every 1.8 s up to 420.
-  **Jets** (80 HP, 420 a second) drop 3 bombs of 49.5 on the base.
+  **Jets** (150 HP, 420 a second) drop 4 bombs of 49.5. Six runs in ten
+  go for the thickest cluster of the players' own guns, flak counting
+  double; the rest for a defender (40 %) or the base. At 80 HP and with the
+  base as their only goal they fell to the stronger flak before they
+  mattered.
   **Enemy drones** do 60 in a radius of 75.
 
 **The last helicopter.** Once no enemy tank is left, an enemy helicopter
@@ -635,13 +639,17 @@ and [`defense/defense_brain.dart`](../lib/src/game/defense/defense_brain.dart).
   same one. A new player in a starter meets starters, a pilot in a Wolf
   meets Wolves. Fixed starters left every higher rank with weak opponents
   (see [Balance](#balance)).
-- **Slower fire.** On normal and hard they take 1.6 and 1.4 times as long
+- **Slower fire.** On normal and hard they take 1.6 and 1.2 times as long
   between shots as a person in the same vehicle (`BotLevel.fireFactor`).
 - **Sight.** At night, in fog or sand CPU tanks fire at people only as far
   as those can see (`BotBrain.reach`), since there is no arrow for a tank
   beyond sight.
 - The aim assist is there on every level; without it hard could hardly be
-  won on a phone.
+  won on a phone. Alone on easy it reaches 360 instead of 420
+  (`BotLevel.assistRange`): with the full reach three in four phone
+  players who only waited won. Hard aims closer (aim error 0.075 instead of
+  0.09) and fires faster, so it stands further apart from normal for good
+  players.
 
 ## Controls and devices
 
@@ -773,6 +781,12 @@ easier so that hard stays playable on a phone:
 | hard | idle | 3 % | 0–2 % | 4 % |
 | hard | aim assist only | 0–8 % | 0–8 % | 31 % |
 | hard | like a normal CPU | 7 % | 5–8 % | 17 % |
+
+November 2026, after the shorter assist reach on easy (360) and closer aim
+and faster fire on hard, 100 rounds each in a random starter: easy idle
+6 %, with the assist 71 % (300 gave 65 %, as low as normal), like a normal
+CPU 54 %; normal idle 7 %, assist 62 %, like a normal CPU 30 %; hard idle
+7 %, assist 26 %, like a normal CPU 16 %.
 
 What moved the numbers: the aim assist on hard, CPU tanks in starter
 vehicles, longer pauses between their shots and a softer pull towards

@@ -282,6 +282,7 @@ class GameConfig {
 
   /// How far the touch aim assist looks for a target.
   static const assistRange = 420.0;
+  static const assistRangeEasy = 360.0;
 
   /// The base's own aircraft: a helicopter every wave from [supportFromWave]
   /// on, a bombing jet as well from [supportJetFromWave], some seconds into
@@ -465,9 +466,18 @@ class GameConfig {
   static const helicopterDamage = 10.0;
   static const helicopterRange = 420.0;
   static const helicopterShotSpeed = 380.0;
-  static const jetHp = 80.0;
+
+  /// A jet takes three flak hits more than before and drops one bomb more:
+  /// with the stronger flak, jets at 80 HP fell before their run mattered.
+  static const jetHp = 150.0;
   static const jetSpeed = 420.0;
-  static const jetBombs = 3;
+  static const jetBombs = 4;
+
+  /// How often an enemy jet goes for the thickest cluster of the players'
+  /// guns instead of the base or a tank, and how close guns count as one
+  /// cluster.
+  static const jetGunChance = 0.6;
+  static const jetClusterReach = 180.0;
   static const airSyncInterval = 0.1;
   static const creditsPerAircraft = 40;
 

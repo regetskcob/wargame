@@ -243,4 +243,39 @@ void main() {
       expect(flak.isRemoving || !flak.isMounted, isTrue);
     },
   );
+
+  test('enemy jets mostly bomb the thickest cluster of the players\' guns, '
+      'flak first', () async {
+    final game = await defenseRound(playing: true);
+    final cluster = Vector2(300, 200);
+    for (var i = 0; i < 3; i++) {
+      final gun = Tower(
+        ownerId: game.myId,
+        index: i,
+        color: const Color(0xFF000000),
+        position: cluster + Vector2(i * 40.0, 0),
+        kind: TowerKind.flak,
+      );
+      game.towers[gun.id] = gun;
+    }
+    final lone = Tower(
+      ownerId: game.myId,
+      index: 3,
+      color: const Color(0xFF000000),
+      position: Vector2(-500, -300),
+    );
+    game.towers[lone.id] = lone;
+    var atGuns = 0;
+    const runs = 60;
+    for (var i = 0; i < runs; i++) {
+      game.spawnAircraft('td-j-6-$i', AirKind.jet);
+      final goal = game.aircraft['td-j-6-$i']!.goal;
+      if (goal.distanceTo(cluster) < 100) {
+        atGuns++;
+      }
+      expect(goal.distanceTo(lone.position), greaterThan(1));
+    }
+    expect(atGuns, greaterThan(runs * 0.4));
+    expect(atGuns, lessThan(runs));
+  });
 }

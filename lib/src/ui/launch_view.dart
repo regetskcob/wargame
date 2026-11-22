@@ -143,6 +143,10 @@ class LaunchView extends StatelessWidget {
                 Row(
                   children: [
                     title,
+                    TutorialButton(
+                      game: game,
+                      placement: TutorialPlacement.afterDone,
+                    ),
                     AccountButton(game: game),
                     const MuteButton(),
                   ],
@@ -153,7 +157,10 @@ class LaunchView extends StatelessWidget {
                   children: [
                     Flexible(child: CallSign(game: game)),
                     const SizedBox(width: 8),
-                    TutorialButton(game: game),
+                    TutorialButton(
+                      game: game,
+                      placement: TutorialPlacement.untilDone,
+                    ),
                   ],
                 ),
               ],
@@ -164,6 +171,10 @@ class LaunchView extends StatelessWidget {
               title,
               const SizedBox(width: 12),
               CallSign(game: game),
+              TutorialButton(
+                game: game,
+                placement: TutorialPlacement.afterDone,
+              ),
               AccountButton(game: game),
               const MuteButton(),
             ],
@@ -177,7 +188,10 @@ class LaunchView extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 4, bottom: 16),
                 child: Row(
                   children: [
-                    TutorialButton(game: game),
+                    TutorialButton(
+                      game: game,
+                      placement: TutorialPlacement.untilDone,
+                    ),
                     // From tablets up the last round sits quietly at the
                     // end of the briefing's line. Phones keep the space for
                     // the ways to play, and the television walks its menu

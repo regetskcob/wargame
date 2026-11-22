@@ -3,9 +3,60 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/foundation.dart';
 
-import 'audio_backend.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:flutter_tvos/flutter_tvos.dart';
+import 'package:flutter_watchos/flutter_watchos.dart';
 
-AudioBackend createAudioBackend() => _NativeAudioBackend();
+import 'audio_backend.dart';
+import 'audio_backend_mixed.dart';
+import '../watch/wear_crown.dart';
+
+/// The mixer everywhere it is built for; Apple TV and the watches have no
+/// SoLoud and keep audioplayers. Should the mixer not start, the players
+/// take over as well.
+AudioBackend createAudioBackend() => _MixerOrPlayers();
+
+class _MixerOrPlayers implements AudioBackend {
+  AudioBackend _active = _NativeAudioBackend();
+
+  @override
+  Future<void> load(Map<String, Uint8List> files) async {
+    // Decided here, not when the service is made: Wear OS is only known
+    // once main() asked the platform.
+    if (FlutterTvosPlatform.isTvos ||
+        FlutterWatchosPlatform.isWatch ||
+        onWear) {
+      return _active.load(files);
+    }
+    await _NativeAudioBackend.setAmbient();
+    _active = MixedAudioBackend(SoLoud.instance);
+    try {
+      await _active.load(files);
+    } on Object catch (error) {
+      debugPrint('Mixer failed, falling back to players: $error');
+      _active = _NativeAudioBackend();
+      await _active.load(files);
+    }
+  }
+
+  @override
+  void play(String name, double volume, {bool own = false}) =>
+      _active.play(name, volume, own: own);
+
+  @override
+  Future<void> startLoop(String name, double volume) =>
+      _active.startLoop(name, volume);
+
+  @override
+  Future<void> adjustLoop({required double volume, required double rate}) =>
+      _active.adjustLoop(volume: volume, rate: rate);
+
+  @override
+  Future<void> stopLoop() => _active.stopLoop();
+
+  @override
+  bool get hasLoop => _active.hasLoop;
+}
 
 /// A fixed set of players per sound, loaded once and restarted for every
 /// shot. A fresh player per sound piles up native players in a heavy fight
@@ -47,26 +98,7 @@ class _NativeAudioBackend implements AudioBackend {
 
   @override
   Future<void> load(Map<String, Uint8List> files) async {
-    try {
-      // The app has no mute button of its own: the sounds follow the silent
-      // switch of the phone and play along with music from other apps.
-      await AudioPlayer.global.setAudioContext(
-        AudioContext(
-          // Ambient: silenced by the switch, mixes with other apps.
-          iOS: AudioContextIOS(
-            category: AVAudioSessionCategory.ambient,
-            options: const {},
-          ),
-          android: const AudioContextAndroid(
-            contentType: AndroidContentType.sonification,
-            usageType: AndroidUsageType.game,
-            audioFocus: AndroidAudioFocus.none,
-          ),
-        ),
-      );
-    } on Object catch (error) {
-      debugPrint('Audio context failed: $error');
-    }
+    await setAmbient();
     for (final MapEntry(key: name, value: bytes) in files.entries) {
       if (name == 'engine') {
         continue;
@@ -90,6 +122,29 @@ class _NativeAudioBackend implements AudioBackend {
         }
         _own[name] = own;
       }
+    }
+  }
+
+  static Future<void> setAmbient() async {
+    try {
+      // The app has no mute button of its own: the sounds follow the silent
+      // switch of the phone and play along with music from other apps.
+      await AudioPlayer.global.setAudioContext(
+        AudioContext(
+          // Ambient: silenced by the switch, mixes with other apps.
+          iOS: AudioContextIOS(
+            category: AVAudioSessionCategory.ambient,
+            options: const {},
+          ),
+          android: const AudioContextAndroid(
+            contentType: AndroidContentType.sonification,
+            usageType: AndroidUsageType.game,
+            audioFocus: AndroidAudioFocus.none,
+          ),
+        ),
+      );
+    } on Object catch (error) {
+      debugPrint('Audio context failed: $error');
     }
   }
 

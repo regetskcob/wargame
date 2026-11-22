@@ -9,6 +9,14 @@ step, point for point.
 
 ## Next
 
+- Enemy jets are tougher (150 instead of 80 armour), drop four bombs and
+  go for where your guns stand thickest, flak first
+- Hard CPU tanks aim closer and fire faster; alone on easy the aim assist
+  only reaches nearby tanks
+- Returning pilots find the briefing as a small "?" beside the account
+  button on the start page
+- Sound on iPhone, iPad, Mac and Android runs through one mixer, so late
+  defense waves keep their frame rate
 - Launch rush: when every room of the server is taken, a pilot who comes
   into a room waits in a queue instead of being sent away, sees their place
   and a rough wait, and joins the room by themselves on their turn

@@ -147,7 +147,13 @@ upload key. Never commit the file.
   without pause. Phones get a switch on the account page; iPads and most
   Android tablets have no motor and show none.
 - **Sound** ([`lib/src/audio/sound_mixer.dart`](../lib/src/audio/sound_mixer.dart))
-  follows the silent switch and mixes with music from other apps. Sounds
+  follows the silent switch and mixes with music from other apps. On
+  iPhone, iPad, Mac and Android phones one native mixer plays everything
+  ([`audio_backend_mixed.dart`](../lib/src/audio/audio_backend_mixed.dart),
+  flutter_soloud): one output stream instead of an AVPlayer per voice,
+  which cost about ten frames a second at defense wave 30 on the BoPad.
+  Apple TV and the watches have no SoLoud and keep audioplayers, as does
+  any device where the mixer does not start. Sounds
   on the field fall off with the square of the distance and share a budget
   of five per quarter second. Each native player call crosses to the main
   thread, and restarting an iOS player halfway took up to 19 seconds in a

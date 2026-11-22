@@ -2,8 +2,39 @@ part of '../tank_game.dart';
 
 /// Aircraft and enemy drones: helicopters, jets and own air support, their shots and bombs, and the `air` event.
 extension TankGameAir on TankGame {
+  /// The spot among the players' own guns of [team] where a string of bombs
+  /// hurts most: the gun with the most others close by, flak counting
+  /// double. Null when the team has no guns of its own.
+  Vector2? _gunCluster(int team) {
+    final guns = [
+      for (final tower in towers.values)
+        if (!tower.isHq &&
+            !(round?.isEnemy(tower.ownerId) ?? false) &&
+            tower.hp > 0 &&
+            (round?.teamOf(tower.ownerId) ?? 1) == team)
+          tower,
+    ];
+    Vector2? best;
+    var bestScore = 0.0;
+    for (final gun in guns) {
+      var score = 0.0;
+      for (final other in guns) {
+        if (other.position.distanceTo(gun.position) <=
+            GameConfig.jetClusterReach) {
+          score += other.kind == TowerKind.flak ? 2 : 1;
+        }
+      }
+      if (score > bestScore) {
+        bestScore = score;
+        best = gun.position;
+      }
+    }
+    return best?.clone();
+  }
+
   /// Host of a defense round: a helicopter or a jet comes in over the edge
-  /// of the field. A jet heads for the base or for one of the defenders.
+  /// of the field. A jet heads for the thickest cluster of the players'
+  /// guns, the base or one of the defenders.
   void spawnAircraft(String id, AirKind kind, {int lane = 0}) {
     final map = laneMap(lane);
     if (map == null) {
@@ -13,7 +44,12 @@ extension TankGameAir on TankGame {
     // down.
     final duel = round?.duel ?? false;
     final Vector2 goal;
-    if (kind == AirKind.jet) {
+    final guns = kind == AirKind.jet ? _gunCluster(duel ? lane + 1 : 1) : null;
+    if (guns != null && random.nextDouble() < GameConfig.jetGunChance) {
+      // Where the players' guns stand thickest, flak first: runs against
+      // the base alone left the guns that shoot jets down untouched.
+      goal = guns;
+    } else if (kind == AirKind.jet) {
       final defenders = [
         for (final tank in _allTanks)
           if (tank.team == (duel ? lane + 1 : 1) && tank.hp > 0) tank.position,

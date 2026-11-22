@@ -6,7 +6,11 @@ extension TankGameTargeting on TankGame {
   /// round the same as a comrade would, otherwise the nearest tank of
   /// another side the player can see.
   PositionComponent? assistTarget(PlayerTank tank) {
-    const range = GameConfig.assistRange;
+    // Only alone against CPU tanks: with people in the round the level does
+    // not say how hard the fight is.
+    final range = mode.value == GameMode.solo
+        ? difficulty.assistRange
+        : GameConfig.assistRange;
     if (round?.defense ?? false) {
       return allyTarget(tank, range);
     }
