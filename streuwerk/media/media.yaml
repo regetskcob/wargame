@@ -60,3 +60,44 @@ media:
     device: desktop
     size: [1920, 1080]
     alt: Verteidigung auf dem Fernseher
+
+  # Device views without text (Mac, iPad, iPhone on olive with the amber line), generic for posts.
+  - id: devices-trio-gefecht-4x5
+    path: streuwerk/media/devices/trio-gefecht-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: Panzergefecht auf Mac, iPad und iPhone nebeneinander, jeweils mitten in einem Gefecht.
+  - id: devices-trio-verteidigung-1x1
+    path: streuwerk/media/devices/trio-verteidigung-1x1.png
+    kind: photo
+    size: [1080, 1080]
+    alt: Panzergefecht auf Mac, iPad und iPhone, jeweils die Verteidigung mit Geschützen am Stützpunkt.
+  - id: devices-trio-gefecht-16x9
+    path: streuwerk/media/devices/trio-gefecht-16x9.png
+    kind: photo
+    size: [1920, 1080]
+    alt: Panzergefecht auf Mac, iPad und iPhone im Querformat, ein Gefecht in der Stadt.
+  - id: devices-iphone-gefecht
+    path: streuwerk/media/devices/iphone-gefecht.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1350]
+    alt: iPhone mit einem Gefecht: links fahren, rechts zielen.
+  - id: devices-iphone-modi
+    path: streuwerk/media/devices/iphone-modi.png
+    kind: screenshot
+    device: phone
+    size: [1080, 1350]
+    alt: iPhone mit der Startseite und den Spielarten.
+  - id: devices-ipad-warteraum
+    path: streuwerk/media/devices/ipad-warteraum.png
+    kind: screenshot
+    device: tablet
+    size: [1080, 1350]
+    alt: iPad mit dem Warteraum, großem Raumcode und den Crews.
+  - id: devices-mac-verteidigung
+    path: streuwerk/media/devices/mac-verteidigung.png
+    kind: screenshot
+    device: desktop
+    size: [1080, 1350]
+    alt: MacBook mit der Verteidigung gegen Wellen.
