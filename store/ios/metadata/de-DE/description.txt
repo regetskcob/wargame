@@ -3,7 +3,7 @@ Panzergefecht ist ein schnelles Panzerduell von oben, auf iPhone, iPad, Mac, App
 VIER SPIELARTEN
 • Einzelspieler: Du gegen bis zu vier CPU-Panzer in drei Schwierigkeiten. Auf Leicht ist das Gelände flach und die Munition reicht ewig, auf Mittel und Schwer wird es hügelig, und Treibstoff und Munition holst du an Tankstellen und Munitionsdepots.
 • Mehrspieler: Lade Freunde per Raumcode, Link oder QR-Code ein, alle gegen alle oder Rot gegen Blau. CPU-Panzer füllen auf Wunsch auf, wer zu spät kommt, schaut zu, und App und Browser spielen im selben Raum.
-• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen aus Panzern, Infanterie, Kampfhubschraubern, Jets und Kamikaze-Drohnen. Baut Kanone, Flak, Mörser, Haubitze und Raketen, hebt Gräben aus und rüstet euren Panzer auf. Der Stützpunkt wächst vom Wachturm bis zur Zitadelle, nach Welle 8 geht es auf Wunsch weiter.
+• Verteidigung: Haltet gemeinsam den Stützpunkt gegen acht Wellen aus Panzern, Infanterie, Kampfhubschraubern, Jets, die es auf eure Geschütze abgesehen haben, und Kamikaze-Drohnen. Baut Kanone, Flak, Mörser, Haubitze und Raketen, hebt Gräben aus und rüstet euren Panzer auf. Der Stützpunkt wächst vom Wachturm bis zur Zitadelle, nach Welle 8 geht es auf Wunsch weiter.
 • Fahnenraub: Rot gegen Blau mit je drei Panzern, holt die Fahne der anderen zum eigenen Stützpunkt, solange eure eigene dort steht. Drei eroberte Fahnen gewinnen.
 • Zu zweit an einem Bildschirm: geteilter Bildschirm mit zwei Controllern oder Handys auf iPad, Apple TV und im Browser, dazu das Duell, in dem zwei Stützpunkte gegeneinander antreten.
 

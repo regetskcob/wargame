@@ -8,7 +8,7 @@ von `main`. Die Store-Texte eines Release liegen in
 Fassung von [`CHANGELOG.md`](CHANGELOG.md) und wird mit ihr zusammen
 gepflegt.
 
-## Nächste Version
+## 1.9.0 (23) – 2026-11-22
 
 - Feindliche Jets halten mehr aus (150 statt 80 Panzerung), werfen vier
   Bomben und fliegen dorthin, wo deine Geschütze am dichtesten stehen,

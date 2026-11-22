@@ -1,1 +1,1 @@
-The menus are drawn softer: rounder corners, quieter outlines, and the chosen option is a tinted surface with a check that stays clear next to the focus on the television. The HUD of a running round keeps its strong outlines. Built with current tools.
+Enemy jets are tougher and bomb where your guns stand thickest. CPU tanks on hard hit better. When the server is full, you wait in a queue and join the room by yourself. Sound runs through its own mixer, so late waves stay smooth.

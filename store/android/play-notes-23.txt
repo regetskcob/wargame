@@ -1,0 +1,6 @@
+<de-DE>
+Feindliche Jets halten mehr aus und bomben dort, wo eure Geschütze am dichtesten stehen. CPU-Panzer auf Schwer treffen besser. Ist der Server voll, wartest du in einer Schlange und kommst von selbst in den Raum. Der Ton läuft über einen eigenen Mischer, damit späte Wellen flüssig bleiben.
+</de-DE>
+<en-US>
+Enemy jets are tougher and bomb where your guns stand thickest. CPU tanks on hard hit better. When the server is full, you wait in a queue and join the room by yourself. Sound runs through its own mixer, so late waves stay smooth.
+</en-US>

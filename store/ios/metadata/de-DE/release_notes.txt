@@ -1,1 +1,1 @@
-Die Menüs sind weicher gezeichnet: rundere Ecken, ruhigere Umrisse, und die gewählte Option ist eine getönte Fläche mit Häkchen, die auch auf dem Fernseher neben dem Fokus klar bleibt. Das HUD der laufenden Runde behält seine kräftigen Umrisse. Gebaut mit aktuellen Werkzeugen.
+Feindliche Jets halten mehr aus und bomben dort, wo eure Geschütze am dichtesten stehen. CPU-Panzer auf Schwer treffen besser. Ist der Server voll, wartest du in einer Schlange und kommst von selbst in den Raum. Der Ton läuft über einen eigenen Mischer, damit späte Wellen flüssig bleiben.

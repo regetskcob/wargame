@@ -3,7 +3,7 @@ Panzergefecht is a fast top-down tank duel on iPhone, iPad, Mac, Apple TV and Ap
 FOUR WAYS TO PLAY
 • Single player: you against up to four CPU tanks on three difficulties. On easy the land is flat and the shells never run out, on normal and hard it gets hilly, and you fill up fuel and shells at fuel stations and ammo depots.
 • Multiplayer: invite friends by room code, link or QR code, free for all or red against blue. CPU tanks fill up on request, late joiners watch, and app and browser play in the same room.
-• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets and kamikaze drones. Build cannon, flak, mortar, howitzer and rockets, dig trenches and upgrade your tank. The base grows from a watchtower to a citadel, and after wave 8 you can carry on.
+• Defense: hold the base together against eight waves of tanks, infantry, attack helicopters, jets that go for your guns, and kamikaze drones. Build cannon, flak, mortar, howitzer and rockets, dig trenches and upgrade your tank. The base grows from a watchtower to a citadel, and after wave 8 you can carry on.
 • Capture the flag: red against blue with three tanks a side, bring the other side's flag to your own base while your flag stands there. Three captures win.
 • Two on one screen: split screen with two controllers or phones on iPad, Apple TV and in the browser, plus the duel, where two bases fight each other.
 
