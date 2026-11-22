@@ -541,46 +541,4 @@ class TankScores {
   static const hits = PostgrestNullableColumn<TankScoresRow, int>('hits');
 }
 
-/// A row of the `weekly_scores` table, as `select()` reads it with every
-/// column.
-/// Totals per pilot since Monday
-extension type const WeeklyScoresRow(Map<String, dynamic> _json)
-    implements Object {
-  String? get id => _json['id'] as String?;
-  String? get name => _json['name'] as String?;
-  int? get rounds => _json['rounds'] as int?;
-  int? get wins => _json['wins'] as int?;
-  int? get kills => _json['kills'] as int?;
-  int? get damage => _json['damage'] as int?;
-  int? get xp => _json['xp'] as int?;
-  int? get ratingChange => _json['rating_change'] as int?;
-
-  /// The row as decoded from the response.
-  Map<String, dynamic> toJson() => _json;
-}
-
-/// Typed access to the `weekly_scores` table.
-class WeeklyScores {
-  const WeeklyScores._();
-
-  /// Table definition for [PostgrestClient.table].
-  static const table = PostgrestTable<WeeklyScoresRow, Never, Never>(
-    'weekly_scores',
-    WeeklyScoresRow.new,
-    schema: 'public',
-    primaryKey: [],
-  );
-
-  static const id = PostgrestNullableColumn<WeeklyScoresRow, String>('id');
-  static const name = PostgrestNullableColumn<WeeklyScoresRow, String>('name');
-  static const rounds = PostgrestNullableColumn<WeeklyScoresRow, int>('rounds');
-  static const wins = PostgrestNullableColumn<WeeklyScoresRow, int>('wins');
-  static const kills = PostgrestNullableColumn<WeeklyScoresRow, int>('kills');
-  static const damage = PostgrestNullableColumn<WeeklyScoresRow, int>('damage');
-  static const xp = PostgrestNullableColumn<WeeklyScoresRow, int>('xp');
-  static const ratingChange = PostgrestNullableColumn<WeeklyScoresRow, int>(
-    'rating_change',
-  );
-}
-
 DateTime _dateTimeFromJson(Object json) => DateTime.parse(json as String);
