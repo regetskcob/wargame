@@ -932,12 +932,17 @@ extension TankGameLobby on TankGame {
             'room by yourself as soon as it is your turn.',
       ),
     );
-    fireAndForget(net.dispose(), 'Leaving the room');
-    _enterQueue(load);
+    final leaving = net.dispose();
+    fireAndForget(leaving, 'Leaving the room');
+    _enterQueue(load, leaving);
   }
 
-  void _enterQueue(int load) {
+  /// [leaving] is the old channel going down: a turn that comes at once
+  /// must not connect before it is gone, or its removal takes the new
+  /// channel with it.
+  void _enterQueue(int load, Future<void> leaving) {
     _queueLoad = load;
+    _queueLeaving = leaving;
     queueSpot.value = QueueSpot.unknown;
     _queueTimer?.cancel();
     _queueTimer = async.Timer.periodic(
@@ -961,7 +966,11 @@ extension TankGameLobby on TankGame {
       return;
     }
     // Our turn: the slot is held for the room, back in we go.
+    final leaving = _queueLeaving;
     _stopQueue();
+    if (leaving != null) {
+      await leaving.catchError((Object _) {});
+    }
     if (phase.value != GamePhase.closed) {
       return;
     }
@@ -974,6 +983,7 @@ extension TankGameLobby on TankGame {
     _queueTimer?.cancel();
     _queueTimer = null;
     _queueLoad = null;
+    _queueLeaving = null;
     queueSpot.value = null;
   }
 

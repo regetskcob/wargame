@@ -29,7 +29,10 @@ class _MixerOrPlayers implements AudioBackend {
       return _active.load(files);
     }
     await _NativeAudioBackend.setAmbient();
-    _active = MixedAudioBackend(SoLoud.instance);
+    // Loaded again: keep the one mixer, so a running loop is not orphaned.
+    if (_active is! MixedAudioBackend) {
+      _active = MixedAudioBackend(SoLoud.instance);
+    }
     try {
       await _active.load(files);
     } on Object catch (error) {

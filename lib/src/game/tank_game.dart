@@ -500,6 +500,7 @@ class TankGame extends FlameGame
   /// Realtime messages, so a long line costs nothing of the budget.
   static const queuePoll = Duration(seconds: 10);
   int? _queueLoad;
+  Future<void>? _queueLeaving;
   var _slotHeld = false;
   int? _claimedLoad;
 

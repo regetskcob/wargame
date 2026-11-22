@@ -23,6 +23,7 @@ class MixedAudioBackend implements AudioBackend {
 
   final _sources = <String, AudioSource>{};
   final _field = <String, List<SoundHandle>>{};
+  final _own = <String, List<SoundHandle>>{};
   SoundHandle? _loop;
 
   @override
@@ -30,6 +31,8 @@ class MixedAudioBackend implements AudioBackend {
 
   @override
   Future<void> load(Map<String, Uint8List> files) async {
+    // Loaded again: the old sources and the loop stay with this mixer.
+    await stopLoop();
     if (!_soloud.isInitialized) {
       // A small buffer: a shot should be heard in the frame it is fired.
       await _soloud.init(bufferSize: 1024);
@@ -49,11 +52,11 @@ class MixedAudioBackend implements AudioBackend {
       final handle = _soloud.play(source, volume: volume);
       if (own) {
         // The mixer drops the quietest voices first when it runs out; the
-        // own shot must never be among them.
+        // own shot must never be among them. Capped like the field's, or
+        // a fast gun would fill the mixer with voices nobody may drop.
         _soloud.setProtectVoice(handle, true);
-        return;
       }
-      final voices = (_field[name] ??= [])
+      final voices = ((own ? _own : _field)[name] ??= [])
         ..removeWhere((h) => !_soloud.getIsValidVoiceHandle(h))
         ..add(handle);
       if (voices.length > fieldVoices) {
@@ -71,7 +74,11 @@ class MixedAudioBackend implements AudioBackend {
     if (source == null) {
       return;
     }
-    _loop = _soloud.play(source, volume: volume, looping: true);
+    try {
+      _loop = _soloud.play(source, volume: volume, looping: true);
+    } on Object catch (error) {
+      debugPrint('Loop $name failed: $error');
+    }
   }
 
   @override
@@ -83,9 +90,20 @@ class MixedAudioBackend implements AudioBackend {
     if (loop == null) {
       return;
     }
-    _soloud
-      ..setVolume(loop, volume)
-      ..setRelativePlaySpeed(loop, rate);
+    // Called every frame: a loop the mixer lost (an interruption, a
+    // restart of the engine) is let go instead of throwing each time.
+    try {
+      if (!_soloud.getIsValidVoiceHandle(loop)) {
+        _loop = null;
+        return;
+      }
+      _soloud
+        ..setVolume(loop, volume)
+        ..setRelativePlaySpeed(loop, rate);
+    } on Object catch (error) {
+      _loop = null;
+      debugPrint('Loop adjustment failed: $error');
+    }
   }
 
   @override
@@ -93,7 +111,11 @@ class MixedAudioBackend implements AudioBackend {
     final loop = _loop;
     _loop = null;
     if (loop != null) {
-      await _soloud.stop(loop);
+      try {
+        await _soloud.stop(loop);
+      } on Object catch (error) {
+        debugPrint('Stopping the loop failed: $error');
+      }
     }
   }
 }
