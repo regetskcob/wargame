@@ -7,7 +7,7 @@ store texts for a release live in `store/ios/metadata/*/release_notes.txt`.
 The German version is [`CHANGELOG.de.md`](CHANGELOG.de.md); keep both in
 step, point for point.
 
-## 1.9.0 (23) – 2026-11-22
+## 1.9.0 (24) – 2026-11-22
 
 - Enemy jets are tougher (150 instead of 80 armour), drop four bombs and
   go for where your guns stand thickest, flak first
