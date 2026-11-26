@@ -12,3 +12,7 @@ tags:
   # a few minutes: see docs/release-test-plan.md (L3).
   benchmark:
     skip: "Benchmark, start it by hand (see docs/release-test-plan.md)."
+  # Draws the product media for Streuwerk from the game's painters:
+  # tool/streuwerk/render_media.sh
+  media:
+    skip: "Draws media, start it through tool/streuwerk/render_media.sh."

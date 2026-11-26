@@ -101,3 +101,335 @@ media:
     device: desktop
     size: [1080, 1350]
     alt: MacBook mit der Verteidigung gegen Wellen.
+
+  # Drawn by tool/streuwerk/render_media.sh from the game's own painters,
+  # transparent PNGs unless noted. Ids are used as media:<id> in the template.
+  - id: fahrzeug-spitzmaus
+    path: streuwerk/media/fahrzeuge/spitzmaus.png
+    kind: photo
+    size: [864, 864]
+    alt: "Spitzmaus (Waffenträger) von oben in Oliv, freigestellt."
+  - id: fahrzeug-spitzmaus-quer
+    path: streuwerk/media/fahrzeuge/spitzmaus-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Spitzmaus (Waffenträger) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-spitzmaus-clip
+    path: streuwerk/media/clips/spitzmaus.mp4
+    kind: recording
+    poster: streuwerk/media/clips/spitzmaus.png
+    seconds: 3
+    alt: "Spitzmaus auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-fuchs
+    path: streuwerk/media/fahrzeuge/fuchs.png
+    kind: photo
+    size: [864, 864]
+    alt: "Fuchs (Radpanzer) von oben in Oliv, freigestellt."
+  - id: fahrzeug-fuchs-quer
+    path: streuwerk/media/fahrzeuge/fuchs-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Fuchs (Radpanzer) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-fuchs-clip
+    path: streuwerk/media/clips/fuchs.mp4
+    kind: recording
+    poster: streuwerk/media/clips/fuchs.png
+    seconds: 3
+    alt: "Fuchs auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-hermelin
+    path: streuwerk/media/fahrzeuge/hermelin.png
+    kind: photo
+    size: [864, 864]
+    alt: "Hermelin (Schützenpanzer) von oben in Oliv, freigestellt."
+  - id: fahrzeug-hermelin-quer
+    path: streuwerk/media/fahrzeuge/hermelin-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Hermelin (Schützenpanzer) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-hermelin-clip
+    path: streuwerk/media/clips/hermelin.mp4
+    kind: recording
+    poster: streuwerk/media/clips/hermelin.png
+    seconds: 3
+    alt: "Hermelin auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-habicht
+    path: streuwerk/media/fahrzeuge/habicht.png
+    kind: photo
+    size: [864, 864]
+    alt: "Habicht (Flugabwehr) von oben in Oliv, freigestellt."
+  - id: fahrzeug-habicht-quer
+    path: streuwerk/media/fahrzeuge/habicht-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Habicht (Flugabwehr) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-habicht-clip
+    path: streuwerk/media/clips/habicht.mp4
+    kind: recording
+    poster: streuwerk/media/clips/habicht.png
+    seconds: 3
+    alt: "Habicht auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-keiler
+    path: streuwerk/media/fahrzeuge/keiler.png
+    kind: photo
+    size: [864, 864]
+    alt: "Keiler (Kampfpanzer) von oben in Oliv, freigestellt."
+  - id: fahrzeug-keiler-quer
+    path: streuwerk/media/fahrzeuge/keiler-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Keiler (Kampfpanzer) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-keiler-clip
+    path: streuwerk/media/clips/keiler.mp4
+    kind: recording
+    poster: streuwerk/media/clips/keiler.png
+    seconds: 3
+    alt: "Keiler auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-hirsch
+    path: streuwerk/media/fahrzeuge/hirsch.png
+    kind: photo
+    size: [864, 864]
+    alt: "Hirsch (Panzerhaubitze) von oben in Oliv, freigestellt."
+  - id: fahrzeug-hirsch-quer
+    path: streuwerk/media/fahrzeuge/hirsch-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Hirsch (Panzerhaubitze) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-hirsch-clip
+    path: streuwerk/media/clips/hirsch.mp4
+    kind: recording
+    poster: streuwerk/media/clips/hirsch.png
+    seconds: 3
+    alt: "Hirsch auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-dachs
+    path: streuwerk/media/fahrzeuge/dachs.png
+    kind: photo
+    size: [864, 864]
+    alt: "Dachs (Schützenpanzer mit 35-mm-Kanone) von oben in Oliv, freigestellt."
+  - id: fahrzeug-dachs-quer
+    path: streuwerk/media/fahrzeuge/dachs-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Dachs (Schützenpanzer mit 35-mm-Kanone) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-dachs-clip
+    path: streuwerk/media/clips/dachs.mp4
+    kind: recording
+    poster: streuwerk/media/clips/dachs.png
+    seconds: 3
+    alt: "Dachs auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-igel
+    path: streuwerk/media/fahrzeuge/igel.png
+    kind: photo
+    size: [864, 864]
+    alt: "Igel (Raketenwerfer) von oben in Oliv, freigestellt."
+  - id: fahrzeug-igel-quer
+    path: streuwerk/media/fahrzeuge/igel-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Igel (Raketenwerfer) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-igel-clip
+    path: streuwerk/media/clips/igel.mp4
+    kind: recording
+    poster: streuwerk/media/clips/igel.png
+    seconds: 3
+    alt: "Igel auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: fahrzeug-wolf
+    path: streuwerk/media/fahrzeuge/wolf.png
+    kind: photo
+    size: [864, 864]
+    alt: "Wolf (schwerster Kampfpanzer) von oben in Oliv, freigestellt."
+  - id: fahrzeug-wolf-quer
+    path: streuwerk/media/fahrzeuge/wolf-quer.png
+    kind: photo
+    size: [864, 864]
+    alt: "Wolf (schwerster Kampfpanzer) von oben, quer nach rechts fahrend, freigestellt."
+  - id: fahrzeug-wolf-clip
+    path: streuwerk/media/clips/wolf.mp4
+    kind: recording
+    poster: streuwerk/media/clips/wolf.png
+    seconds: 3
+    alt: "Wolf auf dunklem Oliv schwenkt den Turm und feuert einmal."
+  - id: kiste-reparatur
+    path: streuwerk/media/kisten/repair.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Reparatur, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-nebel
+    path: streuwerk/media/kisten/smoke.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Nebelwerfer, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-schnellfeuer
+    path: streuwerk/media/kisten/rapidFire.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Schnellfeuer, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-schild
+    path: streuwerk/media/kisten/shield.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Schild, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-minen
+    path: streuwerk/media/kisten/mines.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Minen, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-artillerie
+    path: streuwerk/media/kisten/artillery.png
+    kind: photo
+    size: [600, 600]
+    alt: "Kiste Artillerie, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-munition
+    path: streuwerk/media/kisten/ammo.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Munition, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-granatwerfer
+    path: streuwerk/media/kisten/grenades.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Granatwerfer, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-drohne
+    path: streuwerk/media/kisten/drone.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Drohne, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-moerser
+    path: streuwerk/media/kisten/mortar.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Mörser, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-infanterie
+    path: streuwerk/media/kisten/infantry.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Infanterie, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-fallschirmjaeger
+    path: streuwerk/media/kisten/paratroopers.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Fallschirmjäger, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-kanister
+    path: streuwerk/media/kisten/fuel.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Kanister, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-jagddrohne
+    path: streuwerk/media/kisten/hunterDrone.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Jagddrohne, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: kiste-luftschlag
+    path: streuwerk/media/kisten/airstrike.png
+    kind: photo
+    size: [600, 600]
+    alt: "Gem Luftschlag, wie sie im Gefecht auf dem Feld liegt, freigestellt."
+  - id: karte-wald
+    path: streuwerk/media/karten/wald.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Wald ganz von oben als runder Ausschnitt."
+  - id: gelaende-wald-4x5
+    path: streuwerk/media/gelaende/wald-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Wald von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-wald-9x16
+    path: streuwerk/media/gelaende/wald-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Wald von oben, Bäume und Gebäude, randlos."
+  - id: karte-wueste
+    path: streuwerk/media/karten/wueste.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Wüste ganz von oben als runder Ausschnitt."
+  - id: gelaende-wueste-4x5
+    path: streuwerk/media/gelaende/wueste-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Wüste von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-wueste-9x16
+    path: streuwerk/media/gelaende/wueste-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Wüste von oben, Bäume und Gebäude, randlos."
+  - id: karte-winter
+    path: streuwerk/media/karten/winter.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Winter ganz von oben als runder Ausschnitt."
+  - id: gelaende-winter-4x5
+    path: streuwerk/media/gelaende/winter-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Winter von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-winter-9x16
+    path: streuwerk/media/gelaende/winter-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Winter von oben, Bäume und Gebäude, randlos."
+  - id: karte-stadt
+    path: streuwerk/media/karten/stadt.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Stadt ganz von oben als runder Ausschnitt."
+  - id: gelaende-stadt-4x5
+    path: streuwerk/media/gelaende/stadt-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Stadt von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-stadt-9x16
+    path: streuwerk/media/gelaende/stadt-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Stadt von oben, Bäume und Gebäude, randlos."
+  - id: karte-bergwald
+    path: streuwerk/media/karten/bergwald.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Bergwald ganz von oben als runder Ausschnitt."
+  - id: gelaende-bergwald-4x5
+    path: streuwerk/media/gelaende/bergwald-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Bergwald von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-bergwald-9x16
+    path: streuwerk/media/gelaende/bergwald-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Bergwald von oben, Bäume und Gebäude, randlos."
+  - id: karte-inseln
+    path: streuwerk/media/karten/inseln.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Karte Inseln mit Brücken ganz von oben als runder Ausschnitt."
+  - id: gelaende-inseln-4x5
+    path: streuwerk/media/gelaende/inseln-4x5.png
+    kind: photo
+    size: [1080, 1350]
+    alt: "Ausschnitt der Karte Inseln mit Brücken von oben, Bäume und Gebäude, randlos."
+  - id: gelaende-inseln-9x16
+    path: streuwerk/media/gelaende/inseln-9x16.png
+    kind: photo
+    size: [1080, 1920]
+    alt: "Ausschnitt der Karte Inseln mit Brücken von oben, Bäume und Gebäude, randlos."
+  - id: karte-verteidigung
+    path: streuwerk/media/karten/verteidigung.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Verteidigungskarte von oben als runder Ausschnitt: Straße in Schleifen, Fluss mit Brücken, rechts der Stützpunkt."
+  - id: stuetzpunkt-1
+    path: streuwerk/media/stuetzpunkt/stufe-1.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Stützpunkt Stufe 1, Wachturm, von oben, freigestellt, alle Stufen im selben Maßstab."
+  - id: stuetzpunkt-2
+    path: streuwerk/media/stuetzpunkt/stufe-2.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Stützpunkt Stufe 2, Kaserne, von oben, freigestellt, alle Stufen im selben Maßstab."
+  - id: stuetzpunkt-3
+    path: streuwerk/media/stuetzpunkt/stufe-3.png
+    kind: photo
+    size: [1080, 1080]
+    alt: "Stützpunkt Stufe 3, Festung, von oben, freigestellt, alle Stufen im selben Maßstab."

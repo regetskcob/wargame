@@ -6,27 +6,55 @@
 </head>
 <body data-type="{{type}}" class="scene">
 <div class="frame">
+  <!-- The terrain moves on the reel's clock, so it runs on across cuts. -->
+  <div class="terrain" aria-hidden="true"><div class="contours"></div><div class="dust"></div></div>
   <div class="horizon" aria-hidden="true"></div>
   <div class="progress" aria-hidden="true"></div>
 
   <section data-scene="hook" class="page hook">
+    {{#vehicle}}<div class="drive-in"><img data-field="vehicle" src="{{vehicle}}" alt=""></div>{{/vehicle}}
     <div class="body" data-safe>
-      {{#kicker}}<p class="kicker rise" data-field="kicker">{{kicker}}</p>{{/kicker}}
-      <h1 class="title xl rise d1" data-field="heading">{{heading}}</h1>
+      {{#kicker}}<p class="kicker wipe" data-field="kicker">{{kicker}}</p>{{/kicker}}
+      <h1 class="title xl wipe d1" data-field="heading">{{heading}}</h1>
     </div>
+  </section>
+
+  <section data-scene="play" class="page play">
+    <div class="screen"><img class="push" data-field="picture" src="{{picture}}" alt=""></div>
+    {{#heading}}<div class="over" data-safe><h2 class="title wipe" data-field="heading">{{heading}}</h2></div>{{/heading}}
+  </section>
+
+  <section data-scene="zoom" class="page play">
+    <div class="screen"><img class="close-in" data-field="picture" src="{{picture}}" alt=""></div>
+    <div class="reticle" aria-hidden="true"></div>
+    {{#heading}}<div class="over" data-safe><h2 class="title wipe d2" data-field="heading">{{heading}}</h2></div>{{/heading}}
+  </section>
+
+  <section data-scene="clip" class="page play">
+    <div class="screen"><video data-field="clip" src="{{clip}}" muted playsinline preload="auto"></video></div>
+    {{#heading}}<div class="over" data-safe><h2 class="title wipe" data-field="heading">{{heading}}</h2></div>{{/heading}}
+  </section>
+
+  <section data-scene="showcase" class="page showcase">
+    <div class="copy" data-safe>
+      {{#kicker}}<p class="kicker wipe" data-field="kicker">{{kicker}}</p>{{/kicker}}
+      <h2 class="title wipe d1" data-field="heading">{{heading}}</h2>
+    </div>
+    <div class="stage"><img class="float" data-field="item" src="{{item}}" alt=""></div>
+    {{#note}}<div class="note-wrap" data-safe><p class="note rise d2" data-field="note">{{note}}</p></div>{{/note}}
   </section>
 
   <section data-scene="shot" class="page shot">
     <div class="copy" data-safe>
-      <h2 class="title rise" data-field="heading">{{heading}}</h2>
+      <h2 class="title wipe" data-field="heading">{{heading}}</h2>
     </div>
-    <div class="phone zoom" data-safe><img data-field="picture" src="{{picture}}" alt=""></div>
+    <div class="phone" data-safe><img data-field="picture" src="{{picture}}" alt=""></div>
     {{#note}}<div class="note-wrap" data-safe><p class="note rise d2" data-field="note">{{note}}</p></div>{{/note}}
   </section>
 
   <section data-scene="points" class="page points">
     <div class="body" data-safe>
-      <h2 class="title rise" data-field="heading">{{heading}}</h2>
+      <h2 class="title wipe" data-field="heading">{{heading}}</h2>
       <ul class="items stagger" data-field="points">{{#points}}<li>{{.}}</li>{{/points}}</ul>
     </div>
   </section>
@@ -34,7 +62,7 @@
   <section data-scene="end" class="page end">
     <div class="body" data-safe>
       <img class="glyph big rise" src="images/glyph.svg" alt="">
-      <h2 class="title rise d1" data-field="end_title">{{end_title}}</h2>
+      <h2 class="title wipe d1" data-field="end_title">{{end_title}}</h2>
       {{#end_text}}<p class="text rise d2" data-field="end_text">{{end_text}}</p>{{/end_text}}
       <p class="url mono rise d3">panzergefecht.de</p>
     </div>
