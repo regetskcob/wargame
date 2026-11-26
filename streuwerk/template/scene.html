@@ -40,7 +40,10 @@
       {{#kicker}}<p class="kicker wipe" data-field="kicker">{{kicker}}</p>{{/kicker}}
       <h2 class="title wipe d1" data-field="heading">{{heading}}</h2>
     </div>
-    <div class="stage"><img class="float" data-field="item" src="{{item}}" alt=""></div>
+    <div class="stage">
+      {{#item}}<img class="float" data-field="item" src="{{item}}" alt="">{{/item}}
+      {{#piece}}<video class="float" data-field="piece" src="{{piece}}" muted playsinline preload="auto"></video>{{/piece}}
+    </div>
     {{#note}}<div class="note-wrap" data-safe><p class="note rise d2" data-field="note">{{note}}</p></div>{{/note}}
   </section>
 

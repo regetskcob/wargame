@@ -89,13 +89,19 @@ class Env {
   static const shots = bool.fromEnvironment('SHOTS');
   static const shotWave = int.fromEnvironment('SHOT_WAVE', defaultValue: 3);
 
+  /// A CPU brain drives the own tank of a screenshot build, so a scene can
+  /// be filmed as a round that is played (tool/streuwerk/record_scenes.sh)
+  /// instead of a tank that stands still. Only with [shots].
+  static const shotDrive = bool.fromEnvironment('SHOT_DRIVE');
+
   /// Draws both touch sticks held over to one side while nobody touches
   /// them, for the picture of the controls. The battle and the phone
   /// controller scenes of tool/store_shots.sh pose them as well.
   static bool get shotSticks =>
-      const bool.fromEnvironment('SHOT_STICKS') ||
-      shotScene == 'battle' ||
-      shotScene == 'pad';
+      !shotDrive &&
+      (const bool.fromEnvironment('SHOT_STICKS') ||
+          shotScene == 'battle' ||
+          shotScene == 'pad');
 
   /// The scene tool/store_shots.sh asks a screenshot build for, passed as
   /// a launch argument (`-SHOT_SCENE battle`), which iOS, tvOS and macOS
