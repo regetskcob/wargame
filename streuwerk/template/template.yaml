@@ -4,7 +4,7 @@
 # yellow only for the one accent, Mona Sans, every number in Monaspace.
 # House rules: no prices or paid packs, never "free", no real armies or flags.
 name: panzergefecht
-version: 2.1.0
+version: 2.1.1
 description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Literata-Überschriften wie auf panzergefecht.de, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 beginnen in Bewegung, mit Spielszenen groß im Bild statt im Handyrahmen, Zoom auf den eigenen Panzer, Fahrzeuge und Kisten aus den echten Spielgrafiken auf bewegtem Oliv-Gelände. Kein Text in Versalien, Untertitel in einem eigenen Band unter dem Bild.
 
 formats: [image, reel]
@@ -90,7 +90,7 @@ scenes:
     seconds: 5
     fields:
       heading: {type: text, max: 44}
-      clip: {type: video, required: true}
+      clip: {type: video, aspect: "5:6", required: true}
   # One piece of the game big on the terrain: a vehicle, a crate, a base
   # stage or a round map (media:fahrzeug-*, kiste-*, stuetzpunkt-*, karte-*),
   # or instead of the picture a short square clip of a vehicle
@@ -101,7 +101,7 @@ scenes:
       kicker: {type: text, max: 32}
       heading: {type: text, max: 44, required: true}
       item: {type: image, aspect: "1:1"}
-      piece: {type: video}
+      piece: {type: video, aspect: "1:1"}
       note: {type: text, max: 70}
   # The phone with a screenshot, for menus and the controller. Several shot
   # scenes in a row keep the phone in the same place; only the screen changes.
