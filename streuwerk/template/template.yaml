@@ -4,8 +4,8 @@
 # yellow only for the one accent, Mona Sans, every number in Monaspace.
 # House rules: no prices or paid packs, never "free", no real armies or flags.
 name: panzergefecht
-version: 1.2.0
-description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Literata-Überschriften wie auf panzergefecht.de, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 mit Screenshots aus dem Spiel.
+version: 2.0.0
+description: Panzergefecht im Horizont-Look. Dunkles Oliv mit Haarlinien, Signalgelb als einziger Akzent, Literata-Überschriften wie auf panzergefecht.de, Mona Sans und Monaspace. Karussell- und Einzelbilder 4:5, Reels 9:16 beginnen in Bewegung, mit Spielszenen groß im Bild statt im Handyrahmen, Zoom auf den eigenen Panzer, Fahrzeuge und Kisten aus den echten Spielgrafiken auf bewegtem Oliv-Gelände. Kein Text in Versalien, Untertitel in einem eigenen Band unter dem Bild.
 
 formats: [image, reel]
 
@@ -56,12 +56,52 @@ slides:
       text: {type: text, max: 120}
       cta: {type: text, max: 32}
 
+# Reels start moving in their first frame and never with a still text
+# card. Every scene sits on the same drifting terrain, timed against the reel
+# (not the scene), so cuts between scenes do not jump. Subtitles have their
+# own band under the picture (style.css, .sw-subtitles), never over it.
 scenes:
+  # Opening: a vehicle (media:fahrzeug-<name>-quer) rolls in over the
+  # terrain while the line is written in. Without a vehicle the terrain moves.
   hook:
     seconds: 2.5
     fields:
       kicker: {type: text, max: 32}
       heading: {type: text, max: 56, required: true}
+      vehicle: {type: image, aspect: "1:1"}
+  # Gameplay large: a full-screen shot without frame (16:9, the TV shots
+  # media:tv-*, not the framed phone store pictures) fills the picture,
+  # cut to its middle, and slowly pushes in. The camera follows the player's
+  # tank, so it sits in the middle.
+  play:
+    seconds: 4
+    fields:
+      heading: {type: text, max: 44}
+      picture: {type: image, aspect: "16:9", required: true}
+  # Like play, but zooms from the whole screen into the middle, onto the
+  # player's tank and what is around it.
+  zoom:
+    seconds: 4
+    fields:
+      heading: {type: text, max: 44}
+      picture: {type: image, aspect: "16:9", required: true}
+  # A recording large, e.g. a screencast of a round.
+  clip:
+    seconds: 5
+    fields:
+      heading: {type: text, max: 44}
+      clip: {type: video, aspect: "9:16", required: true}
+  # One piece of the game big on the terrain: a vehicle, a crate, a base
+  # stage or a round map (media:fahrzeug-*, kiste-*, stuetzpunkt-*, karte-*).
+  showcase:
+    seconds: 3.5
+    fields:
+      kicker: {type: text, max: 32}
+      heading: {type: text, max: 44, required: true}
+      item: {type: image, aspect: "1:1", required: true}
+      note: {type: text, max: 70}
+  # The phone with a screenshot, for menus and the controller. Several shot
+  # scenes in a row keep the phone in the same place; only the screen changes.
   shot:
     seconds: 4
     fields:
