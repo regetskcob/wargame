@@ -16,8 +16,8 @@ Daniel's rules for reels, which the scenes are built for:
   rolls a vehicle in and writes the line, the terrain drifts behind every
   scene on the reel's clock, so cuts do not jump.
 - No capitals for effect: kickers and headings in sentence case.
-- No burned-in subtitles over the game: `play`, `zoom` and `clip` end at
-  1290px, the subtitles sit in their own band below.
+- No burned-in subtitles over the game: with subtitles `play`, `zoom` and
+  `clip` end at 1290px, the subtitles sit in their own band below.
 - Gameplay large, not in a tiny phone: `play` (full width, slow push-in,
   from a full-screen shot without frame such as `media:tv-gefecht`),
   `zoom` (from the whole screen onto the player's tank in the middle, where
@@ -26,10 +26,10 @@ Daniel's rules for reels, which the scenes are built for:
 - `showcase` puts one piece of the game on the terrain: a vehicle, a crate,
   a base stage or a round map from `../media/` (see `media.yaml`), or in
   `piece` a vehicle's square clip instead of the picture.
-- The game's box ends at 1290px above the subtitle band, so the zooms and
-  recordings crop more at the bottom than at the top: the own tank in the
-  middle of a screenshot or recording lands under the heading, not in the
-  upper third.
+- The game fills the whole picture; only with burned-in subtitles it ends
+  at 1290px above their band, and then the zooms and recordings crop more at
+  the bottom, so the own tank stays under the heading, not in the upper
+  third.
 
 Recordings of played rounds (battle, defense, room, phone controller) come
 from `tool/streuwerk/record_scenes.sh`: a screenshot build with
