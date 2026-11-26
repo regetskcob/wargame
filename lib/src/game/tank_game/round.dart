@@ -519,6 +519,12 @@ extension TankGameRound on TankGame {
     if (!overview.value) {
       camera.follow(tank, snap: true);
     }
+    if (Env.shots && Env.shotDrive) {
+      // The brain writes into the touch input the own tank reads.
+      final brain = BotBrain(tank: tank, controls: touch);
+      _extras.add(brain);
+      world.add(brain);
+    }
     return tank;
   }
 

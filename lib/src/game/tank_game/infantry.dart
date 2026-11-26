@@ -317,7 +317,9 @@ extension TankGameInfantry on TankGame {
       _showGain(soldier.position, gain);
     }
     final at = soldier.position.clone();
-    soldierField?.addSplat(at, stableHash(soldier.tag));
+    // Store pictures and social clips show no blood (house rule of the
+    // posts), so a screenshot build leaves the stain out.
+    if (!Env.shots) soldierField?.addSplat(at, stableHash(soldier.tag));
     soldier.removeFromParent();
     world.add(
       puff(
