@@ -72,6 +72,21 @@ media:
     kind: photo
     size: [1080, 1080]
     alt: Panzergefecht auf Mac, iPad und iPhone, jeweils die Verteidigung mit Geschützen am Stützpunkt.
+  - id: devices-trio-verteidigung-1x1-frei
+    path: streuwerk/media/devices/trio-verteidigung-1x1-frei.png
+    kind: photo
+    size: [1080, 1080]
+    alt: Panzergefecht auf Mac, iPad und iPhone, jeweils die Verteidigung, freigestellt ohne Hintergrund.
+  - id: devices-trio-gefecht-4x5-frei
+    path: streuwerk/media/devices/trio-gefecht-4x5-frei.png
+    kind: photo
+    size: [1080, 1350]
+    alt: Panzergefecht auf Mac, iPad und iPhone mitten in einem Gefecht, freigestellt ohne Hintergrund.
+  - id: devices-trio-gefecht-16x9-frei
+    path: streuwerk/media/devices/trio-gefecht-16x9-frei.png
+    kind: photo
+    size: [1920, 1080]
+    alt: Panzergefecht auf Mac, iPad und iPhone im Querformat, ein Gefecht in der Stadt, freigestellt ohne Hintergrund.
   - id: devices-trio-gefecht-16x9
     path: streuwerk/media/devices/trio-gefecht-16x9.png
     kind: photo
