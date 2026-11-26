@@ -224,11 +224,19 @@ body[data-type^="hero"] .horizon { display: none; }
 @keyframes roll { from { transform: translateX(-1100px); } to { transform: translateX(0); } }
 .scene .hook .body { margin-top: auto; margin-bottom: 0; }
 
-/* Play, zoom, clip: the game fills the picture from the top to 1290px. */
+/* Play, zoom, clip: the game fills the whole picture. With burned-in
+   subtitles (Streuwerk adds .sw-subtitles only then) it ends at 1290px
+   above their band. A box that always ended there left the lower third of
+   reels without subtitles empty and the map too high. */
 .scene .play { padding: 0; }
 .screen {
-  position: absolute; left: 0; right: 0; top: 0; height: 1290px; overflow: hidden;
+  position: absolute; left: 0; right: 0; top: 0; height: 1920px; overflow: hidden;
   background: var(--sunken);
+  -webkit-mask-image: linear-gradient(#000 88%, transparent);
+  mask-image: linear-gradient(#000 88%, transparent);
+}
+body:has(.sw-subtitles) .screen {
+  height: 1290px;
   -webkit-mask-image: linear-gradient(#000 82%, transparent);
   mask-image: linear-gradient(#000 82%, transparent);
 }
@@ -238,25 +246,32 @@ body[data-type^="hero"] .horizon { display: none; }
 }
 .screen img, .screen video { width: 100%; height: 100%; object-fit: cover; display: block; }
 /* Zooms crop inside the image (object-view-box) instead of scaling it, so
-   the field keeps its box and never reaches the subtitle band. The box ends
-   at 1290px, so a centred view put the own tank (the middle of every
-   screenshot and recording) into the upper third of the reel. The views
-   crop more at the bottom than at the top, which brings the middle of the
-   picture down to about 880px, under the heading and above the band. */
+   the field keeps its box and never reaches the subtitle band. In the full
+   box they stay centred on the own tank (the middle of every screenshot and
+   recording). In the short box with subtitles a centred view would put it
+   into the upper third, so there they crop more at the bottom, which brings
+   the middle down to about 880px. */
 .push { animation: push 4s linear both; }
-@keyframes push { from { object-view-box: inset(2% 4% 14% 4%); } to { object-view-box: inset(6% 10% 24% 10%); } }
+@keyframes push { from { object-view-box: inset(2% 2% 2% 2%); } to { object-view-box: inset(8% 8% 8% 8%); } }
 .close-in { animation: close-in 4s cubic-bezier(.5,0,.2,1) both; }
 @keyframes close-in {
+  0%, 18% { object-view-box: inset(0% 0% 0% 0%); }
+  100% { object-view-box: inset(28% 28% 28% 28%); }
+}
+body:has(.sw-subtitles) .push { animation-name: push-low; }
+@keyframes push-low { from { object-view-box: inset(2% 4% 14% 4%); } to { object-view-box: inset(6% 10% 24% 10%); } }
+body:has(.sw-subtitles) .close-in { animation-name: close-in-low; }
+@keyframes close-in-low {
   0%, 18% { object-view-box: inset(0% 0% 20% 0%); }
   100% { object-view-box: inset(20% 28% 36% 28%); }
 }
-/* A recording: the own tank in its middle sits lower, as in the zooms. */
-.screen video { object-view-box: inset(0% 0% 24% 0%); }
+body:has(.sw-subtitles) .screen video { object-view-box: inset(0% 0% 24% 0%); }
 .reticle {
-  position: absolute; left: 50%; top: 880px; width: 300px; height: 300px; margin: -150px 0 0 -150px;
+  position: absolute; left: 50%; top: 960px; width: 300px; height: 300px; margin: -150px 0 0 -150px;
   border: 3px solid var(--accent); border-radius: 50%; z-index: 2;
   animation: lock 4s ease-out both;
 }
+body:has(.sw-subtitles) .reticle { top: 880px; }
 @keyframes lock {
   0%, 55% { opacity: 0; transform: scale(1.8); }
   75%, 100% { opacity: .9; transform: scale(1); }
@@ -275,6 +290,9 @@ body[data-type="clip"] .horizon { display: none; }
 .showcase .copy { display: flex; flex-direction: column; gap: 20px; }
 .stage { position: absolute; left: 0; right: 0; top: 500px; height: 780px; display: flex; justify-content: center; align-items: center; }
 .stage img, .stage video { width: 760px; height: 760px; object-fit: contain; }
+/* A vehicle clip is drawn on dark olive, not transparent: lighten lets the
+   terrain show through its ground, so no square stands on the stage. */
+.stage video { mix-blend-mode: lighten; }
 .float { animation: float 3.5s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes float {
   from { opacity: 0; transform: scale(.7) rotate(-14deg); }
