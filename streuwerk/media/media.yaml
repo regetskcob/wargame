@@ -82,7 +82,7 @@ media:
     kind: screenshot
     device: phone
     size: [1080, 1350]
-    alt: iPhone mit einem Gefecht: links fahren, rechts zielen.
+    alt: "iPhone mit einem Gefecht: links fahren, rechts zielen."
   - id: devices-iphone-modi
     path: streuwerk/media/devices/iphone-modi.png
     kind: screenshot
