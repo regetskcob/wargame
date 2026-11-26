@@ -290,6 +290,9 @@ body[data-type="clip"] .horizon { display: none; }
 .showcase .copy { display: flex; flex-direction: column; gap: 20px; }
 .stage { position: absolute; left: 0; right: 0; top: 500px; height: 780px; display: flex; justify-content: center; align-items: center; }
 .stage img, .stage video { width: 760px; height: 760px; object-fit: contain; }
+/* A vehicle clip is drawn on dark olive, not transparent: lighten lets the
+   terrain show through its ground, so no square stands on the stage. */
+.stage video { mix-blend-mode: lighten; }
 .float { animation: float 3.5s cubic-bezier(.2,.7,.2,1) both; }
 @keyframes float {
   from { opacity: 0; transform: scale(.7) rotate(-14deg); }
